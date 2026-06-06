@@ -1,0 +1,72 @@
+package com.balatromp.engine.state;
+
+import com.balatromp.engine.card.Card;
+import com.balatromp.engine.hand.HandType;
+import com.balatromp.engine.joker.Joker;
+import com.balatromp.engine.rng.RandomStreams;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Authoritative per-player run state. Everything here is server-owned; the
+ * client receives only the visible projection (spec §7/§8). Joker state is keyed
+ * by instance identity so two copies of the same joker scale independently.
+ */
+public final class RunState {
+
+    public int money = 4;
+    public int handsLeft = 4;
+    public int discardsLeft = 3;
+    public int ante = 1;
+    public int handSize = 8;
+    public long roundScore = 0;
+
+    // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
+    public int probabilityNumerator = 1;
+
+    public final List<Card> hand = new ArrayList<>();
+    public Deck deck;
+    public RandomStreams rng;
+
+    public RandomStreams rng() {
+        return rng;
+    }
+
+    private final List<Joker> jokers = new ArrayList<>();
+    private final Map<HandType, Integer> handLevels = new EnumMap<>(HandType.class);
+    private final IdentityHashMap<Joker, Map<String, Object>> jokerStates = new IdentityHashMap<>();
+
+    public List<Joker> jokers() {
+        return jokers;
+    }
+
+    public void addJoker(Joker j) {
+        jokers.add(j);
+    }
+
+    public int handLevel(HandType t) {
+        return handLevels.getOrDefault(t, 1);
+    }
+
+    public void setHandLevel(HandType t, int level) {
+        handLevels.put(t, level);
+    }
+
+    // Hand-level scaling beyond level 1 is a TODO (Planet cards); level 1 => no bonus.
+    public int handLevelChipBonus(HandType t) {
+        return 0;
+    }
+
+    public int handLevelMultBonus(HandType t) {
+        return 0;
+    }
+
+    /** Persistent server-only state bag for a specific joker instance. */
+    public Map<String, Object> jokerState(Joker j) {
+        return jokerStates.computeIfAbsent(j, k -> new HashMap<>());
+    }
+}

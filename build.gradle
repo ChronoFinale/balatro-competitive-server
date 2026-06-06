@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+application {
+    // Runnable self-test / demo entry point for the authoritative engine core.
+    mainClass = 'com.balatromp.engine.SelfTest'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // No runtime deps yet — the engine core is pure JDK so it stays trivially
+    // portable and the self-test runs with only a JDK. JUnit can be added later
+    // when SelfTest is split into proper test classes.
+}
+
+tasks.named('run') {
+    standardOutput = System.out
+}
