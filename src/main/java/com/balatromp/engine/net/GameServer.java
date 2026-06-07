@@ -43,44 +43,44 @@ public final class GameServer implements AutoCloseable {
 
     public GameServer(Ruleset ruleset) {
         this.ruleset = ruleset;
-        this.app = Javalin.create(cfg -> {
-            cfg.showJavalinBanner = false;
-            cfg.staticFiles.add("/public", Location.CLASSPATH); // the web client at "/"
-        });
-
-        // Optional real card sprites: drop Balatro's atlases in ./web-assets
-        // (git-ignored, not shipped). The client uses them if present, else CSS.
+        // Javalin 7: routes/ws/static are configured upfront in the create() block.
         java.io.File assetsDir = new java.io.File("web-assets").getAbsoluteFile();
-        app.get("/assets/{name}", ctx -> {
-            java.io.File f = new java.io.File(assetsDir, ctx.pathParam("name"));
-            if (assetsDir.equals(f.getParentFile()) && f.isFile()) {
-                if (f.getName().endsWith(".webp")) ctx.contentType("image/webp");
-                else if (f.getName().endsWith(".png")) ctx.contentType("image/png");
-                ctx.result(java.nio.file.Files.readAllBytes(f.toPath()));
-            } else {
-                ctx.status(404);
-            }
-        });
+        this.app = Javalin.create(cfg -> {
+            cfg.staticFiles.add("/public", Location.CLASSPATH); // the web client at "/"
 
-        // --- auth: issue a session token (dev: any username; later: Steam ticket) ---
-        app.post("/login", ctx -> {
-            JsonNode body = json.readTree(ctx.body());
-            String username = body.path("username").asText("");
-            if (username.isBlank()) {
-                ctx.status(400).json(Map.of("error", "username required"));
-                return;
-            }
-            ctx.json(Map.of("token", auth.issue(username), "playerId", username));
-        });
+            // Optional real card sprites: drop Balatro's atlases in ./web-assets
+            // (git-ignored, not shipped). The client uses them if present, else CSS.
+            cfg.routes.get("/assets/{name}", ctx -> {
+                java.io.File f = new java.io.File(assetsDir, ctx.pathParam("name"));
+                if (assetsDir.equals(f.getParentFile()) && f.isFile()) {
+                    if (f.getName().endsWith(".webp")) ctx.contentType("image/webp");
+                    else if (f.getName().endsWith(".png")) ctx.contentType("image/png");
+                    ctx.result(java.nio.file.Files.readAllBytes(f.toPath()));
+                } else {
+                    ctx.status(404);
+                }
+            });
 
-        // --- game socket ---
-        app.ws("/game", ws -> {
-            ws.onMessage(this::onMessage);
-            ws.onClose(ctx -> {
-                players.remove(ctx.sessionId());
-                ctxs.remove(ctx.sessionId());
-                runs.remove(ctx.sessionId());
-                matchBySession.remove(ctx.sessionId());
+            // Auth: issue a session token (dev: any username; later: Steam ticket).
+            cfg.routes.post("/login", ctx -> {
+                JsonNode body = json.readTree(ctx.body());
+                String username = body.path("username").asText("");
+                if (username.isBlank()) {
+                    ctx.status(400).json(Map.of("error", "username required"));
+                    return;
+                }
+                ctx.json(Map.of("token", auth.issue(username), "playerId", username));
+            });
+
+            // Game socket.
+            cfg.routes.ws("/game", ws -> {
+                ws.onMessage(this::onMessage);
+                ws.onClose(ctx -> {
+                    players.remove(ctx.sessionId());
+                    ctxs.remove(ctx.sessionId());
+                    runs.remove(ctx.sessionId());
+                    matchBySession.remove(ctx.sessionId());
+                });
             });
         });
     }
