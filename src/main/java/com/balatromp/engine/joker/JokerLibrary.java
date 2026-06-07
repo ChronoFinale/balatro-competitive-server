@@ -35,6 +35,19 @@ public final class JokerLibrary {
         register(Constellation::new);
     }
 
+    /**
+     * The curated, hand-coded joker keys — the default competitive shop pool,
+     * captured once at class init so later {@link #registerDef} calls (custom
+     * builder jokers) never leak into the standard shop or perturb its
+     * determinism. Custom jokers enter a shop only when a ruleset's pool opts
+     * them in.
+     */
+    private static final java.util.List<String> BUILTIN_KEYS = java.util.List.copyOf(REGISTRY.keySet());
+
+    public static java.util.List<String> builtinKeys() {
+        return BUILTIN_KEYS;
+    }
+
     private static void register(Supplier<Joker> factory) {
         REGISTRY.put(factory.get().key(), factory);
     }

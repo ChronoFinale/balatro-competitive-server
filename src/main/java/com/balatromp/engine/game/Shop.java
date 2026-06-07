@@ -44,7 +44,7 @@ public final class Shop {
     }
 
     public static Shop generate(RandomStreams rng, String streamKey, int slots) {
-        List<String> jokerKeys = new ArrayList<>(JokerLibrary.registry().keySet());
+        List<String> jokerKeys = new ArrayList<>(JokerLibrary.builtinKeys());
         var r = rng.stream(streamKey);
         List<Item> items = new ArrayList<>();
         for (int i = 0; i < slots; i++) {

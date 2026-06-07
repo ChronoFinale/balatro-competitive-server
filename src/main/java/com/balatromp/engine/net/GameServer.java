@@ -3,6 +3,9 @@ package com.balatromp.engine.net;
 import com.balatromp.engine.game.Match;
 import com.balatromp.engine.game.Run;
 import com.balatromp.engine.intent.Intent;
+import com.balatromp.engine.joker.def.BuilderSchema;
+import com.balatromp.engine.joker.def.CustomJokerStore;
+import com.balatromp.engine.joker.def.JokerDef;
 import com.balatromp.engine.state.Ruleset;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +34,7 @@ public final class GameServer implements AutoCloseable {
 
     private final Javalin app;
     private final Ruleset ruleset;
+    private final CustomJokerStore jokerStore;
     private final AuthService auth = new AuthService();
     private final ObjectMapper json = new ObjectMapper();
 
@@ -42,7 +46,14 @@ public final class GameServer implements AutoCloseable {
     private final Set<String> activeCodes = ConcurrentHashMap.newKeySet();
 
     public GameServer(Ruleset ruleset) {
+        this(ruleset, new CustomJokerStore(
+                new java.io.File("web-assets/custom-jokers").getAbsoluteFile().toPath()));
+    }
+
+    public GameServer(Ruleset ruleset, CustomJokerStore jokerStore) {
         this.ruleset = ruleset;
+        this.jokerStore = jokerStore;
+        jokerStore.loadAll(); // register any previously-authored custom jokers
         // Javalin 7: routes/ws/static are configured upfront in the create() block.
         java.io.File assetsDir = new java.io.File("web-assets").getAbsoluteFile();
         this.app = Javalin.create(cfg -> {
@@ -56,6 +67,50 @@ public final class GameServer implements AutoCloseable {
                     if (f.getName().endsWith(".webp")) ctx.contentType("image/webp");
                     else if (f.getName().endsWith(".png")) ctx.contentType("image/png");
                     ctx.result(java.nio.file.Files.readAllBytes(f.toPath()));
+                } else {
+                    ctx.status(404);
+                }
+            });
+
+            // ---- Joker builder: define a joker as data, persist + register it ----
+
+            // The building-block vocabulary the builder UI renders (driven by real enums).
+            cfg.routes.get("/jokers/schema", ctx -> ctx.json(BuilderSchema.build()));
+
+            // List every custom joker authored so far.
+            cfg.routes.get("/jokers", ctx -> ctx.json(jokerStore.all()));
+
+            // Create/replace a custom joker from a JokerDef JSON body.
+            cfg.routes.post("/jokers", ctx -> {
+                try {
+                    JokerDef def = json.readValue(ctx.body(), JokerDef.class);
+                    ctx.json(jokerStore.save(def));
+                } catch (IllegalArgumentException e) {
+                    ctx.status(400).json(Map.of("error", e.getMessage()));
+                } catch (Exception e) {
+                    ctx.status(400).json(Map.of("error", "invalid joker definition: " + e.getMessage()));
+                }
+            });
+
+            // Upload a sprite (raw PNG body) for an existing joker; scale = 1 or 2.
+            cfg.routes.post("/jokers/{key}/sprite/{scale}", ctx -> {
+                try {
+                    JokerDef updated = jokerStore.saveSprite(
+                            ctx.pathParam("key"),
+                            Integer.parseInt(ctx.pathParam("scale")),
+                            ctx.bodyAsBytes());
+                    ctx.json(updated);
+                } catch (IllegalArgumentException e) { // incl. NumberFormatException
+                    ctx.status(400).json(Map.of("error", String.valueOf(e.getMessage())));
+                }
+            });
+
+            // Serve uploaded custom sprites (traversal-safe, under the store dir).
+            cfg.routes.get("/custom/{name}", ctx -> {
+                java.nio.file.Path f = jokerStore.resolveAsset(ctx.pathParam("name"));
+                if (f != null && java.nio.file.Files.isRegularFile(f)) {
+                    if (f.toString().endsWith(".png")) ctx.contentType("image/png");
+                    ctx.result(java.nio.file.Files.readAllBytes(f));
                 } else {
                     ctx.status(404);
                 }
