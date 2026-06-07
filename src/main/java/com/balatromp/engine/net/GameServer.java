@@ -1,5 +1,6 @@
 package com.balatromp.engine.net;
 
+import com.balatromp.engine.game.Match;
 import com.balatromp.engine.game.Run;
 import com.balatromp.engine.intent.Intent;
 import com.balatromp.engine.state.Ruleset;
@@ -11,7 +12,9 @@ import io.javalin.websocket.WsMessageContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Transport adapter: WebSocket (Javalin/Jetty) + JSON (Jackson) + JWT auth,
@@ -30,8 +33,12 @@ public final class GameServer implements AutoCloseable {
     private final AuthService auth = new AuthService();
     private final ObjectMapper json = new ObjectMapper();
 
-    private final Map<String, String> players = new ConcurrentHashMap<>(); // sessionId -> playerId
-    private final Map<String, Run> runs = new ConcurrentHashMap<>();       // sessionId -> run
+    private final Map<String, String> players = new ConcurrentHashMap<>();   // sessionId -> playerId
+    private final Map<String, WsContext> ctxs = new ConcurrentHashMap<>();   // sessionId -> socket (for push)
+    private final Map<String, Run> runs = new ConcurrentHashMap<>();         // sessionId -> solo run
+    private final Map<String, Match> matchBySession = new ConcurrentHashMap<>();
+    private final Map<String, Match> pendingByCode = new ConcurrentHashMap<>();
+    private final Set<String> activeCodes = ConcurrentHashMap.newKeySet();
 
     public GameServer(Ruleset ruleset) {
         this.ruleset = ruleset;
@@ -53,7 +60,9 @@ public final class GameServer implements AutoCloseable {
             ws.onMessage(this::onMessage);
             ws.onClose(ctx -> {
                 players.remove(ctx.sessionId());
+                ctxs.remove(ctx.sessionId());
                 runs.remove(ctx.sessionId());
+                matchBySession.remove(ctx.sessionId());
             });
         });
     }
@@ -85,6 +94,7 @@ public final class GameServer implements AutoCloseable {
                     return;
                 }
                 players.put(ctx.sessionId(), playerId);
+                ctxs.put(ctx.sessionId(), ctx);
                 respond(ctx, Map.of("type", "authed", "seq", seq, "playerId", playerId));
                 return;
             }
@@ -100,8 +110,10 @@ public final class GameServer implements AutoCloseable {
                     runs.put(ctx.sessionId(), run);
                     respond(ctx, ok(seq, run));
                 }
-                case "playHand" -> apply(ctx, seq, new Intent.PlayHand(ints(msg.path("cards"))));
-                case "discard" -> apply(ctx, seq, new Intent.Discard(ints(msg.path("cards"))));
+                case "createLobby" -> createLobby(ctx, seq);
+                case "joinLobby" -> joinLobby(ctx, seq, msg.path("code").asText());
+                case "playHand" -> route(ctx, seq, new Intent.PlayHand(ints(msg.path("cards"))));
+                case "discard" -> route(ctx, seq, new Intent.Discard(ints(msg.path("cards"))));
                 case "proceed" -> {
                     Run run = runs.get(ctx.sessionId());
                     if (run == null) respond(ctx, error(seq, "no active run"));
@@ -115,6 +127,56 @@ public final class GameServer implements AutoCloseable {
         } catch (Exception e) {
             respond(ctx, error(0, "bad message: " + e.getMessage()));
         }
+    }
+
+    /** Route a play/discard to the player's match if any, else their solo run. */
+    private void route(WsMessageContext ctx, long seq, Intent intent) {
+        Match match = matchBySession.get(ctx.sessionId());
+        if (match != null) match.play(ctx.sessionId(), intent);
+        else apply(ctx, seq, intent);
+    }
+
+    private void createLobby(WsMessageContext ctx, long seq) {
+        String code = newCode();
+        String seed = Long.toHexString(System.nanoTime()) + code;
+        Match match = new Match(code, seed, ruleset, this::deliver);
+        match.setHost(ctx.sessionId(), players.get(ctx.sessionId()));
+        pendingByCode.put(code, match);
+        matchBySession.put(ctx.sessionId(), match);
+        respond(ctx, Map.of("type", "lobbyCreated", "seq", seq, "code", code));
+    }
+
+    private void joinLobby(WsMessageContext ctx, long seq, String code) {
+        Match match = pendingByCode.remove(code);
+        if (match == null) {
+            respond(ctx, error(seq, "no such lobby: " + code));
+            return;
+        }
+        matchBySession.put(ctx.sessionId(), match);
+        match.setGuestAndStart(ctx.sessionId(), players.get(ctx.sessionId())); // pushes matchStart to both
+    }
+
+    /** Transport sink the Match uses to push to either player (incl. the opponent). */
+    private void deliver(String sessionId, Object payload) {
+        WsContext c = ctxs.get(sessionId);
+        if (c == null) return;
+        try {
+            c.send(json.writeValueAsString(payload));
+        } catch (Exception ignored) {
+        }
+    }
+
+    private String newCode() {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder(5);
+            for (int i = 0; i < 5; i++) {
+                sb.append(chars.charAt(ThreadLocalRandom.current().nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (!activeCodes.add(code));
+        return code;
     }
 
     private void apply(WsMessageContext ctx, long seq, Intent intent) {

@@ -36,8 +36,8 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 (engine + network).
 
 ```
-engine ✅  triggers ✅  RNG ✅  intents ✅  run loop ✅  client/server contract ✅  WebSocket transport ✅
-next → multiplayer match coupling → shop → lobby/matchmaking → Lua client
+engine ✅  triggers ✅  RNG ✅  intents ✅  run loop ✅  contract ✅  WebSocket+JWT auth ✅  multiplayer match ✅
+next → pick/ban (ruleset draft) → shop → ranked queue/MMR → Lua client
 ```
 
 Stack: Java 25 · Gradle · **Javalin** (WebSocket + HTTP, Jetty-backed) ·
@@ -77,6 +77,16 @@ Requires JDK 25 (Gradle wrapper handles the rest).
    `{"type":"update","accepted":true,"view":{…},"replay":[…]}`.
 
 There is **no `score` field a client can send** — the server computes it.
+
+### Multiplayer (lobby + duel)
+Two authenticated players, **same seed** each round (identical cards — pure
+skill), score race, lives, first to 0 loses. The server pushes each player live
+opponent state — the first use of WebSocket server-push.
+- Host: `{"type":"createLobby"}` → `{"type":"lobbyCreated","code":"AB3KP"}`
+- Guest: `{"type":"joinLobby","code":"AB3KP"}` → both get `{"type":"matchStart",…}`
+- Play: same `playHand`/`discard` intents → you get `update`, your opponent gets
+  `opponentUpdate` (score/handsLeft/done). When both finish: `roundResult`
+  (scores + winner + lives), then `roundStart` or `matchResult`.
 
 ### Poking it manually
 ```bash
