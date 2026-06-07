@@ -17,3 +17,6 @@ Thumbs.db
 
 # Logs / scratch
 *.log
+
+# Local-only Balatro atlases (extracted game assets — never commit; see README)
+/web-assets/

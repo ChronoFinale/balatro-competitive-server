@@ -85,7 +85,7 @@
       <div class="row" id="jokers"><span class="stat">none</span></div>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="handPanel">
       <div class="stat">Hand</div>
       <div id="hand"></div>
       <div class="row" style="margin-top:12px;">
@@ -118,6 +118,15 @@ let ws, view = null, selected = new Set(), seq = 1;
 const RANK = {TWO:'2',THREE:'3',FOUR:'4',FIVE:'5',SIX:'6',SEVEN:'7',EIGHT:'8',NINE:'9',TEN:'10',JACK:'J',QUEEN:'Q',KING:'K',ACE:'A'};
 const SUIT = {SPADES:'♠',HEARTS:'♥',CLUBS:'♣',DIAMONDS:'♦'};
 const RED = new Set(['HEARTS','DIAMONDS']);
+// Balatro 8BitDeck atlas mapping (from game.lua): 13 ranks x 4 suits.
+const COL = {TWO:0,THREE:1,FOUR:2,FIVE:3,SIX:4,SEVEN:5,EIGHT:6,NINE:7,TEN:8,JACK:9,QUEEN:10,KING:11,ACE:12};
+const ROW = {HEARTS:0,CLUBS:1,DIAMONDS:2,SPADES:3};
+const CW = 62, CH = 88;
+let useSprites = false;
+const ATLAS = '/assets/8BitDeck.webp'; // present only if you dropped atlases in ./web-assets
+const atlas = new Image();
+atlas.onload = () => { useSprites = true; if (view) render(); };
+atlas.src = ATLAS;
 
 function toast(msg) {
   const t = $('toast'); t.textContent = msg; t.classList.add('show');
@@ -177,7 +186,13 @@ function render() {
   (v.hand||[]).forEach((c,i) => {
     const el = document.createElement('div');
     el.className = 'card' + (RED.has(c.suit)?' red':'') + (selected.has(i)?' sel':'');
-    el.innerHTML = `<div class="r">${RANK[c.rank]||'?'}</div><div class="s">${SUIT[c.suit]||'?'}</div>`;
+    if (useSprites) {
+      el.style.backgroundImage = `url(${ATLAS})`;
+      el.style.backgroundSize = `${13*CW}px ${4*CH}px`;
+      el.style.backgroundPosition = `-${(COL[c.rank]||0)*CW}px -${(ROW[c.suit]||0)*CH}px`;
+    } else {
+      el.innerHTML = `<div class="r">${RANK[c.rank]||'?'}</div><div class="s">${SUIT[c.suit]||'?'}</div>`;
+    }
     el.onclick = () => {
       if (selected.has(i)) selected.delete(i);
       else if (selected.size < 5) selected.add(i);
@@ -187,11 +202,12 @@ function render() {
   });
 
   const inBlind = v.phase === 'BLIND_ACTIVE';
+  const inShop = v.phase === 'SHOP';
   $('play').disabled = !(inBlind && selected.size>=1 && selected.size<=5);
   $('discard').disabled = !(inBlind && selected.size>=1 && v.discardsLeft>0);
 
-  // shop
-  const inShop = v.phase === 'SHOP';
+  // only show the hand during a blind; only show the shop in the shop
+  $('handPanel').style.display = inBlind ? 'block' : 'none';
   $('shop').style.display = inShop ? 'block' : 'none';
   if (inShop) {
     $('rerollCost').textContent = v.rerollCost;

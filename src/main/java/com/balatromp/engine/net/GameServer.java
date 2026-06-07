@@ -48,6 +48,20 @@ public final class GameServer implements AutoCloseable {
             cfg.staticFiles.add("/public", Location.CLASSPATH); // the web client at "/"
         });
 
+        // Optional real card sprites: drop Balatro's atlases in ./web-assets
+        // (git-ignored, not shipped). The client uses them if present, else CSS.
+        java.io.File assetsDir = new java.io.File("web-assets").getAbsoluteFile();
+        app.get("/assets/{name}", ctx -> {
+            java.io.File f = new java.io.File(assetsDir, ctx.pathParam("name"));
+            if (assetsDir.equals(f.getParentFile()) && f.isFile()) {
+                if (f.getName().endsWith(".webp")) ctx.contentType("image/webp");
+                else if (f.getName().endsWith(".png")) ctx.contentType("image/png");
+                ctx.result(java.nio.file.Files.readAllBytes(f.toPath()));
+            } else {
+                ctx.status(404);
+            }
+        });
+
         // --- auth: issue a session token (dev: any username; later: Steam ticket) ---
         app.post("/login", ctx -> {
             JsonNode body = json.readTree(ctx.body());

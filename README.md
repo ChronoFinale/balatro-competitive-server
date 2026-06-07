@@ -67,12 +67,21 @@ Requires JDK 25 (Gradle wrapper handles the rest).
 ./gradlew test                      # full JUnit 5 + AssertJ suite (engine + WebSocket e2e + auth)
 ./gradlew play --console=plain -q   # play a solo run in the terminal (embeds the server)
 ./gradlew loadTest -Pargs="200 10"  # load harness: <connections> <hands-per-conn>
+./gradlew dependencyUpdates         # report stable dependency upgrades
 ```
+
+Tests: JUnit 5 + AssertJ (example-based) **and jqwik** (property-based — fuzzes
+engine invariants like RNG/scoring determinism across thousands of inputs).
 
 **Play in the browser:** `./gradlew run`, open `http://127.0.0.1:8788`, enter a
 name → Connect. Click cards to select, Play Hand / Discard, clear the blind, then
 Buy jokers / Reroll / Next Blind. It's a tiny vanilla-JS client over the same
 WebSocket protocol, with CSS-drawn cards (no game assets shipped).
+
+**Real card art (optional, local only):** drop Balatro's extracted atlases
+(`8BitDeck.webp`, …) into `./web-assets` (git-ignored — these are game assets, not
+shipped). The client auto-detects the atlas and renders real card faces; without
+it, CSS cards. Requires owning Balatro.
 
 `play` is a tiny REPL client: `new [seed]`, `play 0 1 2 3 4`, `discard 0 1`,
 `buy 0`, `reroll`, `proceed`, `quit`. Example turn:

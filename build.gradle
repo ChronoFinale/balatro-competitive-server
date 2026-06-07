@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'com.github.ben-manes.versions' version '0.54.0' // ./gradlew dependencyUpdates
 }
 
 java {
@@ -17,16 +18,18 @@ dependencies {
     // WebSocket + HTTP server (Jetty-backed) — room for REST matchmaking/auth later.
     implementation 'io.javalin:javalin:6.7.0'
     // JSON (de)serialization for the wire protocol.
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.0'
     // Logging backend for Javalin/Jetty.
-    implementation 'org.slf4j:slf4j-simple:2.0.17'
+    implementation 'org.slf4j:slf4j-simple:2.0.18'
     // JWT for session tokens (HS256). Swappable for Steam-ticket validation later.
-    implementation 'com.auth0:java-jwt:4.5.0'
+    implementation 'com.auth0:java-jwt:4.5.2'
 
     // Tests: JUnit 5 + AssertJ.
     testImplementation platform('org.junit:junit-bom:5.12.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.assertj:assertj-core:3.27.3'
+    testImplementation 'org.assertj:assertj-core:3.27.7'
+    // Property-based testing (JUnit Platform engine) — fuzzes engine invariants.
+    testImplementation 'net.jqwik:jqwik:1.10.1'
     // Gradle 9 no longer adds this automatically to the test runtime classpath.
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -35,11 +38,26 @@ application {
     mainClass = 'com.balatromp.engine.net.ServerMain'
 }
 
+tasks.named('run') {
+    workingDir = projectDir // so ./web-assets resolves for optional card sprites
+}
+
 test {
     useJUnitPlatform()
     testLogging {
         events 'passed', 'skipped', 'failed'
     }
+}
+
+// `dependencyUpdates`: only flag STABLE upgrades (skip alpha/RC/milestone).
+// Javalin 6.x and JUnit 5.x are held deliberately (7.x / 6.x are breaking majors).
+def isNonStable = { String v ->
+    def stable = ['RELEASE', 'FINAL', 'GA'].any { v.toUpperCase().contains(it) }
+    def looksStable = v ==~ /^[0-9,.v-]+(-r)?$/
+    return !stable && !looksStable
+}
+tasks.named('dependencyUpdates').configure {
+    rejectVersionIf { isNonStable(it.candidate.version) }
 }
 
 // Play a solo run in the terminal: ./gradlew play --console=plain -q
