@@ -15,18 +15,18 @@ repositories {
 
 dependencies {
     // WebSocket + HTTP server (Jetty-backed) — room for REST matchmaking/auth later.
-    implementation 'io.javalin:javalin:6.3.0'
+    implementation 'io.javalin:javalin:6.7.0'
     // JSON (de)serialization for the wire protocol.
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
     // Logging backend for Javalin/Jetty.
-    implementation 'org.slf4j:slf4j-simple:2.0.13'
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
     // JWT for session tokens (HS256). Swappable for Steam-ticket validation later.
-    implementation 'com.auth0:java-jwt:4.4.0'
+    implementation 'com.auth0:java-jwt:4.5.0'
 
     // Tests: JUnit 5 + AssertJ.
-    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation platform('org.junit:junit-bom:5.12.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.assertj:assertj-core:3.25.3'
+    testImplementation 'org.assertj:assertj-core:3.27.3'
     // Gradle 9 no longer adds this automatically to the test runtime classpath.
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
