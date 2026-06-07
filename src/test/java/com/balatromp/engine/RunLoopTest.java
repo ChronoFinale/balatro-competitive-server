@@ -3,6 +3,7 @@ package com.balatromp.engine;
 import static com.balatromp.engine.TestSupport.c;
 import static com.balatromp.engine.TestSupport.heartsKings;
 import static com.balatromp.engine.TestSupport.jokers;
+import static com.balatromp.engine.TestSupport.stoneDeck;
 import static com.balatromp.engine.card.Rank.EIGHT;
 import static com.balatromp.engine.card.Rank.FOUR;
 import static com.balatromp.engine.card.Rank.SIX;
@@ -44,7 +45,8 @@ class RunLoopTest {
 
     @Test
     void clearingBlindsAdvancesThroughAntes() {
-        Run win = new Run(std, "WIN", heartsKings(200), jokers("j_joker", "j_joker", "j_joker"));
+        // Stone deck: scores well and is immune to suit/face boss debuffs.
+        Run win = new Run(std, "WIN", stoneDeck(200), jokers("j_joker", "j_joker", "j_joker"));
         assertThat(win.ante).isEqualTo(1);
         assertThat(win.blind).isEqualTo(SMALL);
         assertThat(win.phase).isEqualTo(Run.Phase.BLIND_ACTIVE);
@@ -59,7 +61,8 @@ class RunLoopTest {
         win.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
         win.proceed();
         assertThat(win.blind).isEqualTo(BOSS);
-        assertThat(win.requirement).isEqualTo(600);
+        assertThat(win.boss).isNotNull();                 // a specific boss was chosen
+        assertThat(win.requirement).isEqualTo(600);       // ante-1 bosses are all 2x
 
         win.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
         win.proceed();

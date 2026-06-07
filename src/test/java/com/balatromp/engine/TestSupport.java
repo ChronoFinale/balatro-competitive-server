@@ -47,6 +47,15 @@ final class TestSupport {
         return Deck.of(cards);
     }
 
+    /** Stone cards score 50 each and ignore suit/face debuffs — handy for boss tests. */
+    static Deck stoneDeck(int n) {
+        List<Card> cards = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            cards.add(new Card(Rank.TWO, Suit.SPADES, Enhancement.STONE, Edition.NONE, Seal.NONE));
+        }
+        return Deck.of(cards);
+    }
+
     static List<Integer> seq(int n) {
         List<Integer> l = new ArrayList<>();
         for (int i = 0; i < n; i++) l.add(i);

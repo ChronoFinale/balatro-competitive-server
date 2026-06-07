@@ -25,5 +25,7 @@ public record ClientView(
         List<CardView> hand,
         List<Map<String, Object>> jokers,
         List<Map<String, Object>> shop,
-        int rerollCost) {
+        int rerollCost,
+        String boss,
+        String bossEffect) {
 }

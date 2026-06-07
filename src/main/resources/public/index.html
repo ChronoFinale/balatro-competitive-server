@@ -232,7 +232,9 @@ function newRun() {
 
 function render() {
   const v = view;
-  $('blindLabel').textContent = `${v.phase} · ante ${v.ante} · ${v.blind}`;
+  let label = `${v.phase} · ante ${v.ante} · ${v.blind}`;
+  if (v.boss) label += `  ⚠ ${v.boss}: ${v.bossEffect}`;
+  $('blindLabel').textContent = label;
   $('score').textContent = v.roundScore;
   $('req').textContent = v.requirement;
   $('progress').style.width = Math.min(100, v.requirement ? v.roundScore/v.requirement*100 : 0) + '%';

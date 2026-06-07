@@ -45,6 +45,8 @@ public final class Run {
     public long requirement;
     public Phase phase;
     public Shop shop;
+    public BossBlind boss;       // the chosen boss while in a boss blind, else null
+    public BossBlind forcedBoss; // test/dev hook to pin a boss
     private int rerollCount = 0;
 
     public Run(Ruleset ruleset, String seed) {
@@ -65,12 +67,32 @@ public final class Run {
 
     private void startBlind() {
         state.roundScore = 0;
-        state.handsLeft = ruleset.hands();
-        state.discardsLeft = ruleset.discards();
+        if (blind == BlindType.BOSS) {
+            boss = (forcedBoss != null) ? forcedBoss : BossCatalog.pick(ante, rng);
+            state.handsLeft = boss.handsOverride() >= 0 ? boss.handsOverride() : ruleset.hands();
+            state.discardsLeft = boss.discardsOverride() >= 0 ? boss.discardsOverride() : ruleset.discards();
+            state.handSize = Math.max(1, ruleset.handSize() + boss.handSizeDelta());
+            requirement = Math.round(Blinds.getBlindAmount(ante, ruleset) * boss.reqMult() * ruleset.anteScaling());
+        } else {
+            boss = null;
+            state.handsLeft = ruleset.hands();
+            state.discardsLeft = ruleset.discards();
+            state.handSize = ruleset.handSize();
+            requirement = Blinds.requirement(ante, blind, ruleset);
+        }
         state.hand.clear();
         state.deck.drawTo(state.hand, state.handSize);
-        requirement = Blinds.requirement(ante, blind, ruleset);
+        refreshDebuffs();
         phase = Phase.BLIND_ACTIVE;
+    }
+
+    /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */
+    private void refreshDebuffs() {
+        for (Card c : state.hand) {
+            c.debuffed = boss != null
+                    && ((boss.debuffSuit() != null && c.isSuit(boss.debuffSuit()))
+                        || (boss.debuffFaces() && c.isFace()));
+        }
     }
 
     /** Process a client intent; advances win/lose state after a hand is played. */
@@ -80,6 +102,7 @@ public final class Run {
         }
         IntentResult result = intents.handle(state, rng, intent);
         if (!result.ok()) return result;
+        refreshDebuffs(); // re-mark the freshly drawn hand
 
         if (intent instanceof Intent.PlayHand) {
             if (state.roundScore >= requirement) {
@@ -94,7 +117,8 @@ public final class Run {
     private void winBlind() {
         // Economy: blind reward + interest ($1 per $5 held, capped at $5) + joker/gold payouts.
         int interest = Math.min(5, state.money / 5);
-        state.money += blind.reward + interest;
+        int reward = (boss != null) ? boss.reward() : blind.reward;
+        state.money += reward + interest;
         GameEvents.endOfRound(state, rng);
         phase = Phase.SHOP;
         shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2);
@@ -156,7 +180,8 @@ public final class Run {
 
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
-                phase.name(), handView, jokerView, shopView, rerollCost);
+                phase.name(), handView, jokerView, shopView, rerollCost,
+                boss != null ? boss.name() : null, boss != null ? boss.effect() : null);
     }
 
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */
