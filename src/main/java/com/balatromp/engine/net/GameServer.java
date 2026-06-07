@@ -7,6 +7,7 @@ import com.balatromp.engine.state.Ruleset;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
 import io.javalin.websocket.WsContext;
 import io.javalin.websocket.WsMessageContext;
 import java.util.ArrayList;
@@ -42,7 +43,10 @@ public final class GameServer implements AutoCloseable {
 
     public GameServer(Ruleset ruleset) {
         this.ruleset = ruleset;
-        this.app = Javalin.create(cfg -> cfg.showJavalinBanner = false);
+        this.app = Javalin.create(cfg -> {
+            cfg.showJavalinBanner = false;
+            cfg.staticFiles.add("/public", Location.CLASSPATH); // the web client at "/"
+        });
 
         // --- auth: issue a session token (dev: any username; later: Steam ticket) ---
         app.post("/login", ctx -> {

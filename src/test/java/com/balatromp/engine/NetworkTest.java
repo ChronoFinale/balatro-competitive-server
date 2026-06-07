@@ -56,6 +56,17 @@ class NetworkTest {
     }
 
     @Test
+    void servesTheWebClient() throws Exception {
+        try (GameServer server = new GameServer(Ruleset.standard()).start(0)) {
+            HttpResponse<String> resp = http.send(HttpRequest.newBuilder(
+                            URI.create("http://127.0.0.1:" + server.port() + "/"))
+                    .build(), HttpResponse.BodyHandlers.ofString());
+            assertThat(resp.statusCode()).isEqualTo(200);
+            assertThat(resp.body()).contains("BALATRO");
+        }
+    }
+
+    @Test
     void rejectsUnauthenticatedIntents() throws Exception {
         try (GameServer server = new GameServer(Ruleset.standard()).start(0)) {
             BlockingQueue<String> inbox = new LinkedBlockingQueue<>();

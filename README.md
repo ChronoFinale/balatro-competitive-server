@@ -36,8 +36,9 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 (engine + network).
 
 ```
-engine ✅  RNG ✅  triggers ✅  run loop ✅  WS+JWT auth ✅  multiplayer ✅  pick/ban ✅  shop ✅  CLI client ✅
-next → shop in multiplayer → ranked queue/MMR → Lua client
+engine ✅  RNG ✅  triggers ✅  run loop ✅  WS+JWT auth ✅  multiplayer ✅  pick/ban ✅  shop ✅  web UI ✅
+next → shop in multiplayer → richer web UI/animations → ranked queue/MMR
+
 ```
 
 Stack: Java 25 · Gradle · **Javalin** (WebSocket + HTTP, Jetty-backed) ·
@@ -62,11 +63,16 @@ What's implemented:
 Requires JDK 25 (Gradle wrapper handles the rest).
 
 ```bash
+./gradlew run                       # start the server, then open http://127.0.0.1:8788 to PLAY in the browser
 ./gradlew test                      # full JUnit 5 + AssertJ suite (engine + WebSocket e2e + auth)
-./gradlew run                       # start the server: http+ws on 127.0.0.1:8788
 ./gradlew play --console=plain -q   # play a solo run in the terminal (embeds the server)
 ./gradlew loadTest -Pargs="200 10"  # load harness: <connections> <hands-per-conn>
 ```
+
+**Play in the browser:** `./gradlew run`, open `http://127.0.0.1:8788`, enter a
+name → Connect. Click cards to select, Play Hand / Discard, clear the blind, then
+Buy jokers / Reroll / Next Blind. It's a tiny vanilla-JS client over the same
+WebSocket protocol, with CSS-drawn cards (no game assets shipped).
 
 `play` is a tiny REPL client: `new [seed]`, `play 0 1 2 3 4`, `discard 0 1`,
 `buy 0`, `reroll`, `proceed`, `quit`. Example turn:

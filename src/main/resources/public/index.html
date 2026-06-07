@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Balatro Competitive</title>
+<style>
+  :root { --felt:#1f6f43; --feltdark:#155233; --gold:#e7c14a; --chip:#3b7bd4; --mult:#e0533d; }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(circle at 50% 0%, var(--felt), var(--feltdark));
+    color:#f3f3f3; min-height:100vh;
+  }
+  #app { max-width: 920px; margin:0 auto; padding:16px; }
+  h1 { font-size:20px; letter-spacing:1px; opacity:.85; margin:4px 0 12px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .spacer { flex:1; }
+
+  /* login */
+  #login { display:flex; gap:8px; margin:40px 0; }
+  input, button {
+    font:inherit; padding:8px 12px; border-radius:8px; border:1px solid #0004;
+  }
+  button { background:var(--gold); color:#222; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  button.alt { background:#2c3e50; color:#fff; }
+
+  /* status bar */
+  #status { display:none; }
+  .panel { background:#0003; border-radius:12px; padding:12px 14px; margin-bottom:12px; }
+  .stat { font-size:13px; opacity:.8; }
+  .big { font-size:22px; font-weight:700; }
+  .bar { height:10px; background:#0005; border-radius:6px; overflow:hidden; margin-top:6px; }
+  .bar > div { height:100%; background:linear-gradient(90deg,var(--chip),var(--gold)); width:0; transition:width .3s; }
+  .pill { background:#0004; border-radius:20px; padding:3px 10px; font-size:13px; }
+  .joker { background:#5b3b8c; border-radius:8px; padding:6px 10px; font-size:13px; font-weight:600; }
+
+  /* cards */
+  #hand { display:flex; gap:8px; flex-wrap:wrap; min-height:120px; align-items:flex-end; }
+  .card {
+    width:62px; height:88px; background:#fafafa; color:#222; border-radius:8px;
+    box-shadow:0 3px 0 #0006; position:relative; cursor:pointer; user-select:none;
+    transition:transform .12s; border:1px solid #0002;
+  }
+  .card .r { position:absolute; top:4px; left:6px; font-weight:800; font-size:18px; }
+  .card .s { position:absolute; bottom:2px; right:6px; font-size:26px; }
+  .card.red { color:#cc2b2b; }
+  .card.sel { transform:translateY(-14px); box-shadow:0 8px 0 #0007, 0 0 0 3px var(--gold); }
+
+  /* shop */
+  #shop { display:none; }
+  .offer { background:#0004; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px; min-width:130px; }
+
+  #toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+    background:#000a; padding:10px 16px; border-radius:10px; opacity:0; transition:opacity .2s; font-weight:600; }
+  #toast.show { opacity:1; }
+  #banner { font-size:26px; font-weight:800; text-align:center; padding:18px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>BALATRO · COMPETITIVE</h1>
+
+  <div id="login" class="row">
+    <input id="user" placeholder="username" value="player"/>
+    <button id="connect">Connect &amp; Play</button>
+  </div>
+
+  <div id="status">
+    <div class="panel row">
+      <div>
+        <div class="stat" id="blindLabel">—</div>
+        <div class="big"><span id="score">0</span> / <span id="req">0</span></div>
+        <div class="bar"><div id="progress"></div></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="pill">Hands: <b id="hands">0</b></div>
+      <div class="pill">Discards: <b id="discards">0</b></div>
+      <div class="pill">$<b id="money">0</b></div>
+    </div>
+
+    <div class="panel">
+      <div class="stat">Jokers</div>
+      <div class="row" id="jokers"><span class="stat">none</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="stat">Hand</div>
+      <div id="hand"></div>
+      <div class="row" style="margin-top:12px;">
+        <button id="play" disabled>Play Hand</button>
+        <button id="discard" class="alt" disabled>Discard</button>
+        <div class="spacer"></div>
+        <button id="newrun" class="alt">New Run</button>
+      </div>
+    </div>
+
+    <div class="panel" id="shop">
+      <div class="stat">Shop</div>
+      <div class="row" id="offers"></div>
+      <div class="row" style="margin-top:12px;">
+        <button id="reroll" class="alt">Reroll ($<span id="rerollCost">5</span>)</button>
+        <div class="spacer"></div>
+        <button id="proceed">Next Blind →</button>
+      </div>
+    </div>
+
+    <div id="bannerWrap"></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let ws, view = null, selected = new Set(), seq = 1;
+
+const RANK = {TWO:'2',THREE:'3',FOUR:'4',FIVE:'5',SIX:'6',SEVEN:'7',EIGHT:'8',NINE:'9',TEN:'10',JACK:'J',QUEEN:'Q',KING:'K',ACE:'A'};
+const SUIT = {SPADES:'♠',HEARTS:'♥',CLUBS:'♣',DIAMONDS:'♦'};
+const RED = new Set(['HEARTS','DIAMONDS']);
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+function send(obj) { obj.seq = seq++; ws.send(JSON.stringify(obj)); }
+
+$('connect').onclick = async () => {
+  const username = $('user').value.trim() || 'player';
+  const res = await fetch('/login', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({username})});
+  const {token} = await res.json();
+  ws = new WebSocket(`ws://${location.host}/game`);
+  ws.onopen = () => send({type:'auth', token});
+  ws.onmessage = e => handle(JSON.parse(e.data));
+  ws.onclose = () => toast('disconnected');
+};
+
+function handle(m) {
+  if (m.type === 'authed') {
+    $('login').style.display = 'none';
+    $('status').style.display = 'block';
+    newRun();
+  } else if (m.type === 'update') {
+    if (m.accepted === false) toast(m.rejection || 'rejected');
+    if (m.view) { view = m.view; render(); }
+    if (m.replay && m.replay.length) {
+      const last = m.replay[m.replay.length-1];
+      toast(`scored ${last.runningChips} × ${last.runningMult}`);
+    }
+  } else if (m.type === 'error') {
+    toast(m.rejection || 'error');
+  }
+}
+
+function newRun() {
+  selected.clear();
+  $('bannerWrap').innerHTML = '';
+  send({type:'newRun', seed: Math.random().toString(36).slice(2,8).toUpperCase()});
+}
+
+function render() {
+  const v = view;
+  $('blindLabel').textContent = `${v.phase} · ante ${v.ante} · ${v.blind}`;
+  $('score').textContent = v.roundScore;
+  $('req').textContent = v.requirement;
+  $('progress').style.width = Math.min(100, v.requirement ? v.roundScore/v.requirement*100 : 0) + '%';
+  $('hands').textContent = v.handsLeft;
+  $('discards').textContent = v.discardsLeft;
+  $('money').textContent = v.money;
+
+  $('jokers').innerHTML = (v.jokers && v.jokers.length)
+    ? v.jokers.map(j=>`<span class="joker">${j}</span>`).join('')
+    : '<span class="stat">none</span>';
+
+  // hand
+  const hand = $('hand'); hand.innerHTML = '';
+  (v.hand||[]).forEach((c,i) => {
+    const el = document.createElement('div');
+    el.className = 'card' + (RED.has(c.suit)?' red':'') + (selected.has(i)?' sel':'');
+    el.innerHTML = `<div class="r">${RANK[c.rank]||'?'}</div><div class="s">${SUIT[c.suit]||'?'}</div>`;
+    el.onclick = () => {
+      if (selected.has(i)) selected.delete(i);
+      else if (selected.size < 5) selected.add(i);
+      render();
+    };
+    hand.appendChild(el);
+  });
+
+  const inBlind = v.phase === 'BLIND_ACTIVE';
+  $('play').disabled = !(inBlind && selected.size>=1 && selected.size<=5);
+  $('discard').disabled = !(inBlind && selected.size>=1 && v.discardsLeft>0);
+
+  // shop
+  const inShop = v.phase === 'SHOP';
+  $('shop').style.display = inShop ? 'block' : 'none';
+  if (inShop) {
+    $('rerollCost').textContent = v.rerollCost;
+    $('offers').innerHTML = '';
+    (v.shop||[]).forEach((it,i) => {
+      const o = document.createElement('div'); o.className='offer';
+      o.innerHTML = `<b>${it.name}</b><span class="stat">$${it.cost}</span>`;
+      const b = document.createElement('button');
+      b.textContent = 'Buy'; b.disabled = v.money < it.cost;
+      b.onclick = () => send({type:'buyJoker', index:i});
+      o.appendChild(b); $('offers').appendChild(o);
+    });
+  }
+
+  // end states
+  if (v.phase === 'RUN_WON' || v.phase === 'RUN_LOST') {
+    $('bannerWrap').innerHTML = `<div class="panel"><div id="banner">${v.phase==='RUN_WON'?'🏆 RUN WON':'💀 RUN LOST'}</div></div>`;
+  }
+}
+
+$('play').onclick = () => { send({type:'playHand', cards:[...selected]}); selected.clear(); };
+$('discard').onclick = () => { send({type:'discard', cards:[...selected]}); selected.clear(); };
+$('reroll').onclick = () => send({type:'reroll'});
+$('proceed').onclick = () => send({type:'proceed'});
+$('newrun').onclick = newRun;
+</script>
+</body>
+</html>
