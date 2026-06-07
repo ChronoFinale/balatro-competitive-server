@@ -50,6 +50,7 @@ public final class Run {
     public BossBlind boss;       // the chosen boss while in a boss blind, else null
     public BossBlind forcedBoss; // test/dev hook to pin a boss
     private int rerollCount = 0;
+    private final List<Card> composition = new ArrayList<>(); // the full deck, reshuffled each blind
 
     public Run(Ruleset ruleset, String seed) {
         this(ruleset, seed, Deck.standard(), List.of());
@@ -59,12 +60,18 @@ public final class Run {
         this.ruleset = ruleset;
         this.rng = new RandomStreams(seed);
         state.money = ruleset.startingMoney();
-        state.handSize = ruleset.handSize();
-        state.deck = deck;
         state.rng = rng;
         for (Joker j : jokers) state.addJoker(j);
-        deck.shuffle(rng);
+        for (Card c : deck.cards()) composition.add(c.copy()); // capture deck composition
         startBlind();
+    }
+
+    /** Reconstitute the full deck and shuffle it fresh for this blind (deterministic per blind). */
+    private void dealNewDeck() {
+        List<Card> fresh = new ArrayList<>();
+        for (Card c : composition) fresh.add(c.copy());
+        state.deck = Deck.of(fresh);
+        state.deck.shuffle(rng, "deal:" + ante + ":" + blind);
     }
 
     private void startBlind() {
@@ -82,6 +89,7 @@ public final class Run {
             state.handSize = ruleset.handSize();
             requirement = Blinds.requirement(ante, blind, ruleset);
         }
+        dealNewDeck(); // full deck reshuffled fresh each blind
         state.hand.clear();
         state.deck.drawTo(state.hand, state.handSize);
         refreshDebuffs();

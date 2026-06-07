@@ -41,6 +41,16 @@ public final class Deck {
         rng.shuffle(drawPile, "shuffle");
     }
 
+    /** Shuffle with a specific keyed stream (deterministic per blind). */
+    public void shuffle(RandomStreams rng, String key) {
+        rng.shuffle(drawPile, key);
+    }
+
+    /** The current cards (used to capture a run's deck composition). */
+    public List<Card> cards() {
+        return drawPile;
+    }
+
     public int remaining() {
         return drawPile.size();
     }
