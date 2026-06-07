@@ -37,7 +37,8 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 
 ```
 engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer: Attrition ✅  web UI ✅
-focus → Attrition done well.  next → ranked queue/MMR → sent Trap cards → mod-protocol compat (TCP)
+data jokers ✅  joker builder ✅  custom rulesets + pools ✅  lobby agreement ✅
+focus → Attrition done well.  next → ranked queue/MMR → custom jokers in ranked (curation) → sent Trap cards
 
 ```
 
@@ -80,8 +81,10 @@ Blind. It's a tiny vanilla-JS client over the same WebSocket protocol, CSS-drawn
 cards (no game assets shipped).
 
 **Multiplayer — Attrition (friend codes):** one player clicks **Create Lobby** and
-shares the 5-letter code; the other **Join**s. Pick/ban a ruleset, then each
-builds their own run on the same seed. You have **4 lives** and lose one for
+shares the 5-letter code; the other **Join**s. The host **proposes a ruleset**
+(curated or custom) and the guest sees its params + joker pool and **accepts or
+declines** — both must agree before the match starts. Then each builds their own
+run on the same seed. You have **4 lives** and lose one for
 dying to any blind — failing a normal blind, or losing a **Nemesis blind** (every
 Boss from ante 2: a race where running out of hands while behind costs a life).
 0 lives and you're out. The opponent panel shows live progress + lives.
@@ -93,8 +96,16 @@ a built joker is exactly as authoritative/cheat-proof as a hand-coded one. The
 form is driven by `/jokers/schema` (the real engine enums), supports the full
 condition/value algebra (incl. nested AND/OR/NOT and count/run-var scaling), and
 takes optional 1×/2× PNG art. Saved defs persist under
-`web-assets/custom-jokers/` (git-ignored) and reload at startup. They live in a
-sandbox pool for now; entering a match shop is gated on ruleset agreement (next).
+`web-assets/custom-jokers/` (git-ignored) and reload at startup, registered
+through the same authoritative path as built-ins.
+
+**Ruleset builder:** open `http://127.0.0.1:8788/ruleset-builder.html`. A ruleset
+**plus the jokers it names fully dictates a match** — starting params, blind
+curve, win ante, and the exact **joker pool** the shop may offer. Pick the pool
+from all available jokers (curated built-ins + your custom ones), save, and it
+persists under `web-assets/custom-rulesets/`. In a lobby the host proposes a
+ruleset (curated or custom) and the guest must agree, so custom jokers only ever
+appear in a match both players consented to.
 
 **Real card/joker art (optional, local only):** drop Balatro's extracted atlases
 (`8BitDeck.webp` for cards, `Jokers.webp` for jokers) into `./web-assets`
@@ -132,9 +143,11 @@ and you lose a life (if both run out, the lower score loses; ties cost nothing).
 (Attrition is the one mode we're doing well first; other formats can come later.)
 - Host: `{"type":"createLobby"}` → `{"type":"lobbyCreated","code":"AB3KP"}`
 - Guest: `{"type":"joinLobby","code":"AB3KP"}`
-- **Pick/ban draft:** both get `{"type":"draftState","pool":[…],"yourTurn":bool}`;
-  the player whose turn it is sends `{"type":"ban","ruleset":"Blitz"}`, alternating
-  until one remains → `{"type":"draftResult","ruleset":"Standard"}` → `matchStart`.
+- **Ruleset agreement:** both get `{"type":"lobbyReady","youPropose":bool,"rulesets":[…]}`
+  (curated + custom). The host sends `{"type":"proposeRuleset","name":"Standard"}`;
+  the guest gets `{"type":"rulesetProposed","ruleset":{…pool…}}` and replies
+  `{"type":"respondRuleset","accept":true}` → `{"type":"rulesetAgreed"}` →
+  `matchStart` (decline returns to the host to propose again).
   Server-enforced turn order — no Discord needed.
 - Play: same `playHand`/`discard` intents → you get `update`, your opponent gets
   `opponentUpdate` (score/handsLeft/done). When both finish: `roundResult`

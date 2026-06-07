@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ruleset Builder — Balatro Competitive Server</title>
+<style>
+  :root { --bg:#15171c; --panel:#1d2027; --panel2:#262a33; --ink:#e7e9ee; --muted:#9aa0ac;
+          --accent:#ef5060; --accent2:#3b7bef; --gold:#f0c060; --line:#333845; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:14px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:14px; }
+  header h1 { font-size:16px; margin:0; letter-spacing:.5px; }
+  header a { color:var(--accent2); text-decoration:none; font-size:13px; }
+  .wrap { display:grid; grid-template-columns: 1fr 340px; gap:18px; padding:18px 20px; align-items:start; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:0 0 10px; }
+  label { display:block; font-size:12px; color:var(--muted); margin:8px 0 3px; }
+  input[type=text], input[type=number] { width:100%; background:var(--panel2); color:var(--ink);
+    border:1px solid var(--line); border-radius:6px; padding:7px 8px; font:inherit; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .blinds { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  button { background:var(--accent2); color:#fff; border:0; border-radius:6px; padding:8px 12px; font:inherit; cursor:pointer; }
+  button.primary { background:var(--accent); font-weight:600; padding:10px 16px; }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--muted); padding:5px 9px; font-size:12px; }
+  .pool { max-height:340px; overflow:auto; border:1px solid var(--line); border-radius:8px; padding:8px; background:var(--panel2); }
+  .joker { display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:6px; }
+  .joker:hover { background:#2f3440; }
+  .joker .tag { font-size:10px; padding:1px 6px; border-radius:10px; }
+  .tag.custom { background:#2a2f3f; color:var(--gold); }
+  .tag.builtin { background:#23282f; color:var(--muted); }
+  .hint { font-size:11px; color:var(--muted); margin-top:4px; }
+  pre { background:#0c0d10; border:1px solid var(--line); border-radius:8px; padding:10px; overflow:auto;
+        font-size:11px; color:#b9c0cf; max-height:240px; }
+  .chip { background:var(--panel2); border:1px solid var(--line); border-radius:20px; padding:4px 10px; font-size:12px; margin:3px; display:inline-block; }
+  .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); padding:10px 18px; border-radius:8px; font-size:13px; display:none; }
+  .toast.ok { background:#1f3a24; border:1px solid #2f6b3a; color:#bce8c6; }
+  .toast.err { background:#3a1f24; border:1px solid #6b2f3a; color:#e8bcc6; }
+  .row2 { display:flex; gap:8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚖️ Ruleset Builder</h1>
+  <a href="/">← game</a> <a href="/builder.html">🃏 joker builder</a>
+  <span style="flex:1"></span>
+  <span class="hint">a ruleset + the jokers it names fully dictate a match</span>
+</header>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <h2>Format</h2>
+      <label>Name</label><input id="name" type="text" placeholder="My Format" />
+      <div class="grid">
+        <div><label>Starting $</label><input id="startingMoney" type="number" value="4" /></div>
+        <div><label>Hands</label><input id="hands" type="number" value="4" /></div>
+        <div><label>Discards</label><input id="discards" type="number" value="3" /></div>
+        <div><label>Hand size</label><input id="handSize" type="number" value="8" /></div>
+        <div><label>Ante scaling</label><input id="anteScaling" type="number" step="0.1" value="1.0" /></div>
+        <div><label>Win ante (0=endless)</label><input id="winAnte" type="number" value="8" /></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Blind requirements (ante 1–8)</h2>
+      <div class="blinds" id="blinds"></div>
+      <div class="hint">Base chip targets per ante; antes beyond 8 extrapolate from the curve.</div>
+    </div>
+
+    <div class="card">
+      <h2>Joker pool <button class="ghost" id="allBuiltin">built-ins only</button> <button class="ghost" id="selectAll">all</button> <button class="ghost" id="selectNone">none</button></h2>
+      <div class="hint">Exactly the jokers the shop may offer. Empty = curated built-in set.</div>
+      <div class="pool" id="pool"></div>
+    </div>
+
+    <button class="primary" id="save">Save ruleset</button>
+  </div>
+
+  <div>
+    <div class="card"><h2>Ruleset (JSON)</h2><pre id="json">{}</pre></div>
+    <div class="card"><h2>Saved + curated rulesets</h2><div id="existing"><span class="hint">loading…</span></div></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const DEFAULT_BLINDS = [300, 800, 2000, 5000, 11000, 20000, 35000, 50000];
+let AVAILABLE = [];
+
+function $(id){ return document.getElementById(id); }
+function toast(msg, ok){ const t=$('toast'); t.textContent=msg; t.className='toast '+(ok?'ok':'err'); t.style.display='block'; setTimeout(()=>t.style.display='none',3500); }
+
+function buildBlinds() {
+  const box = $('blinds'); box.innerHTML='';
+  DEFAULT_BLINDS.forEach((v,i) => {
+    const inp = document.createElement('input');
+    inp.type='number'; inp.value=v; inp.dataset.ante=i; inp.addEventListener('input', refresh);
+    box.appendChild(inp);
+  });
+}
+
+function poolKeys() {
+  return [...document.querySelectorAll('.joker input:checked')].map(c => c.value);
+}
+
+function buildPool() {
+  const box = $('pool'); box.innerHTML='';
+  AVAILABLE.forEach(j => {
+    const row = document.createElement('label'); row.className='joker';
+    const cb = document.createElement('input'); cb.type='checkbox'; cb.value=j.key; cb.checked=!j.custom;
+    cb.addEventListener('change', refresh);
+    const tag = document.createElement('span'); tag.className='tag '+(j.custom?'custom':'builtin'); tag.textContent=j.custom?'custom':'built-in';
+    const name = document.createElement('span'); name.textContent=`${j.name} · ${j.rarity} · $${j.cost}`;
+    row.append(cb, tag, name);
+    box.appendChild(row);
+  });
+}
+
+function buildRuleset() {
+  const n = id => Number($(id).value || '0');
+  const blinds = [...document.querySelectorAll('#blinds input')].map(i => parseInt(i.value||'0',10));
+  return {
+    name: $('name').value.trim(),
+    startingMoney: n('startingMoney'), hands: n('hands'), discards: n('discards'),
+    handSize: n('handSize'), anteScaling: n('anteScaling'), winAnte: n('winAnte'),
+    blindBaseAmounts: blinds,
+    jokerPool: poolKeys(),
+  };
+}
+
+function refresh(){ $('json').textContent = JSON.stringify(buildRuleset(), null, 2); }
+
+async function save() {
+  const r = buildRuleset();
+  if (!/^[A-Za-z0-9][A-Za-z0-9 _-]{1,31}$/.test(r.name)) { toast('Name: letters/numbers/space, 2–32 chars.', false); return; }
+  try {
+    const res = await fetch('/rulesets', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(r) });
+    const body = await res.json();
+    if (!res.ok) { toast('Rejected: ' + (body.error || res.status), false); return; }
+    toast('Saved "' + r.name + '" ✓', true);
+    loadExisting();
+  } catch (e) { toast('Error: ' + e.message, false); }
+}
+
+async function loadExisting() {
+  try {
+    const list = await (await fetch('/rulesets')).json();
+    const box = $('existing'); box.innerHTML = '';
+    list.forEach(r => { const c=document.createElement('span'); c.className='chip'; c.textContent=`${r.name} · ${(r.jokerPool||[]).length}j`; box.appendChild(c); });
+  } catch (_) {}
+}
+
+async function init() {
+  AVAILABLE = await (await fetch('/jokers/available')).json();
+  buildBlinds();
+  buildPool();
+  $('name').addEventListener('input', refresh);
+  ['startingMoney','hands','discards','handSize','anteScaling','winAnte'].forEach(id => $(id).addEventListener('input', refresh));
+  $('save').addEventListener('click', save);
+  $('selectAll').addEventListener('click', () => { document.querySelectorAll('.joker input').forEach(c=>c.checked=true); refresh(); });
+  $('selectNone').addEventListener('click', () => { document.querySelectorAll('.joker input').forEach(c=>c.checked=false); refresh(); });
+  $('allBuiltin').addEventListener('click', () => { document.querySelectorAll('.joker input').forEach((c,i)=>c.checked=!AVAILABLE[i].custom); refresh(); });
+  loadExisting();
+  refresh();
+}
+init();
+</script>
+</body>
+</html>
