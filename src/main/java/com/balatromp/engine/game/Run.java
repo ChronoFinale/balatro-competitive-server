@@ -153,7 +153,7 @@ public final class Run {
     public void continueAfterFail() {
         if (phase != Phase.BLIND_FAILED) return;
         pvpActive = false;
-        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2); // no reward for a failed blind
+        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2, ruleset.jokerPool()); // no reward for a failed blind
         phase = Phase.SHOP;
     }
 
@@ -165,7 +165,7 @@ public final class Run {
         int interest = Math.min(5, state.money / 5);
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng);
-        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2);
+        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2, ruleset.jokerPool());
         phase = Phase.SHOP;
     }
 
@@ -176,7 +176,7 @@ public final class Run {
         state.money += reward + interest;
         GameEvents.endOfRound(state, rng);
         phase = Phase.SHOP;
-        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2);
+        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2, ruleset.jokerPool());
     }
 
     /** Buy the joker at the given shop slot. Returns null on success, else a reason. */
@@ -197,7 +197,7 @@ public final class Run {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         if (state.money < Shop.REROLL_COST) return "not enough money";
         state.money -= Shop.REROLL_COST;
-        shop = Shop.generate(rng, "reroll:" + ante + ":" + blind + ":" + (rerollCount++), 2);
+        shop = Shop.generate(rng, "reroll:" + ante + ":" + blind + ":" + (rerollCount++), 2, ruleset.jokerPool());
         return null;
     }
 

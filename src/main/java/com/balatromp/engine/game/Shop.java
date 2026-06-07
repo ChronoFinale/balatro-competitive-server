@@ -43,8 +43,20 @@ public final class Shop {
         return planets;
     }
 
+    /** Generate from the curated built-in pool (solo/default). */
     public static Shop generate(RandomStreams rng, String streamKey, int slots) {
-        List<String> jokerKeys = new ArrayList<>(JokerLibrary.builtinKeys());
+        return generate(rng, streamKey, slots, JokerLibrary.builtinKeys());
+    }
+
+    /**
+     * Generate offerings from an explicit joker pool — the active ruleset's
+     * {@code jokerPool}. This is what makes the ruleset dictate the match's
+     * content: a custom ruleset that names custom jokers offers exactly those.
+     */
+    public static Shop generate(RandomStreams rng, String streamKey, int slots, List<String> pool) {
+        List<String> jokerKeys = pool.isEmpty()
+                ? new ArrayList<>(JokerLibrary.builtinKeys())
+                : new ArrayList<>(pool);
         var r = rng.stream(streamKey);
         List<Item> items = new ArrayList<>();
         for (int i = 0; i < slots; i++) {
