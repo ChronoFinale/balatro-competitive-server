@@ -143,9 +143,15 @@ public final class Run {
         return result;
     }
 
-    /** Resolve a Nemesis blind after the match compared scores: proceed to the shop. */
-    public void resolvePvp() {
-        if (phase != Phase.PVP_PENDING) return;
+    /** True while this run is in a Nemesis (PvP) blind, whether still playing or locked. */
+    public boolean inPvpBlind() {
+        return pvpActive;
+    }
+
+    /** End a Nemesis blind once the match decided it (works for the locked loser AND
+     *  the ahead winner who may still have hands): award economy, proceed to the shop. */
+    public void endPvp() {
+        if (!pvpActive) return;
         pvpActive = false;
         int interest = Math.min(5, state.money / 5);
         state.money += NEMESIS.reward() + interest;

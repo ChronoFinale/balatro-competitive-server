@@ -82,7 +82,7 @@ cards (no game assets shipped).
 **Multiplayer — Attrition (friend codes):** one player clicks **Create Lobby** and
 shares the 5-letter code; the other **Join**s. Pick/ban a ruleset, then each
 builds their own run on the same seed. From ante 2 every Boss is a **Nemesis
-blind** — both play it, scores are compared, the lower loses a life (4 lives).
+blind** — a race: run out of hands while behind and you lose a life (4 lives).
 Bust a normal blind or hit 0 lives and you're out. The opponent panel shows live
 progress + lives.
 
@@ -114,11 +114,11 @@ There is **no `score` field a client can send** — the server computes it.
 ### Multiplayer — Attrition (the competitive focus)
 Two authenticated players, **same seed**. Each drives their own complete Run
 (blinds, shop, jokers, planets, leveling). From ante 2, every **Boss is a Nemesis
-blind**: both play it with no clear-requirement, the server compares the two
-authoritative scores, and the **lower score loses a life** (4 lives). Bust a
-normal blind or reach 0 lives and you lose. The server pushes each player a live
-opponent summary + lives. (Attrition is the one mode we're doing well first;
-other formats can come later.)
+blind** — a score race with no clear-requirement: **a player who runs out of
+hands while behind loses a life** (if both run out, the lower score loses; ties
+cost nothing). 4 lives; bust a normal blind or hit 0 lives and you lose. The
+server pushes each player a live opponent summary + lives. (Attrition is the one
+mode we're doing well first; other formats can come later.)
 - Host: `{"type":"createLobby"}` → `{"type":"lobbyCreated","code":"AB3KP"}`
 - Guest: `{"type":"joinLobby","code":"AB3KP"}`
 - **Pick/ban draft:** both get `{"type":"draftState","pool":[…],"yourTurn":bool}`;

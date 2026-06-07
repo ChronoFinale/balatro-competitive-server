@@ -36,12 +36,14 @@ class AttritionTest {
         assertThat(run.boss.name()).isEqualTo("Nemesis Blind");
         assertThat(run.requirement).isEqualTo(0); // no clear-requirement; it's a comparison
 
-        for (int i = 0; i < std.hands(); i++) run.play(all); // exhaust all hands
+        for (int i = 0; i < std.hands(); i++) run.play(all); // exhaust all hands -> locked
         assertThat(run.phase).isEqualTo(Run.Phase.PVP_PENDING);
+        assertThat(run.inPvpBlind()).isTrue();
         assertThat(run.state.roundScore).isGreaterThan(0);
 
-        run.resolvePvp(); // the match compared scores; proceed to the shop
+        run.endPvp(); // the match decided the Nemesis; proceed to the shop
         assertThat(run.phase).isEqualTo(Run.Phase.SHOP);
+        assertThat(run.inPvpBlind()).isFalse();
     }
 
     @Test

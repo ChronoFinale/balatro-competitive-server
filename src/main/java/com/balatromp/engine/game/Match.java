@@ -86,33 +86,55 @@ public final class Match {
             finish(opp.playerId); // busted a normal blind
             return;
         }
-        // Both at a Nemesis blind with all hands played -> compare, lower loses a life.
-        if (host.run.phase == Run.Phase.PVP_PENDING && guest.run.phase == Run.Phase.PVP_PENDING) {
-            resolveNemesis();
+        if (host.run.inPvpBlind() && guest.run.inPvpBlind()) {
+            resolveNemesisIfDecided();
         }
     }
 
-    private void resolveNemesis() {
+    /**
+     * Attrition Nemesis resolution: it's a race. A player out of hands (locked)
+     * who is BEHIND loses a life immediately. If both are out of hands, the lower
+     * score loses (tie costs nothing). The player who's ahead needn't finish.
+     */
+    private void resolveNemesisIfDecided() {
+        boolean hostLocked = host.run.phase == Run.Phase.PVP_PENDING;
+        boolean guestLocked = guest.run.phase == Run.Phase.PVP_PENDING;
+        if (!hostLocked && !guestLocked) return;
+
         long h = host.run.state.roundScore;
         long g = guest.run.state.roundScore;
-        if (h > g) guest.lives--;
-        else if (g > h) host.lives--;
+        Side loser;
+        if (hostLocked && guestLocked) {
+            loser = h > g ? guest : g > h ? host : null; // both done; tie -> nobody
+        } else if (hostLocked) {        // guest still has hands
+            if (h >= g) return;          // host not behind yet; let guest finish
+            loser = host;
+        } else {                         // guest locked, host still has hands
+            if (g >= h) return;
+            loser = guest;
+        }
 
-        sendPvp(host, guest, h, g); // each player gets their own perspective
-        sendPvp(guest, host, g, h);
-
-        host.run.resolvePvp(); // both proceed to their shop
-        guest.run.resolvePvp();
+        if (loser != null) loser.lives--;
+        announce(host, guest, h, g, loser);
+        announce(guest, host, g, h, loser);
+        host.run.endPvp();   // both leave the Nemesis blind for their shop
+        guest.run.endPvp();
+        pushView(host);
+        pushView(guest);
 
         if (host.lives <= 0) finish(guest.playerId);
         else if (guest.lives <= 0) finish(host.playerId);
     }
 
-    private void sendPvp(Side me, Side opp, long myScore, long oppScore) {
-        String outcome = myScore > oppScore ? "win" : oppScore > myScore ? "lose" : "tie";
+    private void announce(Side me, Side opp, long myScore, long oppScore, Side loser) {
+        String outcome = loser == null ? "tie" : (loser == me ? "lose" : "win");
         send(me, map("type", "pvpResult", "ante", me.run.ante,
                 "yourScore", myScore, "oppScore", oppScore, "outcome", outcome,
                 "yourLives", me.lives, "oppLives", opp.lives));
+    }
+
+    private void pushView(Side s) {
+        send(s, map("type", "update", "accepted", true, "view", s.run.view()));
     }
 
     // ---- pick/ban draft ----
