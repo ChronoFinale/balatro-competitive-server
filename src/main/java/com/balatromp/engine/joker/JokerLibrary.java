@@ -39,6 +39,16 @@ public final class JokerLibrary {
         REGISTRY.put(factory.get().key(), factory);
     }
 
+    /**
+     * Register a data-driven joker (from {@link com.balatromp.engine.joker.def.JokerDef})
+     * so it flows through {@link #create(String)} into shops exactly like a
+     * hand-coded one. This is how custom jokers authored in the builder enter the
+     * game: validated def in, a server-side {@code DataJoker} factory registered.
+     */
+    public static void registerDef(com.balatromp.engine.joker.def.JokerDef def) {
+        REGISTRY.put(def.key(), () -> new com.balatromp.engine.joker.def.DataJoker(def));
+    }
+
     public static Joker create(String key) {
         Supplier<Joker> f = REGISTRY.get(key);
         if (f == null) throw new IllegalArgumentException("Unknown joker: " + key);
