@@ -78,10 +78,12 @@ name → Connect. Click cards to select, Play Hand / Discard, clear the blind, t
 Buy jokers / Reroll / Next Blind. It's a tiny vanilla-JS client over the same
 WebSocket protocol, with CSS-drawn cards (no game assets shipped).
 
-**Real card art (optional, local only):** drop Balatro's extracted atlases
-(`8BitDeck.webp`, …) into `./web-assets` (git-ignored — these are game assets, not
-shipped). The client auto-detects the atlas and renders real card faces; without
-it, CSS cards. Requires owning Balatro.
+**Real card/joker art (optional, local only):** drop Balatro's extracted atlases
+(`8BitDeck.webp` for cards, `Jokers.webp` for jokers) into `./web-assets`
+(git-ignored — these are game assets, not shipped). The client auto-detects them
+and renders real card faces and joker sprites; without them, CSS cards + name
+chips. Jokers carry our own descriptions/rarity/cost (sprite position only is
+sourced from the game data). Requires owning Balatro.
 
 `play` is a tiny REPL client: `new [seed]`, `play 0 1 2 3 4`, `discard 0 1`,
 `buy 0`, `reroll`, `proceed`, `quit`. Example turn:

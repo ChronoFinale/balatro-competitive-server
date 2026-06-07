@@ -133,22 +133,30 @@ public final class Run {
     public ClientView view() {
         List<CardView> handView = new ArrayList<>();
         for (Card c : state.hand) handView.add(CardView.of(c));
-        List<String> jokerNames = new ArrayList<>();
-        for (Joker j : state.jokers()) jokerNames.add(j.name());
+
+        List<Map<String, Object>> jokerView = new ArrayList<>();
+        for (Joker j : state.jokers()) {
+            var info = j.info();
+            jokerView.add(Map.of("name", info.name(), "description", info.description(),
+                    "rarity", info.rarity(), "x", info.atlasX(), "y", info.atlasY()));
+        }
 
         List<Map<String, Object>> shopView = null;
         int rerollCost = 0;
         if (phase == Phase.SHOP && shop != null) {
             shopView = new ArrayList<>();
             for (Shop.Item it : shop.items()) {
-                shopView.add(Map.of("key", it.jokerKey(), "name", it.name(), "cost", it.cost()));
+                var info = it.info();
+                shopView.add(Map.of("key", info.key(), "name", info.name(), "cost", info.cost(),
+                        "description", info.description(), "rarity", info.rarity(),
+                        "x", info.atlasX(), "y", info.atlasY()));
             }
             rerollCost = Shop.REROLL_COST;
         }
 
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
-                phase.name(), handView, jokerNames, shopView, rerollCost);
+                phase.name(), handView, jokerView, shopView, rerollCost);
     }
 
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */

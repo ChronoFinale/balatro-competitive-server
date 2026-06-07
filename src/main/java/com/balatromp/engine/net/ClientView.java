@@ -23,7 +23,7 @@ public record ClientView(
         int handSize,
         String phase,
         List<CardView> hand,
-        List<String> jokers,
+        List<Map<String, Object>> jokers,
         List<Map<String, Object>> shop,
         int rerollCost) {
 }

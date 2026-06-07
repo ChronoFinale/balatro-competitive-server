@@ -7,10 +7,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * The starter joker set. Each one is deliberately chosen to exercise a distinct
- * path through the scoring pipeline, proving the engine handles every effect
- * shape (spec §1–§4). This is also the codegen source-of-truth: metadata here +
- * server-only logic, with client display generated separately (spec §6).
+ * The starter joker set. Each one exercises a distinct path through the scoring
+ * pipeline (spec §1–§4) and carries display metadata ({@link JokerInfo}:
+ * description/rarity/cost/sprite). This is the codegen source-of-truth: metadata
+ * here + server-only logic, with client display generated from {@code info()}.
+ *
+ * Sprite positions are Balatro's atlas cells (game.lua), used only if the local
+ * Jokers atlas is present; no art is shipped.
  */
 public final class JokerLibrary {
 
@@ -48,20 +51,21 @@ public final class JokerLibrary {
 
     // --- joker_main: flat +mult ------------------------------------------------
     public static final class PlainJoker implements Joker {
-        public String key() { return "j_joker"; }
-        public String name() { return "Joker"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_joker", "Joker", "+4 Mult", "Common", 2, 0, 0);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
-            if (ctx.phase == Trigger.JOKER_MAIN) {
-                return JokerEffect.mult(4).msg("+4 Mult");
-            }
+            if (ctx.phase == Trigger.JOKER_MAIN) return JokerEffect.mult(4).msg("+4 Mult");
             return null;
         }
     }
 
     // --- on_scored: per-card conditional +mult --------------------------------
     public static final class GreedyJoker implements Joker {
-        public String key() { return "j_greedy_joker"; }
-        public String name() { return "Greedy Joker"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_greedy_joker", "Greedy Joker",
+                    "Each played Diamond gives +3 Mult", "Common", 5, 6, 1);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
             if (ctx.phase == Trigger.ON_SCORED && ctx.scoredCard.isSuit(Suit.DIAMONDS)) {
                 return JokerEffect.mult(3).msg("+3 Mult");
@@ -72,8 +76,10 @@ public final class JokerLibrary {
 
     // --- joker_main: conditional +chips on hand type --------------------------
     public static final class SlyJoker implements Joker {
-        public String key() { return "j_sly_joker"; }
-        public String name() { return "Sly Joker"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_sly_joker", "Sly Joker",
+                    "+50 Chips if the played hand contains a Pair", "Common", 3, 0, 14);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
             if (ctx.phase == Trigger.JOKER_MAIN && ctx.handType.containsPair()) {
                 return JokerEffect.chips(50).msg("+50 Chips");
@@ -84,8 +90,10 @@ public final class JokerLibrary {
 
     // --- joker_main: conditional on played-hand size --------------------------
     public static final class HalfJoker implements Joker {
-        public String key() { return "j_half"; }
-        public String name() { return "Half Joker"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_half", "Half Joker",
+                    "+20 Mult if 3 or fewer cards are played", "Common", 5, 7, 0);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
             if (ctx.phase == Trigger.JOKER_MAIN && ctx.playedCards.size() <= 3) {
                 return JokerEffect.mult(20).msg("+20 Mult");
@@ -96,8 +104,10 @@ public final class JokerLibrary {
 
     // --- on_scored: per-card rank predicate -----------------------------------
     public static final class EvenSteven implements Joker {
-        public String key() { return "j_even_steven"; }
-        public String name() { return "Even Steven"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_even_steven", "Even Steven",
+                    "Each played even-rank card gives +4 Mult", "Common", 4, 8, 3);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
             if (ctx.phase == Trigger.ON_SCORED && !ctx.scoredCard.isStone()
                     && ctx.scoredCard.rank.isEven()) {
@@ -109,10 +119,11 @@ public final class JokerLibrary {
 
     // --- stateful: scales with persistent server-side state -------------------
     public static final class RideTheBus implements Joker {
-        public String key() { return "j_ride_the_bus"; }
-        public String name() { return "Ride the Bus"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_ride_the_bus", "Ride the Bus",
+                    "+1 Mult per consecutive hand with no face card", "Common", 6, 1, 6);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
-            // Update the streak once per real hand (not on Blueprint copies).
             if (ctx.phase == Trigger.BEFORE && ctx.blueprintDepth == 0) {
                 boolean anyFace = false;
                 for (Card c : ctx.scoringCards) {
@@ -133,35 +144,36 @@ public final class JokerLibrary {
 
     // --- retrigger: adds repetitions to matching played cards -----------------
     public static final class Hack implements Joker {
-        public String key() { return "j_hack"; }
-        public String name() { return "Hack"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_hack", "Hack",
+                    "Retrigger each played 2, 3, 4, and 5", "Uncommon", 6, 5, 2);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
             if (ctx.phase == Trigger.REPETITION_PLAYED && !ctx.scoredCard.isStone()) {
                 int id = ctx.scoredCard.id();
-                if (id >= 2 && id <= 5) {
-                    return JokerEffect.repetitions(1).msg("Retrigger");
-                }
+                if (id >= 2 && id <= 5) return JokerEffect.repetitions(1).msg("Retrigger");
             }
             return null;
         }
     }
 
-    // --- lifecycle: END_OF_ROUND economy -------------------------------------
+    // --- lifecycle: END_OF_ROUND economy --------------------------------------
     public static final class GoldenJoker implements Joker {
-        public String key() { return "j_golden"; }
-        public String name() { return "Golden Joker"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_golden", "Golden Joker", "+$4 at end of round", "Common", 6, 9, 2);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
-            if (ctx.phase == Trigger.END_OF_ROUND) {
-                return JokerEffect.dollars(4).msg("+$4");
-            }
+            if (ctx.phase == Trigger.END_OF_ROUND) return JokerEffect.dollars(4).msg("+$4");
             return null;
         }
     }
 
     // --- lifecycle: PRE_DISCARD reacts to the discarded set -------------------
     public static final class FacelessJoker implements Joker {
-        public String key() { return "j_faceless"; }
-        public String name() { return "Faceless Joker"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_faceless", "Faceless Joker",
+                    "+$5 if 3 or more face cards are discarded at once", "Common", 4, 1, 11);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
             if (ctx.phase == Trigger.PRE_DISCARD && ctx.eventCards != null) {
                 int faces = 0;
@@ -174,8 +186,10 @@ public final class JokerLibrary {
 
     // --- lifecycle state + scoring: scales on consumable use ------------------
     public static final class Constellation implements Joker {
-        public String key() { return "j_constellation"; }
-        public String name() { return "Constellation"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_constellation", "Constellation",
+                    "Gains x0.1 Mult per Planet card used", "Uncommon", 6, 9, 10);
+        }
         public JokerEffect calculate(EvaluationContext ctx) {
             if (ctx.phase == Trigger.USE_CONSUMABLE && "Planet".equals(ctx.consumableType)) {
                 int n = (int) ctx.selfState().getOrDefault("planets", 0) + 1;
@@ -195,8 +209,10 @@ public final class JokerLibrary {
 
     // --- meta: re-entrant copy of the joker to the right (spec §4) -------------
     public static final class Blueprint implements Joker {
-        public String key() { return "j_blueprint"; }
-        public String name() { return "Blueprint"; }
+        public JokerInfo info() {
+            return new JokerInfo("j_blueprint", "Blueprint",
+                    "Copies the ability of the Joker to the right", "Rare", 10, 0, 3);
+        }
         public boolean blueprintCompatible() { return false; }
         public JokerEffect calculate(EvaluationContext ctx) {
             int right = ctx.selfIndex + 1;

@@ -82,7 +82,7 @@ class RunLoopTest {
 
         ClientView v = run.view();
         assertThat(v.hand()).hasSize(run.state.handSize);
-        assertThat(v.jokers()).contains("Joker");
+        assertThat(v.jokers()).anyMatch(j -> "Joker".equals(j.get("name")));
         assertThat(v.ante()).isEqualTo(1);
         assertThat(v.requirement()).isEqualTo(300);
 

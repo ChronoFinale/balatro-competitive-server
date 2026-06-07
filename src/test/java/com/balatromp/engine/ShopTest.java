@@ -30,19 +30,25 @@ class ShopTest {
         assertThat(run.state.money).isEqualTo(7); // 4 start + 3 Small-blind reward
 
         int before = run.state.jokers().size();
-        assertThat(run.buyJoker(0)).isNull();                  // success
-        assertThat(run.state.jokers()).hasSize(before + 1);    // joker actually added to the run
-        assertThat(run.state.money).isEqualTo(3);              // 7 - 4
-        assertThat(run.shop.items()).hasSize(1);               // bought slot removed
+        int cost = run.shop.items().get(0).cost(); // per-joker price
+        int money = run.state.money;
+        if (money >= cost) {
+            assertThat(run.buyJoker(0)).isNull();                 // success
+            assertThat(run.state.jokers()).hasSize(before + 1);   // joker added to the run
+            assertThat(run.state.money).isEqualTo(money - cost);  // charged its real cost
+            assertThat(run.shop.items()).hasSize(1);              // bought slot removed
+        } else {
+            assertThat(run.buyJoker(0)).isEqualTo("not enough money");
+        }
     }
 
     @Test
     void unaffordableActionsRejectCleanlyWithoutSpending() {
         Run run = winToShop();
-        run.buyJoker(0); // 7 -> 3
-        assertThat(run.buyJoker(0)).isEqualTo("not enough money"); // 3 < 4
-        assertThat(run.reroll()).isEqualTo("not enough money");    // 3 < 5
-        assertThat(run.state.money).isEqualTo(3);                  // untouched by failed actions
+        run.state.money = 0;
+        assertThat(run.buyJoker(0)).isEqualTo("not enough money");
+        assertThat(run.reroll()).isEqualTo("not enough money");
+        assertThat(run.state.money).isEqualTo(0); // untouched by failed actions
     }
 
     @Test
