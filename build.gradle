@@ -9,21 +9,33 @@ java {
     }
 }
 
-application {
-    // Runnable self-test / demo entry point for the authoritative engine core.
-    mainClass = 'com.balatromp.engine.SelfTest'
-}
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    // No runtime deps yet — the engine core is pure JDK so it stays trivially
-    // portable and the self-test runs with only a JDK. JUnit can be added later
-    // when SelfTest is split into proper test classes.
+    // WebSocket + HTTP server (Jetty-backed) — room for REST matchmaking/auth later.
+    implementation 'io.javalin:javalin:6.3.0'
+    // JSON (de)serialization for the wire protocol.
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+    // Logging backend for Javalin/Jetty.
+    implementation 'org.slf4j:slf4j-simple:2.0.13'
+
+    // Tests: JUnit 5 + AssertJ.
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
+    // Gradle 9 no longer adds this automatically to the test runtime classpath.
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('run') {
-    standardOutput = System.out
+application {
+    mainClass = 'com.balatromp.engine.net.ServerMain'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
 }

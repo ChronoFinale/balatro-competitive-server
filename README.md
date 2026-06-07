@@ -31,13 +31,17 @@ Cheat model, and how each class is closed:
 
 ## Status
 
-Java 25 engine core, **57 self-tests passing**. Single-player run is playable
-end-to-end server-side; multiplayer coupling is next.
+Java 25, Gradle. A single-player run is playable end-to-end **over a real
+WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
+(engine + network).
 
 ```
-engine core ✅  triggers ✅  RNG ✅  intents ✅  run loop ✅  client/server contract ✅
-next → multiplayer match coupling → shop → matchmaking/network transport
+engine ✅  triggers ✅  RNG ✅  intents ✅  run loop ✅  client/server contract ✅  WebSocket transport ✅
+next → multiplayer match coupling → shop → lobby/matchmaking → Lua client
 ```
+
+Stack: Java 25 · Gradle · **Javalin** (WebSocket + HTTP, Jetty-backed) ·
+**Jackson** (JSON) · **JUnit 5 + AssertJ** (tests).
 
 What's implemented:
 - **`rng/`** — deterministic xoshiro256** + per-purpose keyed streams; seed is server-only.
@@ -46,21 +50,27 @@ What's implemented:
 - **`scoring/`** — `ScoringEngine`, a faithful transcription of `evaluate_play`'s ordered pipeline; emits a replay log.
 - **`state/`** — `RunState`, `Deck`, and `Ruleset` (competitive rulesets as data).
 - **`game/`** — `Blinds` (real `get_blind_amount` curve) + `Run` state machine (blind → score-to-beat → win/lose → ante progression + economy) + lifecycle `GameEvents`.
-- **`net/`** — `ClientView` (the only thing a client may see) + `ServerUpdate` (accept/reject + view + replay log to animate). The snappy-feel + info-hiding boundary in code.
-- **`intent/`** — `Intent` (PlayHand/Discard) + validating `IntentHandler`. There is **no protocol path to submit a score** — the server computes it.
+- **`net/`** — `ClientView` (the only thing a client may see) + `ServerUpdate`
+  (accept/reject + view + replay log to animate) + **`GameServer`** (Javalin
+  WebSocket adapter, Jackson JSON) + `ServerMain`. The snappy-feel + info-hiding
+  boundary in code; the transport does no game logic.
+- **`intent/`** — `Intent` (PlayHand/Discard) + validating `IntentHandler`. There
+  is **no protocol path to submit a score** — the server computes it.
 
 ## Build & run
 
-Requires JDK 25.
+Requires JDK 25 (Gradle wrapper handles the rest).
 
-```powershell
-$jdk = "C:\Program Files\Eclipse Adoptium\jdk-25.0.3.9-hotspot\bin"
-$src = Get-ChildItem -Recurse -Filter *.java src\main\java | % { $_.FullName }
-& "$jdk\javac.exe" --release 25 -d out $src
-& "$jdk\java.exe" -cp out com.balatromp.engine.SelfTest
+```bash
+./gradlew test     # run the full JUnit 5 + AssertJ suite (engine + WebSocket e2e)
+./gradlew run      # start the server: ws://127.0.0.1:8788/game
 ```
 
-(A `build.gradle` is included; `gradle run` invokes the self-test.)
+Wire protocol (JSON over WebSocket): the client sends intents, e.g.
+`{"type":"newRun","seq":1,"seed":"ABC"}` then
+`{"type":"playHand","seq":2,"cards":[0,1,2,3,4]}`, and receives
+`{"type":"update","accepted":true,"view":{…},"replay":[…]}`. Note there is no
+`score` field a client can send.
 
 ## Design docs
 
