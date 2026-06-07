@@ -1,13 +1,26 @@
 package com.balatromp.engine;
 
+import static com.balatromp.engine.TestSupport.c;
 import static com.balatromp.engine.TestSupport.jokers;
 import static com.balatromp.engine.TestSupport.stoneDeck;
+import static com.balatromp.engine.card.Rank.EIGHT;
+import static com.balatromp.engine.card.Rank.FOUR;
+import static com.balatromp.engine.card.Rank.SIX;
+import static com.balatromp.engine.card.Rank.TEN;
+import static com.balatromp.engine.card.Rank.TWO;
+import static com.balatromp.engine.card.Suit.CLUBS;
+import static com.balatromp.engine.card.Suit.DIAMONDS;
+import static com.balatromp.engine.card.Suit.HEARTS;
+import static com.balatromp.engine.card.Suit.SPADES;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.balatromp.engine.card.Card;
 import com.balatromp.engine.game.Blinds.BlindType;
 import com.balatromp.engine.game.Run;
 import com.balatromp.engine.intent.Intent;
+import com.balatromp.engine.state.Deck;
 import com.balatromp.engine.state.Ruleset;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -50,5 +63,19 @@ class AttritionTest {
     void soloRunsAreNeverPvpAndCanStillWin() {
         Run run = new Run(std, "S", stoneDeck(400), jokers("j_joker", "j_joker", "j_joker"));
         assertThat(run.pvpFromAnte).isEqualTo(0); // solo default: no PvP
+    }
+
+    @Test
+    void failingANormalBlindCostsALifeNotTheRun() {
+        Ruleset oneHand = new Ruleset("OneHand", 4, 1, 3, 5, 1.0, 8, std.blindBaseAmounts());
+        List<Card> weak = List.of(c(TWO, SPADES), c(FOUR, HEARTS), c(SIX, CLUBS),
+                c(EIGHT, DIAMONDS), c(TEN, SPADES));
+        Run run = new Run(oneHand, "F", Deck.of(new ArrayList<>(weak)), jokers());
+        run.pvpFromAnte = 2; // Attrition
+
+        run.play(all); // one weak hand, far below 300
+        assertThat(run.phase).isEqualTo(Run.Phase.BLIND_FAILED); // not RUN_LOST
+        run.continueAfterFail();
+        assertThat(run.phase).isEqualTo(Run.Phase.SHOP); // life lost, but the run continues
     }
 }

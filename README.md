@@ -81,10 +81,10 @@ cards (no game assets shipped).
 
 **Multiplayer — Attrition (friend codes):** one player clicks **Create Lobby** and
 shares the 5-letter code; the other **Join**s. Pick/ban a ruleset, then each
-builds their own run on the same seed. From ante 2 every Boss is a **Nemesis
-blind** — a race: run out of hands while behind and you lose a life (4 lives).
-Bust a normal blind or hit 0 lives and you're out. The opponent panel shows live
-progress + lives.
+builds their own run on the same seed. You have **4 lives** and lose one for
+dying to any blind — failing a normal blind, or losing a **Nemesis blind** (every
+Boss from ante 2: a race where running out of hands while behind costs a life).
+0 lives and you're out. The opponent panel shows live progress + lives.
 
 **Real card/joker art (optional, local only):** drop Balatro's extracted atlases
 (`8BitDeck.webp` for cards, `Jokers.webp` for jokers) into `./web-assets`
@@ -113,12 +113,13 @@ There is **no `score` field a client can send** — the server computes it.
 
 ### Multiplayer — Attrition (the competitive focus)
 Two authenticated players, **same seed**. Each drives their own complete Run
-(blinds, shop, jokers, planets, leveling). From ante 2, every **Boss is a Nemesis
-blind** — a score race with no clear-requirement: **a player who runs out of
-hands while behind loses a life** (if both run out, the lower score loses; ties
-cost nothing). 4 lives; bust a normal blind or hit 0 lives and you lose. The
-server pushes each player a live opponent summary + lives. (Attrition is the one
-mode we're doing well first; other formats can come later.)
+(blinds, shop, jokers, planets, leveling). You have **4 lives** and lose one for
+**dying to any blind**: failing a normal blind's chip requirement, **or** losing
+a Nemesis blind. From ante 2 every **Boss is a Nemesis blind** — no chip
+requirement, the target is your opponent's score: run out of hands while behind
+and you lose a life (if both run out, the lower score loses; ties cost nothing).
+0 lives = out. The server pushes each player a live opponent summary + lives.
+(Attrition is the one mode we're doing well first; other formats can come later.)
 - Host: `{"type":"createLobby"}` → `{"type":"lobbyCreated","code":"AB3KP"}`
 - Guest: `{"type":"joinLobby","code":"AB3KP"}`
 - **Pick/ban draft:** both get `{"type":"draftState","pool":[…],"yourTurn":bool}`;

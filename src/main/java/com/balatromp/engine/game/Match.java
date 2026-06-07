@@ -82,8 +82,20 @@ public final class Match {
 
         send(opp, opponentSummary(me));
 
-        if (me.run.phase == Run.Phase.RUN_LOST) {
-            finish(opp.playerId); // busted a normal blind
+        if (me.run.phase == Run.Phase.RUN_LOST) { // solo safety; shouldn't happen in Attrition
+            finish(opp.playerId);
+            return;
+        }
+        if (me.run.phase == Run.Phase.BLIND_FAILED) {
+            me.lives--; // dying to any blind costs a life
+            send(me, map("type", "lifeLost", "reason", "failed blind", "yourLives", me.lives));
+            if (me.lives <= 0) {
+                finish(opp.playerId);
+                return;
+            }
+            me.run.continueAfterFail();
+            pushView(me);
+            send(opp, opponentSummary(me));
             return;
         }
         if (host.run.inPvpBlind() && guest.run.inPvpBlind()) {

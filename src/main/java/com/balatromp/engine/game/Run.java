@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public final class Run {
 
-    public enum Phase { BLIND_ACTIVE, SHOP, PVP_PENDING, RUN_WON, RUN_LOST }
+    public enum Phase { BLIND_ACTIVE, SHOP, PVP_PENDING, BLIND_FAILED, RUN_WON, RUN_LOST }
 
     /** Synthetic "boss" shown for an Attrition Nemesis blind (no debuff effect). */
     private static final BossBlind NEMESIS = new BossBlind("bl_pvp", "Nemesis Blind",
@@ -137,7 +137,8 @@ public final class Run {
             } else if (state.roundScore >= requirement) {
                 winBlind();
             } else if (state.handsLeft <= 0) {
-                phase = Phase.RUN_LOST;
+                // Attrition: dying to a blind costs a life (match handles it), not the run.
+                phase = (pvpFromAnte > 0) ? Phase.BLIND_FAILED : Phase.RUN_LOST;
             }
         }
         return result;
@@ -146,6 +147,14 @@ public final class Run {
     /** True while this run is in a Nemesis (PvP) blind, whether still playing or locked. */
     public boolean inPvpBlind() {
         return pvpActive;
+    }
+
+    /** Attrition: after the match deducts a life for a failed blind, continue to the shop. */
+    public void continueAfterFail() {
+        if (phase != Phase.BLIND_FAILED) return;
+        pvpActive = false;
+        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2); // no reward for a failed blind
+        phase = Phase.SHOP;
     }
 
     /** End a Nemesis blind once the match decided it (works for the locked loser AND
