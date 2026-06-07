@@ -1,6 +1,9 @@
 package com.balatromp.engine.joker.def;
 
 import com.balatromp.engine.card.Card;
+import com.balatromp.engine.card.Edition;
+import com.balatromp.engine.card.Enhancement;
+import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.card.Suit;
 import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.EvaluationContext;
@@ -24,6 +27,9 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoredParity.class, name = "scoredParity"),
     @JsonSubTypes.Type(value = Condition.ScoredIsFace.class, name = "scoredIsFace"),
     @JsonSubTypes.Type(value = Condition.ScoredRankBetween.class, name = "scoredRankBetween"),
+    @JsonSubTypes.Type(value = Condition.ScoredEnhancement.class, name = "scoredEnhancement"),
+    @JsonSubTypes.Type(value = Condition.ScoredEdition.class, name = "scoredEdition"),
+    @JsonSubTypes.Type(value = Condition.ScoredSeal.class, name = "scoredSeal"),
     @JsonSubTypes.Type(value = Condition.HandContainsPair.class, name = "handContainsPair"),
     @JsonSubTypes.Type(value = Condition.HandIs.class, name = "handIs"),
     @JsonSubTypes.Type(value = Condition.PlayedCount.class, name = "playedCount"),
@@ -31,6 +37,10 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoringAnyFace.class, name = "scoringAnyFace"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
+    @JsonSubTypes.Type(value = Condition.MoneyAtLeast.class, name = "moneyAtLeast"),
+    @JsonSubTypes.Type(value = Condition.HandsLeft.class, name = "handsLeft"),
+    @JsonSubTypes.Type(value = Condition.DiscardsLeft.class, name = "discardsLeft"),
+    @JsonSubTypes.Type(value = Condition.Ante.class, name = "ante"),
     @JsonSubTypes.Type(value = Condition.And.class, name = "and"),
     @JsonSubTypes.Type(value = Condition.Or.class, name = "or"),
     @JsonSubTypes.Type(value = Condition.Not.class, name = "not"),
@@ -40,7 +50,21 @@ public sealed interface Condition {
     boolean test(EvaluationContext ctx);
 
     /** Comparison for count-style conditions. */
-    enum Cmp { LTE, GTE, EQ }
+    enum Cmp {
+        LTE, GTE, EQ;
+
+        boolean holds(int value, int target) {
+            return switch (this) {
+                case LTE -> value <= target;
+                case GTE -> value >= target;
+                case EQ -> value == target;
+            };
+        }
+
+        static boolean holds(Cmp cmp, int value, int target) {
+            return cmp.holds(value, target);
+        }
+    }
 
     /** Unconditional. */
     record Always() implements Condition {
@@ -81,6 +105,27 @@ public sealed interface Condition {
         }
     }
 
+    /** The scoring card has a given enhancement (Bonus, Mult, Glass, Steel, Stone, ...). */
+    record ScoredEnhancement(Enhancement enhancement) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.scoredCard != null && ctx.scoredCard.enhancement == enhancement;
+        }
+    }
+
+    /** The scoring card has a given edition (Foil, Holographic, Polychrome). */
+    record ScoredEdition(Edition edition) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.scoredCard != null && ctx.scoredCard.edition == edition;
+        }
+    }
+
+    /** The scoring card has a given seal (Gold, Red, Blue, Purple). */
+    record ScoredSeal(Seal seal) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.scoredCard != null && ctx.scoredCard.seal == seal;
+        }
+    }
+
     /** The played poker hand contains a pair (Pair, Two Pair, Full House, ...). */
     record HandContainsPair() implements Condition {
         public boolean test(EvaluationContext ctx) {
@@ -98,13 +143,7 @@ public sealed interface Condition {
     /** Number of cards played compares to {@code n}. */
     record PlayedCount(Cmp cmp, int n) implements Condition {
         public boolean test(EvaluationContext ctx) {
-            if (ctx.playedCards == null) return false;
-            int size = ctx.playedCards.size();
-            return switch (cmp) {
-                case LTE -> size <= n;
-                case GTE -> size >= n;
-                case EQ -> size == n;
-            };
+            return ctx.playedCards != null && cmp.holds(ctx.playedCards.size(), n);
         }
     }
 
@@ -144,6 +183,34 @@ public sealed interface Condition {
             Object v = ctx.selfState().getOrDefault(var, 0);
             double n = (v instanceof Number num) ? num.doubleValue() : 0;
             return n >= min;
+        }
+    }
+
+    /** The run has at least {@code min} money. */
+    record MoneyAtLeast(int min) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.run != null && ctx.run.money >= min;
+        }
+    }
+
+    /** Hands remaining this round compares to {@code n}. */
+    record HandsLeft(Cmp cmp, int n) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.run != null && Cmp.holds(cmp, ctx.run.handsLeft, n);
+        }
+    }
+
+    /** Discards remaining this round compares to {@code n}. */
+    record DiscardsLeft(Cmp cmp, int n) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.run != null && Cmp.holds(cmp, ctx.run.discardsLeft, n);
+        }
+    }
+
+    /** The current ante compares to {@code n}. */
+    record Ante(Cmp cmp, int n) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.run != null && Cmp.holds(cmp, ctx.run.ante, n);
         }
     }
 

@@ -58,7 +58,7 @@ public final class ScoringEngine {
         log(acc, hr.type().display, "info", "Base " + acc.chips + " x " + fmt(acc.mult));
 
         List<Joker> jokers = run.jokers();
-        EvaluationContext ctx = baseContext(hr, played, scoring, run, rng, jokers);
+        EvaluationContext ctx = baseContext(hr, played, scoring, held, run, rng, jokers);
 
         // (3) BEFORE pass.
         for (int i = 0; i < jokers.size(); i++) {
@@ -127,11 +127,13 @@ public final class ScoringEngine {
     }
 
     private EvaluationContext baseContext(HandResult hr, List<Card> played, List<Card> scoring,
-                                          RunState run, RandomStreams rng, List<Joker> jokers) {
+                                          List<Card> held, RunState run, RandomStreams rng,
+                                          List<Joker> jokers) {
         EvaluationContext ctx = new EvaluationContext();
         ctx.handType = hr.type();
         ctx.playedCards = played;
         ctx.scoringCards = scoring;
+        ctx.heldCards = held;
         ctx.jokers = jokers;
         ctx.run = run;
         ctx.rng = rng;

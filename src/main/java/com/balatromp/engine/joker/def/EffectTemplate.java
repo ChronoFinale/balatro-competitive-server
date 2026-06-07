@@ -13,7 +13,7 @@ import com.balatromp.engine.joker.JokerEffect;
  */
 public record EffectTemplate(Op op, Value value) {
 
-    public enum Op { CHIPS, MULT, XMULT, DOLLARS, REPETITIONS }
+    public enum Op { CHIPS, MULT, XMULT, DOLLARS, REPETITIONS, HELD_MULT }
 
     public JokerEffect apply(EvaluationContext ctx) {
         double v = value.resolve(ctx);
@@ -25,6 +25,12 @@ public record EffectTemplate(Op op, Value value) {
             case REPETITIONS -> {
                 int r = (int) Math.round(v);
                 yield r == 0 ? null : JokerEffect.repetitions(r).msg("Retrigger");
+            }
+            case HELD_MULT -> {
+                if (v == 0) yield null;
+                JokerEffect e = new JokerEffect();
+                e.hMult = v;
+                yield e.msg("+" + fmt(v) + " Mult");
             }
         };
     }

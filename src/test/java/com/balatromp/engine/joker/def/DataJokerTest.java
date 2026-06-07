@@ -3,7 +3,10 @@ package com.balatromp.engine.joker.def;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatromp.engine.card.Card;
+import com.balatromp.engine.card.Edition;
+import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.card.Rank;
+import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.card.Suit;
 import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.EvaluationContext;
@@ -11,6 +14,10 @@ import com.balatromp.engine.joker.Joker;
 import com.balatromp.engine.joker.JokerEffect;
 import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.joker.Trigger;
+import com.balatromp.engine.joker.def.EffectTemplate.Op;
+import com.balatromp.engine.rng.RandomStreams;
+import com.balatromp.engine.scoring.ScoreResult;
+import com.balatromp.engine.scoring.ScoringEngine;
 import com.balatromp.engine.state.RunState;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -201,10 +208,115 @@ class DataJokerTest {
         assertThat(e.mult).isEqualTo(7);
     }
 
+    // --- expanded surface: card-property + run-state conditions (unit) -------
+
+    @Test
+    void scoredEnhancementCondition() {
+        DataJoker j = oneRule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.BONUS), Op.CHIPS, 25);
+        assertThat(j.calculate(fresh(j, c -> {
+            c.phase = Trigger.ON_SCORED;
+            c.scoredCard = new Card(Rank.NINE, Suit.SPADES, Enhancement.BONUS, Edition.NONE, Seal.NONE);
+        })).chips).isEqualTo(25);
+        assertThat(j.calculate(fresh(j, c -> {
+            c.phase = Trigger.ON_SCORED;
+            c.scoredCard = c(Rank.NINE, Suit.SPADES); // plain -> null
+        }))).isNull();
+    }
+
+    @Test
+    void scoredEditionAndSealConditions() {
+        DataJoker foil = oneRule(Trigger.ON_SCORED, new Condition.ScoredEdition(Edition.POLYCHROME), Op.MULT, 5);
+        assertThat(foil.calculate(fresh(foil, c -> {
+            c.phase = Trigger.ON_SCORED;
+            Card poly = c(Rank.NINE, Suit.SPADES);
+            poly.edition = Edition.POLYCHROME;
+            c.scoredCard = poly;
+        })).mult).isEqualTo(5);
+
+        DataJoker sealed = oneRule(Trigger.ON_SCORED, new Condition.ScoredSeal(Seal.GOLD), Op.DOLLARS, 2);
+        assertThat(sealed.calculate(fresh(sealed, c -> {
+            c.phase = Trigger.ON_SCORED;
+            c.scoredCard = new Card(Rank.NINE, Suit.SPADES, Enhancement.NONE, Edition.NONE, Seal.GOLD);
+        })).dollars).isEqualTo(2);
+    }
+
+    @Test
+    void runStateConditions() {
+        DataJoker rich = oneRule(Trigger.JOKER_MAIN, new Condition.MoneyAtLeast(10), Op.MULT, 3);
+        assertThat(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 12; })).mult)
+                .isEqualTo(3);
+        assertThat(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 4; }))).isNull();
+
+        DataJoker lateAnte = oneRule(Trigger.JOKER_MAIN, new Condition.Ante(Condition.Cmp.GTE, 3), Op.MULT, 8);
+        assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 5; })).mult)
+                .isEqualTo(8);
+        assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 1; }))).isNull();
+
+        DataJoker finisher = oneRule(Trigger.JOKER_MAIN, new Condition.HandsLeft(Condition.Cmp.EQ, 0), Op.MULT, 4);
+        assertThat(finisher.calculate(fresh(finisher, c -> { c.phase = Trigger.JOKER_MAIN; c.run.handsLeft = 0; })).mult)
+                .isEqualTo(4);
+    }
+
+    // --- expanded surface: scaling values, end-to-end through the pipeline ---
+
+    @Test
+    void countOverPlayedCardsScalesEffect() {
+        // +10 Chips per played face card
+        DataJoker j = new DataJoker(scalingDef("j_face_chips", Op.CHIPS,
+                new Value.Count(Value.Source.PLAYED, new Condition.ScoredIsFace(), 0, 10)));
+        List<Card> played = List.of(c(Rank.KING, Suit.SPADES), c(Rank.QUEEN, Suit.SPADES),
+                c(Rank.JACK, Suit.SPADES), c(Rank.TEN, Suit.SPADES), c(Rank.NINE, Suit.SPADES));
+        ScoreResult with = scoreWith(j, played, List.of());
+        ScoreResult without = scoreWith(null, played, List.of());
+        assertThat(with.chips() - without.chips()).isEqualTo(30); // K, Q, J
+        assertThat(with.mult()).isEqualTo(without.mult());
+    }
+
+    @Test
+    void runVarScalesWithMoney() {
+        // +1 Mult per dollar; RunState starts with $4
+        DataJoker j = new DataJoker(scalingDef("j_greed", Op.MULT,
+                new Value.RunVar(Value.Var.MONEY, 0, 1)));
+        List<Card> played = List.of(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.CLUBS));
+        ScoreResult with = scoreWith(j, played, List.of());
+        ScoreResult without = scoreWith(null, played, List.of());
+        assertThat(with.mult() - without.mult()).isEqualTo(4.0);
+    }
+
+    @Test
+    void heldMultScalesWithHeldFaceCards() {
+        // +3 Mult per face card held in hand
+        DataJoker j = new DataJoker(scalingDef("j_held_face", Op.HELD_MULT,
+                new Value.Count(Value.Source.HELD, new Condition.ScoredIsFace(), 0, 3)));
+        List<Card> played = List.of(c(Rank.TWO, Suit.SPADES), c(Rank.THREE, Suit.SPADES),
+                c(Rank.FOUR, Suit.SPADES), c(Rank.FIVE, Suit.SPADES), c(Rank.SIX, Suit.SPADES));
+        List<Card> held = List.of(c(Rank.KING, Suit.HEARTS), c(Rank.QUEEN, Suit.HEARTS), c(Rank.TWO, Suit.CLUBS));
+        ScoreResult with = scoreWith(j, played, held);
+        ScoreResult without = scoreWith(null, played, held);
+        assertThat(with.mult() - without.mult()).isEqualTo(6.0); // 2 held faces x 3
+    }
+
     // --- helpers -------------------------------------------------------------
 
     private static Card c(Rank r, Suit s) {
         return new Card(r, s);
+    }
+
+    private static DataJoker oneRule(Trigger when, Condition cond, Op op, double amount) {
+        return new DataJoker(new JokerDef("j_unit", "Unit", "test", "Common", 1, 0, 0, null, null, true,
+                List.of(), List.of(new Rule(when, cond, new EffectTemplate(op, new Value.Const(amount))))));
+    }
+
+    private static JokerDef scalingDef(String key, Op op, Value value) {
+        return new JokerDef(key, key, "test", "Common", 1, 0, 0, null, null, true, List.of(),
+                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(), new EffectTemplate(op, value))));
+    }
+
+    private static ScoreResult scoreWith(Joker j, List<Card> played, List<Card> held) {
+        RunState run = new RunState();
+        if (j != null) run.addJoker(j);
+        return new ScoringEngine().score(played, held, run, new RandomStreams("T"));
     }
 
     /** Run the same (freshly built) context through the code and data jokers; assert identical output. */
