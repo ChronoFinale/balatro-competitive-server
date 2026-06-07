@@ -42,6 +42,15 @@ test {
     }
 }
 
+// Play a solo run in the terminal: ./gradlew play --console=plain -q
+tasks.register('play', JavaExec) {
+    group = 'application'
+    description = 'Play a solo run in the terminal (embeds the server)'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.balatromp.engine.net.ClientCli'
+    standardInput = System.in
+}
+
 // Load harness: ./gradlew loadTest -Pargs="200 10"
 tasks.register('loadTest', JavaExec) {
     group = 'verification'
