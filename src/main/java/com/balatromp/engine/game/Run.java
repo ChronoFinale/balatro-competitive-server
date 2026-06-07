@@ -34,7 +34,11 @@ import java.util.Map;
  */
 public final class Run {
 
-    public enum Phase { BLIND_ACTIVE, SHOP, RUN_WON, RUN_LOST }
+    public enum Phase { BLIND_ACTIVE, SHOP, PVP_PENDING, RUN_WON, RUN_LOST }
+
+    /** Synthetic "boss" shown for an Attrition Nemesis blind (no debuff effect). */
+    private static final BossBlind NEMESIS = new BossBlind("bl_pvp", "Nemesis Blind",
+            "Head-to-head — higher score wins; lower loses a life", 2, false, 1.0, 5, -1, -1, 0, null, false);
 
     public final Ruleset ruleset;
     public final RunState state = new RunState();
@@ -49,6 +53,8 @@ public final class Run {
     public Shop shop;
     public BossBlind boss;       // the chosen boss while in a boss blind, else null
     public BossBlind forcedBoss; // test/dev hook to pin a boss
+    public int pvpFromAnte = 0;  // Attrition: boss blinds at/after this ante are PvP (0 = never)
+    private boolean pvpActive = false;
     private int rerollCount = 0;
     private final List<Card> composition = new ArrayList<>(); // the full deck, reshuffled each blind
 
@@ -76,7 +82,17 @@ public final class Run {
 
     private void startBlind() {
         state.roundScore = 0;
-        if (blind == BlindType.BOSS) {
+        pvpActive = false;
+        boolean pvpBoss = blind == BlindType.BOSS && pvpFromAnte > 0 && ante >= pvpFromAnte;
+        if (pvpBoss) {
+            // Attrition Nemesis blind: no clear-requirement; play all hands, compare to opponent.
+            pvpActive = true;
+            boss = NEMESIS;
+            state.handsLeft = ruleset.hands();
+            state.discardsLeft = ruleset.discards();
+            state.handSize = ruleset.handSize();
+            requirement = 0; // outcome is decided by the head-to-head comparison
+        } else if (blind == BlindType.BOSS) {
             boss = (forcedBoss != null) ? forcedBoss : BossCatalog.pick(ante, rng);
             state.handsLeft = boss.handsOverride() >= 0 ? boss.handsOverride() : ruleset.hands();
             state.discardsLeft = boss.discardsOverride() >= 0 ? boss.discardsOverride() : ruleset.discards();
@@ -115,13 +131,27 @@ public final class Run {
         refreshDebuffs(); // re-mark the freshly drawn hand
 
         if (intent instanceof Intent.PlayHand) {
-            if (state.roundScore >= requirement) {
+            if (pvpActive) {
+                // PvP blind: play all hands, then await the head-to-head comparison.
+                if (state.handsLeft <= 0) phase = Phase.PVP_PENDING;
+            } else if (state.roundScore >= requirement) {
                 winBlind();
             } else if (state.handsLeft <= 0) {
                 phase = Phase.RUN_LOST;
             }
         }
         return result;
+    }
+
+    /** Resolve a Nemesis blind after the match compared scores: proceed to the shop. */
+    public void resolvePvp() {
+        if (phase != Phase.PVP_PENDING) return;
+        pvpActive = false;
+        int interest = Math.min(5, state.money / 5);
+        state.money += NEMESIS.reward() + interest;
+        GameEvents.endOfRound(state, rng);
+        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2);
+        phase = Phase.SHOP;
     }
 
     private void winBlind() {
@@ -247,7 +277,8 @@ public final class Run {
             case SMALL -> blind = BlindType.BIG;
             case BIG -> blind = BlindType.BOSS;
             case BOSS -> {
-                if (ruleset.winAnte() > 0 && ante >= ruleset.winAnte()) {
+                // Attrition (pvpFromAnte>0) is endless — only lives decide it.
+                if (pvpFromAnte == 0 && ruleset.winAnte() > 0 && ante >= ruleset.winAnte()) {
                     phase = Phase.RUN_WON;
                     return;
                 }

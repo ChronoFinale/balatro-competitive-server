@@ -85,6 +85,7 @@
   <div id="status">
     <div id="opponent" class="panel" style="display:none;">
       <div class="stat">Opponent: <b id="oppName">—</b></div>
+      <div class="big" id="livesLine">❤︎ — vs — ❤︎</div>
       <div class="stat" id="oppState">—</div>
     </div>
     <div class="panel row">
@@ -139,6 +140,10 @@
 <script>
 const $ = id => document.getElementById(id);
 let ws, view = null, selected = new Set(), seq = 1, mode = null, myId = null;
+let myLives = 0, oppLives = 0;
+function renderLives() {
+  $('livesLine').textContent = `you ${'❤︎'.repeat(Math.max(0, myLives))} (${myLives})  vs  (${oppLives}) ${'❤︎'.repeat(Math.max(0, oppLives))} opp`;
+}
 
 const RANK = {TWO:'2',THREE:'3',FOUR:'4',FIVE:'5',SIX:'6',SEVEN:'7',EIGHT:'8',NINE:'9',TEN:'10',JACK:'J',QUEEN:'Q',KING:'K',ACE:'A'};
 const SUIT = {SPADES:'♠',HEARTS:'♥',CLUBS:'♣',DIAMONDS:'♦'};
@@ -253,11 +258,17 @@ function handle(m) {
       enterGame();
       $('opponent').style.display = 'block';
       $('oppName').textContent = m.opponent;
+      myLives = m.yourLives; oppLives = m.oppLives; renderLives();
       view = m.view; render();
       break;
     case 'opponentUpdate':
+      if (m.lives != null) { oppLives = m.lives; renderLives(); }
       $('oppState').textContent =
         `ante ${m.ante} · ${m.blind} · score ${m.roundScore} · $${m.money} · ${m.phase}`;
+      break;
+    case 'pvpResult':
+      myLives = m.yourLives; oppLives = m.oppLives; renderLives();
+      toast(`Nemesis ${m.outcome.toUpperCase()} — you ${m.yourScore} vs ${m.oppScore}`);
       break;
     case 'matchResult':
       $('bannerWrap').innerHTML =

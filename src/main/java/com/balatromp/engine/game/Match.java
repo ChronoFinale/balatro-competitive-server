@@ -36,6 +36,9 @@ public final class Match {
     private List<String> draftPool;
     private Side draftTurn;
 
+    private static final int STARTING_LIVES = 4;     // Attrition default
+    private static final int PVP_FROM_ANTE = 2;      // bosses from ante 2 are Nemesis blinds
+
     private Side host;
     private Side guest;
     private Phase phase = Phase.WAITING;
@@ -79,12 +82,37 @@ public final class Match {
 
         send(opp, opponentSummary(me));
 
-        Run.Phase rp = me.run.phase;
-        if (rp == Run.Phase.RUN_LOST) {
-            finish(opp.playerId);
-        } else if (rp == Run.Phase.RUN_WON) {
-            finish(me.playerId);
+        if (me.run.phase == Run.Phase.RUN_LOST) {
+            finish(opp.playerId); // busted a normal blind
+            return;
         }
+        // Both at a Nemesis blind with all hands played -> compare, lower loses a life.
+        if (host.run.phase == Run.Phase.PVP_PENDING && guest.run.phase == Run.Phase.PVP_PENDING) {
+            resolveNemesis();
+        }
+    }
+
+    private void resolveNemesis() {
+        long h = host.run.state.roundScore;
+        long g = guest.run.state.roundScore;
+        if (h > g) guest.lives--;
+        else if (g > h) host.lives--;
+
+        sendPvp(host, guest, h, g); // each player gets their own perspective
+        sendPvp(guest, host, g, h);
+
+        host.run.resolvePvp(); // both proceed to their shop
+        guest.run.resolvePvp();
+
+        if (host.lives <= 0) finish(guest.playerId);
+        else if (guest.lives <= 0) finish(host.playerId);
+    }
+
+    private void sendPvp(Side me, Side opp, long myScore, long oppScore) {
+        String outcome = myScore > oppScore ? "win" : oppScore > myScore ? "lose" : "tie";
+        send(me, map("type", "pvpResult", "ante", me.run.ante,
+                "yourScore", myScore, "oppScore", oppScore, "outcome", outcome,
+                "yourLives", me.lives, "oppLives", opp.lives));
     }
 
     // ---- pick/ban draft ----
@@ -132,14 +160,19 @@ public final class Match {
 
     private void startPlaying() {
         phase = Phase.PLAYING;
+        host.lives = STARTING_LIVES;
+        guest.lives = STARTING_LIVES;
         host.run = new Run(ruleset, seed);   // same seed -> identical content available
+        host.run.pvpFromAnte = PVP_FROM_ANTE;
         guest.run = new Run(ruleset, seed);
+        guest.run.pvpFromAnte = PVP_FROM_ANTE;
         sendStart(host, guest);
         sendStart(guest, host);
     }
 
     private void sendStart(Side me, Side opp) {
-        send(me, map("type", "matchStart", "opponent", opp.playerId, "view", me.run.view()));
+        send(me, map("type", "matchStart", "opponent", opp.playerId,
+                "yourLives", me.lives, "oppLives", opp.lives, "view", me.run.view()));
     }
 
     private void finish(String winner) {
@@ -153,6 +186,7 @@ public final class Match {
         ClientView v = opp.run.view();
         return map("type", "opponentUpdate",
                 "playerId", opp.playerId,
+                "lives", opp.lives,
                 "ante", v.ante(),
                 "blind", v.blind(),
                 "roundScore", v.roundScore(),
@@ -180,6 +214,7 @@ public final class Match {
         final String sessionId;
         final String playerId;
         Run run;
+        int lives;
 
         Side(String sessionId, String playerId) {
             this.sessionId = sessionId;

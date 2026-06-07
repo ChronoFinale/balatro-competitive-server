@@ -36,8 +36,8 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 (engine + network).
 
 ```
-engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer (full deckbuilding) ✅  web UI ✅
-next → ranked queue/MMR → per-blind PvP/attrition + sent traps
+engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer: Attrition ✅  web UI ✅
+focus → Attrition done well.  next → ranked queue/MMR → sent Trap cards → mod-protocol compat (TCP)
 
 ```
 
@@ -79,10 +79,12 @@ Play Hand / Discard, clear the blind, then Buy jokers / planets / Reroll / Next
 Blind. It's a tiny vanilla-JS client over the same WebSocket protocol, CSS-drawn
 cards (no game assets shipped).
 
-**Multiplayer (friend codes):** one player clicks **Create Lobby** and shares the
-5-letter code; the other **Join**s with it. Pick/ban down to a ruleset, then race
-the same seed with full deckbuilding — an opponent panel shows their live
-progress; first to win their run wins.
+**Multiplayer — Attrition (friend codes):** one player clicks **Create Lobby** and
+shares the 5-letter code; the other **Join**s. Pick/ban a ruleset, then each
+builds their own run on the same seed. From ante 2 every Boss is a **Nemesis
+blind** — both play it, scores are compared, the lower loses a life (4 lives).
+Bust a normal blind or hit 0 lives and you're out. The opponent panel shows live
+progress + lives.
 
 **Real card/joker art (optional, local only):** drop Balatro's extracted atlases
 (`8BitDeck.webp` for cards, `Jokers.webp` for jokers) into `./web-assets`
@@ -109,12 +111,14 @@ sourced from the game data). Requires owning Balatro.
 
 There is **no `score` field a client can send** — the server computes it.
 
-### Multiplayer (lobby + duel)
-Two authenticated players, **same seed** — a full-deckbuilding race: each player
-drives their own complete Run (blinds, boss blinds, shop, jokers, planets,
-leveling), seeded identically so the content is the same and skill decides it.
-First to win their run wins; first to bust loses. The server pushes each player a
-live opponent summary.
+### Multiplayer — Attrition (the competitive focus)
+Two authenticated players, **same seed**. Each drives their own complete Run
+(blinds, shop, jokers, planets, leveling). From ante 2, every **Boss is a Nemesis
+blind**: both play it with no clear-requirement, the server compares the two
+authoritative scores, and the **lower score loses a life** (4 lives). Bust a
+normal blind or reach 0 lives and you lose. The server pushes each player a live
+opponent summary + lives. (Attrition is the one mode we're doing well first;
+other formats can come later.)
 - Host: `{"type":"createLobby"}` → `{"type":"lobbyCreated","code":"AB3KP"}`
 - Guest: `{"type":"joinLobby","code":"AB3KP"}`
 - **Pick/ban draft:** both get `{"type":"draftState","pool":[…],"yourTurn":bool}`;
