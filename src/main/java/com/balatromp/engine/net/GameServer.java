@@ -214,9 +214,14 @@ public final class GameServer implements AutoCloseable {
                 }
                 case "createLobby" -> createLobby(ctx, seq);
                 case "joinLobby" -> joinLobby(ctx, seq, msg.path("code").asText());
-                case "ban" -> {
+                case "proposeRuleset" -> {
                     Match m = matchBySession.get(ctx.sessionId());
-                    if (m != null) m.ban(ctx.sessionId(), msg.path("ruleset").asText());
+                    if (m != null) m.propose(ctx.sessionId(), msg.path("name").asText());
+                    else respond(ctx, error(seq, "not in a match"));
+                }
+                case "respondRuleset" -> {
+                    Match m = matchBySession.get(ctx.sessionId());
+                    if (m != null) m.respond(ctx.sessionId(), msg.path("accept").asBoolean());
                     else respond(ctx, error(seq, "not in a match"));
                 }
                 case "playHand" -> route(ctx, seq, new Intent.PlayHand(ints(msg.path("cards"))));
@@ -307,7 +312,7 @@ public final class GameServer implements AutoCloseable {
     private void createLobby(WsMessageContext ctx, long seq) {
         String code = newCode();
         String seed = Long.toHexString(System.nanoTime()) + code;
-        Match match = new Match(code, seed, ruleset, this::deliver);
+        Match match = new Match(code, seed, ruleset, rulesetStore, this::deliver);
         match.setHost(ctx.sessionId(), players.get(ctx.sessionId()));
         pendingByCode.put(code, match);
         matchBySession.put(ctx.sessionId(), match);

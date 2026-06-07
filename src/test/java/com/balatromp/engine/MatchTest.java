@@ -52,11 +52,17 @@ class MatchTest {
 
             b.sendText(json(Map.of("type", "joinLobby", "seq", 1, "code", code)), true).join();
 
-            // Pick/ban: host (alice) bans first; ban down to "Standard" deterministically.
-            assertThat(awaitDraftTurn(aIn).path("pool").size()).isEqualTo(3);
-            a.sendText(json(Map.of("type", "ban", "seq", 2, "ruleset", "Blitz")), true).join();
-            awaitDraftTurn(bIn); // now bob's turn
-            b.sendText(json(Map.of("type", "ban", "seq", 2, "ruleset", "Marathon")), true).join();
+            // Ruleset agreement: host (alice) is told to propose; she offers "Standard";
+            // bob sees the proposal (full data incl. joker pool) and accepts.
+            JsonNode ready = awaitType(aIn, "lobbyReady");
+            assertThat(ready.path("youPropose").asBoolean()).isTrue();
+            assertThat(ready.path("rulesets").size()).isGreaterThanOrEqualTo(3); // curated catalog
+            a.sendText(json(Map.of("type", "proposeRuleset", "seq", 2, "name", "Standard")), true).join();
+
+            JsonNode proposal = awaitType(bIn, "rulesetProposed");
+            assertThat(proposal.path("ruleset").path("name").asText()).isEqualTo("Standard");
+            assertThat(proposal.path("ruleset").path("jokerPool").size()).isGreaterThan(0);
+            b.sendText(json(Map.of("type", "respondRuleset", "seq", 2, "accept", true)), true).join();
 
             // Each player now drives a full Run (same seed). matchStart carries the
             // player's own view (hand, shop, jokers, etc.).
@@ -124,20 +130,6 @@ class MatchTest {
 
     private static JsonNode awaitType(BlockingQueue<String> inbox, String type) throws Exception {
         return drainUntil(inbox, type, new HashSet<>());
-    }
-
-    /** Drain until a draftState message where it's this player's turn to ban. */
-    private static JsonNode awaitDraftTurn(BlockingQueue<String> inbox) throws Exception {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(8);
-        while (System.nanoTime() < deadline) {
-            String msg = inbox.poll(8, TimeUnit.SECONDS);
-            if (msg == null) break;
-            JsonNode node = JSON.readTree(msg);
-            if (node.path("type").asText().equals("draftState") && node.path("yourTurn").asBoolean()) {
-                return node;
-            }
-        }
-        throw new AssertionError("did not receive a draftState with yourTurn=true");
     }
 
     /** Poll until a message of {@code type} arrives, recording seen types in {@code seen}. */

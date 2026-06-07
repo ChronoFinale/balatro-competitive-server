@@ -78,7 +78,7 @@
   </div>
 
   <div id="draft" class="panel" style="display:none;">
-    <div class="stat" id="draftMsg">Pick / ban</div>
+    <div class="stat" id="draftMsg">Agree on a ruleset</div>
     <div class="row" id="draftPool" style="margin-top:8px;"></div>
   </div>
 
@@ -246,11 +246,25 @@ function handle(m) {
       mode = 'mp';
       $('lobbyMsg').textContent = `Lobby ${m.code} — share it; waiting for opponent…`;
       break;
-    case 'draftState':
-      showDraft(m);
+    case 'lobbyReady':
+      showLobby(m);
       break;
-    case 'draftResult':
-      $('draftMsg').textContent = `Ruleset: ${m.ruleset} — starting…`;
+    case 'rulesetProposed':
+      showProposal(m.ruleset);
+      break;
+    case 'proposalSent':
+      $('draftMsg').textContent = `Proposed ${m.name} — waiting for opponent…`;
+      break;
+    case 'rulesetAgreed':
+      $('draftMsg').textContent = `Agreed: ${m.name} — starting…`;
+      $('draftPool').innerHTML = '';
+      break;
+    case 'rulesetDeclined': // host: guest said no
+      toast(`Opponent declined ${m.name} — propose another`);
+      $('draftMsg').textContent = 'Propose a ruleset both will play';
+      break;
+    case 'proposalDeclined': // guest: confirm decline
+      $('draftMsg').textContent = 'Declined — waiting for host to propose…';
       $('draftPool').innerHTML = '';
       break;
     case 'matchStart':
@@ -295,17 +309,37 @@ function enterGame() {
   $('status').style.display = 'block';
 }
 
-function showDraft(m) {
+// Host sees the full ruleset menu (curated + custom) and proposes one.
+function showLobby(m) {
   $('menu').style.display = 'none';
   $('draft').style.display = 'block';
-  $('draftMsg').textContent = m.yourTurn ? 'Your turn — ban a ruleset' : 'Opponent is banning…';
   const pool = $('draftPool'); pool.innerHTML = '';
-  (m.pool || []).forEach(name => {
-    const b = document.createElement('button');
-    b.textContent = name; b.disabled = !m.yourTurn;
-    b.onclick = () => send({type: 'ban', ruleset: name});
-    pool.appendChild(b);
-  });
+  if (m.youPropose) {
+    $('draftMsg').textContent = 'Propose a ruleset both will play';
+    (m.rulesets || []).forEach(r => {
+      const b = document.createElement('button');
+      b.textContent = `${r.name} · ${(r.jokerPool || []).length} jokers`;
+      b.onclick = () => send({type: 'proposeRuleset', name: r.name});
+      pool.appendChild(b);
+    });
+  } else {
+    $('draftMsg').textContent = 'Waiting for host to propose a ruleset…';
+  }
+}
+
+// Guest sees the host's proposal (params + pool size) and accepts or declines.
+function showProposal(r) {
+  $('menu').style.display = 'none';
+  $('draft').style.display = 'block';
+  $('draftMsg').textContent =
+    `Host proposes "${r.name}" — ${r.hands} hands, ${r.discards} discards, hand ${r.handSize}, ` +
+    `${(r.jokerPool || []).length} jokers. Both must agree.`;
+  const pool = $('draftPool'); pool.innerHTML = '';
+  const acc = document.createElement('button');
+  acc.textContent = '✓ Accept'; acc.onclick = () => send({type: 'respondRuleset', accept: true});
+  const dec = document.createElement('button');
+  dec.className = 'alt'; dec.textContent = '✗ Decline'; dec.onclick = () => send({type: 'respondRuleset', accept: false});
+  pool.appendChild(acc); pool.appendChild(dec);
 }
 
 function newRun() {
