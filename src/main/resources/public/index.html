@@ -130,7 +130,9 @@ const atlas = new Image();
 atlas.onload = () => { useSprites = true; if (view) render(); };
 atlas.src = ATLAS;
 // Joker sprite atlas (native 71x95 cells), same optional-local-asset deal.
-const JOKER_ATLAS = '/assets/Jokers.webp', JW = 71, JH = 95;
+// Jokers atlas: 10 cols x 16 rows, 71x95 cells (Balatro). Force the grid so it's
+// resolution-independent (works for 1x or 2x atlases).
+const JOKER_ATLAS = '/assets/Jokers.webp', JW = 71, JH = 95, JCOLS = 10, JROWS = 16;
 let useJokerSprites = false;
 const jatlas = new Image();
 jatlas.onload = () => { useJokerSprites = true; if (view) render(); };
@@ -142,6 +144,7 @@ function jokerEl(j) {
   if (useJokerSprites) {
     el.className = 'jsprite';
     el.style.backgroundImage = `url(${JOKER_ATLAS})`;
+    el.style.backgroundSize = `${JCOLS*JW}px ${JROWS*JH}px`;
     el.style.backgroundPosition = `-${(j.x||0)*JW}px -${(j.y||0)*JH}px`;
   } else {
     el.className = 'joker';
