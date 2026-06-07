@@ -58,28 +58,22 @@ class MatchTest {
             awaitDraftTurn(bIn); // now bob's turn
             b.sendText(json(Map.of("type", "ban", "seq", 2, "ruleset", "Marathon")), true).join();
 
+            // Each player now drives a full Run (same seed). matchStart carries the
+            // player's own view (hand, shop, jokers, etc.).
             JsonNode aStart = drainUntil(aIn, "matchStart", new HashSet<>());
             JsonNode bStart = drainUntil(bIn, "matchStart", new HashSet<>());
-            assertThat(aStart.path("yourLives").asInt()).isEqualTo(3);
-            assertThat(aStart.path("hand").size()).isEqualTo(8); // "Standard" survived the draft
-            assertThat(bStart.path("hand").size()).isEqualTo(8);
+            assertThat(aStart.path("opponent").asText()).isEqualTo("bob");
+            assertThat(aStart.path("view").path("hand").size()).isEqualTo(8); // "Standard" survived
+            assertThat(bStart.path("view").path("hand").size()).isEqualTo(8);
 
-            // Both play their 4 hands (identical plays on the shared seed -> tie).
-            for (int h = 0; h < 4; h++) {
-                a.sendText(playHand(h + 2), true).join();
-                b.sendText(playHand(h + 2), true).join();
-            }
+            // Alice plays a hand: she gets an authoritative update; Bob gets a push.
+            a.sendText(playHand(2), true).join();
+            JsonNode aUpdate = drainUntil(aIn, "update", new HashSet<>());
+            assertThat(aUpdate.path("accepted").asBoolean()).isTrue();
 
-            Set<String> aTypes = new HashSet<>();
-            JsonNode aResult = drainUntil(aIn, "roundResult", aTypes);
-            assertThat(aTypes).contains("update", "opponentUpdate"); // own + push from opponent
-            assertThat(aResult.path("winner").asText()).isEqualTo("tie");
-            assertThat(aResult.path("hostScore").asLong()).isEqualTo(aResult.path("guestScore").asLong());
-            assertThat(aResult.path("hostLives").asInt()).isEqualTo(3);
-            assertThat(aResult.path("guestLives").asInt()).isEqualTo(3);
-
-            JsonNode bResult = drainUntil(bIn, "roundResult", new HashSet<>());
-            assertThat(bResult.path("winner").asText()).isEqualTo("tie");
+            JsonNode bOpp = drainUntil(bIn, "opponentUpdate", new HashSet<>());
+            assertThat(bOpp.path("playerId").asText()).isEqualTo("alice");
+            assertThat(bOpp.path("ante").asInt()).isEqualTo(1);
 
             a.sendClose(WebSocket.NORMAL_CLOSURE, "done");
             b.sendClose(WebSocket.NORMAL_CLOSURE, "done");

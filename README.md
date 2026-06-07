@@ -36,8 +36,8 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 (engine + network).
 
 ```
-engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer ✅  web UI ✅
-next → shop+planets in multiplayer → ranked queue/MMR
+engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer (full deckbuilding) ✅  web UI ✅
+next → ranked queue/MMR → per-blind PvP/attrition + sent traps
 
 ```
 
@@ -104,9 +104,11 @@ sourced from the game data). Requires owning Balatro.
 There is **no `score` field a client can send** — the server computes it.
 
 ### Multiplayer (lobby + duel)
-Two authenticated players, **same seed** each round (identical cards — pure
-skill), score race, lives, first to 0 loses. The server pushes each player live
-opponent state — the first use of WebSocket server-push.
+Two authenticated players, **same seed** — a full-deckbuilding race: each player
+drives their own complete Run (blinds, boss blinds, shop, jokers, planets,
+leveling), seeded identically so the content is the same and skill decides it.
+First to win their run wins; first to bust loses. The server pushes each player a
+live opponent summary.
 - Host: `{"type":"createLobby"}` → `{"type":"lobbyCreated","code":"AB3KP"}`
 - Guest: `{"type":"joinLobby","code":"AB3KP"}`
 - **Pick/ban draft:** both get `{"type":"draftState","pool":[…],"yourTurn":bool}`;

@@ -150,14 +150,10 @@ public final class GameServer implements AutoCloseable {
                     int index = msg.path("index").asInt();
                     soloAction(ctx, seq, run -> run.useConsumable(index));
                 }
-                case "proceed" -> {
-                    Run run = runs.get(ctx.sessionId());
-                    if (run == null) respond(ctx, error(seq, "no active run"));
-                    else {
-                        run.proceed();
-                        respond(ctx, ok(seq, run));
-                    }
-                }
+                case "proceed" -> soloAction(ctx, seq, run -> {
+                    run.proceed();
+                    return null;
+                });
                 default -> respond(ctx, error(seq, "unknown type: " + type));
             }
         } catch (Exception e) {
@@ -165,22 +161,40 @@ public final class GameServer implements AutoCloseable {
         }
     }
 
-    /** Apply a solo-run action (shop buy/reroll) and reply with the new view. */
+    /** The player's authoritative Run: their match's run if in a match, else solo. */
+    private Run runFor(String sessionId) {
+        Match m = matchBySession.get(sessionId);
+        return (m != null) ? m.runOf(sessionId) : runs.get(sessionId);
+    }
+
+    /** After applying an action, let the match push opponent state + decide the match. */
+    private void afterAction(String sessionId) {
+        Match m = matchBySession.get(sessionId);
+        if (m != null) m.onAction(sessionId);
+    }
+
+    /** Apply a Run action (shop/planet/proceed) and reply with the new view. */
     private void soloAction(WsMessageContext ctx, long seq, java.util.function.Function<Run, String> action) {
-        Run run = runs.get(ctx.sessionId());
+        Run run = runFor(ctx.sessionId());
         if (run == null) {
             respond(ctx, error(seq, "no active run"));
             return;
         }
         String err = action.apply(run);
         respond(ctx, new WsResponse("update", seq, err == null, err, run.view(), List.of()));
+        afterAction(ctx.sessionId());
     }
 
-    /** Route a play/discard to the player's match if any, else their solo run. */
+    /** Route a play/discard to the player's Run (match or solo). */
     private void route(WsMessageContext ctx, long seq, Intent intent) {
-        Match match = matchBySession.get(ctx.sessionId());
-        if (match != null) match.play(ctx.sessionId(), intent);
-        else apply(ctx, seq, intent);
+        Run run = runFor(ctx.sessionId());
+        if (run == null) {
+            respond(ctx, error(seq, "no active run"));
+            return;
+        }
+        ServerUpdate up = run.submit(intent);
+        respond(ctx, new WsResponse("update", seq, up.accepted(), up.rejection(), up.view(), up.replay()));
+        afterAction(ctx.sessionId());
     }
 
     private void createLobby(WsMessageContext ctx, long seq) {
@@ -224,16 +238,6 @@ public final class GameServer implements AutoCloseable {
             code = sb.toString();
         } while (!activeCodes.add(code));
         return code;
-    }
-
-    private void apply(WsMessageContext ctx, long seq, Intent intent) {
-        Run run = runs.get(ctx.sessionId());
-        if (run == null) {
-            respond(ctx, error(seq, "no active run"));
-            return;
-        }
-        ServerUpdate up = run.submit(intent);
-        respond(ctx, new WsResponse("update", seq, up.accepted(), up.rejection(), up.view(), up.replay()));
     }
 
     private WsResponse ok(long seq, Run run) {
