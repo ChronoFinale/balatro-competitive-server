@@ -27,5 +27,8 @@ public record ClientView(
         List<Map<String, Object>> shop,
         int rerollCost,
         String boss,
-        String bossEffect) {
+        String bossEffect,
+        List<Map<String, Object>> shopPlanets,
+        List<Map<String, Object>> consumables,
+        Map<String, Object> handLevels) {
 }

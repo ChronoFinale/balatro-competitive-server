@@ -10,12 +10,14 @@ import com.balatromp.engine.net.CardView;
 import com.balatromp.engine.net.ClientView;
 import com.balatromp.engine.net.ServerUpdate;
 import com.balatromp.engine.rng.RandomStreams;
+import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.scoring.ReplayEntry;
 import com.balatromp.engine.state.Deck;
 import com.balatromp.engine.state.Ruleset;
 import com.balatromp.engine.state.RunState;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -146,6 +148,31 @@ public final class Run {
         return null;
     }
 
+    /** Buy the planet at the given shop slot into your consumable inventory. */
+    public String buyPlanet(int index) {
+        if (phase != Phase.SHOP || shop == null) return "not in shop";
+        if (index < 0 || index >= shop.planets().size()) return "invalid planet slot";
+        if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
+        if (state.money < PlanetCatalog.COST) return "not enough money";
+        state.money -= PlanetCatalog.COST;
+        state.consumables.add(shop.planets().get(index).key());
+        shop.planets().remove(index);
+        return null;
+    }
+
+    /** Use a held consumable (Planet -> level its hand). Returns null on success. */
+    public String useConsumable(int index) {
+        if (phase == Phase.RUN_WON || phase == Phase.RUN_LOST) return "run is over";
+        if (index < 0 || index >= state.consumables.size()) return "invalid consumable";
+        PlanetCatalog.Planet p = PlanetCatalog.get(state.consumables.get(index));
+        if (p != null) {
+            state.levelUpHand(p.hand());
+            GameEvents.useConsumable(state, rng, "Planet");
+        }
+        state.consumables.remove(index);
+        return null;
+    }
+
     /** Client-facing entry: validate+apply an intent, return the authoritative update. */
     public ServerUpdate submit(Intent intent) {
         IntentResult r = play(intent);
@@ -178,10 +205,31 @@ public final class Run {
             rerollCost = Shop.REROLL_COST;
         }
 
+        List<Map<String, Object>> shopPlanets = null;
+        if (phase == Phase.SHOP && shop != null) {
+            shopPlanets = new ArrayList<>();
+            for (PlanetCatalog.Planet p : shop.planets()) {
+                shopPlanets.add(Map.of("key", p.key(), "name", p.name(), "hand", p.hand().display,
+                        "cost", PlanetCatalog.COST, "description", p.description()));
+            }
+        }
+
+        List<Map<String, Object>> consumables = new ArrayList<>();
+        for (String key : state.consumables) {
+            PlanetCatalog.Planet p = PlanetCatalog.get(key);
+            if (p != null) {
+                consumables.add(Map.of("key", key, "name", p.name(), "description", p.description()));
+            }
+        }
+
+        Map<String, Object> handLevels = new LinkedHashMap<>();
+        for (HandType t : HandType.values()) handLevels.put(t.display, state.handLevel(t));
+
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
-                boss != null ? boss.name() : null, boss != null ? boss.effect() : null);
+                boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
+                shopPlanets, consumables, handLevels);
     }
 
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */

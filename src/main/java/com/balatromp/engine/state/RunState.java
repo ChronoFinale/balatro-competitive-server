@@ -29,6 +29,8 @@ public final class RunState {
     public int probabilityNumerator = 1;
 
     public final List<Card> hand = new ArrayList<>();
+    public final List<String> consumables = new ArrayList<>(); // held Planet (etc.) card keys
+    public int consumableSlots = 2;
     public Deck deck;
     public RandomStreams rng;
 
@@ -56,13 +58,17 @@ public final class RunState {
         handLevels.put(t, level);
     }
 
-    // Hand-level scaling beyond level 1 is a TODO (Planet cards); level 1 => no bonus.
+    /** Level a poker hand by one (Planet card). */
+    public void levelUpHand(HandType t) {
+        handLevels.put(t, handLevel(t) + 1);
+    }
+
     public int handLevelChipBonus(HandType t) {
-        return 0;
+        return (handLevel(t) - 1) * t.lChips;
     }
 
     public int handLevelMultBonus(HandType t) {
-        return 0;
+        return (handLevel(t) - 1) * t.lMult;
     }
 
     /** Persistent server-only state bag for a specific joker instance. */

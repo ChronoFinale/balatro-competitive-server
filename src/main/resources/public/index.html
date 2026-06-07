@@ -87,6 +87,11 @@
       <div class="row" id="jokers"><span class="stat">none</span></div>
     </div>
 
+    <div class="panel">
+      <div class="stat">Consumables (click to use)</div>
+      <div class="row" id="consumables"><span class="stat">none</span></div>
+    </div>
+
     <div class="panel" id="handPanel">
       <div class="stat">Hand</div>
       <div id="hand"></div>
@@ -146,6 +151,7 @@ const HAND_BASE = {
   'Three of a Kind':[30,3],'Two Pair':[20,2],'Pair':[10,2],'High Card':[5,1]
 };
 const RID = {TWO:2,THREE:3,FOUR:4,FIVE:5,SIX:6,SEVEN:7,EIGHT:8,NINE:9,TEN:10,JACK:11,QUEEN:12,KING:13,ACE:14};
+const HAND_LVL = {'Flush Five':[50,3],'Flush House':[40,4],'Five of a Kind':[35,3],'Straight Flush':[40,4],'Four of a Kind':[30,3],'Full House':[25,2],'Flush':[15,2],'Straight':[30,3],'Three of a Kind':[20,2],'Two Pair':[20,1],'Pair':[15,1],'High Card':[10,1]};
 function detectHand(cards) {
   if (!cards.length) return null;
   const ids = cards.map(c => RID[c.rank]);
@@ -268,7 +274,24 @@ function render() {
 
   const sel = [...selected].map(i => v.hand[i]).filter(Boolean);
   const ph = sel.length ? detectHand(sel) : null;
-  $('preview').textContent = ph ? `${ph.name} · ${ph.chips} × ${ph.mult}` : '';
+  let pvLvl = 1;
+  if (ph && v.handLevels) {
+    pvLvl = v.handLevels[ph.name] || 1;
+    const [lc, lm] = HAND_LVL[ph.name];
+    ph.chips += (pvLvl-1)*lc; ph.mult += (pvLvl-1)*lm;
+  }
+  $('preview').textContent = ph ? `${ph.name}${pvLvl>1?(' Lv'+pvLvl):''} · ${ph.chips} × ${ph.mult}` : '';
+
+  // held consumables (click to use)
+  const cr = $('consumables'); cr.innerHTML = '';
+  if (v.consumables && v.consumables.length) {
+    v.consumables.forEach((cc,i) => {
+      const el = document.createElement('div'); el.className='joker'; el.style.cursor='pointer';
+      el.title = cc.description||''; el.textContent = '🪐 ' + cc.name;
+      el.onclick = () => send({type:'useConsumable', index:i});
+      cr.appendChild(el);
+    });
+  } else cr.innerHTML = '<span class="stat">none</span>';
 
   const inBlind = v.phase === 'BLIND_ACTIVE';
   const inShop = v.phase === 'SHOP';
@@ -290,6 +313,15 @@ function render() {
       const b = document.createElement('button');
       b.textContent = 'Buy'; b.disabled = v.money < it.cost;
       b.onclick = () => send({type:'buyJoker', index:i});
+      o.appendChild(b); $('offers').appendChild(o);
+    });
+    (v.shopPlanets||[]).forEach((it,i) => {
+      const o = document.createElement('div'); o.className='offer';
+      const nm = document.createElement('b'); nm.textContent = '🪐 ' + it.name; o.appendChild(nm);
+      const ds = document.createElement('span'); ds.className='stat'; ds.textContent = it.description||''; o.appendChild(ds);
+      const pr = document.createElement('span'); pr.className='stat'; pr.textContent = '$'+it.cost; o.appendChild(pr);
+      const b = document.createElement('button'); b.textContent = 'Buy';
+      b.disabled = v.money < it.cost; b.onclick = () => send({type:'buyPlanet', index:i});
       o.appendChild(b); $('offers').appendChild(o);
     });
   }

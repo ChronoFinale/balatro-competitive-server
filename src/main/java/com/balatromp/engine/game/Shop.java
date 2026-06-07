@@ -28,23 +28,34 @@ public final class Shop {
     }
 
     private final List<Item> items;
+    private final List<PlanetCatalog.Planet> planets;
 
-    private Shop(List<Item> items) {
+    private Shop(List<Item> items, List<PlanetCatalog.Planet> planets) {
         this.items = items;
+        this.planets = planets;
     }
 
     public List<Item> items() {
         return items;
     }
 
+    public List<PlanetCatalog.Planet> planets() {
+        return planets;
+    }
+
     public static Shop generate(RandomStreams rng, String streamKey, int slots) {
-        List<String> keys = new ArrayList<>(JokerLibrary.registry().keySet());
+        List<String> jokerKeys = new ArrayList<>(JokerLibrary.registry().keySet());
         var r = rng.stream(streamKey);
         List<Item> items = new ArrayList<>();
         for (int i = 0; i < slots; i++) {
-            String key = keys.get(r.nextInt(keys.size()));
+            String key = jokerKeys.get(r.nextInt(jokerKeys.size()));
             items.add(new Item(JokerLibrary.create(key).info()));
         }
-        return new Shop(items);
+        // One planet offering.
+        List<String> planetKeys = PlanetCatalog.keys();
+        var pr = rng.stream(streamKey + ":planet");
+        List<PlanetCatalog.Planet> planets = new ArrayList<>();
+        planets.add(PlanetCatalog.get(planetKeys.get(pr.nextInt(planetKeys.size()))));
+        return new Shop(items, planets);
     }
 }

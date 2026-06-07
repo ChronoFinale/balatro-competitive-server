@@ -36,8 +36,8 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 (engine + network).
 
 ```
-engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  auth ✅  multiplayer ✅  pick/ban ✅  web UI ✅
-next → planet/hand levels → shop in multiplayer → ranked queue/MMR
+engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer ✅  web UI ✅
+next → shop+planets in multiplayer → ranked queue/MMR
 
 ```
 
