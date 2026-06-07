@@ -86,6 +86,16 @@ dying to any blind — failing a normal blind, or losing a **Nemesis blind** (ev
 Boss from ante 2: a race where running out of hands while behind costs a life).
 0 lives and you're out. The opponent panel shows live progress + lives.
 
+**Joker builder:** open `http://127.0.0.1:8788/builder.html` (or the link in the
+client header). Jokers are pure data — metadata + scoring rules (`trigger →
+condition → effect`) + state mutations for scaling — interpreted server-side, so
+a built joker is exactly as authoritative/cheat-proof as a hand-coded one. The
+form is driven by `/jokers/schema` (the real engine enums), supports the full
+condition/value algebra (incl. nested AND/OR/NOT and count/run-var scaling), and
+takes optional 1×/2× PNG art. Saved defs persist under
+`web-assets/custom-jokers/` (git-ignored) and reload at startup. They live in a
+sandbox pool for now; entering a match shop is gated on ruleset agreement (next).
+
 **Real card/joker art (optional, local only):** drop Balatro's extracted atlases
 (`8BitDeck.webp` for cards, `Jokers.webp` for jokers) into `./web-assets`
 (git-ignored — these are game assets, not shipped). The client auto-detects them

@@ -49,6 +49,14 @@ class BuilderApiTest {
     }
 
     @Test
+    void servesTheBuilderPage(@TempDir Path dir) throws Exception {
+        try (GameServer server = new GameServer(Ruleset.standard(), new CustomJokerStore(dir)).start(0)) {
+            String body = get(server.port(), "/builder.html");
+            assertThat(body).contains("Joker Builder");
+        }
+    }
+
+    @Test
     void rejectsAMalformedDef(@TempDir Path dir) throws Exception {
         try (GameServer server = new GameServer(Ruleset.standard(), new CustomJokerStore(dir)).start(0)) {
             HttpResponse<String> bad = post(server.port(), "/jokers", "{\"key\":\"bad key\",\"name\":\"x\"}");

@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Joker Builder — Balatro Competitive Server</title>
+<style>
+  :root { --bg:#15171c; --panel:#1d2027; --panel2:#262a33; --ink:#e7e9ee; --muted:#9aa0ac;
+          --accent:#ef5060; --accent2:#3b7bef; --gold:#f0c060; --line:#333845; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:14px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); display:flex;
+           align-items:center; gap:14px; }
+  header h1 { font-size:16px; margin:0; letter-spacing:.5px; }
+  header a { color:var(--accent2); text-decoration:none; font-size:13px; }
+  .wrap { display:grid; grid-template-columns: 1fr 360px; gap:18px; padding:18px 20px; align-items:start; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin:0 0 10px; }
+  label { display:block; font-size:12px; color:var(--muted); margin:8px 0 3px; }
+  input[type=text], input[type=number], select, textarea {
+    width:100%; background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+    border-radius:6px; padding:7px 8px; font:inherit; }
+  textarea { resize:vertical; min-height:48px; }
+  .row { display:flex; gap:10px; }
+  .row > * { flex:1; }
+  .inline { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .inline label { margin:0; }
+  .node { border:1px solid var(--line); border-radius:8px; padding:10px; margin:8px 0; background:var(--panel2); }
+  .node.cond { border-left:3px solid var(--accent2); }
+  .node.val  { border-left:3px solid var(--gold); }
+  .node.rule { border-left:3px solid var(--accent); background:var(--panel); }
+  .params { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .params .field { flex:1; min-width:120px; }
+  button { background:var(--accent2); color:#fff; border:0; border-radius:6px; padding:8px 12px;
+           font:inherit; cursor:pointer; }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--muted); padding:5px 9px; font-size:12px; }
+  button.danger { background:transparent; border:1px solid #5a2a30; color:var(--accent); padding:3px 8px; font-size:12px; }
+  button.primary { background:var(--accent); font-weight:600; padding:10px 16px; }
+  .stack { display:flex; flex-direction:column; gap:6px; }
+  .preview-card { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:14px; text-align:center; }
+  .preview-card img { image-rendering:pixelated; width:142px; height:190px; object-fit:contain;
+                      background:#0c0d10; border-radius:8px; }
+  .preview-card .ph { width:142px; height:190px; margin:0 auto; display:flex; align-items:center; justify-content:center;
+                      background:#0c0d10; border-radius:8px; color:var(--muted); font-size:12px; }
+  .pname { font-weight:700; margin-top:10px; }
+  .pdesc { color:var(--muted); font-size:13px; min-height:32px; }
+  .pmeta { font-size:12px; color:var(--gold); margin-top:4px; }
+  pre { background:#0c0d10; border:1px solid var(--line); border-radius:8px; padding:10px; overflow:auto;
+        font-size:11px; color:#b9c0cf; max-height:240px; }
+  .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); padding:10px 18px;
+           border-radius:8px; font-size:13px; display:none; }
+  .toast.ok { background:#1f3a24; border:1px solid #2f6b3a; color:#bce8c6; }
+  .toast.err { background:#3a1f24; border:1px solid #6b2f3a; color:#e8bcc6; }
+  .existing { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { background:var(--panel2); border:1px solid var(--line); border-radius:20px; padding:4px 10px; font-size:12px; }
+  .hint { font-size:11px; color:var(--muted); margin-top:4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🃏 Joker Builder</h1>
+  <a href="/">← back to game</a>
+  <span style="flex:1"></span>
+  <span class="hint">defines a server-authoritative joker — the effect is computed by the engine, never the client</span>
+</header>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <h2>Identity</h2>
+      <div class="row">
+        <div><label>Key (j_lowercase_underscore)</label><input id="key" type="text" placeholder="j_my_joker" /></div>
+        <div><label>Name</label><input id="name" type="text" placeholder="My Joker" /></div>
+      </div>
+      <label>Description (shown to players)</label>
+      <textarea id="description" placeholder="+4 Mult"></textarea>
+      <div class="row">
+        <div><label>Rarity</label><select id="rarity"></select></div>
+        <div><label>Cost ($)</label><input id="cost" type="number" value="4" min="0" /></div>
+        <div style="flex:0 0 auto; align-self:end;" class="inline">
+          <input id="blueprintCompatible" type="checkbox" checked /><label>Blueprint-copyable</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Art (optional)</h2>
+      <div class="row">
+        <div><label>1× sprite (PNG)</label><input id="file1x" type="file" accept="image/png" /></div>
+        <div><label>2× sprite (PNG)</label><input id="file2x" type="file" accept="image/png" /></div>
+      </div>
+      <div class="hint">Stored under web-assets/custom-jokers (not shipped). Uploaded after Save.</div>
+    </div>
+
+    <div class="card">
+      <h2>Scoring rules <button class="ghost" id="addRule">+ rule</button></h2>
+      <div class="hint">When the engine raises a trigger and the condition holds, contribute the effect. First matching rule for a trigger wins.</div>
+      <div id="rules" class="stack"></div>
+    </div>
+
+    <div class="card">
+      <h2>State mutations <button class="ghost" id="addMutation">+ mutation</button></h2>
+      <div class="hint">For scaling jokers: advance a per-joker counter on a trigger (use it via a "state" value in a rule).</div>
+      <div id="mutations" class="stack"></div>
+    </div>
+
+    <button class="primary" id="save">Save joker</button>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Preview</h2>
+      <div class="preview-card">
+        <div id="pimg" class="ph">no art</div>
+        <div class="pname" id="pname">My Joker</div>
+        <div class="pdesc" id="pdesc">+4 Mult</div>
+        <div class="pmeta" id="pmeta">Common · $4</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Definition (JSON)</h2>
+      <pre id="json">{}</pre>
+    </div>
+    <div class="card">
+      <h2>Saved jokers</h2>
+      <div id="existing" class="existing"><span class="hint">none yet</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let SCHEMA = null;
+
+// Parameter shapes per condition/value type. kind: int|number|string|bool|enum:<name>|condition|conditions
+const COND_PARAMS = {
+  always: [], scoredIsFace: [], handContainsPair: [], scoringAnyFace: [],
+  scoredSuit: [['suit','enum:suit']],
+  scoredParity: [['even','bool']],
+  scoredRankBetween: [['min','int'],['max','int']],
+  scoredEnhancement: [['enhancement','enum:enhancement']],
+  scoredEdition: [['edition','enum:edition']],
+  scoredSeal: [['seal','enum:seal']],
+  handIs: [['hand','enum:handType']],
+  playedCount: [['cmp','enum:cmp'],['n','int']],
+  discardedFaceCount: [['min','int']],
+  consumableType: [['consumable','string']],
+  stateAtLeast: [['var','string'],['min','number']],
+  moneyAtLeast: [['min','int']],
+  handsLeft: [['cmp','enum:cmp'],['n','int']],
+  discardsLeft: [['cmp','enum:cmp'],['n','int']],
+  ante: [['cmp','enum:cmp'],['n','int']],
+  and: [['all','conditions']],
+  or: [['any','conditions']],
+  not: [['inner','condition']],
+};
+const VALUE_PARAMS = {
+  const: [['amount','number']],
+  state: [['var','string'],['base','number'],['scale','number']],
+  count: [['source','enum:countSource'],['match','condition'],['base','number'],['scale','number']],
+  runVar: [['which','enum:runVar'],['base','number'],['scale','number']],
+};
+
+function elt(tag, props={}, kids=[]) {
+  const e = document.createElement(tag);
+  for (const k in props) {
+    if (k === 'class') e.className = props[k];
+    else if (k === 'html') e.innerHTML = props[k];
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), props[k]);
+    else e.setAttribute(k, props[k]);
+  }
+  for (const kid of [].concat(kids)) if (kid) e.append(kid);
+  return e;
+}
+function select(options, value) {
+  const s = elt('select', { onchange: refresh });
+  for (const o of options) s.append(elt('option', { value:o }, o));
+  if (value != null) s.value = value;
+  return s;
+}
+
+// Build one parameter control; returns {el, read}.
+function paramControl(kind) {
+  if (kind === 'condition') { const c = conditionEditor(); return { el:c.el, read:c.read }; }
+  if (kind === 'conditions') {
+    const list = elt('div', { class:'stack' });
+    const editors = [];
+    const add = () => { const c = conditionEditor(); editors.push(c); list.append(c.el); refresh(); };
+    const box = elt('div', {}, [list, elt('button', { class:'ghost', onclick:add }, '+ condition')]);
+    add();
+    return { el:box, read: () => editors.map(e => e.read()) };
+  }
+  if (kind === 'bool') {
+    const i = elt('input', { type:'checkbox', onchange:refresh });
+    return { el:i, read: () => i.checked };
+  }
+  if (kind.startsWith('enum:')) {
+    const s = select(SCHEMA.enums[kind.slice(5)] || []);
+    return { el:s, read: () => s.value };
+  }
+  const i = elt('input', { type: kind === 'string' ? 'text' : 'number', oninput:refresh });
+  if (kind !== 'string') i.value = '0';
+  return { el:i, read: () => kind === 'string' ? i.value : (kind === 'int' ? parseInt(i.value||'0',10) : Number(i.value||'0')) };
+}
+
+// Renders a typed parameter set (cond or value); returns {el, read}.
+function typedEditor(cssClass, typeList, paramMap) {
+  // Build the type selector WITHOUT select()'s refresh handler: on change we must
+  // re-render the param controls BEFORE refresh reads them, so render() owns the
+  // change event and calls refresh() itself once the new controls exist.
+  const type = elt('select');
+  for (const o of typeList) type.append(elt('option', { value:o }, o));
+  type.value = typeList[0];
+  const paramsBox = elt('div', { class:'params' });
+  let controls = {};
+  const render = () => {
+    paramsBox.innerHTML = ''; controls = {};
+    for (const [pname, kind] of (paramMap[type.value] || [])) {
+      const c = paramControl(kind);
+      controls[pname] = c;
+      paramsBox.append(elt('div', { class:'field' }, [elt('label', {}, pname), c.el]));
+    }
+    refresh();
+  };
+  type.addEventListener('change', render);
+  render();
+  const el = elt('div', { class:'node ' + cssClass }, [type, paramsBox]);
+  const read = () => {
+    const out = { type: type.value };
+    for (const [pname] of (paramMap[type.value] || [])) out[pname] = controls[pname].read();
+    return out;
+  };
+  return { el, read };
+}
+const conditionEditor = () => typedEditor('cond', SCHEMA.conditionTypes, COND_PARAMS);
+const valueEditor     = () => typedEditor('val',  SCHEMA.valueTypes,     VALUE_PARAMS);
+
+// A scoring rule: trigger + condition + effect(op + value).
+function ruleEditor() {
+  const when = select(SCHEMA.triggers, 'JOKER_MAIN');
+  const cond = conditionEditor();
+  const op = select(SCHEMA.effectOps, 'MULT');
+  const val = valueEditor();
+  const remove = elt('button', { class:'danger', onclick: () => { el.remove(); refresh(); } }, 'remove');
+  const el = elt('div', { class:'node rule' }, [
+    elt('div', { class:'inline' }, [elt('label', {}, 'when'), when, remove]),
+    elt('label', {}, 'condition'), cond.el,
+    elt('div', { class:'inline' }, [elt('label', {}, 'effect'), op]),
+    val.el,
+  ]);
+  return { el, read: () => ({ when: when.value, condition: cond.read(), effect: { op: op.value, value: val.read() } }) };
+}
+
+// A state mutation: trigger + condition + var/op/by.
+function mutationEditor() {
+  const when = select(SCHEMA.triggers, 'BEFORE');
+  const cond = conditionEditor();
+  const varName = elt('input', { type:'text', placeholder:'streak', oninput:refresh });
+  const op = select(SCHEMA.mutationOps, 'ADD');
+  const by = elt('input', { type:'number', value:'1', oninput:refresh });
+  const remove = elt('button', { class:'danger', onclick: () => { el.remove(); refresh(); } }, 'remove');
+  const el = elt('div', { class:'node rule' }, [
+    elt('div', { class:'inline' }, [elt('label', {}, 'when'), when, remove]),
+    elt('label', {}, 'condition'), cond.el,
+    elt('div', { class:'params' }, [
+      elt('div', { class:'field' }, [elt('label', {}, 'var'), varName]),
+      elt('div', { class:'field' }, [elt('label', {}, 'op'), op]),
+      elt('div', { class:'field' }, [elt('label', {}, 'by'), by]),
+    ]),
+  ]);
+  return { el, read: () => ({ when: when.value, condition: cond.read(), var: varName.value, op: op.value, by: Number(by.value||'0') }) };
+}
+
+const rules = [], mutations = [];
+function addRule() { const r = ruleEditor(); rules.push(r); document.getElementById('rules').append(r.el); refresh(); }
+function addMutation() { const m = mutationEditor(); mutations.push(m); document.getElementById('mutations').append(m.el); refresh(); }
+
+function liveDefs() { return rules.filter(r => document.body.contains(r.el)); }
+function liveMuts() { return mutations.filter(m => document.body.contains(m.el)); }
+
+function buildDef() {
+  const v = id => document.getElementById(id).value;
+  return {
+    key: v('key').trim(), name: v('name').trim(), description: v('description'),
+    rarity: v('rarity'), cost: parseInt(v('cost')||'0', 10),
+    atlasX: 0, atlasY: 0, spriteUrl: null, spriteUrl2x: null,
+    blueprintCompatible: document.getElementById('blueprintCompatible').checked,
+    mutations: liveMuts().map(m => m.read()),
+    rules: liveDefs().map(r => r.read()),
+  };
+}
+
+function refresh() {
+  const def = buildDef();
+  document.getElementById('json').textContent = JSON.stringify(def, null, 2);
+  document.getElementById('pname').textContent = def.name || 'Unnamed';
+  document.getElementById('pdesc').textContent = def.description || '';
+  document.getElementById('pmeta').textContent = `${def.rarity} · $${def.cost}`;
+}
+
+function toast(msg, ok) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + (ok ? 'ok' : 'err'); t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3500);
+}
+
+async function save() {
+  const def = buildDef();
+  if (!/^j_[a-z0-9_]{3,48}$/.test(def.key)) { toast('Key must look like j_my_joker (lowercase).', false); return; }
+  try {
+    const res = await fetch('/jokers', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(def) });
+    const body = await res.json();
+    if (!res.ok) { toast('Rejected: ' + (body.error || res.status), false); return; }
+    await uploadSprite(def.key, 1, document.getElementById('file1x').files[0]);
+    await uploadSprite(def.key, 2, document.getElementById('file2x').files[0]);
+    toast('Saved ' + def.key + ' ✓', true);
+    loadExisting();
+  } catch (e) { toast('Error: ' + e.message, false); }
+}
+
+async function uploadSprite(key, scale, file) {
+  if (!file) return;
+  const buf = await file.arrayBuffer();
+  const res = await fetch(`/jokers/${key}/sprite/${scale}`, { method:'POST', headers:{'content-type':'image/png'}, body: buf });
+  if (res.ok && scale === 2) {
+    const d = await res.json();
+    if (d.spriteUrl2x) document.getElementById('pimg').outerHTML =
+      `<img id="pimg" src="${d.spriteUrl2x}?t=${Date.now()}" alt="" />`;
+  }
+}
+
+async function loadExisting() {
+  try {
+    const list = await (await fetch('/jokers')).json();
+    const box = document.getElementById('existing');
+    box.innerHTML = list.length ? '' : '<span class="hint">none yet</span>';
+    for (const d of list) box.append(elt('span', { class:'chip' }, `${d.name} (${d.key})`));
+  } catch (_) {}
+}
+
+async function init() {
+  SCHEMA = await (await fetch('/jokers/schema')).json();
+  const rar = document.getElementById('rarity');
+  for (const r of SCHEMA.rarities) rar.append(elt('option', { value:r }, r));
+  for (const id of ['name','description','cost','key']) document.getElementById(id).addEventListener('input', refresh);
+  document.getElementById('rarity').addEventListener('change', refresh);
+  document.getElementById('addRule').addEventListener('click', addRule);
+  document.getElementById('addMutation').addEventListener('click', addMutation);
+  document.getElementById('save').addEventListener('click', save);
+  addRule(); // start with one rule
+  loadExisting();
+  refresh();
+}
+init();
+</script>
+</body>
+</html>
