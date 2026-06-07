@@ -3,10 +3,12 @@ package com.balatromp.engine.net;
 import com.balatromp.engine.game.Match;
 import com.balatromp.engine.game.Run;
 import com.balatromp.engine.intent.Intent;
+import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.joker.def.BuilderSchema;
 import com.balatromp.engine.joker.def.CustomJokerStore;
 import com.balatromp.engine.joker.def.JokerDef;
 import com.balatromp.engine.state.Ruleset;
+import com.balatromp.engine.state.RulesetStore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
@@ -35,6 +37,7 @@ public final class GameServer implements AutoCloseable {
     private final Javalin app;
     private final Ruleset ruleset;
     private final CustomJokerStore jokerStore;
+    private final RulesetStore rulesetStore;
     private final AuthService auth = new AuthService();
     private final ObjectMapper json = new ObjectMapper();
 
@@ -46,14 +49,22 @@ public final class GameServer implements AutoCloseable {
     private final Set<String> activeCodes = ConcurrentHashMap.newKeySet();
 
     public GameServer(Ruleset ruleset) {
-        this(ruleset, new CustomJokerStore(
-                new java.io.File("web-assets/custom-jokers").getAbsoluteFile().toPath()));
+        this(ruleset,
+                new CustomJokerStore(new java.io.File("web-assets/custom-jokers").getAbsoluteFile().toPath()),
+                new RulesetStore(new java.io.File("web-assets/custom-rulesets").getAbsoluteFile().toPath()));
     }
 
     public GameServer(Ruleset ruleset, CustomJokerStore jokerStore) {
+        this(ruleset, jokerStore,
+                new RulesetStore(new java.io.File("web-assets/custom-rulesets").getAbsoluteFile().toPath()));
+    }
+
+    public GameServer(Ruleset ruleset, CustomJokerStore jokerStore, RulesetStore rulesetStore) {
         this.ruleset = ruleset;
         this.jokerStore = jokerStore;
-        jokerStore.loadAll(); // register any previously-authored custom jokers
+        this.rulesetStore = rulesetStore;
+        jokerStore.loadAll();   // register custom jokers first...
+        rulesetStore.loadAll(); // ...so custom rulesets can reference them
         // Javalin 7: routes/ws/static are configured upfront in the create() block.
         java.io.File assetsDir = new java.io.File("web-assets").getAbsoluteFile();
         this.app = Javalin.create(cfg -> {
@@ -79,6 +90,24 @@ public final class GameServer implements AutoCloseable {
 
             // List every custom joker authored so far.
             cfg.routes.get("/jokers", ctx -> ctx.json(jokerStore.all()));
+
+            // Every joker selectable for a ruleset pool (curated built-ins + custom).
+            cfg.routes.get("/jokers/available", ctx -> ctx.json(availableJokers()));
+
+            // Rulesets the lobby/builder can use (curated + custom).
+            cfg.routes.get("/rulesets", ctx -> ctx.json(rulesetStore.all()));
+
+            // Create a custom ruleset (a bundle that, with its joker pool, dictates a match).
+            cfg.routes.post("/rulesets", ctx -> {
+                try {
+                    Ruleset r = json.readValue(ctx.body(), Ruleset.class);
+                    ctx.json(rulesetStore.save(r));
+                } catch (IllegalArgumentException e) {
+                    ctx.status(400).json(Map.of("error", String.valueOf(e.getMessage())));
+                } catch (Exception e) {
+                    ctx.status(400).json(Map.of("error", "invalid ruleset: " + e.getMessage()));
+                }
+            });
 
             // Create/replace a custom joker from a JokerDef JSON body.
             cfg.routes.post("/jokers", ctx -> {
@@ -214,6 +243,29 @@ public final class GameServer implements AutoCloseable {
         } catch (Exception e) {
             respond(ctx, error(0, "bad message: " + e.getMessage()));
         }
+    }
+
+    /** Every joker selectable for a ruleset pool: curated built-ins + authored custom. */
+    private List<Map<String, Object>> availableJokers() {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (String key : JokerLibrary.builtinKeys()) {
+            var info = JokerLibrary.create(key).info();
+            out.add(jokerCard(info.key(), info.name(), info.rarity(), info.cost(), false));
+        }
+        for (JokerDef def : jokerStore.all()) {
+            out.add(jokerCard(def.key(), def.name(), def.rarity(), def.cost(), true));
+        }
+        return out;
+    }
+
+    private static Map<String, Object> jokerCard(String key, String name, String rarity, int cost, boolean custom) {
+        Map<String, Object> m = new java.util.LinkedHashMap<>();
+        m.put("key", key);
+        m.put("name", name);
+        m.put("rarity", rarity);
+        m.put("cost", cost);
+        m.put("custom", custom);
+        return m;
     }
 
     /** The player's authoritative Run: their match's run if in a match, else solo. */
