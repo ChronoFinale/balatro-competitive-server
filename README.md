@@ -62,15 +62,39 @@ What's implemented:
 Requires JDK 25 (Gradle wrapper handles the rest).
 
 ```bash
-./gradlew test     # run the full JUnit 5 + AssertJ suite (engine + WebSocket e2e)
-./gradlew run      # start the server: ws://127.0.0.1:8788/game
+./gradlew test                      # full JUnit 5 + AssertJ suite (engine + WebSocket e2e + auth)
+./gradlew run                       # start the server: http+ws on 127.0.0.1:8788
+./gradlew loadTest -Pargs="200 10"  # load harness: <connections> <hands-per-conn>
 ```
 
-Wire protocol (JSON over WebSocket): the client sends intents, e.g.
-`{"type":"newRun","seq":1,"seed":"ABC"}` then
-`{"type":"playHand","seq":2,"cards":[0,1,2,3,4]}`, and receives
-`{"type":"update","accepted":true,"view":{…},"replay":[…]}`. Note there is no
-`score` field a client can send.
+### Wire protocol (JSON over WebSocket)
+1. `POST /login {"username":"alice"}` → `{"token":"…","playerId":"alice"}`
+   (dev: any username; intended to validate a Steam ticket later).
+2. Connect `ws://…/game`, then authenticate (first message):
+   `{"type":"auth","token":"…"}` → `{"type":"authed","playerId":"alice"}`.
+3. Play: `{"type":"newRun","seed":"ABC"}`, `{"type":"playHand","cards":[0,1,2,3,4]}`,
+   `{"type":"discard","cards":[…]}`, `{"type":"proceed"}` →
+   `{"type":"update","accepted":true,"view":{…},"replay":[…]}`.
+
+There is **no `score` field a client can send** — the server computes it.
+
+### Poking it manually
+```bash
+TOKEN=$(curl -s -XPOST localhost:8788/login -H 'content-type: application/json' \
+  -d '{"username":"alice"}' | jq -r .token)
+websocat ws://127.0.0.1:8788/game
+> {"type":"auth","token":"<paste TOKEN>"}
+> {"type":"newRun","seed":"ABC"}
+> {"type":"playHand","cards":[0,1,2,3,4]}
+```
+
+### Performance
+A turn-based card game is light: tiny JSON messages, a few actions/min per player.
+The load harness on a single dev machine (loopback) sustains thousands of msg/s
+at hundreds of concurrent connections with single-digit-ms server-side
+processing. Real-world latency is dominated by network RTT, addressed by regional
+deployment — not the framework. Javalin/Jetty is comfortably sufficient; scaling
+is horizontal (more instances + matchmaker).
 
 ## Design docs
 
