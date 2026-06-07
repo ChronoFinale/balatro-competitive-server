@@ -66,10 +66,27 @@
 
   <div id="login" class="row">
     <input id="user" placeholder="username" value="player"/>
-    <button id="connect">Connect &amp; Play</button>
+    <button id="connect">Connect</button>
+  </div>
+
+  <div id="menu" class="panel row" style="display:none;">
+    <button id="btnSolo">Solo Run</button>
+    <button id="btnCreate" class="alt">Create Lobby</button>
+    <input id="joinCode" placeholder="CODE" maxlength="5" style="width:90px;text-transform:uppercase;"/>
+    <button id="btnJoin" class="alt">Join</button>
+    <span id="lobbyMsg" class="stat"></span>
+  </div>
+
+  <div id="draft" class="panel" style="display:none;">
+    <div class="stat" id="draftMsg">Pick / ban</div>
+    <div class="row" id="draftPool" style="margin-top:8px;"></div>
   </div>
 
   <div id="status">
+    <div id="opponent" class="panel" style="display:none;">
+      <div class="stat">Opponent: <b id="oppName">—</b></div>
+      <div class="stat" id="oppState">—</div>
+    </div>
     <div class="panel row">
       <div>
         <div class="stat" id="blindLabel">—</div>
@@ -121,7 +138,7 @@
 
 <script>
 const $ = id => document.getElementById(id);
-let ws, view = null, selected = new Set(), seq = 1;
+let ws, view = null, selected = new Set(), seq = 1, mode = null, myId = null;
 
 const RANK = {TWO:'2',THREE:'3',FOUR:'4',FIVE:'5',SIX:'6',SEVEN:'7',EIGHT:'8',NINE:'9',TEN:'10',JACK:'J',QUEEN:'Q',KING:'K',ACE:'A'};
 const SUIT = {SPADES:'♠',HEARTS:'♥',CLUBS:'♣',DIAMONDS:'♦'};
@@ -214,20 +231,70 @@ $('connect').onclick = async () => {
 };
 
 function handle(m) {
-  if (m.type === 'authed') {
-    $('login').style.display = 'none';
-    $('status').style.display = 'block';
-    newRun();
-  } else if (m.type === 'update') {
-    if (m.accepted === false) toast(m.rejection || 'rejected');
-    if (m.view) { view = m.view; render(); }
-    if (m.replay && m.replay.length) {
-      const last = m.replay[m.replay.length-1];
-      toast(`scored ${last.runningChips} × ${last.runningMult}`);
-    }
-  } else if (m.type === 'error') {
-    toast(m.rejection || 'error');
+  switch (m.type) {
+    case 'authed':
+      myId = m.playerId;
+      $('login').style.display = 'none';
+      $('menu').style.display = 'flex';
+      break;
+    case 'lobbyCreated':
+      mode = 'mp';
+      $('lobbyMsg').textContent = `Lobby ${m.code} — share it; waiting for opponent…`;
+      break;
+    case 'draftState':
+      showDraft(m);
+      break;
+    case 'draftResult':
+      $('draftMsg').textContent = `Ruleset: ${m.ruleset} — starting…`;
+      $('draftPool').innerHTML = '';
+      break;
+    case 'matchStart':
+      mode = 'mp';
+      enterGame();
+      $('opponent').style.display = 'block';
+      $('oppName').textContent = m.opponent;
+      view = m.view; render();
+      break;
+    case 'opponentUpdate':
+      $('oppState').textContent =
+        `ante ${m.ante} · ${m.blind} · score ${m.roundScore} · $${m.money} · ${m.phase}`;
+      break;
+    case 'matchResult':
+      $('bannerWrap').innerHTML =
+        `<div class="panel"><div id="banner">${m.winner === myId ? '🏆 YOU WIN' : '💀 YOU LOSE'}</div></div>`;
+      break;
+    case 'update':
+      if (m.accepted === false) toast(m.rejection || 'rejected');
+      if (m.view) { if (mode !== 'mp') enterGame(); view = m.view; render(); }
+      if (m.replay && m.replay.length) {
+        const last = m.replay[m.replay.length - 1];
+        toast(`scored ${last.runningChips} × ${last.runningMult}`);
+      }
+      break;
+    case 'error':
+      toast(m.rejection || 'error');
+      break;
   }
+}
+
+function enterGame() {
+  $('menu').style.display = 'none';
+  $('draft').style.display = 'none';
+  $('login').style.display = 'none';
+  $('status').style.display = 'block';
+}
+
+function showDraft(m) {
+  $('menu').style.display = 'none';
+  $('draft').style.display = 'block';
+  $('draftMsg').textContent = m.yourTurn ? 'Your turn — ban a ruleset' : 'Opponent is banning…';
+  const pool = $('draftPool'); pool.innerHTML = '';
+  (m.pool || []).forEach(name => {
+    const b = document.createElement('button');
+    b.textContent = name; b.disabled = !m.yourTurn;
+    b.onclick = () => send({type: 'ban', ruleset: name});
+    pool.appendChild(b);
+  });
 }
 
 function newRun() {
@@ -301,6 +368,7 @@ function render() {
   // only show the hand during a blind; only show the shop in the shop
   $('handPanel').style.display = inBlind ? 'block' : 'none';
   $('shop').style.display = inShop ? 'block' : 'none';
+  $('newrun').style.display = (mode === 'mp') ? 'none' : 'inline-block'; // no reset in a duel
   if (inShop) {
     $('rerollCost').textContent = v.rerollCost;
     $('offers').innerHTML = '';
@@ -337,6 +405,13 @@ $('discard').onclick = () => { send({type:'discard', cards:[...selected]}); sele
 $('reroll').onclick = () => send({type:'reroll'});
 $('proceed').onclick = () => send({type:'proceed'});
 $('newrun').onclick = newRun;
+
+$('btnSolo').onclick = () => { mode = 'solo'; enterGame(); newRun(); };
+$('btnCreate').onclick = () => send({type: 'createLobby'});
+$('btnJoin').onclick = () => {
+  const code = $('joinCode').value.trim().toUpperCase();
+  if (code) send({type: 'joinLobby', code});
+};
 </script>
 </body>
 </html>

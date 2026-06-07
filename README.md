@@ -74,9 +74,15 @@ Tests: JUnit 5 + AssertJ (example-based) **and jqwik** (property-based — fuzze
 engine invariants like RNG/scoring determinism across thousands of inputs).
 
 **Play in the browser:** `./gradlew run`, open `http://127.0.0.1:8788`, enter a
-name → Connect. Click cards to select, Play Hand / Discard, clear the blind, then
-Buy jokers / Reroll / Next Blind. It's a tiny vanilla-JS client over the same
-WebSocket protocol, with CSS-drawn cards (no game assets shipped).
+name → Connect, then pick **Solo Run** or multiplayer. Click cards to select,
+Play Hand / Discard, clear the blind, then Buy jokers / planets / Reroll / Next
+Blind. It's a tiny vanilla-JS client over the same WebSocket protocol, CSS-drawn
+cards (no game assets shipped).
+
+**Multiplayer (friend codes):** one player clicks **Create Lobby** and shares the
+5-letter code; the other **Join**s with it. Pick/ban down to a ruleset, then race
+the same seed with full deckbuilding — an opponent panel shows their live
+progress; first to win their run wins.
 
 **Real card/joker art (optional, local only):** drop Balatro's extracted atlases
 (`8BitDeck.webp` for cards, `Jokers.webp` for jokers) into `./web-assets`
