@@ -36,8 +36,8 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 (engine + network).
 
 ```
-engine ✅  RNG ✅  triggers ✅  run loop ✅  contract ✅  WS+JWT auth ✅  multiplayer match ✅  pick/ban draft ✅
-next → shop/economy → ranked queue/MMR → Lua client
+engine ✅  RNG ✅  triggers ✅  run loop ✅  WS+JWT auth ✅  multiplayer match ✅  pick/ban ✅  shop/economy ✅
+next → shop in multiplayer → ranked queue/MMR → Lua client
 ```
 
 Stack: Java 25 · Gradle · **Javalin** (WebSocket + HTTP, Jetty-backed) ·
@@ -73,8 +73,10 @@ Requires JDK 25 (Gradle wrapper handles the rest).
 2. Connect `ws://…/game`, then authenticate (first message):
    `{"type":"auth","token":"…"}` → `{"type":"authed","playerId":"alice"}`.
 3. Play: `{"type":"newRun","seed":"ABC"}`, `{"type":"playHand","cards":[0,1,2,3,4]}`,
-   `{"type":"discard","cards":[…]}`, `{"type":"proceed"}` →
-   `{"type":"update","accepted":true,"view":{…},"replay":[…]}`.
+   `{"type":"discard","cards":[…]}` → `{"type":"update","accepted":true,"view":{…},"replay":[…]}`.
+4. On clearing a blind the view enters the shop (`view.shop` lists offerings):
+   `{"type":"buyJoker","index":0}`, `{"type":"reroll"}`, then `{"type":"proceed"}`
+   to the next blind. Money/slots/affordability are all server-enforced.
 
 There is **no `score` field a client can send** — the server computes it.
 

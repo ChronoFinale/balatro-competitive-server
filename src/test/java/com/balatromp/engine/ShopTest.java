@@ -1,0 +1,64 @@
+package com.balatromp.engine;
+
+import static com.balatromp.engine.TestSupport.heartsKings;
+import static com.balatromp.engine.TestSupport.jokers;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.balatromp.engine.game.Blinds.BlindType;
+import com.balatromp.engine.game.Run;
+import com.balatromp.engine.intent.Intent;
+import com.balatromp.engine.state.Ruleset;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class ShopTest {
+
+    private final Ruleset std = Ruleset.standard();
+
+    /** Clear ante-1 Small with a stacked run, landing in the shop. */
+    private Run winToShop() {
+        Run run = new Run(std, "SHOP", heartsKings(200), jokers("j_joker", "j_joker", "j_joker"));
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        return run;
+    }
+
+    @Test
+    void winningOpensShopAndBuyingAddsAJoker() {
+        Run run = winToShop();
+        assertThat(run.phase).isEqualTo(Run.Phase.SHOP);
+        assertThat(run.shop.items()).hasSize(2);
+        assertThat(run.state.money).isEqualTo(7); // 4 start + 3 Small-blind reward
+
+        int before = run.state.jokers().size();
+        assertThat(run.buyJoker(0)).isNull();                  // success
+        assertThat(run.state.jokers()).hasSize(before + 1);    // joker actually added to the run
+        assertThat(run.state.money).isEqualTo(3);              // 7 - 4
+        assertThat(run.shop.items()).hasSize(1);               // bought slot removed
+    }
+
+    @Test
+    void unaffordableActionsRejectCleanlyWithoutSpending() {
+        Run run = winToShop();
+        run.buyJoker(0); // 7 -> 3
+        assertThat(run.buyJoker(0)).isEqualTo("not enough money"); // 3 < 4
+        assertThat(run.reroll()).isEqualTo("not enough money");    // 3 < 5
+        assertThat(run.state.money).isEqualTo(3);                  // untouched by failed actions
+    }
+
+    @Test
+    void rerollSpendsMoneyAndRefreshesOfferings() {
+        Run run = winToShop();
+        run.state.money = 100;
+        assertThat(run.reroll()).isNull();
+        assertThat(run.state.money).isEqualTo(95); // 100 - 5
+        assertThat(run.shop.items()).hasSize(2);
+    }
+
+    @Test
+    void proceedLeavesShopForTheNextBlind() {
+        Run run = winToShop();
+        run.proceed();
+        assertThat(run.phase).isEqualTo(Run.Phase.BLIND_ACTIVE);
+        assertThat(run.blind).isEqualTo(BlindType.BIG);
+    }
+}

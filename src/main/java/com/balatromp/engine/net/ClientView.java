@@ -1,6 +1,7 @@
 package com.balatromp.engine.net;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The full, authoritative state a client is allowed to render — and nothing more.
@@ -22,5 +23,7 @@ public record ClientView(
         int handSize,
         String phase,
         List<CardView> hand,
-        List<String> jokers) {
+        List<String> jokers,
+        List<Map<String, Object>> shop,
+        int rerollCost) {
 }

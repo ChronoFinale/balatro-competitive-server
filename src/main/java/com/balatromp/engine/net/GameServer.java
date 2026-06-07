@@ -119,6 +119,11 @@ public final class GameServer implements AutoCloseable {
                 }
                 case "playHand" -> route(ctx, seq, new Intent.PlayHand(ints(msg.path("cards"))));
                 case "discard" -> route(ctx, seq, new Intent.Discard(ints(msg.path("cards"))));
+                case "buyJoker" -> {
+                    int index = msg.path("index").asInt();
+                    soloAction(ctx, seq, run -> run.buyJoker(index));
+                }
+                case "reroll" -> soloAction(ctx, seq, Run::reroll);
                 case "proceed" -> {
                     Run run = runs.get(ctx.sessionId());
                     if (run == null) respond(ctx, error(seq, "no active run"));
@@ -132,6 +137,17 @@ public final class GameServer implements AutoCloseable {
         } catch (Exception e) {
             respond(ctx, error(0, "bad message: " + e.getMessage()));
         }
+    }
+
+    /** Apply a solo-run action (shop buy/reroll) and reply with the new view. */
+    private void soloAction(WsMessageContext ctx, long seq, java.util.function.Function<Run, String> action) {
+        Run run = runs.get(ctx.sessionId());
+        if (run == null) {
+            respond(ctx, error(seq, "no active run"));
+            return;
+        }
+        String err = action.apply(run);
+        respond(ctx, new WsResponse("update", seq, err == null, err, run.view(), List.of()));
     }
 
     /** Route a play/discard to the player's match if any, else their solo run. */

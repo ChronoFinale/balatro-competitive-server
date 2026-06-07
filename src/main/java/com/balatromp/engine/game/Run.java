@@ -10,12 +10,14 @@ import com.balatromp.engine.net.CardView;
 import com.balatromp.engine.net.ClientView;
 import com.balatromp.engine.net.ServerUpdate;
 import com.balatromp.engine.rng.RandomStreams;
+import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.scoring.ReplayEntry;
 import com.balatromp.engine.state.Deck;
 import com.balatromp.engine.state.Ruleset;
 import com.balatromp.engine.state.RunState;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The single-player run loop, ruleset-driven — the spine a competitive match is
@@ -42,6 +44,8 @@ public final class Run {
     public BlindType blind = BlindType.SMALL;
     public long requirement;
     public Phase phase;
+    public Shop shop;
+    private int rerollCount = 0;
 
     public Run(Ruleset ruleset, String seed) {
         this(ruleset, seed, Deck.standard(), List.of());
@@ -93,6 +97,29 @@ public final class Run {
         state.money += blind.reward + interest;
         GameEvents.endOfRound(state, rng);
         phase = Phase.SHOP;
+        shop = Shop.generate(rng, "shop:" + ante + ":" + blind, 2);
+    }
+
+    /** Buy the joker at the given shop slot. Returns null on success, else a reason. */
+    public String buyJoker(int index) {
+        if (phase != Phase.SHOP || shop == null) return "not in shop";
+        if (index < 0 || index >= shop.items().size()) return "invalid shop slot";
+        Shop.Item item = shop.items().get(index);
+        if (state.money < item.cost()) return "not enough money";
+        if (state.jokers().size() >= Shop.JOKER_SLOT_LIMIT) return "joker slots full";
+        state.money -= item.cost();
+        state.addJoker(JokerLibrary.create(item.jokerKey()));
+        shop.items().remove(index);
+        return null;
+    }
+
+    /** Reroll the shop offerings. Returns null on success, else a reason. */
+    public String reroll() {
+        if (phase != Phase.SHOP || shop == null) return "not in shop";
+        if (state.money < Shop.REROLL_COST) return "not enough money";
+        state.money -= Shop.REROLL_COST;
+        shop = Shop.generate(rng, "reroll:" + ante + ":" + blind + ":" + (rerollCount++), 2);
+        return null;
     }
 
     /** Client-facing entry: validate+apply an intent, return the authoritative update. */
@@ -108,9 +135,20 @@ public final class Run {
         for (Card c : state.hand) handView.add(CardView.of(c));
         List<String> jokerNames = new ArrayList<>();
         for (Joker j : state.jokers()) jokerNames.add(j.name());
+
+        List<Map<String, Object>> shopView = null;
+        int rerollCost = 0;
+        if (phase == Phase.SHOP && shop != null) {
+            shopView = new ArrayList<>();
+            for (Shop.Item it : shop.items()) {
+                shopView.add(Map.of("key", it.jokerKey(), "name", it.name(), "cost", it.cost()));
+            }
+            rerollCost = Shop.REROLL_COST;
+        }
+
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
-                phase.name(), handView, jokerNames);
+                phase.name(), handView, jokerNames, shopView, rerollCost);
     }
 
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */
