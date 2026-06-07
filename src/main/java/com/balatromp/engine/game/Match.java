@@ -8,6 +8,7 @@ import com.balatromp.engine.intent.IntentHandler;
 import com.balatromp.engine.rng.RandomStreams;
 import com.balatromp.engine.state.Deck;
 import com.balatromp.engine.state.Ruleset;
+import com.balatromp.engine.state.RulesetCatalog;
 import com.balatromp.engine.state.RunState;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,15 +38,18 @@ import java.util.function.BiConsumer;
  */
 public final class Match {
 
-    public enum Phase { WAITING, PLAYING, FINISHED }
+    public enum Phase { WAITING, DRAFTING, PLAYING, FINISHED }
 
     private static final int STARTING_LIVES = 3;
 
     private final String code;
     private final String seed;
-    private final Ruleset ruleset;
     private final BiConsumer<String, Object> transport;
     private final IntentHandler intents = new IntentHandler();
+
+    private Ruleset ruleset;                 // resolved by the pick/ban draft
+    private List<String> draftPool;
+    private Side draftTurn;
 
     private Side host;
     private Side guest;
@@ -55,7 +59,7 @@ public final class Match {
     public Match(String code, String seed, Ruleset ruleset, BiConsumer<String, Object> transport) {
         this.code = code;
         this.seed = seed;
-        this.ruleset = ruleset;
+        this.ruleset = ruleset; // fallback; replaced by the draft result
         this.transport = transport;
     }
 
@@ -71,9 +75,54 @@ public final class Match {
         this.host = new Side(sessionId, playerId);
     }
 
-    /** Adding the guest starts the match. */
+    /** Adding the guest opens the pick/ban draft. */
     public synchronized void setGuestAndStart(String sessionId, String playerId) {
         this.guest = new Side(sessionId, playerId);
+        startDraft();
+    }
+
+    // ---- pick/ban draft ----
+
+    private void startDraft() {
+        phase = Phase.DRAFTING;
+        draftPool = new ArrayList<>(RulesetCatalog.names());
+        draftTurn = host; // host bans first
+        sendDraftState();
+    }
+
+    public synchronized void ban(String sessionId, String rulesetName) {
+        Side me = sideFor(sessionId);
+        if (me == null) return;
+        if (phase != Phase.DRAFTING) {
+            send(me, map("type", "error", "rejection", "not in draft"));
+            return;
+        }
+        if (me != draftTurn) {
+            send(me, map("type", "error", "rejection", "not your turn to ban"));
+            return;
+        }
+        if (!draftPool.remove(rulesetName)) {
+            send(me, map("type", "error", "rejection", "not in pool: " + rulesetName));
+            return;
+        }
+        if (draftPool.size() == 1) {
+            ruleset = RulesetCatalog.get(draftPool.get(0));
+            Map<String, Object> result = map("type", "draftResult", "ruleset", ruleset.name());
+            send(host, result);
+            send(guest, result);
+            startPlaying();
+        } else {
+            draftTurn = (me == host) ? guest : host;
+            sendDraftState();
+        }
+    }
+
+    private void sendDraftState() {
+        send(host, map("type", "draftState", "pool", new ArrayList<>(draftPool), "yourTurn", draftTurn == host));
+        send(guest, map("type", "draftState", "pool", new ArrayList<>(draftPool), "yourTurn", draftTurn == guest));
+    }
+
+    private void startPlaying() {
         host.lives = STARTING_LIVES;
         guest.lives = STARTING_LIVES;
         phase = Phase.PLAYING;

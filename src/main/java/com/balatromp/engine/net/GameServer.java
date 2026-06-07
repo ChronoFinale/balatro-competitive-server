@@ -112,6 +112,11 @@ public final class GameServer implements AutoCloseable {
                 }
                 case "createLobby" -> createLobby(ctx, seq);
                 case "joinLobby" -> joinLobby(ctx, seq, msg.path("code").asText());
+                case "ban" -> {
+                    Match m = matchBySession.get(ctx.sessionId());
+                    if (m != null) m.ban(ctx.sessionId(), msg.path("ruleset").asText());
+                    else respond(ctx, error(seq, "not in a match"));
+                }
                 case "playHand" -> route(ctx, seq, new Intent.PlayHand(ints(msg.path("cards"))));
                 case "discard" -> route(ctx, seq, new Intent.Discard(ints(msg.path("cards"))));
                 case "proceed" -> {

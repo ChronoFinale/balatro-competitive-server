@@ -52,10 +52,16 @@ class MatchTest {
 
             b.sendText(json(Map.of("type", "joinLobby", "seq", 1, "code", code)), true).join();
 
-            JsonNode aStart = awaitType(aIn, "matchStart");
-            JsonNode bStart = awaitType(bIn, "matchStart");
+            // Pick/ban: host (alice) bans first; ban down to "Standard" deterministically.
+            assertThat(awaitDraftTurn(aIn).path("pool").size()).isEqualTo(3);
+            a.sendText(json(Map.of("type", "ban", "seq", 2, "ruleset", "Blitz")), true).join();
+            awaitDraftTurn(bIn); // now bob's turn
+            b.sendText(json(Map.of("type", "ban", "seq", 2, "ruleset", "Marathon")), true).join();
+
+            JsonNode aStart = drainUntil(aIn, "matchStart", new HashSet<>());
+            JsonNode bStart = drainUntil(bIn, "matchStart", new HashSet<>());
             assertThat(aStart.path("yourLives").asInt()).isEqualTo(3);
-            assertThat(aStart.path("hand").size()).isEqualTo(8);
+            assertThat(aStart.path("hand").size()).isEqualTo(8); // "Standard" survived the draft
             assertThat(bStart.path("hand").size()).isEqualTo(8);
 
             // Both play their 4 hands (identical plays on the shared seed -> tie).
@@ -124,6 +130,20 @@ class MatchTest {
 
     private static JsonNode awaitType(BlockingQueue<String> inbox, String type) throws Exception {
         return drainUntil(inbox, type, new HashSet<>());
+    }
+
+    /** Drain until a draftState message where it's this player's turn to ban. */
+    private static JsonNode awaitDraftTurn(BlockingQueue<String> inbox) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(8);
+        while (System.nanoTime() < deadline) {
+            String msg = inbox.poll(8, TimeUnit.SECONDS);
+            if (msg == null) break;
+            JsonNode node = JSON.readTree(msg);
+            if (node.path("type").asText().equals("draftState") && node.path("yourTurn").asBoolean()) {
+                return node;
+            }
+        }
+        throw new AssertionError("did not receive a draftState with yourTurn=true");
     }
 
     /** Poll until a message of {@code type} arrives, recording seen types in {@code seen}. */

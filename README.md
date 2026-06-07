@@ -36,8 +36,8 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 (engine + network).
 
 ```
-engine ✅  triggers ✅  RNG ✅  intents ✅  run loop ✅  contract ✅  WebSocket+JWT auth ✅  multiplayer match ✅
-next → pick/ban (ruleset draft) → shop → ranked queue/MMR → Lua client
+engine ✅  RNG ✅  triggers ✅  run loop ✅  contract ✅  WS+JWT auth ✅  multiplayer match ✅  pick/ban draft ✅
+next → shop/economy → ranked queue/MMR → Lua client
 ```
 
 Stack: Java 25 · Gradle · **Javalin** (WebSocket + HTTP, Jetty-backed) ·
@@ -83,7 +83,11 @@ Two authenticated players, **same seed** each round (identical cards — pure
 skill), score race, lives, first to 0 loses. The server pushes each player live
 opponent state — the first use of WebSocket server-push.
 - Host: `{"type":"createLobby"}` → `{"type":"lobbyCreated","code":"AB3KP"}`
-- Guest: `{"type":"joinLobby","code":"AB3KP"}` → both get `{"type":"matchStart",…}`
+- Guest: `{"type":"joinLobby","code":"AB3KP"}`
+- **Pick/ban draft:** both get `{"type":"draftState","pool":[…],"yourTurn":bool}`;
+  the player whose turn it is sends `{"type":"ban","ruleset":"Blitz"}`, alternating
+  until one remains → `{"type":"draftResult","ruleset":"Standard"}` → `matchStart`.
+  Server-enforced turn order — no Discord needed.
 - Play: same `playHand`/`discard` intents → you get `update`, your opponent gets
   `opponentUpdate` (score/handsLeft/done). When both finish: `roundResult`
   (scores + winner + lives), then `roundStart` or `matchResult`.
