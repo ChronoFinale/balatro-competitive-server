@@ -90,6 +90,7 @@
     <div class="panel" id="handPanel">
       <div class="stat">Hand</div>
       <div id="hand"></div>
+      <div id="preview" class="big" style="min-height:26px;margin-top:8px;"></div>
       <div class="row" style="margin-top:12px;">
         <button id="play" disabled>Play Hand</button>
         <button id="discard" class="alt" disabled>Discard</button>
@@ -137,6 +138,43 @@ let useJokerSprites = false;
 const jatlas = new Image();
 jatlas.onload = () => { useJokerSprites = true; if (view) render(); };
 jatlas.src = JOKER_ATLAS;
+
+// Client-side hand preview (display only; the server still scores authoritatively).
+const HAND_BASE = {
+  'Flush Five':[160,16],'Flush House':[140,14],'Five of a Kind':[120,12],'Straight Flush':[100,8],
+  'Four of a Kind':[60,7],'Full House':[40,4],'Flush':[35,4],'Straight':[30,4],
+  'Three of a Kind':[30,3],'Two Pair':[20,2],'Pair':[10,2],'High Card':[5,1]
+};
+const RID = {TWO:2,THREE:3,FOUR:4,FIVE:5,SIX:6,SEVEN:7,EIGHT:8,NINE:9,TEN:10,JACK:11,QUEEN:12,KING:13,ACE:14};
+function detectHand(cards) {
+  if (!cards.length) return null;
+  const ids = cards.map(c => RID[c.rank]);
+  const cnt = {}; ids.forEach(i => cnt[i] = (cnt[i]||0)+1);
+  const counts = Object.values(cnt).sort((a,b)=>b-a);
+  const pairs = Object.values(cnt).filter(c => c>=2).length;
+  const five = counts[0]>=5, four = counts[0]>=4, three = counts[0]>=3;
+  const flush = cards.length>=5 && cards.every(c => c.suit===cards[0].suit);
+  let straight = false;
+  if (cards.length>=5) {
+    const set = new Set(ids); if (set.has(14)) set.add(1);
+    for (let s=1;s<=10;s++){ let ok=true; for(let k=0;k<5;k++) if(!set.has(s+k)){ok=false;break;} if(ok){straight=true;break;} }
+  }
+  const fullHouse = three && pairs>=2;
+  let name = 'High Card';
+  if (five && flush) name='Flush Five';
+  else if (fullHouse && flush) name='Flush House';
+  else if (five) name='Five of a Kind';
+  else if (straight && flush) name='Straight Flush';
+  else if (four) name='Four of a Kind';
+  else if (fullHouse) name='Full House';
+  else if (flush) name='Flush';
+  else if (straight) name='Straight';
+  else if (three) name='Three of a Kind';
+  else if (pairs>=2) name='Two Pair';
+  else if (pairs>=1) name='Pair';
+  const [chips,mult] = HAND_BASE[name];
+  return {name, chips, mult};
+}
 
 function jokerEl(j) {
   const el = document.createElement('div');
@@ -225,6 +263,10 @@ function render() {
     };
     hand.appendChild(el);
   });
+
+  const sel = [...selected].map(i => v.hand[i]).filter(Boolean);
+  const ph = sel.length ? detectHand(sel) : null;
+  $('preview').textContent = ph ? `${ph.name} · ${ph.chips} × ${ph.mult}` : '';
 
   const inBlind = v.phase === 'BLIND_ACTIVE';
   const inShop = v.phase === 'SHOP';
