@@ -38,7 +38,8 @@ WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
 ```
 engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer: Attrition ✅  web UI ✅
 data jokers ✅  joker builder ✅  custom rulesets + pools ✅  lobby agreement ✅
-focus → Attrition done well.  next → ranked queue/MMR → custom jokers in ranked (curation) → sent Trap cards
+game-long queues ✅ (shop + lucky/glass; BMP determinism shape)
+focus → Attrition done well.  next → more queue-shaped systems (vouchers/packs/soul) → ranked queue/MMR → custom jokers in ranked (curation)
 
 ```
 
@@ -175,6 +176,9 @@ is horizontal (more instances + matchmaker).
 
 - `balatro-engine-spec.md` — the engine foundation, grounded in how the real game
   works (scoring pipeline, event/trigger set, RNG/seed model, hidden-info boundary).
+- `queue-model.md` — the game-long queue determinism model (our take on BMP's
+  shared-sequence fairness), what's migrated, and the mapping for systems still to
+  build queue-shaped (vouchers, packs, Soul, Bloodstone, rarity-split jokers).
 - `spike/FINDINGS.md` — feasibility spikes (headless Lua, headless LÖVE) that led
   to the native-reimplementation decision.
 
