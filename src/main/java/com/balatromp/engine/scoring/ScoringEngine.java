@@ -10,6 +10,8 @@ import com.balatromp.engine.joker.EvaluationContext;
 import com.balatromp.engine.joker.Joker;
 import com.balatromp.engine.joker.JokerEffect;
 import com.balatromp.engine.joker.Trigger;
+import com.balatromp.engine.rng.GameQueue;
+import com.balatromp.engine.rng.QueueSet;
 import com.balatromp.engine.rng.RandomStreams;
 import com.balatromp.engine.state.RunState;
 import java.util.ArrayList;
@@ -60,6 +62,12 @@ public final class ScoringEngine {
         List<Joker> jokers = run.jokers();
         EvaluationContext ctx = baseContext(hr, played, scoring, held, run, rng, jokers);
 
+        // Probabilistic card effects (Lucky, Glass) read game-long hit/miss queues
+        // (BMP shape): both players get the same procs for the same cards played,
+        // regardless of order/timing. Fall back to a transient set for bare-state
+        // tests that pass an rng directly without a persistent run.
+        QueueSet queues = (run.queues != null) ? run.queues : new QueueSet(rng);
+
         // (3) BEFORE pass.
         for (int i = 0; i < jokers.size(); i++) {
             ctx.phase = Trigger.BEFORE;
@@ -74,7 +82,7 @@ public final class ScoringEngine {
             if (card.debuffed) continue;
             int reps = retriggers(card, Trigger.REPETITION_PLAYED, ctx, jokers, acc);
             for (int r = 0; r < reps; r++) {
-                applyCardScored(acc, card, run, rng);
+                applyCardScored(acc, card, run, queues);
                 for (int i = 0; i < jokers.size(); i++) {
                     ctx.phase = Trigger.ON_SCORED;
                     ctx.selfIndex = i;
@@ -163,7 +171,7 @@ public final class ScoringEngine {
     }
 
     /** Card base + enhancement + edition + seal, applied as one ordered entry. */
-    private void applyCardScored(Acc acc, Card card, RunState run, RandomStreams rng) {
+    private void applyCardScored(Acc acc, Card card, RunState run, QueueSet queues) {
         long chips = card.baseChips();
         if (card.enhancement == Enhancement.STONE) chips += 50;
         if (card.enhancement == Enhancement.BONUS) chips += 30;
@@ -176,12 +184,14 @@ public final class ScoringEngine {
             log(acc, card.toString(), "mult", "+4 Mult");
         }
         if (card.enhancement == Enhancement.LUCKY) {
-            // Probabilistic: 1-in-5 for +20 Mult, 1-in-15 for +$20 (independent streams).
-            if (rng.stream("lucky_mult").chance(run.probabilityNumerator, 5)) {
+            // Two independent game-long hit/miss queues: 1-in-5 for +20 Mult,
+            // 1-in-15 for +$20. Each Lucky trigger pops the next roll; the
+            // threshold honors probabilityNumerator (Oops! All 6s).
+            if (lucky(queues, "lucky_mult") < run.probabilityNumerator / 5.0) {
                 acc.mult += 20;
                 log(acc, card.toString(), "mult", "Lucky! +20 Mult");
             }
-            if (rng.stream("lucky_money").chance(run.probabilityNumerator, 15)) {
+            if (lucky(queues, "lucky_money") < run.probabilityNumerator / 15.0) {
                 run.money += 20;
                 log(acc, card.toString(), "dollars", "Lucky! +$20");
             }
@@ -189,7 +199,7 @@ public final class ScoringEngine {
         if (card.enhancement == Enhancement.GLASS) {
             acc.mult *= 2;
             log(acc, card.toString(), "xmult", "x2 Mult");
-            if (rng.stream("glass").chance(1, 4)) {
+            if (lucky(queues, "glass") < 0.25) { // game-long break queue (1-in-4)
                 card.destroyed = true;
                 acc.destroyed.add(card);
             }
@@ -241,6 +251,12 @@ public final class ScoringEngine {
             acc.mult *= e.xMult;
             log(acc, src, "xmult", e.message != null ? e.message : "x" + e.xMult + " Mult");
         }
+    }
+
+    /** Pop the next roll [0,1) from a named game-long probability queue. */
+    private static double lucky(QueueSet queues, String key) {
+        GameQueue<Double> q = queues.queue(key, com.balatromp.engine.rng.Rng::nextDouble);
+        return q.next();
     }
 
     private static boolean containsIdentity(List<Card> list, Card c) {
