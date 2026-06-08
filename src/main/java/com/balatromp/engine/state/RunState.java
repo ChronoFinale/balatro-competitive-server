@@ -3,6 +3,7 @@ package com.balatromp.engine.state;
 import com.balatromp.engine.card.Card;
 import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.Joker;
+import com.balatromp.engine.rng.QueueSet;
 import com.balatromp.engine.rng.RandomStreams;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -33,6 +34,8 @@ public final class RunState {
     public int consumableSlots = 2;
     public Deck deck;
     public RandomStreams rng;
+    /** Game-long deterministic queues (shop, planets, …) — see {@link QueueSet}. */
+    public QueueSet queues;
 
     public RandomStreams rng() {
         return rng;

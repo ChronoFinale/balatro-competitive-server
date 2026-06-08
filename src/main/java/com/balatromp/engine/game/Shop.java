@@ -2,18 +2,21 @@ package com.balatromp.engine.game;
 
 import com.balatromp.engine.joker.JokerInfo;
 import com.balatromp.engine.joker.JokerLibrary;
-import com.balatromp.engine.rng.RandomStreams;
+import com.balatromp.engine.rng.GameQueue;
+import com.balatromp.engine.rng.QueueSet;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A between-blinds shop. Minimal first cut: a few joker offerings priced by their
- * own metadata, plus reroll. Generated deterministically from a keyed RNG stream
- * (server-only seed), so the offered cards are reproducible and never
- * client-influenced.
+ * A between-blinds shop. Offerings are drawn from the run's game-long
+ * {@link QueueSet} (BMP-style determinism): one persistent joker queue and one
+ * planet queue per run, advanced as the shop reveals/rerolls. Both players on the
+ * same seed walk the same sequence, each at their own cursor — so a reroll just
+ * reveals the next items, never a fresh independent roll. Offered content is
+ * reproducible and never client-influenced.
  *
- * Iteration slots: rarity-weighted pools, consumable/voucher/booster slots,
- * scaling reroll cost.
+ * Iteration slots: rarity-split joker sub-queues, consumable/voucher/booster
+ * slots, the main-queue-of-tags topology, scaling reroll cost.
  */
 public final class Shop {
 
@@ -43,31 +46,25 @@ public final class Shop {
         return planets;
     }
 
-    /** Generate from the curated built-in pool (solo/default). */
-    public static Shop generate(RandomStreams rng, String streamKey, int slots) {
-        return generate(rng, streamKey, slots, JokerLibrary.builtinKeys());
-    }
-
     /**
-     * Generate offerings from an explicit joker pool — the active ruleset's
-     * {@code jokerPool}. This is what makes the ruleset dictate the match's
-     * content: a custom ruleset that names custom jokers offers exactly those.
+     * Reveal {@code slots} jokers + one planet by advancing the run's game-long
+     * queues. The joker queue draws from {@code pool} (the active ruleset's
+     * {@code jokerPool} — so a custom ruleset that names custom jokers offers
+     * exactly those); the planet queue draws from {@link PlanetCatalog}. Each
+     * call advances the cursors, so a new shop or a reroll simply continues the
+     * same sequence — matching BMP's shared-queue behavior.
      */
-    public static Shop generate(RandomStreams rng, String streamKey, int slots, List<String> pool) {
-        List<String> jokerKeys = pool.isEmpty()
-                ? new ArrayList<>(JokerLibrary.builtinKeys())
-                : new ArrayList<>(pool);
-        var r = rng.stream(streamKey);
+    public static Shop generate(QueueSet queues, int slots, List<String> pool) {
+        List<String> jokerKeys = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
+        GameQueue<String> jokerQ = queues.queue("jokers", r -> jokerKeys.get(r.nextInt(jokerKeys.size())));
         List<Item> items = new ArrayList<>();
         for (int i = 0; i < slots; i++) {
-            String key = jokerKeys.get(r.nextInt(jokerKeys.size()));
-            items.add(new Item(JokerLibrary.create(key).info()));
+            items.add(new Item(JokerLibrary.create(jokerQ.next()).info()));
         }
-        // One planet offering.
         List<String> planetKeys = PlanetCatalog.keys();
-        var pr = rng.stream(streamKey + ":planet");
+        GameQueue<String> planetQ = queues.queue("planets", r -> planetKeys.get(r.nextInt(planetKeys.size())));
         List<PlanetCatalog.Planet> planets = new ArrayList<>();
-        planets.add(PlanetCatalog.get(planetKeys.get(pr.nextInt(planetKeys.size()))));
+        planets.add(PlanetCatalog.get(planetQ.next()));
         return new Shop(items, planets);
     }
 }
