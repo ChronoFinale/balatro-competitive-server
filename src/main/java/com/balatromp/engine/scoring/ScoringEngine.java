@@ -77,6 +77,9 @@ public final class ScoringEngine {
             apply(acc, jokers.get(i).calculate(ctx), jokers.get(i).name());
         }
 
+        // (3b) INITIAL_SCORING_STEP — effect seam after base, before per-card scoring.
+        effectPass(Trigger.INITIAL_SCORING_STEP, acc, ctx, jokers);
+
         // (4) score each played card, left-to-right.
         for (Card card : scoring) {
             if (card.debuffed) continue;
@@ -129,9 +132,24 @@ public final class ScoringEngine {
             }
         }
 
+        // (6b) FINAL_SCORING_STEP — effect seam after the main joker pass.
+        effectPass(Trigger.FINAL_SCORING_STEP, acc, ctx, jokers);
+
         // (7) final score.
         double score = acc.chips * acc.mult;
         return new ScoreResult(hr.type(), acc.chips, acc.mult, score, acc.log, acc.destroyed);
+    }
+
+    /** An effect-producing joker pass for a whole-hand phase (BEFORE-style seams). */
+    private void effectPass(Trigger phase, Acc acc, EvaluationContext ctx, List<Joker> jokers) {
+        for (int i = 0; i < jokers.size(); i++) {
+            ctx.phase = phase;
+            ctx.selfIndex = i;
+            ctx.blueprintDepth = 0;
+            ctx.scoredCard = null;
+            ctx.otherJoker = null;
+            apply(acc, jokers.get(i).calculate(ctx), jokers.get(i).name());
+        }
     }
 
     private EvaluationContext baseContext(HandResult hr, List<Card> played, List<Card> scoring,

@@ -65,4 +65,28 @@ class FieldOrderTest {
         ScoreResult doubled = scorePairWith(JokerEffect.xChips(2));
         assertThat(doubled.chips()).isEqualTo(baseChips * 2);
     }
+
+    @Test
+    void finalScoringStepSeamFiresOnceAfterTheMainPass() {
+        int[] fired = {0};
+        Joker j = new Joker() {
+            public JokerInfo info() {
+                return new JokerInfo("j_final_probe", "Final Probe", "test", "Common", 0, 0, 0);
+            }
+            public JokerEffect calculate(EvaluationContext ctx) {
+                if (ctx.phase == Trigger.FINAL_SCORING_STEP) {
+                    fired[0]++;
+                    return JokerEffect.mult(1); // observable: +1 mult at the final step
+                }
+                return null;
+            }
+        };
+        RunState run = new RunState();
+        run.addJoker(j);
+        List<Card> pair = List.of(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        ScoreResult r = new ScoringEngine().score(pair, List.of(), run, new RandomStreams("X"));
+        assertThat(fired[0]).isEqualTo(1);          // fired exactly once
+        assertThat(r.mult()).isEqualTo(3.0);        // pair base 2 + 1 at final step
+    }
 }
