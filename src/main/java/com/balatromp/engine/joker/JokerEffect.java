@@ -12,10 +12,18 @@ public final class JokerEffect {
 
     public long chips;
     public double mult;
+    /** Multiplies current chips (Balatro {@code x_chips}); null = no effect (distinct from x1.0). */
+    public Double xChips;
     public Double xMult;
     public long dollars;
     public int repetitions;
     public double hMult;
+    /** A nested effect applied immediately after this one's scoring fields (SMODS {@code extra} chain). */
+    public JokerEffect extra;
+    /** Swap the running chips and mult (Balatro {@code swap}). */
+    public boolean swap;
+    /** Balance chips and mult (Balatro {@code balance}); semantics TBD — no content uses it yet. */
+    public boolean balance;
     public String message;
     /** Attribution for the replay log; set by the engine/Blueprint. */
     public String source;
@@ -36,6 +44,18 @@ public final class JokerEffect {
         JokerEffect e = new JokerEffect();
         e.xMult = x;
         return e;
+    }
+
+    public static JokerEffect xChips(double x) {
+        JokerEffect e = new JokerEffect();
+        e.xChips = x;
+        return e;
+    }
+
+    /** Attach a nested effect applied right after this one (the {@code extra} chain). */
+    public JokerEffect andThen(JokerEffect next) {
+        this.extra = next;
+        return this;
     }
 
     public static JokerEffect repetitions(int n) {

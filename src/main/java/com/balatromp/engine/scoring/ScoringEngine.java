@@ -228,29 +228,49 @@ public final class ScoringEngine {
         }
     }
 
-    /** Apply a joker effect's fields in fixed order: chips → mult → dollars → hMult → xMult. */
+    /** Entry point: resolve the source label, then apply per SMODS calculation order. */
     private void apply(Acc acc, JokerEffect e, String defaultSource) {
         if (e == null) return;
-        String src = e.source != null ? e.source : defaultSource;
+        applyEffect(acc, e, e.source != null ? e.source : defaultSource);
+    }
+
+    /**
+     * Apply one effect's fields in the real per-source order (doc 30 §1b,
+     * {@code calculation_keys}): {@code chips → mult → xchips → xmult}, then recurse
+     * the {@code extra} chain, then non-scoring keys (dollars / swap / balance /
+     * message). {@code x}-fields are guarded by {@code amount != 1}. {@code hMult}
+     * (held +mult) is additive and joins the mult step.
+     */
+    private void applyEffect(Acc acc, JokerEffect e, String src) {
+        if (e == null) return;
         if (e.chips != 0) {
             acc.chips += e.chips;
             log(acc, src, "chips", e.message != null ? e.message : "+" + e.chips + " Chips");
         }
-        if (e.mult != 0) {
-            acc.mult += e.mult;
-            log(acc, src, "mult", e.message != null ? e.message : "+" + e.mult + " Mult");
+        double addMult = e.mult + e.hMult;
+        if (addMult != 0) {
+            acc.mult += addMult;
+            log(acc, src, "mult", e.message != null ? e.message : "+" + fmt(addMult) + " Mult");
         }
+        if (e.xChips != null && e.xChips != 1.0) {
+            acc.chips = Math.round(acc.chips * e.xChips);
+            log(acc, src, "xchips", "x" + fmt(e.xChips) + " Chips");
+        }
+        if (e.xMult != null && e.xMult != 1.0) {
+            acc.mult *= e.xMult;
+            log(acc, src, "xmult", e.message != null ? e.message : "x" + fmt(e.xMult) + " Mult");
+        }
+        applyEffect(acc, e.extra, src); // the extra-chain recurses with the same ordering
         if (e.dollars != 0) {
             acc.log.add(new ReplayEntry(src, "dollars", "+$" + e.dollars, acc.chips, acc.mult));
         }
-        if (e.hMult != 0) {
-            acc.mult += e.hMult;
-            log(acc, src, "mult", "+" + e.hMult + " Mult");
+        if (e.swap) {
+            long c = acc.chips;
+            acc.chips = Math.round(acc.mult);
+            acc.mult = c;
+            log(acc, src, "swap", "Swap Chips & Mult");
         }
-        if (e.xMult != null) {
-            acc.mult *= e.xMult;
-            log(acc, src, "xmult", e.message != null ? e.message : "x" + e.xMult + " Mult");
-        }
+        // e.balance: deferred — semantics unsettled (doc 30 open Q) and no content uses it yet.
     }
 
     /** Pop the next roll [0,1) from a named game-long probability queue. */
