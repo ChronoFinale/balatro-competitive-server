@@ -609,6 +609,12 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 38: blind-skipping (Throwback) ---
+                new JokerDef("j_throwback", "Throwback", "x0.25 Mult for each blind skipped this run",
+                        "Uncommon", 6, 9, 16, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT, new Value.RunVar(Value.Var.BLINDS_SKIPPED, 1, 0.25))))),
+
                 // --- batch 37: "since acquired" jokers via acquire-stamp (Turtle Bean, Seltzer) ---
                 new JokerDef("j_turtle_bean", "Turtle Bean",
                         "+5 hand size, which decreases by 1 each round (handled in Run.applyJokerRunMods)",

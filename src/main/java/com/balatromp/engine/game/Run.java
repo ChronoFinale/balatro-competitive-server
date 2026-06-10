@@ -621,6 +621,7 @@ public final class Run {
         counters.put("todoHand", state.todoHandType.name());
         counters.put("rebateRankId", state.rebateRankId);
         counters.put("OBELISK_STREAK", state.obeliskStreak);
+        counters.put("BLINDS_SKIPPED", state.blindsSkipped);
 
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
@@ -634,6 +635,17 @@ public final class Run {
         if (!hasJoker("j_perkeo") || state.consumables.isEmpty()) return;
         int idx = (int) (roll("perkeo:dup") * state.consumables.size()) % state.consumables.size();
         state.consumables.add(state.consumables.get(idx)); // Negative copy ignores the slot cap
+    }
+
+    /** Skip the current Small/Big blind (forfeit its reward, bypass the shop). Returns null on success. */
+    public String skipBlind() {
+        if (phase != Phase.BLIND_ACTIVE) return "not in a blind";
+        if (blind == BlindType.BOSS || pvpActive) return "cannot skip this blind";
+        state.blindsSkipped++;
+        GameEvents.raise(Trigger.SKIP_BLIND, state, rng, null); // Throwback / skip-tag jokers
+        blind = (blind == BlindType.SMALL) ? BlindType.BIG : BlindType.BOSS;
+        startBlind();
+        return null;
     }
 
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */

@@ -204,6 +204,10 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 43. Throwback after 2 blinds skipped -> x(1 + 0.25*2) = x1.5
+        scenario("throwback", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.blindsSkipped = 2, "j_throwback");
+
         // 42. Seltzer within its 10-hand window (acquired at hand 0, now hand 3) -> retrigger all
         scenario("seltzer", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.handsPlayedTotal = 3, "j_seltzer");
@@ -350,6 +354,7 @@ class PreviewFixtureGenerator {
         counters.put("castleSuit", run.castleSuit.name());
         counters.put("todoHand", run.todoHandType.name());
         counters.put("OBELISK_STREAK", run.obeliskStreak);
+        counters.put("BLINDS_SKIPPED", run.blindsSkipped);
         m.put("counters", counters);
         return m;
     }

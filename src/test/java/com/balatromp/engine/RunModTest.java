@@ -89,6 +89,19 @@ class RunModTest {
     }
 
     @Test
+    void skippingABlindAdvancesAndCounts() {
+        Run run = new Run(std, "SK", stoneDeck(400), jokers());
+        assertThat(run.blind).isEqualTo(com.balatromp.engine.game.Blinds.BlindType.SMALL);
+        assertThat(run.skipBlind()).isNull();
+        assertThat(run.blind).isEqualTo(com.balatromp.engine.game.Blinds.BlindType.BIG);
+        assertThat(run.state.blindsSkipped).isEqualTo(1);
+        run.skipBlind(); // Big -> Boss
+        assertThat(run.blind).isEqualTo(com.balatromp.engine.game.Blinds.BlindType.BOSS);
+        assertThat(run.skipBlind()).isNotNull(); // can't skip a boss
+        assertThat(run.state.blindsSkipped).isEqualTo(2);
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());

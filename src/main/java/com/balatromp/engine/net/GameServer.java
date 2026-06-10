@@ -304,6 +304,7 @@ public final class GameServer implements AutoCloseable {
                     soloAction(ctx, seq, run -> run.buyJoker(index));
                 }
                 case "reroll" -> soloAction(ctx, seq, Run::reroll);
+                case "skipBlind" -> soloAction(ctx, seq, Run::skipBlind);
                 case "sellJoker" -> {
                     int index = msg.path("index").asInt();
                     soloAction(ctx, seq, run -> run.sellJoker(index));
