@@ -30,6 +30,7 @@ public final class JokerLibrary {
         register(RideTheBus::new);
         register(Hack::new);
         register(Blueprint::new);
+        register(Brainstorm::new);
         register(GoldenJoker::new);
         register(FacelessJoker::new);
         register(Constellation::new);
@@ -261,6 +262,24 @@ public final class JokerLibrary {
             Joker target = ctx.jokers.get(right);
             if (!target.blueprintCompatible()) return null;
             JokerEffect e = target.calculate(ctx.forCopy(right));
+            if (e != null) e.source = name() + " -> " + target.name();
+            return e;
+        }
+    }
+
+    // --- meta: re-entrant copy of the leftmost joker (Brainstorm) --------------
+    public static final class Brainstorm implements Joker {
+        public JokerInfo info() {
+            return new JokerInfo("j_brainstorm", "Brainstorm",
+                    "Copies the ability of the leftmost Joker", "Rare", 10, 1, 14);
+        }
+        public boolean blueprintCompatible() { return false; }
+        public JokerEffect calculate(EvaluationContext ctx) {
+            if (ctx.jokers.isEmpty()) return null;
+            if (ctx.blueprintDepth > ctx.jokers.size()) return null; // recursion guard
+            Joker target = ctx.jokers.get(0);
+            if (target == this || !target.blueprintCompatible()) return null;
+            JokerEffect e = target.calculate(ctx.forCopy(0));
             if (e != null) e.source = name() + " -> " + target.name();
             return e;
         }

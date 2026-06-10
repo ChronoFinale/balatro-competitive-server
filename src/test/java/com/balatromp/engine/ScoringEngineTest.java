@@ -67,6 +67,12 @@ class ScoringEngineTest {
     }
 
     @Test
+    void brainstormCopiesLeftmostJoker() { // Joker + Brainstorm(copies leftmost): +4 +4 -> 30 x 10 = 300
+        assertThat(score(jokers("j_joker", "j_brainstorm"), List.of(c(KING, HEARTS), c(KING, SPADES))).score())
+                .isEqualTo(300.0);
+    }
+
+    @Test
     void cavendishTriplesMult() { // pair of Kings: 30 x (2 x3) = 180
         assertThat(score(jokers("j_cavendish"), List.of(c(KING, HEARTS), c(KING, SPADES))).score())
                 .isEqualTo(180.0);

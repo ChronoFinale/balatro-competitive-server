@@ -140,6 +140,24 @@ public final class Run {
         phase = Phase.BLIND_ACTIVE;
     }
 
+    /** Mr Bones: survive a failed blind (and self-destruct) if at least 25% of the requirement was scored. */
+    private boolean mrBonesSaves() {
+        if (requirement <= 0 || state.roundScore < requirement / 4) return false;
+        for (int i = 0; i < state.jokers().size(); i++) {
+            if (state.jokers().get(i).key().equals("j_mr_bones")) {
+                state.jokers().remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** To the Moon: extra $1 of interest per $5 held at end of round (on top of the capped base). */
+    private int extraInterest() {
+        boolean toTheMoon = state.jokers().stream().anyMatch(j -> j.key().equals("j_to_the_moon"));
+        return toTheMoon ? state.money / 5 : 0;
+    }
+
     /** Re-roll the per-round dynamic targets (The Idol's card, Ancient's suit). */
     private void rollRoundTargets() {
         com.balatromp.engine.card.Suit[] suits = com.balatromp.engine.card.Suit.values();
@@ -211,8 +229,12 @@ public final class Run {
             } else if (state.roundScore >= requirement) {
                 winBlind();
             } else if (state.handsLeft <= 0) {
-                // Attrition: dying to a blind costs a life (match handles it), not the run.
-                phase = (pvpFromAnte > 0) ? Phase.BLIND_FAILED : Phase.RUN_LOST;
+                if (mrBonesSaves()) {
+                    winBlind(); // Mr Bones prevents the death (and is consumed)
+                } else {
+                    // Attrition: dying to a blind costs a life (match handles it), not the run.
+                    phase = (pvpFromAnte > 0) ? Phase.BLIND_FAILED : Phase.RUN_LOST;
+                }
             }
         }
         return result;
@@ -236,7 +258,7 @@ public final class Run {
     public void endPvp() {
         if (!pvpActive) return;
         pvpActive = false;
-        int interest = Math.min(5, state.money / 5);
+        int interest = Math.min(5, state.money / 5) + extraInterest();
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
@@ -245,7 +267,7 @@ public final class Run {
 
     private void winBlind() {
         // Economy: blind reward + interest ($1 per $5 held, capped at $5) + joker/gold payouts.
-        int interest = Math.min(5, state.money / 5);
+        int interest = Math.min(5, state.money / 5) + extraInterest();
         int reward = (boss != null) ? boss.reward() : blind.reward;
         state.money += reward + interest;
         state.roundsPlayedTotal++;

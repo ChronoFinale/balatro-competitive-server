@@ -609,6 +609,14 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 26: Run-level hooks (Mr Bones death-save, To the Moon interest) ---
+                new JokerDef("j_mr_bones", "Mr. Bones",
+                        "Prevents death if at least 25% of the required score was reached (then self-destructs)",
+                        "Uncommon", 5, 8, 14, null, null, true, List.of(), List.of()),
+                new JokerDef("j_to_the_moon", "To the Moon",
+                        "Earn an extra $1 of interest per $5 at end of round",
+                        "Uncommon", 5, 9, 14, null, null, true, List.of(), List.of()),
+
                 // --- batch 25: Mail-In Rebate (event-count money) ---
                 new JokerDef("j_mail_in_rebate", "Mail-In Rebate",
                         "Earn $3 for each discarded card of this round's rank",
