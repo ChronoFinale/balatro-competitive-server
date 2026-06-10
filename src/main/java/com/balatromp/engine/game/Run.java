@@ -227,6 +227,18 @@ public final class Run {
         return null;
     }
 
+    /** Buy a Tarot/Spectral from the shop into your consumable inventory. */
+    public String buyConsumable(int index) {
+        if (phase != Phase.SHOP || shop == null) return "not in shop";
+        if (index < 0 || index >= shop.consumables().size()) return "invalid consumable slot";
+        if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
+        if (state.money < Shop.CONSUMABLE_COST) return "not enough money";
+        state.money -= Shop.CONSUMABLE_COST;
+        state.consumables.add(shop.consumables().get(index).key());
+        shop.consumables().remove(index);
+        return null;
+    }
+
     /** Use a held Planet (no card targets). */
     public String useConsumable(int index) {
         return useConsumable(index, new long[0]);
@@ -324,11 +336,18 @@ public final class Run {
         }
 
         List<Map<String, Object>> shopPlanets = null;
+        List<Map<String, Object>> shopConsumables = null;
         if (phase == Phase.SHOP && shop != null) {
             shopPlanets = new ArrayList<>();
             for (PlanetCatalog.Planet p : shop.planets()) {
                 shopPlanets.add(Map.of("key", p.key(), "name", p.name(), "hand", p.hand().display,
                         "cost", PlanetCatalog.COST, "description", p.description()));
+            }
+            shopConsumables = new ArrayList<>();
+            for (Consumable c : shop.consumables()) {
+                shopConsumables.add(Map.of("key", c.key(), "name", c.name(),
+                        "cost", Shop.CONSUMABLE_COST, "description", c.description(),
+                        "maxTargets", c.maxTargets()));
             }
         }
 
@@ -337,6 +356,12 @@ public final class Run {
             PlanetCatalog.Planet p = PlanetCatalog.get(key);
             if (p != null) {
                 consumables.add(Map.of("key", key, "name", p.name(), "description", p.description()));
+                continue;
+            }
+            Consumable c = TarotCatalog.get(key);
+            if (c != null) {
+                consumables.add(Map.of("key", key, "name", c.name(), "description", c.description(),
+                        "maxTargets", c.maxTargets()));
             }
         }
 
@@ -347,7 +372,7 @@ public final class Run {
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
                 boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
-                shopPlanets, consumables, handLevels);
+                shopPlanets, shopConsumables, consumables, handLevels);
     }
 
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */

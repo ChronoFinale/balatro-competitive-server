@@ -29,6 +29,7 @@ public record ClientView(
         String boss,
         String bossEffect,
         List<Map<String, Object>> shopPlanets,
+        List<Map<String, Object>> shopConsumables,
         List<Map<String, Object>> consumables,
         Map<String, Object> handLevels) {
 }

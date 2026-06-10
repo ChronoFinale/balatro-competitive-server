@@ -51,4 +51,12 @@ public final class TarotCatalog {
     public static Consumable get(String key) {
         return BY_KEY.get(key);
     }
+
+    /** Tarot keys eligible to appear in the main shop (Spectrals come from packs). */
+    public static java.util.List<String> tarotKeys() {
+        return BY_KEY.values().stream()
+                .filter(c -> c.type() == ConsumableType.TAROT)
+                .map(Consumable::key)
+                .toList();
+    }
 }

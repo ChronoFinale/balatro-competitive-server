@@ -1,5 +1,7 @@
 package com.balatromp.engine.game;
 
+import com.balatromp.engine.consumable.Consumable;
+import com.balatromp.engine.consumable.TarotCatalog;
 import com.balatromp.engine.joker.JokerInfo;
 import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.rng.GameQueue;
@@ -22,6 +24,7 @@ public final class Shop {
 
     public static final int REROLL_COST = 5;
     public static final int JOKER_SLOT_LIMIT = 5;
+    public static final int CONSUMABLE_COST = 3;
 
     /** A shop offering carries the joker's full display/shop metadata. */
     public record Item(JokerInfo info) {
@@ -32,10 +35,12 @@ public final class Shop {
 
     private final List<Item> items;
     private final List<PlanetCatalog.Planet> planets;
+    private final List<Consumable> consumables;
 
-    private Shop(List<Item> items, List<PlanetCatalog.Planet> planets) {
+    private Shop(List<Item> items, List<PlanetCatalog.Planet> planets, List<Consumable> consumables) {
         this.items = items;
         this.planets = planets;
+        this.consumables = consumables;
     }
 
     public List<Item> items() {
@@ -44,6 +49,10 @@ public final class Shop {
 
     public List<PlanetCatalog.Planet> planets() {
         return planets;
+    }
+
+    public List<Consumable> consumables() {
+        return consumables;
     }
 
     /**
@@ -65,6 +74,13 @@ public final class Shop {
         GameQueue<String> planetQ = queues.queue("planets", r -> planetKeys.get(r.nextInt(planetKeys.size())));
         List<PlanetCatalog.Planet> planets = new ArrayList<>();
         planets.add(PlanetCatalog.get(planetQ.next()));
-        return new Shop(items, planets);
+
+        // One Tarot offering, from its own game-long queue.
+        List<String> tarotKeys = TarotCatalog.tarotKeys();
+        GameQueue<String> tarotQ = queues.queue("tarot", r -> tarotKeys.get(r.nextInt(tarotKeys.size())));
+        List<Consumable> consumables = new ArrayList<>();
+        consumables.add(TarotCatalog.get(tarotQ.next()));
+
+        return new Shop(items, planets, consumables);
     }
 }

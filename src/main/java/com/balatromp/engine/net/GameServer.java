@@ -235,6 +235,10 @@ public final class GameServer implements AutoCloseable {
                     int index = msg.path("index").asInt();
                     soloAction(ctx, seq, run -> run.buyPlanet(index));
                 }
+                case "buyConsumable" -> {
+                    int index = msg.path("index").asInt();
+                    soloAction(ctx, seq, run -> run.buyConsumable(index));
+                }
                 case "useConsumable" -> {
                     int index = msg.path("index").asInt();
                     long[] targets = longs(msg.path("targets")); // selected card ids (Tarots)

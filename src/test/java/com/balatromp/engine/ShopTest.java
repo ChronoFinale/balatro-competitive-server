@@ -61,6 +61,18 @@ class ShopTest {
     }
 
     @Test
+    void shopOffersAndSellsAConsumable() {
+        Run run = winToShop();
+        assertThat(run.shop.consumables()).isNotEmpty(); // a Tarot is offered
+        int money = run.state.money;
+        int before = run.state.consumables.size();
+        assertThat(run.buyConsumable(0)).isNull();
+        assertThat(run.state.consumables).hasSize(before + 1);  // into inventory
+        assertThat(run.state.money).isEqualTo(money - 3);       // charged $3
+        assertThat(run.shop.consumables()).isEmpty();           // removed from shop
+    }
+
+    @Test
     void proceedLeavesShopForTheNextBlind() {
         Run run = winToShop();
         run.proceed();
