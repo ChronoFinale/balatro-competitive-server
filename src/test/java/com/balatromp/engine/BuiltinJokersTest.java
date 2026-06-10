@@ -26,7 +26,9 @@ class BuiltinJokersTest {
 
     private static final List<String> NEW_KEYS = List.of(
             "j_lusty_joker", "j_wrathful_joker", "j_gluttenous_joker", "j_jolly",
-            "j_mystic_summit", "j_banner", "j_bull", "j_scary_face", "j_odd_todd", "j_square");
+            "j_mystic_summit", "j_banner", "j_bull", "j_scary_face", "j_odd_todd", "j_square",
+            "j_zany", "j_mad", "j_crazy", "j_droll",
+            "j_wily", "j_clever", "j_devious", "j_crafty", "j_scholar");
 
     private ScoreResult score(List<Card> played, Consumer<RunState> cfg, String... jokerKeys) {
         RunState run = new RunState();
@@ -85,6 +87,37 @@ class BuiltinJokersTest {
                 c(Rank.QUEEN, Suit.SPADES), c(Rank.QUEEN, Suit.HEARTS)); // Two Pair, 4 cards
         long delta = score(four, DEFAULTS, "j_square").chips() - score(four, DEFAULTS).chips();
         assertThat(delta).isEqualTo(4); // gains +4 and applies it this hand
+    }
+
+    @Test
+    void zanyTriggersOnThreeOfAKindButNotFourOfAKind() {
+        List<Card> trips = List.of(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
+                c(Rank.KING, Suit.CLUBS), c(Rank.TWO, Suit.DIAMONDS), c(Rank.THREE, Suit.SPADES));
+        List<Card> quads = List.of(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
+                c(Rank.KING, Suit.CLUBS), c(Rank.KING, Suit.DIAMONDS), c(Rank.TWO, Suit.SPADES));
+        assertThat(score(trips, DEFAULTS, "j_zany").mult() - score(trips, DEFAULTS).mult()).isEqualTo(12.0);
+        // exact-count containment: Four of a Kind does NOT contain Three of a Kind
+        assertThat(score(quads, DEFAULTS, "j_zany").mult() - score(quads, DEFAULTS).mult()).isEqualTo(0.0);
+    }
+
+    @Test
+    void slyDoesNotTriggerOnFourOfAKind() {
+        List<Card> pair = List.of(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        List<Card> quads = List.of(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
+                c(Rank.KING, Suit.CLUBS), c(Rank.KING, Suit.DIAMONDS), c(Rank.TWO, Suit.SPADES));
+        assertThat(score(pair, DEFAULTS, "j_sly_joker").chips() - score(pair, DEFAULTS).chips()).isEqualTo(50);
+        assertThat(score(quads, DEFAULTS, "j_sly_joker").chips() - score(quads, DEFAULTS).chips()).isEqualTo(0);
+    }
+
+    @Test
+    void scholarGivesCompoundChipsAndMultOnAces() {
+        List<Card> aces = List.of(c(Rank.ACE, Suit.SPADES), c(Rank.ACE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        ScoreResult with = score(aces, DEFAULTS, "j_scholar");
+        ScoreResult without = score(aces, DEFAULTS);
+        assertThat(with.chips() - without.chips()).isEqualTo(40); // two Aces × +20
+        assertThat(with.mult() - without.mult()).isEqualTo(8.0);  // two Aces × +4 (same rule)
     }
 
     @Test

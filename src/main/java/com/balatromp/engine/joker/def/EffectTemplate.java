@@ -11,12 +11,35 @@ import com.balatromp.engine.joker.JokerEffect;
  * (streak 0, planets 0) contribute nothing until it has ramped — exactly the
  * "return null when zero" behaviour of the hand-coded jokers.
  */
-public record EffectTemplate(Op op, Value value) {
+public record EffectTemplate(Op op, Value value, EffectTemplate extra) {
 
     public enum Op { CHIPS, MULT, XMULT, DOLLARS, REPETITIONS, HELD_MULT }
 
+    /** Single-op effect (no extra chain). */
+    public EffectTemplate(Op op, Value value) {
+        this(op, value, null);
+    }
+
+    /**
+     * Build the effect, chaining {@link #extra} so one rule can emit a compound
+     * effect (e.g. Scholar = +20 Chips and +4 Mult). The chain rides
+     * {@link JokerEffect#extra}, which the scoring engine applies in order after
+     * the head's own fields.
+     */
     public JokerEffect apply(EvaluationContext ctx) {
-        double v = value.resolve(ctx);
+        JokerEffect head = build(value.resolve(ctx));
+        if (extra == null) {
+            return head;
+        }
+        JokerEffect tail = extra.apply(ctx);
+        if (head == null) {
+            return tail;
+        }
+        head.extra = tail;
+        return head;
+    }
+
+    private JokerEffect build(double v) {
         return switch (op) {
             case CHIPS -> v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips");
             case MULT -> v == 0 ? null : JokerEffect.mult(v).msg("+" + fmt(v) + " Mult");

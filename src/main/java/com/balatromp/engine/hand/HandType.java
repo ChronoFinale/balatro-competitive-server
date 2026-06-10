@@ -33,12 +33,32 @@ public enum HandType {
         this.lMult = lMult;
     }
 
-    /** Does a hand of this category contain at least one pair? (for Sly Joker etc.) */
-    public boolean containsPair() {
-        return switch (this) {
-            case PAIR, TWO_PAIR, THREE_OF_A_KIND, FULL_HOUSE, FOUR_OF_A_KIND,
-                 FIVE_OF_A_KIND, FLUSH_HOUSE, FLUSH_FIVE -> true;
-            default -> false;
+    /**
+     * Whether a played hand of this (top) category "contains" {@code part}, matching
+     * Balatro's {@code evaluate_poker_hand}: its parts come from {@code get_X_same}
+     * which counts ranks with <b>exactly</b> N cards — so e.g. Four of a Kind contains
+     * neither a Pair nor Three of a Kind, and Three of a Kind contains no Pair. Used by
+     * the "contains X" jokers (Jolly/Sly/Zany/Mad/Crazy/Droll/Wily/Clever/Devious/Crafty).
+     */
+    public boolean contains(HandType part) {
+        return switch (part) {
+            case HIGH_CARD -> true; // every hand has a highest card
+            case PAIR -> this == PAIR || this == TWO_PAIR || this == FULL_HOUSE || this == FLUSH_HOUSE;
+            case TWO_PAIR -> this == TWO_PAIR || this == FULL_HOUSE || this == FLUSH_HOUSE;
+            case THREE_OF_A_KIND -> this == THREE_OF_A_KIND || this == FULL_HOUSE || this == FLUSH_HOUSE;
+            case STRAIGHT -> this == STRAIGHT || this == STRAIGHT_FLUSH;
+            case FLUSH -> this == FLUSH || this == STRAIGHT_FLUSH || this == FLUSH_HOUSE || this == FLUSH_FIVE;
+            case FULL_HOUSE -> this == FULL_HOUSE || this == FLUSH_HOUSE;
+            case FOUR_OF_A_KIND -> this == FOUR_OF_A_KIND;
+            case STRAIGHT_FLUSH -> this == STRAIGHT_FLUSH;
+            case FIVE_OF_A_KIND -> this == FIVE_OF_A_KIND || this == FLUSH_FIVE;
+            case FLUSH_HOUSE -> this == FLUSH_HOUSE;
+            case FLUSH_FIVE -> this == FLUSH_FIVE;
         };
+    }
+
+    /** Does a hand of this category contain at least one pair? (for Sly/Jolly etc.) */
+    public boolean containsPair() {
+        return contains(PAIR);
     }
 }

@@ -31,6 +31,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoredEdition.class, name = "scoredEdition"),
     @JsonSubTypes.Type(value = Condition.ScoredSeal.class, name = "scoredSeal"),
     @JsonSubTypes.Type(value = Condition.HandContainsPair.class, name = "handContainsPair"),
+    @JsonSubTypes.Type(value = Condition.HandContains.class, name = "handContains"),
     @JsonSubTypes.Type(value = Condition.HandIs.class, name = "handIs"),
     @JsonSubTypes.Type(value = Condition.PlayedCount.class, name = "playedCount"),
     @JsonSubTypes.Type(value = Condition.DiscardedFaceCount.class, name = "discardedFaceCount"),
@@ -138,6 +139,17 @@ public sealed interface Condition {
     record HandContainsPair() implements Condition {
         public boolean test(EvaluationContext ctx) {
             return ctx.handType != null && ctx.handType.containsPair();
+        }
+    }
+
+    /**
+     * The played hand "contains" a hand category (Balatro's exact-count containment —
+     * e.g. {@code THREE_OF_A_KIND} matches Three of a Kind / Full House / Flush House,
+     * but NOT Four of a Kind). Powers the type-mult / type-chips jokers.
+     */
+    record HandContains(HandType hand) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.handType != null && ctx.handType.contains(hand);
         }
     }
 
