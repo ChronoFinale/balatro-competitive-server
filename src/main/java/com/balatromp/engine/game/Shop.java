@@ -38,11 +38,22 @@ public final class Shop {
     private final List<Item> items;
     private final List<PlanetCatalog.Planet> planets;
     private final List<Consumable> consumables;
+    private String voucher; // the offered voucher key this shop, or null (one per shop)
 
-    private Shop(List<Item> items, List<PlanetCatalog.Planet> planets, List<Consumable> consumables) {
+    private Shop(List<Item> items, List<PlanetCatalog.Planet> planets, List<Consumable> consumables,
+            String voucher) {
         this.items = items;
         this.planets = planets;
         this.consumables = consumables;
+        this.voucher = voucher;
+    }
+
+    public String voucher() {
+        return voucher;
+    }
+
+    public void clearVoucher() {
+        voucher = null;
     }
 
     public List<Item> items() {
@@ -102,6 +113,14 @@ public final class Shop {
         List<Consumable> consumables = new ArrayList<>();
         consumables.add(TarotCatalog.get(tarotQ.next()));
 
-        return new Shop(items, planets, consumables);
+        // One voucher offering, skipping any already owned (none acceptable -> no voucher).
+        List<String> voucherKeys = VoucherCatalog.keys();
+        String voucher = null;
+        if (voucherKeys.stream().anyMatch(k -> !owned.contains(k))) {
+            GameQueue<String> vQ = queues.queue("vouchers", r -> voucherKeys.get(r.nextInt(voucherKeys.size())));
+            voucher = vQ.nextWhere(k -> !owned.contains(k));
+        }
+
+        return new Shop(items, planets, consumables, voucher);
     }
 }

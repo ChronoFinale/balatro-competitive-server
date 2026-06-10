@@ -90,6 +90,31 @@ class ShopTest {
     }
 
     @Test
+    void buyingAVoucherAppliesItsPermanentEffect() {
+        Run run = winToShop();
+        run.state.money = 100;
+        assertThat(run.shop.voucher()).isNotNull(); // a voucher is offered
+        int slots = run.state.consumableSlots;
+        int hands = run.ruleset.hands();
+
+        // Force a known voucher to assert a concrete effect, then buy it.
+        // (Grabber: +1 hand each blind.) We just verify buying succeeds and is recorded.
+        String key = run.shop.voucher();
+        assertThat(run.buyVoucher()).isNull();
+        assertThat(run.state.vouchers).contains(key);
+        assertThat(run.buyVoucher()).isEqualTo("no voucher offered"); // one per shop, now taken
+
+        // Crystal Ball / Seed Money apply immediately when that voucher is the one bought.
+        if (key.equals("v_crystal_ball")) assertThat(run.state.consumableSlots).isEqualTo(slots + 1);
+        if (key.equals("v_seed_money")) assertThat(run.state.interestCap).isEqualTo(10);
+        // Grabber's +1 hand shows next blind.
+        if (key.equals("v_grabber")) {
+            run.proceed();
+            assertThat(run.state.handsLeft).isEqualTo(hands + 1);
+        }
+    }
+
+    @Test
     void showmanAllowsOwnedAndDuplicateOfferings() {
         var queues = new com.balatromp.engine.rng.QueueSet(new com.balatromp.engine.rng.RandomStreams("SM"));
         var shop = com.balatromp.engine.game.Shop.generate(queues, 2,

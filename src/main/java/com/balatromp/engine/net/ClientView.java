@@ -33,5 +33,6 @@ public record ClientView(
         List<Map<String, Object>> consumables,
         Map<String, Object> handLevels,
         Map<String, Object> deckStats,
-        Map<String, Object> counters) {
+        Map<String, Object> counters,
+        Map<String, Object> shopVoucher) {
 }

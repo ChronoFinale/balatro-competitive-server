@@ -305,6 +305,7 @@ public final class GameServer implements AutoCloseable {
                 }
                 case "reroll" -> soloAction(ctx, seq, Run::reroll);
                 case "skipBlind" -> soloAction(ctx, seq, Run::skipBlind);
+                case "buyVoucher" -> soloAction(ctx, seq, Run::buyVoucher);
                 case "openBooster" -> soloAction(ctx, seq, Run::openBooster);
                 case "skipBooster" -> soloAction(ctx, seq, Run::skipBooster);
                 case "sellJoker" -> {

@@ -211,7 +211,9 @@ public final class Run {
     private Shop generateShop() {
         java.util.Set<String> owned = new java.util.HashSet<>();
         for (Joker j : state.jokers()) owned.add(j.key());
-        return Shop.generate(state.queues, 2, ruleset.jokerPool(), owned, hasJoker("j_showman"));
+        owned.addAll(state.vouchers); // skip vouchers you already own too (distinct v_ namespace)
+        int slots = state.vouchers.contains("v_overstock") ? 3 : 2; // Overstock: +1 shop slot
+        return Shop.generate(state.queues, slots, ruleset.jokerPool(), owned, hasJoker("j_showman"));
     }
 
     /** Gift Card: +$1 of sell value to every owned Joker at end of round (Egg bumps only itself). */
@@ -267,6 +269,9 @@ public final class Run {
             int acq = ((Number) state.jokerState(j).getOrDefault("acqRounds", 0)).intValue();
             state.handSize += Math.max(0, 5 - (state.roundsPlayedTotal - acq));
         }
+        // Vouchers: permanent per-blind hand/discard upgrades.
+        if (state.vouchers.contains("v_grabber")) state.handsLeft += 1;
+        if (state.vouchers.contains("v_wasteful")) state.discardsLeft += 1;
         if (noDiscards) state.discardsLeft = 0;
         state.handsLeft = Math.max(1, state.handsLeft);
         state.discardsLeft = Math.max(0, state.discardsLeft);
@@ -342,7 +347,7 @@ public final class Run {
     public void endPvp() {
         if (!pvpActive) return;
         pvpActive = false;
-        int interest = Math.min(5, state.money / 5) + extraInterest();
+        int interest = Math.min(state.interestCap, state.money / 5) + extraInterest();
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
         applyGiftCard();
@@ -354,7 +359,7 @@ public final class Run {
 
     private void winBlind() {
         // Economy: blind reward + interest ($1 per $5 held, capped at $5) + joker/gold payouts.
-        int interest = Math.min(5, state.money / 5) + extraInterest();
+        int interest = Math.min(state.interestCap, state.money / 5) + extraInterest();
         int reward = (boss != null) ? boss.reward() : blind.reward;
         state.money += reward + interest;
         state.roundsPlayedTotal++;
@@ -371,12 +376,34 @@ public final class Run {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         if (index < 0 || index >= shop.items().size()) return "invalid shop slot";
         Shop.Item item = shop.items().get(index);
-        if (!canAfford(item.cost())) return "not enough money";
+        if (!canAfford(price(item.cost()))) return "not enough money";
         if (state.jokers().size() >= Shop.JOKER_SLOT_LIMIT) return "joker slots full";
-        state.money -= item.cost();
+        state.money -= price(item.cost());
         state.addJoker(JokerLibrary.create(item.jokerKey(), ruleset.jokerVariant()));
         shop.items().remove(index);
         return null;
+    }
+
+    /** Buy the shop's offered voucher. Returns null on success, else a reason. */
+    public String buyVoucher() {
+        if (phase != Phase.SHOP || shop == null || shop.voucher() == null) return "no voucher offered";
+        var v = VoucherCatalog.get(shop.voucher());
+        if (!canAfford(price(v.cost()))) return "not enough money";
+        state.money -= price(v.cost());
+        state.vouchers.add(v.key());
+        // Immediate-effect vouchers resolve now; per-blind ones (Grabber/Wasteful) apply each blind.
+        switch (v.key()) {
+            case "v_crystal_ball" -> state.consumableSlots += 1;
+            case "v_seed_money" -> state.interestCap = 10;
+            default -> { /* applied elsewhere (per blind / shop) */ }
+        }
+        shop.clearVoucher();
+        return null;
+    }
+
+    /** Apply the Clearance Sale discount (25% off, rounded down) to a shop price. */
+    private int price(int cost) {
+        return state.vouchers.contains("v_clearance_sale") ? (int) (cost * 0.75) : cost;
     }
 
     /** Sell the joker at the given slot (shop or during a blind). Returns null on success. */
@@ -423,7 +450,7 @@ public final class Run {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         if (index < 0 || index >= shop.planets().size()) return "invalid planet slot";
         if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
-        int cost = hasJoker("j_astronomer") ? 0 : PlanetCatalog.COST; // Astronomer: Planets are free
+        int cost = hasJoker("j_astronomer") ? 0 : price(PlanetCatalog.COST); // Astronomer: Planets free
         if (!canAfford(cost)) return "not enough money";
         state.money -= cost;
         state.consumables.add(shop.planets().get(index).key());
@@ -436,8 +463,8 @@ public final class Run {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         if (index < 0 || index >= shop.consumables().size()) return "invalid consumable slot";
         if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
-        if (!canAfford(Shop.CONSUMABLE_COST)) return "not enough money";
-        state.money -= Shop.CONSUMABLE_COST;
+        if (!canAfford(price(Shop.CONSUMABLE_COST))) return "not enough money";
+        state.money -= price(Shop.CONSUMABLE_COST);
         state.consumables.add(shop.consumables().get(index).key());
         shop.consumables().remove(index);
         return null;
@@ -643,11 +670,18 @@ public final class Run {
         counters.put("OBELISK_STREAK", state.obeliskStreak);
         counters.put("BLINDS_SKIPPED", state.blindsSkipped);
 
+        Map<String, Object> shopVoucher = null;
+        if (phase == Phase.SHOP && shop != null && shop.voucher() != null) {
+            var v = VoucherCatalog.get(shop.voucher());
+            shopVoucher = Map.of("key", v.key(), "name", v.name(), "description", v.description(),
+                    "cost", price(v.cost()));
+        }
+
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
                 boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
-                shopPlanets, shopConsumables, consumables, handLevels, deckStats, counters);
+                shopPlanets, shopConsumables, consumables, handLevels, deckStats, counters, shopVoucher);
     }
 
     /** Perkeo: leaving the shop, create a (Negative) copy of a random held consumable. */
