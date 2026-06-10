@@ -7,10 +7,11 @@ import com.balatromp.engine.card.Card;
  * the player legitimately sees — their own hand. The deck order is never
  * projected into views (hidden-information boundary, spec §8).
  */
-public record CardView(long uid, String rank, String suit, String enhancement, String edition, String seal) {
+public record CardView(long uid, String rank, String suit, String enhancement, String edition, String seal,
+                       int permaChips, double permaMult) {
 
     public static CardView of(Card c) {
         return new CardView(c.uid, c.rank.name(), c.suit.name(),
-                c.enhancement.name(), c.edition.name(), c.seal.name());
+                c.enhancement.name(), c.edition.name(), c.seal.name(), c.permaChips, c.permaMult);
     }
 }

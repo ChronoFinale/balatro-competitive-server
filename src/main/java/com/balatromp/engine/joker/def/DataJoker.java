@@ -40,7 +40,9 @@ public final class DataJoker implements Joker {
 
     @Override
     public JokerEffect calculate(EvaluationContext ctx) {
-        if (ctx.blueprintDepth == 0) {
+        // Skip state mutations during a preview dry-run: previewing a hand must not
+        // advance scaling counters (Ride the Bus's streak, etc.).
+        if (ctx.blueprintDepth == 0 && !ctx.preview) {
             for (Mutation m : def.mutations()) {
                 if (m.when() == ctx.phase && m.condition().test(ctx)) {
                     m.apply(ctx);
