@@ -104,6 +104,11 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), "j_hanging_chad");
 
+        // 14. Seeing Double: a scoring Club + another suit -> x2 (ScoringContainsSuit)
+        scenario("seeing-double", play(c(Rank.NINE, Suit.CLUBS), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.SPADES), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), "j_seeing_double");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }

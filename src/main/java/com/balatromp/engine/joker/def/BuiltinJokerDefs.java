@@ -323,6 +323,27 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_hanging_chad", "Hanging Chad", "Retrigger the first played card 2 additional times",
                         "Common", 4, 1, 5, null, null, true, List.of(),
                         List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredFirst(),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(2))))));
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(2))))),
+
+                // --- ScoringContainsSuit: suit-coverage xMult jokers ---
+                new JokerDef("j_flower_pot", "Flower Pot",
+                        "x3 Mult if the scoring hand contains a Diamond, Club, Heart and Spade",
+                        "Uncommon", 6, 8, 4, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.And(List.of(
+                                new Condition.ScoringContainsSuit(Suit.DIAMONDS),
+                                new Condition.ScoringContainsSuit(Suit.CLUBS),
+                                new Condition.ScoringContainsSuit(Suit.HEARTS),
+                                new Condition.ScoringContainsSuit(Suit.SPADES))),
+                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
+                new JokerDef("j_seeing_double", "Seeing Double",
+                        "x2 Mult if the scoring hand has a Club and a card of any other suit",
+                        "Uncommon", 6, 9, 4, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.And(List.of(
+                                new Condition.ScoringContainsSuit(Suit.CLUBS),
+                                new Condition.Or(List.of(
+                                        new Condition.ScoringContainsSuit(Suit.DIAMONDS),
+                                        new Condition.ScoringContainsSuit(Suit.HEARTS),
+                                        new Condition.ScoringContainsSuit(Suit.SPADES))))),
+                                new EffectTemplate(Op.XMULT, new Value.Const(2))))));
     }
 }

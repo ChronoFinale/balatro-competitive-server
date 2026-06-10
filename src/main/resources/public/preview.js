@@ -112,6 +112,7 @@
       case 'handIs': return ctx.handType === cond.hand;
       case 'playedCount': return cmp(cond.cmp, ctx.played.length, cond.n);
       case 'scoringAnyFace': return ctx.scoring.some((x) => isFace(x));
+      case 'scoringContainsSuit': return ctx.scoring.some((x) => isSuit(x, cond.suit));
       case 'moneyAtLeast': return ctx.run.money >= cond.min;
       case 'handsLeft': return cmp(cond.cmp, ctx.run.handsLeft, cond.n);
       case 'discardsLeft': return cmp(cond.cmp, ctx.run.discardsLeft, cond.n);

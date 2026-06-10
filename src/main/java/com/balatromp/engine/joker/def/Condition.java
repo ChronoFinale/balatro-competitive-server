@@ -37,6 +37,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.PlayedCount.class, name = "playedCount"),
     @JsonSubTypes.Type(value = Condition.DiscardedFaceCount.class, name = "discardedFaceCount"),
     @JsonSubTypes.Type(value = Condition.ScoringAnyFace.class, name = "scoringAnyFace"),
+    @JsonSubTypes.Type(value = Condition.ScoringContainsSuit.class, name = "scoringContainsSuit"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -195,6 +196,17 @@ public sealed interface Condition {
             if (ctx.scoringCards == null) return false;
             for (Card c : ctx.scoringCards) {
                 if (c.isFace()) return true;
+            }
+            return false;
+        }
+    }
+
+    /** At least one scoring card is of the given suit (Flower Pot, Seeing Double). */
+    record ScoringContainsSuit(Suit suit) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            if (ctx.scoringCards == null) return false;
+            for (Card c : ctx.scoringCards) {
+                if (c.isSuit(suit)) return true;
             }
             return false;
         }
