@@ -1,5 +1,10 @@
 package com.balatromp.engine.net;
 
+import com.balatromp.engine.auth.Account;
+import com.balatromp.engine.auth.AccountStore;
+import com.balatromp.engine.auth.Identity;
+import com.balatromp.engine.auth.OAuthProvider;
+import com.balatromp.engine.auth.ProviderRegistry;
 import com.balatromp.engine.game.Match;
 import com.balatromp.engine.game.Run;
 import com.balatromp.engine.intent.Intent;
@@ -39,6 +44,9 @@ public final class GameServer implements AutoCloseable {
     private final CustomJokerStore jokerStore;
     private final RulesetStore rulesetStore;
     private final AuthService auth = new AuthService();
+    private final AccountStore accounts = new AccountStore(
+            new java.io.File("web-assets/accounts").getAbsoluteFile().toPath());
+    private final ProviderRegistry providers = new ProviderRegistry();
     private final ObjectMapper json = new ObjectMapper();
 
     private final Map<String, String> players = new ConcurrentHashMap<>();   // sessionId -> playerId
@@ -65,6 +73,7 @@ public final class GameServer implements AutoCloseable {
         this.rulesetStore = rulesetStore;
         jokerStore.loadAll();   // register custom jokers first...
         rulesetStore.loadAll(); // ...so custom rulesets can reference them
+        accounts.loadAll();     // persisted player accounts
         // Javalin 7: routes/ws/static are configured upfront in the create() block.
         java.io.File assetsDir = new java.io.File("web-assets").getAbsoluteFile();
         this.app = Javalin.create(cfg -> {
@@ -143,6 +152,57 @@ public final class GameServer implements AutoCloseable {
                 } else {
                     ctx.status(404);
                 }
+            });
+
+            // ---- OAuth account linkage: sign in with any configured provider ----
+
+            // Which providers are available (mock always; Google/Discord when configured).
+            cfg.routes.get("/auth/providers", ctx -> ctx.json(providers.names()));
+
+            // Begin login: returns the provider authorize URL (+ state) to send the user to.
+            cfg.routes.get("/auth/{provider}/start", ctx -> {
+                OAuthProvider p = providers.get(ctx.pathParam("provider")).orElse(null);
+                if (p == null) {
+                    ctx.status(404).json(Map.of("error", "unknown provider"));
+                    return;
+                }
+                String redirect = ctx.queryParam("redirect");
+                if (redirect == null) redirect = "/auth/" + p.name() + "/callback";
+                String state = java.util.UUID.randomUUID().toString();
+                ctx.json(Map.of("authorizeUrl", p.authorizeUrl(state, redirect), "state", state));
+            });
+
+            // Finish login: exchange the code -> identity -> account -> reusable session token.
+            cfg.routes.get("/auth/{provider}/callback", ctx -> {
+                OAuthProvider p = providers.get(ctx.pathParam("provider")).orElse(null);
+                if (p == null) {
+                    ctx.status(404).json(Map.of("error", "unknown provider"));
+                    return;
+                }
+                String redirect = ctx.queryParam("redirect");
+                if (redirect == null) redirect = "/auth/" + p.name() + "/callback";
+                try {
+                    Identity id = p.exchange(ctx.queryParam("code"), redirect);
+                    Account acc = accounts.upsert(p.name(), id);
+                    String token = auth.issueForAccount(acc.id(), acc.displayName());
+                    ctx.json(Map.of("token", token, "playerId", acc.id(),
+                            "accountId", acc.id(), "name", acc.displayName()));
+                } catch (Exception e) {
+                    ctx.status(400).json(Map.of("error", "login failed: " + e.getMessage()));
+                }
+            });
+
+            // Validate a stored token and return the account (token reuse on app load).
+            cfg.routes.get("/auth/me", ctx -> {
+                String token = ctx.queryParam("token");
+                String id = token != null ? auth.verify(token) : null;
+                if (id == null) {
+                    ctx.status(401).json(Map.of("error", "invalid or expired token"));
+                    return;
+                }
+                Account acc = accounts.get(id);
+                ctx.json(Map.of("accountId", id, "playerId", id,
+                        "name", acc != null ? acc.displayName() : auth.displayName(token)));
             });
 
             // Auth: issue a session token (dev: any username; later: Steam ticket).

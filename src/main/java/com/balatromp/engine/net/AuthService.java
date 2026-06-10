@@ -42,10 +42,37 @@ public final class AuthService {
                 .sign(algorithm);
     }
 
-    /** Returns the player id if the token is valid, else null. */
+    /**
+     * Issue a long-lived (30-day) session token for an account, carrying the
+     * display name. The client stores this and reuses it on every reconnect —
+     * the "store the token so it can be reused" path — instead of re-logging-in.
+     */
+    public String issueForAccount(String accountId, String displayName) {
+        Instant now = Instant.now();
+        return JWT.create()
+                .withIssuer(ISSUER)
+                .withSubject(accountId)
+                .withClaim("name", displayName)
+                .withIssuedAt(now)
+                .withExpiresAt(now.plus(30, ChronoUnit.DAYS))
+                .sign(algorithm);
+    }
+
+    /** Returns the player id / account id if the token is valid, else null. */
     public String verify(String token) {
         try {
             return JWT.require(algorithm).withIssuer(ISSUER).build().verify(token).getSubject();
+        } catch (JWTVerificationException e) {
+            return null;
+        }
+    }
+
+    /** The display name claim on a valid token (falls back to the subject), else null. */
+    public String displayName(String token) {
+        try {
+            var decoded = JWT.require(algorithm).withIssuer(ISSUER).build().verify(token);
+            String name = decoded.getClaim("name").asString();
+            return name != null ? name : decoded.getSubject();
         } catch (JWTVerificationException e) {
             return null;
         }
