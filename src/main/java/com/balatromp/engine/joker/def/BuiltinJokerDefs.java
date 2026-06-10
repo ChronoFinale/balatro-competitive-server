@@ -624,6 +624,19 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 40: booster packs (Hallucination, Red Card) ---
+                new JokerDef("j_hallucination", "Hallucination",
+                        "1 in 2 chance to create a Tarot card when a booster pack is opened",
+                        "Common", 4, 1, 17, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.OPEN_BOOSTER, new Condition.Chance(1, 2, "hallucination"),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
+                new JokerDef("j_red_card", "Red Card", "Gains +3 Mult when a booster pack is skipped",
+                        "Common", 5, 2, 17, null, null, true,
+                        List.of(new Mutation(Trigger.SKIP_BOOSTER, new Condition.Always(),
+                                "mult", Mutation.Op.ADD, 3)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
+                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
+
                 // --- batch 39: Showman (allow duplicate shop offerings; disables the skip-if-owned rule) ---
                 new JokerDef("j_showman", "Showman",
                         "Joker and Consumable cards may appear multiple times in the shop",

@@ -74,6 +74,25 @@ class ShopHooksTest {
     }
 
     @Test
+    void redCardGainsMultWhenABoosterIsSkipped() {
+        Run run = wonRun("j_red_card");
+        var red = run.state.jokers().stream().filter(j -> j.key().equals("j_red_card")).findFirst().get();
+        assertThat(run.skipBooster()).isNull();
+        assertThat(((Number) run.state.jokerState(red).getOrDefault("mult", 0)).intValue()).isEqualTo(3);
+    }
+
+    @Test
+    void openingABoosterCostsAndYieldsAConsumable() {
+        Run run = wonRun();
+        run.state.money = 10;
+        int before = run.state.consumables.size();
+        assertThat(run.openBooster()).isNull();
+        assertThat(run.state.money).isEqualTo(6); // $10 - $4
+        assertThat(run.state.consumables.size()).isGreaterThanOrEqualTo(before + 1);
+        assertThat(run.openBooster()).isEqualTo("no booster available"); // one per shop
+    }
+
+    @Test
     void perkeoDuplicatesAConsumableOnShopExit() {
         Run run = wonRun("j_perkeo");
         run.state.consumables.add("c_pluto");

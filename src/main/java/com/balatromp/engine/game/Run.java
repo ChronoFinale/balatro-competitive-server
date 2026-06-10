@@ -69,6 +69,7 @@ public final class Run {
     public int pvpFromAnte = 0;  // Attrition: boss blinds at/after this ante are PvP (0 = never)
     private boolean pvpActive = false;
     private boolean freeRerollUsed = false; // Chaos the Clown: one free reroll per shop visit
+    private boolean boosterAvailable = false; // one booster pack offered per shop visit
     private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
     private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
@@ -339,6 +340,7 @@ public final class Run {
         applyGiftCard();
         shop = generateShop();
         freeRerollUsed = false;
+        boosterAvailable = true;
         phase = Phase.SHOP;
     }
 
@@ -353,6 +355,7 @@ public final class Run {
         phase = Phase.SHOP;
         shop = generateShop();
         freeRerollUsed = false;
+        boosterAvailable = true;
     }
 
     /** Buy the joker at the given shop slot. Returns null on success, else a reason. */
@@ -642,6 +645,28 @@ public final class Run {
         if (!hasJoker("j_perkeo") || state.consumables.isEmpty()) return;
         int idx = (int) (roll("perkeo:dup") * state.consumables.size()) % state.consumables.size();
         state.consumables.add(state.consumables.get(idx)); // Negative copy ignores the slot cap
+    }
+
+    /** Open the shop's booster pack: pay, reveal a Tarot, raise OPEN_BOOSTER (Hallucination). */
+    public String openBooster() {
+        if (phase != Phase.SHOP || !boosterAvailable) return "no booster available";
+        if (!canAfford(4)) return "not enough money";
+        state.money -= 4;
+        boosterAvailable = false;
+        GameEvents.raise(Trigger.OPEN_BOOSTER, state, rng, null); // Hallucination may add a Tarot
+        // The pack's pick (simplified to one Tarot, if there's a consumable slot).
+        com.balatromp.engine.consumable.Creation.apply(state,
+                new com.balatromp.engine.joker.def.CreateSpec(
+                        com.balatromp.engine.joker.def.CreateSpec.Kind.TAROT), state.queues);
+        return null;
+    }
+
+    /** Skip the shop's booster pack (no cost), raising SKIP_BOOSTER (Red Card). */
+    public String skipBooster() {
+        if (phase != Phase.SHOP || !boosterAvailable) return "no booster available";
+        boosterAvailable = false;
+        GameEvents.raise(Trigger.SKIP_BOOSTER, state, rng, null); // Red Card gains +3 Mult
+        return null;
     }
 
     /** Skip the current Small/Big blind (forfeit its reward, bypass the shop). Returns null on success. */

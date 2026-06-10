@@ -43,6 +43,7 @@ public enum Trigger {
     SHOP_EXIT,          // leaving the shop
     SKIP_BLIND,         // a blind skipped (tag taken)
     OPEN_BOOSTER,       // a booster pack opened
+    SKIP_BOOSTER,       // a booster pack skipped (Red Card)
     CARD_ADDED,         // a playing card added to the deck
     CARD_DESTROYED      // a card destroyed
 }
