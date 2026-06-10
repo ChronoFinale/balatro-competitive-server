@@ -71,6 +71,18 @@ class EconomyJokerTest {
     }
 
     @Test
+    void satellitePaysPerUniquePlanetUsed() {
+        RunState run = new RunState();
+        run.money = 0;
+        run.planetsUsedThisRun.add("c_pluto");
+        run.planetsUsedThisRun.add("c_mercury");
+        run.planetsUsedThisRun.add("c_pluto"); // duplicate -> still 2 unique
+        run.addJoker(JokerLibrary.create("j_satellite"));
+        GameEvents.endOfRound(run, rng, false);
+        assertThat(run.money).isEqualTo(2);
+    }
+
+    @Test
     void delayedGratificationPaysOnlyIfNoDiscardsUsed() {
         RunState run = new RunState();
         run.money = 0;

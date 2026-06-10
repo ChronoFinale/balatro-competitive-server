@@ -609,6 +609,13 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 31: Satellite (unique-planet economy) ---
+                new JokerDef("j_satellite", "Satellite",
+                        "Earn $1 at end of round per unique Planet card used this run",
+                        "Uncommon", 6, 8, 15, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.END_OF_ROUND, new Condition.Always(),
+                                new EffectTemplate(Op.DOLLARS, new Value.RunVar(Value.Var.UNIQUE_PLANETS, 0, 1))))),
+
                 // --- batch 30: Oops! All 6s (probability doubler) + Reserved Parking ---
                 new JokerDef("j_oops", "Oops! All 6s", "Doubles all listed probabilities",
                         "Uncommon", 4, 6, 15, null, null, true, List.of(), List.of()),

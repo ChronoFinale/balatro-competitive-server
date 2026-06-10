@@ -395,6 +395,7 @@ public final class Run {
         PlanetCatalog.Planet p = PlanetCatalog.get(key);
         if (p != null) {
             state.levelUpHand(p.hand());
+            state.planetsUsedThisRun.add(key); // Satellite counts unique planets used
             GameEvents.useConsumable(state, rng, "Planet");
             state.consumables.remove(index);
             return null;
