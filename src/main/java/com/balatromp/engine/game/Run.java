@@ -72,11 +72,15 @@ public final class Run {
         startBlind();
     }
 
-    /** Reconstitute the full deck and shuffle it fresh for this blind (deterministic per blind). */
+    /**
+     * Reconstitute the full deck and shuffle it fresh for this blind. Uses the SAME
+     * card objects as {@code composition} (not copies), so permanent per-card
+     * mutations (Hiker chips, Midas Gold, Vampire strips) persist across blinds —
+     * the deck has stable card identity, like the real game. Transient flags
+     * (debuffed) are recomputed each deal; destroyed cards are already gone.
+     */
     private void dealNewDeck() {
-        List<Card> fresh = new ArrayList<>();
-        for (Card c : composition) fresh.add(c.copy());
-        state.deck = Deck.of(fresh);
+        state.deck = Deck.of(new ArrayList<>(composition));
         state.deck.shuffle(rng, "deal:" + ante + ":" + blind);
     }
 
@@ -128,6 +132,10 @@ public final class Run {
         }
         IntentResult result = intents.handle(state, rng, intent);
         if (!result.ok()) return result;
+        // Destroyed cards (Glass break, etc.) leave the deck permanently — purge from
+        // the persistent composition + hand so they don't return next blind.
+        composition.removeIf(c -> c.destroyed);
+        state.hand.removeIf(c -> c.destroyed);
         refreshDebuffs(); // re-mark the freshly drawn hand
 
         if (intent instanceof Intent.PlayHand) {
