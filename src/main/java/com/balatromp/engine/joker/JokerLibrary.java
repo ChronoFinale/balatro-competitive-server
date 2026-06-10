@@ -33,6 +33,14 @@ public final class JokerLibrary {
         register(GoldenJoker::new);
         register(FacelessJoker::new);
         register(Constellation::new);
+
+        // Data-driven built-ins (real Balatro jokers as pure JokerDef data). Registered
+        // here, BEFORE the BUILTIN_KEYS snapshot, so they join the curated shop pool and
+        // score through the same authoritative path as the hand-coded set above.
+        for (com.balatromp.engine.joker.def.JokerDef def
+                : com.balatromp.engine.joker.def.BuiltinJokerDefs.all()) {
+            REGISTRY.put(def.key(), () -> new com.balatromp.engine.joker.def.DataJoker(def));
+        }
     }
 
     /**
@@ -132,9 +140,11 @@ public final class JokerLibrary {
                     "Each played even-rank card gives +4 Mult", "Common", 4, 8, 3);
         }
         public JokerEffect calculate(EvaluationContext ctx) {
-            if (ctx.phase == Trigger.ON_SCORED && !ctx.scoredCard.isStone()
-                    && ctx.scoredCard.rank.isEven()) {
-                return JokerEffect.mult(4).msg("+4 Mult");
+            if (ctx.phase == Trigger.ON_SCORED && !ctx.scoredCard.isStone()) {
+                int id = ctx.scoredCard.id(); // even ranks per Balatro: 10/8/6/4/2 (Ace is odd)
+                if (id == 2 || id == 4 || id == 6 || id == 8 || id == 10) {
+                    return JokerEffect.mult(4).msg("+4 Mult");
+                }
             }
             return null;
         }

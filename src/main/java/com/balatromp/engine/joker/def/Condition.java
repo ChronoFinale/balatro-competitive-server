@@ -80,11 +80,19 @@ public sealed interface Condition {
         }
     }
 
-    /** The scoring card's rank is even ({@code even=true}) or odd. */
+    /**
+     * The scoring card has an even ({@code even=true}: 10/8/6/4/2) or odd
+     * ({@code even=false}: A/9/7/5/3) rank, per Balatro's Even Steven / Odd Todd —
+     * Ace counts as <b>odd</b>, and face cards count as neither (Stone never matches).
+     */
     record ScoredParity(boolean even) implements Condition {
         public boolean test(EvaluationContext ctx) {
             Card c = ctx.scoredCard;
-            return c != null && !c.isStone() && even == c.rank.isEven();
+            if (c == null || c.isStone()) return false;
+            int id = c.id();
+            boolean isEven = id == 2 || id == 4 || id == 6 || id == 8 || id == 10;
+            boolean isOdd = id == 3 || id == 5 || id == 7 || id == 9 || id == 14; // Ace = odd
+            return even ? isEven : isOdd;
         }
     }
 
