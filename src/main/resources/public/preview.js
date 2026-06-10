@@ -209,13 +209,14 @@
       case 'const': return v.amount;
       case 'state': return v.base + v.scale * (ctx.state[v.var] || 0);
       case 'stateStep': return v.per === 0 ? v.base : v.base + v.scale * Math.floor((ctx.state[v.var] || 0) / v.per);
-      case 'runVar': {
-        const r = ctx.run, map = { MONEY: r.money, HANDS_LEFT: r.handsLeft, DISCARDS_LEFT: r.discardsLeft, HAND_SIZE: r.handSize, ANTE: r.ante };
-        return v.base + v.scale * (map[v.which] || 0);
-      }
+      case 'runVar': return v.base + v.scale * runVarValue(v.which, ctx.run);
       case 'runVarStep': {
-        const r = ctx.run, map = { MONEY: r.money, HANDS_LEFT: r.handsLeft, DISCARDS_LEFT: r.discardsLeft, HAND_SIZE: r.handSize, ANTE: r.ante };
-        return v.per === 0 ? v.base : v.base + v.scale * Math.floor((map[v.which] || 0) / v.per);
+        const n = runVarValue(v.which, ctx.run);
+        return v.per === 0 ? v.base : v.base + v.scale * Math.floor(n / v.per);
+      }
+      case 'clamp': {
+        const x = valResolve(v.inner, ctx);
+        return x === null ? null : Math.max(v.min, Math.min(v.max, x));
       }
       case 'count': {
         const src = v.source === 'PLAYED' ? ctx.played : v.source === 'HELD' ? ctx.held : ctx.scoring;
@@ -234,6 +235,13 @@
       case 'random': return null; // probabilistic -> fall back
       default: return null;
     }
+  }
+  // Live run quantities, including the shipped run-long counters (decay jokers).
+  function runVarValue(which, r) {
+    const map = { MONEY: r.money, HANDS_LEFT: r.handsLeft, DISCARDS_LEFT: r.discardsLeft,
+      HAND_SIZE: r.handSize, ANTE: r.ante };
+    if (which in map) return map[which] || 0;
+    return (r.counters && r.counters[which]) || 0;
   }
   function statCount(v, ctx) {
     const d = ctx.run.deck || {};

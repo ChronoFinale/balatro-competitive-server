@@ -27,6 +27,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.Stat.class, name = "stat"),
     @JsonSubTypes.Type(value = Value.HeldExtreme.class, name = "heldExtreme"),
     @JsonSubTypes.Type(value = Value.DeckRankCount.class, name = "deckRankCount"),
+    @JsonSubTypes.Type(value = Value.Clamp.class, name = "clamp"),
     @JsonSubTypes.Type(value = Value.Random.class, name = "random"),
 })
 public sealed interface Value {
@@ -46,6 +47,13 @@ public sealed interface Value {
             Object v = ctx.selfState().getOrDefault(var, 0);
             double n = (v instanceof Number num) ? num.doubleValue() : 0;
             return base + scale * n;
+        }
+    }
+
+    /** Clamps an inner value to {@code [min, max]} — decay jokers floor at 0/1 (Ice Cream, Ramen). */
+    record Clamp(Value inner, double min, double max) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            return Math.max(min, Math.min(max, inner.resolve(ctx)));
         }
     }
 
@@ -88,7 +96,8 @@ public sealed interface Value {
     }
 
     /** Which live run-state quantity a {@link RunVar} reads. */
-    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, ANTE, DISCARDS_USED, HANDS_PLAYED }
+    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, ANTE, DISCARDS_USED, HANDS_PLAYED,
+        HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL }
 
     /** {@code base + scale * (live run-state quantity)} (per dollar, per remaining hand, ...). */
     record RunVar(Var which, double base, double scale) implements Value {
@@ -102,6 +111,9 @@ public sealed interface Value {
                 case ANTE -> ctx.run.ante;
                 case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
                 case HANDS_PLAYED -> ctx.run.handsPlayedThisRound;
+                case HANDS_PLAYED_TOTAL -> ctx.run.handsPlayedTotal;
+                case ROUNDS_PLAYED -> ctx.run.roundsPlayedTotal;
+                case CARDS_DISCARDED_TOTAL -> ctx.run.cardsDiscardedTotal;
             };
             return base + scale * v;
         }
@@ -122,6 +134,9 @@ public sealed interface Value {
                 case ANTE -> ctx.run.ante;
                 case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
                 case HANDS_PLAYED -> ctx.run.handsPlayedThisRound;
+                case HANDS_PLAYED_TOTAL -> ctx.run.handsPlayedTotal;
+                case ROUNDS_PLAYED -> ctx.run.roundsPlayedTotal;
+                case CARDS_DISCARDED_TOTAL -> ctx.run.cardsDiscardedTotal;
             };
             return base + scale * Math.floor(v / per);
         }

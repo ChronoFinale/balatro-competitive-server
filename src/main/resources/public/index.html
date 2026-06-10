@@ -151,7 +151,7 @@ let pendingPreviewName = ''; // hand label awaiting a server /preview fallback s
 function buildRun(v) {
   return { money: v.money, handsLeft: v.handsLeft, discardsLeft: v.discardsLeft,
     ante: v.ante, handSize: v.handSize, jokerCount: (v.jokers || []).length,
-    deck: v.deckStats || {}, handLevels: v.handLevels || {} };
+    deck: v.deckStats || {}, handLevels: v.handLevels || {}, counters: v.counters || {} };
 }
 const fmt = n => (n == null) ? '?' : (Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100));
 function renderLives() {

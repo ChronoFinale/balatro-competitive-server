@@ -596,7 +596,24 @@ public final class BuiltinJokerDefs {
                         "Uncommon", 6, 0, 13, null, null, true, List.of(),
                         List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
                                 EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1,
-                                        null, null, null, true))))));
+                                        null, null, null, true))))),
+
+                // --- batch 18: decay jokers (run-long counters + clamped values) ---
+                new JokerDef("j_ice_cream", "Ice Cream", "+100 Chips, -5 Chips per hand played",
+                        "Common", 5, 2, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.CHIPS, new Value.Clamp(
+                                        new Value.RunVar(Value.Var.HANDS_PLAYED_TOTAL, 100, -5), 0, 1e9))))),
+                new JokerDef("j_popcorn", "Popcorn", "+20 Mult, -4 Mult per round played",
+                        "Common", 5, 3, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.Clamp(
+                                        new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                new JokerDef("j_ramen", "Ramen", "x2 Mult, loses x0.01 per card discarded",
+                        "Uncommon", 6, 4, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT, new Value.Clamp(
+                                        new Value.RunVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01), 1, 1e9))))));
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */

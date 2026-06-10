@@ -77,6 +77,7 @@ public final class IntentHandler {
 
         run.discardsLeft--;
         run.discardsUsedThisRound++;
+        run.cardsDiscardedTotal += toDiscard.size();
         run.hand.removeAll(toDiscard);
         if (run.deck != null) {
             run.deck.drawTo(run.hand, run.handSize);

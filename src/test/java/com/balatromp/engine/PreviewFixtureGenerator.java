@@ -192,6 +192,14 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), run -> run.jokerState(run.jokers().get(0)).put("d", 46), "j_yorick");
 
+        // 30. Ice Cream after 6 hands: 100 - 5*6 = +70 Chips (validates shipped counter + clamp)
+        scenario("ice-cream", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.handsPlayedTotal = 6, "j_ice_cream");
+
+        // 31. Ramen after 50 discards: x(2 - 0.5) = x1.5
+        scenario("ramen", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.cardsDiscardedTotal = 50, "j_ramen");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
@@ -278,6 +286,14 @@ class PreviewFixtureGenerator {
         Map<String, Object> levels = new LinkedHashMap<>();
         for (HandType t : HandType.values()) levels.put(t.display, run.handLevel(t));
         m.put("handLevels", levels);
+        // Run-long counters (decay jokers) — mirror Run.view().
+        Map<String, Object> counters = new LinkedHashMap<>();
+        counters.put("HANDS_PLAYED_TOTAL", run.handsPlayedTotal);
+        counters.put("ROUNDS_PLAYED", run.roundsPlayedTotal);
+        counters.put("CARDS_DISCARDED_TOTAL", run.cardsDiscardedTotal);
+        counters.put("DISCARDS_USED", run.discardsUsedThisRound);
+        counters.put("HANDS_PLAYED", run.handsPlayedThisRound);
+        m.put("counters", counters);
         return m;
     }
 }

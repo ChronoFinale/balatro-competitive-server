@@ -27,6 +27,10 @@ public final class RunState {
     public long roundScore = 0;
     public int discardsUsedThisRound = 0; // reset at blind start (Delayed Gratification)
     public int handsPlayedThisRound = 0;  // reset at blind start (DNA's "first hand")
+    // Run-long counters (decay jokers); shipped to the client so they preview exactly.
+    public int handsPlayedTotal = 0;      // Ice Cream
+    public int roundsPlayedTotal = 0;     // Popcorn
+    public int cardsDiscardedTotal = 0;   // Ramen / Yorick
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;

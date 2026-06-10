@@ -186,6 +186,7 @@ public final class Run {
 
         if (intent instanceof Intent.PlayHand) {
             state.handsPlayedThisRound++; // after scoring, so DNA's "first hand" check saw 0
+            state.handsPlayedTotal++;
             if (pvpActive) {
                 // PvP blind: play all hands, then await the head-to-head comparison.
                 if (state.handsLeft <= 0) phase = Phase.PVP_PENDING;
@@ -229,6 +230,7 @@ public final class Run {
         int interest = Math.min(5, state.money / 5);
         int reward = (boss != null) ? boss.reward() : blind.reward;
         state.money += reward + interest;
+        state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
         phase = Phase.SHOP;
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
@@ -458,11 +460,18 @@ public final class Run {
         }
         deckStats.put("enhancements", enh);
 
+        Map<String, Object> counters = new LinkedHashMap<>();
+        counters.put("HANDS_PLAYED_TOTAL", state.handsPlayedTotal);
+        counters.put("ROUNDS_PLAYED", state.roundsPlayedTotal);
+        counters.put("CARDS_DISCARDED_TOTAL", state.cardsDiscardedTotal);
+        counters.put("DISCARDS_USED", state.discardsUsedThisRound);
+        counters.put("HANDS_PLAYED", state.handsPlayedThisRound);
+
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
                 boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
-                shopPlanets, shopConsumables, consumables, handLevels, deckStats);
+                shopPlanets, shopConsumables, consumables, handLevels, deckStats, counters);
     }
 
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */
