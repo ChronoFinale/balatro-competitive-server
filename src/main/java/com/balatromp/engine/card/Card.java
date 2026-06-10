@@ -7,6 +7,14 @@ package com.balatromp.engine.card;
  */
 public final class Card {
 
+    /**
+     * Unique per-card id (Balatro's {@code sort_id}). Stable for the card's
+     * lifetime and surfaced to the client so effects can target this exact card
+     * (a Tarot's selected cards, a destroyed card) without positional indices. A
+     * {@link #copy()} is a distinct card and gets a fresh id.
+     */
+    public final long uid = com.balatromp.engine.Ids.next();
+
     public final Rank rank;
     public final Suit suit;
     public Enhancement enhancement;
