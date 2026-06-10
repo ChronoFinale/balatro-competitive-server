@@ -165,8 +165,13 @@ public final class ScoringEngine {
             ctx.blueprintDepth = 0;
             ctx.scoredCard = null;
             ctx.otherJoker = null;
+            // Joker editions (Foil/Holo add before the joker scores; Poly multiplies after).
+            Edition ed = run.jokerEdition(current);
+            if (ed == Edition.FOIL) { acc.chips = acc.chips.add(BigNum.of(50)); log(acc, current.name(), "edition", "foil +50 chips"); }
+            else if (ed == Edition.HOLOGRAPHIC) { acc.mult = acc.mult.add(BigNum.of(10)); log(acc, current.name(), "edition", "holo +10 mult"); }
             JokerEffect me = current.calculate(ctx);
             apply(acc, me, current.name());
+            if (ed == Edition.POLYCHROME) { acc.mult = acc.mult.multiply(1.5); log(acc, current.name(), "edition", "poly x1.5 mult"); }
             if (!preview) {
                 applyCreate(me, run, queues);
                 applyLevelUp(me, run);

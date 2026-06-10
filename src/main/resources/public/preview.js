@@ -363,14 +363,19 @@
       jokers, selfIndex: 0, otherJoker: null,
       state: {}, // set per joker
     });
-    const runJokerPass = (phase, scoredCard) => {
+    const runJokerPass = (phase, scoredCard, editions) => {
       jokers.forEach((j, i) => {
         const ctx = baseCtx(phase, scoredCard);
         ctx.state = j.state || {};
         ctx.selfIndex = i;
+        // Joker editions (main pass only): Foil/Holo add before the joker scores, Poly x1.5 after.
+        const ed = editions ? (ctx.state.edition || 'NONE') : 'NONE';
+        if (ed === 'FOIL') acc.chips += 50;
+        else if (ed === 'HOLOGRAPHIC') acc.mult += 10;
         const e = jokerEffect(j, ctx);
         if (!e.ok) { unsupported = true; return; }
         if (e.effect && !effApply(acc, e.effect, ctx)) unsupported = true;
+        if (ed === 'POLYCHROME') acc.mult *= 1.5;
       });
     };
 
@@ -408,7 +413,7 @@
       }
     }
 
-    runJokerPass('JOKER_MAIN', null);
+    runJokerPass('JOKER_MAIN', null, true);
     // Joker-on-joker: each reactor k reacts to each current joker i (mirrors the server's
     // nested pass). Baseball Card reacts to Uncommon neighbours, etc.
     for (let i = 0; i < jokers.length; i++) {

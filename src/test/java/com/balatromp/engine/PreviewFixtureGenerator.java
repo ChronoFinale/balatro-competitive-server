@@ -99,6 +99,18 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), "j_joker_stencil");
 
+        // 12b. Joker editions: Foil (+50 chips) / Holo (+10 mult) before the joker scores,
+        // Polychrome (x1.5 mult) after. Edition lives in the joker's shipped state bag.
+        scenario("joker-foil", play(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), r -> r.setJokerEdition(r.jokers().get(0), Edition.FOIL), "j_joker");
+        scenario("joker-holo", play(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), r -> r.setJokerEdition(r.jokers().get(0), Edition.HOLOGRAPHIC), "j_joker");
+        scenario("joker-poly", play(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), r -> r.setJokerEdition(r.jokers().get(0), Edition.POLYCHROME), "j_joker");
+
         // 13. Hanging Chad: the first scored card triggers 3x (ScoredFirst + REPETITIONS 2)
         scenario("hanging-chad", play(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),

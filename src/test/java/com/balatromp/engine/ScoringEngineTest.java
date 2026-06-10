@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatromp.engine.card.Card;
 import com.balatromp.engine.rng.RandomStreams;
+import com.balatromp.engine.scoring.ScoreResult;
 import com.balatromp.engine.scoring.ScoringEngine;
 import com.balatromp.engine.state.RunState;
 import java.util.List;
@@ -34,6 +35,22 @@ class ScoringEngineTest {
     void pairOfKingsPlusJoker() { // 30 chips x (2+4) = 180
         assertThat(score(jokers("j_joker"), List.of(c(KING, HEARTS), c(KING, SPADES))).score())
                 .isEqualTo(180.0);
+    }
+
+    @Test
+    void jokerEditions() { // Foil +50 chips, Holo +10 mult (both before the joker scores), Poly x1.5 after
+        var played = List.of(c(KING, HEARTS), c(KING, SPADES)); // pair + j_joker baseline: 30 x 6 = 180
+        assertThat(editionScore(com.balatromp.engine.card.Edition.FOIL, played).score()).isEqualTo(80.0 * 6); // (30+50) x 6
+        assertThat(editionScore(com.balatromp.engine.card.Edition.HOLOGRAPHIC, played).score()).isEqualTo(30.0 * 16); // 30 x (6+10)
+        assertThat(editionScore(com.balatromp.engine.card.Edition.POLYCHROME, played).score()).isEqualTo(180.0 * 1.5); // 30 x 6 x1.5
+    }
+
+    private static ScoreResult editionScore(com.balatromp.engine.card.Edition ed, List<Card> played) {
+        RunState run = new RunState();
+        var j = com.balatromp.engine.joker.JokerLibrary.create("j_joker");
+        run.addJoker(j);
+        run.setJokerEdition(j, ed);
+        return new ScoringEngine().score(played, List.of(), run, new RandomStreams("T"));
     }
 
     @Test

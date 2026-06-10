@@ -1,6 +1,7 @@
 package com.balatromp.engine.state;
 
 import com.balatromp.engine.card.Card;
+import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.Joker;
 import com.balatromp.engine.rng.QueueSet;
@@ -121,5 +122,28 @@ public final class RunState {
     /** Persistent server-only state bag for a specific joker instance. */
     public Map<String, Object> jokerState(Joker j) {
         return jokerStates.computeIfAbsent(j, k -> new HashMap<>());
+    }
+
+    /**
+     * The edition stamped on an owned joker (Foil/Holo/Poly/Negative), stored in
+     * its state bag so it ships to the client and previews exactly. Defaults to NONE.
+     */
+    public Edition jokerEdition(Joker j) {
+        Object e = jokerState(j).get("edition");
+        if (e instanceof Edition ed) return ed;
+        if (e instanceof String s) return Edition.valueOf(s);
+        return Edition.NONE;
+    }
+
+    /**
+     * Stamp an edition onto an owned joker. Negative grants a joker slot (so the
+     * deck can hold one more), exactly once — re-stamping the same edition is a no-op.
+     */
+    public void setJokerEdition(Joker j, Edition edition) {
+        Edition prev = jokerEdition(j);
+        if (prev == edition) return;
+        if (prev == Edition.NEGATIVE) jokerSlots -= 1; // removing a negative reclaims its slot
+        jokerState(j).put("edition", edition);
+        if (edition == Edition.NEGATIVE) jokerSlots += 1;
     }
 }
