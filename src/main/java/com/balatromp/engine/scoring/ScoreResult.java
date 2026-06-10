@@ -18,5 +18,12 @@ public record ScoreResult(
         double mult,
         double score,
         List<ReplayEntry> replayLog,
-        List<Card> destroyed) {
+        List<Card> destroyed,
+        BigNum bigScore) {
+
+    /** Full-precision score (holds Cryptid/high-ante values beyond a double). The
+     *  {@link #score} component is its best-effort double (may be Infinity at extreme scale). */
+    public BigNum bigScore() {
+        return bigScore;
+    }
 }

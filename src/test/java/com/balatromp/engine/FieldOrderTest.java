@@ -67,6 +67,32 @@ class FieldOrderTest {
     }
 
     @Test
+    void exponentialMultScalesBeyondDoubleRange() {
+        // A Cryptid-style ^mult joker: raise the running mult to a big power at the
+        // final step. The score blows past double's ~1.8e308 ceiling but BigNum holds it.
+        Joker cryptid = new Joker() {
+            public JokerInfo info() {
+                return new JokerInfo("j_cryptid_probe", "Cryptid Probe", "test", "Common", 0, 0, 0);
+            }
+            public JokerEffect calculate(EvaluationContext ctx) {
+                if (ctx.phase != Trigger.FINAL_SCORING_STEP) return null;
+                JokerEffect e = new JokerEffect();
+                e.powMult = 400.0; // mult := mult ^ 400
+                return e;
+            }
+        };
+        RunState run = new RunState();
+        run.addJoker(cryptid);
+        // a flush of tens -> chips and a modest mult, then ^400 explodes it
+        List<Card> hand = List.of(c(Rank.TEN, Suit.HEARTS), c(Rank.TEN, Suit.SPADES),
+                c(Rank.TEN, Suit.CLUBS), c(Rank.TEN, Suit.DIAMONDS), c(Rank.TWO, Suit.HEARTS));
+        ScoreResult r = new ScoringEngine().score(hand, List.of(), run, new RandomStreams("X"));
+        // plain double would be Infinity; the big-number score is finite and enormous
+        assertThat(Double.isInfinite(r.score())).isTrue();
+        assertThat(r.bigScore().compareTo(com.balatromp.engine.scoring.BigNum.of(1e308))).isPositive();
+    }
+
+    @Test
     void perCardPermanentBonusIsScored() {
         // A card can carry permanent chip/mult bonuses (Hiker etc.) that the engine scores.
         List<Card> plain = List.of(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),

@@ -14,7 +14,7 @@ import com.balatromp.engine.joker.JokerEffect;
  */
 public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod) {
 
-    public enum Op { CHIPS, MULT, XMULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD }
+    public enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD }
 
     /** Single-op effect (no extra chain). */
     public EffectTemplate(Op op, Value value) {
@@ -60,6 +60,12 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
             case CHIPS -> v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips");
             case MULT -> v == 0 ? null : JokerEffect.mult(v).msg("+" + fmt(v) + " Mult");
             case XMULT -> v == 1.0 ? null : JokerEffect.xMult(v).msg("x" + fmt(v) + " Mult");
+            case POW_MULT -> {
+                if (v == 1.0) yield null;
+                JokerEffect e = new JokerEffect();
+                e.powMult = v;
+                yield e.msg("^" + fmt(v) + " Mult");
+            }
             case DOLLARS -> v == 0 ? null : JokerEffect.dollars(Math.round(v)).msg("+$" + fmt(v));
             case REPETITIONS -> {
                 int r = (int) Math.round(v);

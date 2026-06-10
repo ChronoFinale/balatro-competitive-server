@@ -15,6 +15,8 @@ public final class JokerEffect {
     /** Multiplies current chips (Balatro {@code x_chips}); null = no effect (distinct from x1.0). */
     public Double xChips;
     public Double xMult;
+    /** Raise the running mult to this power (exponential / Cryptid {@code e_mult}-style); null = none. */
+    public Double powMult;
     public long dollars;
     public int repetitions;
     public double hMult;

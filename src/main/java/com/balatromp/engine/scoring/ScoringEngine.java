@@ -35,10 +35,11 @@ import java.util.List;
  */
 public final class ScoringEngine {
 
-    /** Mutable accumulator for one evaluation. */
+    /** Mutable accumulator for one evaluation. Chips/mult are {@link BigNum} so
+     *  scoring scales past double (Cryptid/high-ante) while staying double-exact in range. */
     private static final class Acc {
-        long chips;
-        double mult;
+        BigNum chips = BigNum.ZERO;
+        BigNum mult = BigNum.ZERO;
         final List<ReplayEntry> log = new ArrayList<>();
         final List<Card> destroyed = new ArrayList<>();
     }
@@ -55,9 +56,9 @@ public final class ScoringEngine {
 
         // (2) base chips/mult from the hand's current level.
         Acc acc = new Acc();
-        acc.chips = hr.type().baseChips + run.handLevelChipBonus(hr.type());
-        acc.mult = hr.type().baseMult + run.handLevelMultBonus(hr.type());
-        log(acc, hr.type().display, "info", "Base " + acc.chips + " x " + fmt(acc.mult));
+        acc.chips = BigNum.of(hr.type().baseChips + run.handLevelChipBonus(hr.type()));
+        acc.mult = BigNum.of(hr.type().baseMult + run.handLevelMultBonus(hr.type()));
+        log(acc, hr.type().display, "info", "Base " + acc.chips + " x " + acc.mult);
 
         List<Joker> jokers = run.jokers();
         EvaluationContext ctx = baseContext(hr, played, scoring, held, run, rng, jokers);
@@ -139,9 +140,10 @@ public final class ScoringEngine {
         // (6b) FINAL_SCORING_STEP — effect seam after the main joker pass.
         effectPass(Trigger.FINAL_SCORING_STEP, acc, ctx, jokers);
 
-        // (7) final score.
-        double score = acc.chips * acc.mult;
-        return new ScoreResult(hr.type(), acc.chips, acc.mult, score, acc.log, acc.destroyed);
+        // (7) final score (big-number; chips × mult).
+        BigNum score = acc.chips.multiply(acc.mult);
+        return new ScoreResult(hr.type(), Math.round(acc.chips.doubleValue()), acc.mult.doubleValue(),
+                score.doubleValue(), acc.log, acc.destroyed, score);
     }
 
     /** Apply any card mutations carried by an effect (and its extra-chain) to the scored card. */
@@ -210,15 +212,15 @@ public final class ScoringEngine {
         if (card.enhancement == Enhancement.BONUS) chips += 30;
         chips += card.permaChips; // permanent per-card chip bonus (Hiker etc.)
         if (chips != 0) {
-            acc.chips += chips;
+            acc.chips = acc.chips.add(BigNum.of(chips));
             log(acc, card.toString(), "chips", "+" + chips + " Chips");
         }
         if (card.permaMult != 0) {
-            acc.mult += card.permaMult; // permanent per-card mult bonus
+            acc.mult = acc.mult.add(BigNum.of(card.permaMult)); // permanent per-card mult bonus
             log(acc, card.toString(), "mult", "+" + fmt(card.permaMult) + " Mult");
         }
         if (card.enhancement == Enhancement.MULT) {
-            acc.mult += 4;
+            acc.mult = acc.mult.add(BigNum.of(4));
             log(acc, card.toString(), "mult", "+4 Mult");
         }
         if (card.enhancement == Enhancement.LUCKY) {
@@ -226,7 +228,7 @@ public final class ScoringEngine {
             // 1-in-15 for +$20. Each Lucky trigger pops the next roll; the
             // threshold honors probabilityNumerator (Oops! All 6s).
             if (lucky(queues, "lucky_mult") < run.probabilityNumerator / 5.0) {
-                acc.mult += 20;
+                acc.mult = acc.mult.add(BigNum.of(20));
                 log(acc, card.toString(), "mult", "Lucky! +20 Mult");
             }
             if (lucky(queues, "lucky_money") < run.probabilityNumerator / 15.0) {
@@ -235,7 +237,7 @@ public final class ScoringEngine {
             }
         }
         if (card.enhancement == Enhancement.GLASS) {
-            acc.mult *= 2;
+            acc.mult = acc.mult.multiply(2);
             log(acc, card.toString(), "xmult", "x2 Mult");
             if (lucky(queues, "glass") < 0.25) { // game-long break queue (1-in-4)
                 card.destroyed = true;
@@ -251,9 +253,9 @@ public final class ScoringEngine {
 
     private void applyCardEdition(Acc acc, Card card) {
         switch (card.edition) {
-            case FOIL -> { acc.chips += 50; log(acc, card.toString(), "chips", "+50 Chips (Foil)"); }
-            case HOLOGRAPHIC -> { acc.mult += 10; log(acc, card.toString(), "mult", "+10 Mult (Holo)"); }
-            case POLYCHROME -> { acc.mult *= 1.5; log(acc, card.toString(), "xmult", "x1.5 Mult (Poly)"); }
+            case FOIL -> { acc.chips = acc.chips.add(BigNum.of(50)); log(acc, card.toString(), "chips", "+50 Chips (Foil)"); }
+            case HOLOGRAPHIC -> { acc.mult = acc.mult.add(BigNum.of(10)); log(acc, card.toString(), "mult", "+10 Mult (Holo)"); }
+            case POLYCHROME -> { acc.mult = acc.mult.multiply(1.5); log(acc, card.toString(), "xmult", "x1.5 Mult (Poly)"); }
             default -> { }
         }
     }
@@ -261,7 +263,7 @@ public final class ScoringEngine {
     /** Held-in-hand card effects (Steel x1.5 mult while held). */
     private void applyCardHeld(Acc acc, Card card) {
         if (card.enhancement == Enhancement.STEEL) {
-            acc.mult *= 1.5;
+            acc.mult = acc.mult.multiply(1.5);
             log(acc, card.toString(), "xmult", "x1.5 Mult (Steel)");
         }
     }
@@ -282,29 +284,34 @@ public final class ScoringEngine {
     private void applyEffect(Acc acc, JokerEffect e, String src) {
         if (e == null) return;
         if (e.chips != 0) {
-            acc.chips += e.chips;
+            acc.chips = acc.chips.add(BigNum.of(e.chips));
             log(acc, src, "chips", e.message != null ? e.message : "+" + e.chips + " Chips");
         }
         double addMult = e.mult + e.hMult;
         if (addMult != 0) {
-            acc.mult += addMult;
+            acc.mult = acc.mult.add(BigNum.of(addMult));
             log(acc, src, "mult", e.message != null ? e.message : "+" + fmt(addMult) + " Mult");
         }
         if (e.xChips != null && e.xChips != 1.0) {
-            acc.chips = Math.round(acc.chips * e.xChips);
+            acc.chips = acc.chips.multiply(e.xChips);
             log(acc, src, "xchips", "x" + fmt(e.xChips) + " Chips");
         }
         if (e.xMult != null && e.xMult != 1.0) {
-            acc.mult *= e.xMult;
+            acc.mult = acc.mult.multiply(e.xMult);
             log(acc, src, "xmult", e.message != null ? e.message : "x" + fmt(e.xMult) + " Mult");
+        }
+        if (e.powMult != null && e.powMult != 1.0) {
+            acc.mult = acc.mult.pow(e.powMult); // exponential (Cryptid e_mult-style) — needs BigNum
+            log(acc, src, "powmult", "^" + fmt(e.powMult) + " Mult");
         }
         applyEffect(acc, e.extra, src); // the extra-chain recurses with the same ordering
         if (e.dollars != 0) {
-            acc.log.add(new ReplayEntry(src, "dollars", "+$" + e.dollars, acc.chips, acc.mult));
+            acc.log.add(new ReplayEntry(src, "dollars", "+$" + e.dollars,
+                    Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
         }
         if (e.swap) {
-            long c = acc.chips;
-            acc.chips = Math.round(acc.mult);
+            BigNum c = acc.chips;
+            acc.chips = acc.mult;
             acc.mult = c;
             log(acc, src, "swap", "Swap Chips & Mult");
         }
@@ -323,7 +330,8 @@ public final class ScoringEngine {
     }
 
     private void log(Acc acc, String source, String kind, String text) {
-        acc.log.add(new ReplayEntry(source, kind, text, acc.chips, acc.mult));
+        acc.log.add(new ReplayEntry(source, kind, text,
+                Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
     }
 
     private static String fmt(double d) {
