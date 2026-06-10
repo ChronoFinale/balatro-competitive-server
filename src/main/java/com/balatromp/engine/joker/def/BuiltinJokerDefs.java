@@ -609,6 +609,11 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 34: Trading Card (discard-destroy for money) ---
+                new JokerDef("j_trading", "Trading Card",
+                        "If the first discard of a round is a single card, destroy it and earn $3",
+                        "Uncommon", 6, 4, 16, null, null, true, List.of(), List.of()),
+
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
                 new JokerDef("j_perkeo", "Perkeo",
                         "Creates a copy of a random held consumable when you leave the shop",

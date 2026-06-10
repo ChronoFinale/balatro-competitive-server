@@ -64,6 +64,16 @@ class ShopHooksTest {
     }
 
     @Test
+    void tradingCardDestroysASingleFirstDiscardForMoney() {
+        Run run = new Run(std, "TC", stoneDeck(400), jokers("j_trading"));
+        int money = run.state.money;
+        int deck = run.state.deckComposition.size();
+        run.play(new Intent.Discard(List.of(0))); // first discard, single card
+        assertThat(run.state.money).isEqualTo(money + 3);
+        assertThat(run.state.deckComposition).hasSize(deck - 1); // the card was destroyed
+    }
+
+    @Test
     void perkeoDuplicatesAConsumableOnShopExit() {
         Run run = wonRun("j_perkeo");
         run.state.consumables.add("c_pluto");
