@@ -429,6 +429,30 @@ public final class BuiltinJokerDefs {
                         "Uncommon", 6, 7, 8, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT,
-                                        new Value.Stat(Value.Which.CARDS_BELOW_FULL, 0, 4, null))))));
+                                        new Value.Stat(Value.Which.CARDS_BELOW_FULL, 0, 4, null))))),
+
+                // --- batch 6: passive run modifiers (applied at blind start) ---
+                runModJoker("j_juggler", "Juggler", "+1 hand size", "Common", 4, 0, 9,
+                        new RunMod(0, 0, 1, false)),
+                runModJoker("j_drunkard", "Drunkard", "+1 discard each round", "Common", 4, 1, 10,
+                        new RunMod(0, 1, 0, false)),
+                runModJoker("j_troubadour", "Troubadour", "+2 hand size, -1 hand each round",
+                        "Uncommon", 6, 2, 10, new RunMod(-1, 0, 2, false)),
+                runModJoker("j_merry_andy", "Merry Andy", "+1 discard, -1 hand size",
+                        "Uncommon", 7, 3, 10, new RunMod(0, 1, -1, false)),
+                runModJoker("j_burglar", "Burglar", "+3 hands this round, but no discards",
+                        "Uncommon", 6, 4, 10, new RunMod(3, 0, 0, true)),
+                new JokerDef("j_stuntman", "Stuntman", "+250 Chips, -2 hand size",
+                        "Rare", 7, 5, 10, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.CHIPS, new Value.Const(250)))),
+                        List.of(), new RunMod(0, 0, -2, false)));
+    }
+
+    /** A joker whose only effect is a passive per-blind {@link RunMod}. */
+    private static JokerDef runModJoker(String key, String name, String desc, String rarity,
+            int cost, int ax, int ay, RunMod mod) {
+        return new JokerDef(key, name, desc, rarity, cost, ax, ay, null, null, true,
+                List.of(), List.of(), List.of(), mod);
     }
 }

@@ -15,6 +15,7 @@ import com.balatromp.engine.joker.Joker;
 import com.balatromp.engine.joker.JokerDisplay;
 import com.balatromp.engine.joker.def.DataJoker;
 import com.balatromp.engine.joker.def.JokerDef;
+import com.balatromp.engine.joker.def.RunMod;
 import com.balatromp.engine.joker.def.JokerDefLibrary;
 import com.balatromp.engine.net.CardView;
 import com.balatromp.engine.net.ClientView;
@@ -120,11 +121,30 @@ public final class Run {
             state.handSize = ruleset.handSize();
             requirement = Blinds.requirement(ante, blind, ruleset);
         }
+        applyJokerRunMods(); // passive hand/discard/hand-size deltas from owned jokers
         dealNewDeck(); // full deck reshuffled fresh each blind
         state.hand.clear();
         state.deck.drawTo(state.hand, state.handSize);
         refreshDebuffs();
         phase = Phase.BLIND_ACTIVE;
+    }
+
+    /** Sum and apply passive run modifiers from owned data jokers (Juggler, Burglar, ...). */
+    private void applyJokerRunMods() {
+        boolean noDiscards = false;
+        for (Joker j : state.jokers()) {
+            if (!(j instanceof DataJoker dj)) continue;
+            RunMod m = dj.def().runMod();
+            if (m.isNone()) continue;
+            state.handsLeft += m.handsDelta();
+            state.discardsLeft += m.discardsDelta();
+            state.handSize += m.handSizeDelta();
+            if (m.noDiscards()) noDiscards = true;
+        }
+        if (noDiscards) state.discardsLeft = 0;
+        state.handsLeft = Math.max(1, state.handsLeft);
+        state.discardsLeft = Math.max(0, state.discardsLeft);
+        state.handSize = Math.max(1, state.handSize);
     }
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */
