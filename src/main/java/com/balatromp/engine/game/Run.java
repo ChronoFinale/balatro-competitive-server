@@ -166,8 +166,14 @@ public final class Run {
         }
         IntentResult result = intents.handle(state, rng, intent);
         if (!result.ok()) return result;
-        // Destroyed cards (Glass break, etc.) leave the deck permanently — purge from
+        // Destroyed cards (Glass break, etc.) leave the deck permanently — raise
+        // CARD_DESTROYED per card (Glass Joker / Canio count these), then purge from
         // the persistent composition + hand so they don't return next blind.
+        for (Card destroyed : new java.util.ArrayList<>(composition)) {
+            if (destroyed.destroyed) {
+                GameEvents.raise(Trigger.CARD_DESTROYED, state, rng, ctx -> ctx.scoredCard = destroyed);
+            }
+        }
         composition.removeIf(c -> c.destroyed);
         state.hand.removeIf(c -> c.destroyed);
         refreshDebuffs(); // re-mark the freshly drawn hand
