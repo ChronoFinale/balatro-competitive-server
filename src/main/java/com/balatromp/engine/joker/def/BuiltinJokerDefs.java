@@ -226,6 +226,18 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
                                 new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
 
+                // --- probabilistic (Chance / Random) ---
+                new JokerDef("j_misprint", "Misprint", "Adds +0 to +23 Mult (random each hand)",
+                        "Common", 4, 6, 2, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.Random(0, 23, "misprint"))))),
+                new JokerDef("j_bloodstone", "Bloodstone", "1 in 2 chance each played Heart gives x1.5 Mult",
+                        "Uncommon", 7, 0, 8, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED,
+                                new Condition.And(List.of(new Condition.ScoredSuit(Suit.HEARTS),
+                                        new Condition.Chance(1, 2, "bloodstone"))),
+                                new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
+
                 // --- deck/run-stat scaling (Value.Stat) ---
                 new JokerDef("j_blue_joker", "Blue Joker", "+2 Chips for each card remaining in the deck",
                         "Common", 5, 7, 10, null, null, true, List.of(),

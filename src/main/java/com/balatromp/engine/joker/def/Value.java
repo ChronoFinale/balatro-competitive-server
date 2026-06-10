@@ -23,6 +23,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.Count.class, name = "count"),
     @JsonSubTypes.Type(value = Value.RunVar.class, name = "runVar"),
     @JsonSubTypes.Type(value = Value.Stat.class, name = "stat"),
+    @JsonSubTypes.Type(value = Value.Random.class, name = "random"),
 })
 public sealed interface Value {
 
@@ -87,6 +88,18 @@ public sealed interface Value {
                 case ANTE -> ctx.run.ante;
             };
             return base + scale * v;
+        }
+    }
+
+    /**
+     * A uniform random integer magnitude in {@code [min, max]} (Misprint 0..23),
+     * popped from a game-long queue keyed by {@code seedKey} so both players roll
+     * the same sequence.
+     */
+    record Random(double min, double max, String seedKey) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            double roll = ctx.nextProb(seedKey);
+            return min + Math.floor(roll * (max - min + 1));
         }
     }
 

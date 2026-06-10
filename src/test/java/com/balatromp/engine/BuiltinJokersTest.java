@@ -38,7 +38,8 @@ class BuiltinJokersTest {
             "j_duo", "j_trio", "j_family", "j_order", "j_tribe",
             "j_arrowhead", "j_onyx_agate", "j_sock_and_buskin", "j_flash", "j_trousers",
             "j_hiker", "j_midas_mask", "j_vampire",
-            "j_blue_joker", "j_abstract", "j_stone", "j_steel_joker");
+            "j_blue_joker", "j_abstract", "j_stone", "j_steel_joker",
+            "j_misprint", "j_bloodstone");
 
     private ScoreResult score(List<Card> played, Consumer<RunState> cfg, String... jokerKeys) {
         RunState run = new RunState();
@@ -249,6 +250,26 @@ class BuiltinJokersTest {
                         c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of());
         assertThat(r.mult()).isEqualTo(baseline.mult() * 1.2);
+    }
+
+    @Test
+    void probabilisticJokers() {
+        List<Card> hand = List.of(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        // Misprint: random +0..+23 Mult, deterministic per seed.
+        double misprint = score(hand, DEFAULTS, "j_misprint").mult() - score(hand, DEFAULTS).mult();
+        assertThat(misprint).isBetween(0.0, 23.0);
+        assertThat(score(hand, DEFAULTS, "j_misprint").mult())
+                .isEqualTo(score(hand, DEFAULTS, "j_misprint").mult()); // reproducible
+
+        // Bloodstone: hearts get a 1/2 chance x1.5; the result is deterministic per seed
+        // and never reduces mult.
+        List<Card> hearts = List.of(c(Rank.TWO, Suit.HEARTS), c(Rank.FOUR, Suit.HEARTS),
+                c(Rank.SIX, Suit.HEARTS), c(Rank.EIGHT, Suit.HEARTS), c(Rank.TEN, Suit.HEARTS));
+        double withBlood = score(hearts, DEFAULTS, "j_bloodstone").mult();
+        double base = score(hearts, DEFAULTS).mult();
+        assertThat(withBlood).isGreaterThanOrEqualTo(base);
+        assertThat(score(hearts, DEFAULTS, "j_bloodstone").mult()).isEqualTo(withBlood); // reproducible
     }
 
     @Test

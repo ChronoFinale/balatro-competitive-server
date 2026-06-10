@@ -2,7 +2,9 @@ package com.balatromp.engine.joker;
 
 import com.balatromp.engine.card.Card;
 import com.balatromp.engine.hand.HandType;
+import com.balatromp.engine.rng.QueueSet;
 import com.balatromp.engine.rng.RandomStreams;
+import com.balatromp.engine.rng.Rng;
 import com.balatromp.engine.state.RunState;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,17 @@ public final class EvaluationContext {
 
     public Joker self() {
         return jokers.get(selfIndex);
+    }
+
+    /**
+     * Pop the next roll [0,1) from a named game-long probability queue (Chance /
+     * Random effects). Uses the run's persistent QueueSet so both players get the
+     * same procs; falls back to a transient set for bare-state contexts.
+     */
+    public double nextProb(String seedKey) {
+        QueueSet qs = (run != null && run.queues != null) ? run.queues
+                : new QueueSet(rng != null ? rng : new RandomStreams("prob"));
+        return qs.queue("prob:" + seedKey, Rng::nextDouble).next();
     }
 
     /** Persistent, server-only per-joker state (e.g. Ride the Bus streak). */

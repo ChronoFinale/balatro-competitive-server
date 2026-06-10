@@ -38,6 +38,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoringAnyFace.class, name = "scoringAnyFace"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
+    @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
     @JsonSubTypes.Type(value = Condition.MoneyAtLeast.class, name = "moneyAtLeast"),
     @JsonSubTypes.Type(value = Condition.HandsLeft.class, name = "handsLeft"),
     @JsonSubTypes.Type(value = Condition.DiscardsLeft.class, name = "discardsLeft"),
@@ -203,6 +204,19 @@ public sealed interface Condition {
             Object v = ctx.selfState().getOrDefault(var, 0);
             double n = (v instanceof Number num) ? num.doubleValue() : 0;
             return n >= min;
+        }
+    }
+
+    /**
+     * Probabilistic gate: true with probability {@code numerator/denominator},
+     * scaled by {@code probabilityNumerator} (Oops! All 6s). Each evaluation pops
+     * a roll from a game-long queue keyed by {@code seedKey}, so both players get
+     * identical procs. Compose with {@link And} for "this card AND a chance".
+     */
+    record Chance(int numerator, int denominator, String seedKey) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            int probNum = ctx.run != null ? ctx.run.probabilityNumerator : 1;
+            return ctx.nextProb(seedKey) < (double) (numerator * probNum) / denominator;
         }
     }
 
