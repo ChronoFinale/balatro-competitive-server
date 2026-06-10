@@ -120,6 +120,58 @@ public final class BuiltinJokerDefs {
                         "Common", 4, 0, 4, null, null, true, List.of(),
                         List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredRankBetween(14, 14),
                                 new EffectTemplate(Op.CHIPS, new Value.Const(20),
-                                        new EffectTemplate(Op.MULT, new Value.Const(4)))))));
+                                        new EffectTemplate(Op.MULT, new Value.Const(4)))))),
+
+                // --- per-card mult ---
+                new JokerDef("j_smiley", "Smiley Face", "Played face cards give +5 Mult",
+                        "Common", 4, 6, 15, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredIsFace(),
+                                new EffectTemplate(Op.MULT, new Value.Const(5))))),
+
+                // --- compound per-card: each played 10 or 4 gives +10 Chips and +4 Mult ---
+                new JokerDef("j_walkie_talkie", "Walkie Talkie", "Each played 10 or 4 gives +10 Chips and +4 Mult",
+                        "Common", 4, 8, 15, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED,
+                                new Condition.Or(List.of(new Condition.ScoredRankBetween(10, 10),
+                                        new Condition.ScoredRankBetween(4, 4))),
+                                new EffectTemplate(Op.CHIPS, new Value.Const(10),
+                                        new EffectTemplate(Op.MULT, new Value.Const(4)))))),
+
+                // --- rank-set via Or: each played A, 2, 3, 5, 8 gives +8 Mult ---
+                new JokerDef("j_fibonacci", "Fibonacci", "Each played Ace, 2, 3, 5, or 8 gives +8 Mult",
+                        "Uncommon", 8, 1, 5, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.Or(List.of(
+                                new Condition.ScoredRankBetween(14, 14), new Condition.ScoredRankBetween(2, 2),
+                                new Condition.ScoredRankBetween(3, 3), new Condition.ScoredRankBetween(5, 5),
+                                new Condition.ScoredRankBetween(8, 8))),
+                                new EffectTemplate(Op.MULT, new Value.Const(8))))),
+
+                // --- held-card additive mult: each Queen held gives +13 Mult ---
+                new JokerDef("j_shoot_the_moon", "Shoot the Moon", "Each Queen held in hand gives +13 Mult",
+                        "Common", 5, 2, 6, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_HELD, new Condition.ScoredRankBetween(12, 12),
+                                new EffectTemplate(Op.MULT, new Value.Const(13))))),
+
+                // --- held-card xmult: each King held gives x1.5 Mult ---
+                new JokerDef("j_baron", "Baron", "Each King held in hand gives x1.5 Mult",
+                        "Rare", 8, 6, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_HELD, new Condition.ScoredRankBetween(13, 13),
+                                new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
+
+                // --- stateful: gains +15 Chips whenever the played hand contains a Straight ---
+                new JokerDef("j_runner", "Runner", "Gains +15 Chips if the played hand contains a Straight",
+                        "Common", 5, 3, 10, null, null, true,
+                        List.of(new Mutation(Trigger.BEFORE, new Condition.HandContains(HandType.STRAIGHT),
+                                "chips", Mutation.Op.ADD, 15)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("chips", 1),
+                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
+
+                // --- stateful: gains +8 Chips for each played 2 ---
+                new JokerDef("j_wee", "Wee Joker", "Gains +8 Chips for each played 2",
+                        "Rare", 8, 0, 0, null, null, true,
+                        List.of(new Mutation(Trigger.ON_SCORED, new Condition.ScoredRankBetween(2, 2),
+                                "chips", Mutation.Op.ADD, 8)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("chips", 1),
+                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))));
     }
 }

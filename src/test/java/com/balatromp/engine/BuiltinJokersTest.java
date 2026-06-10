@@ -28,13 +28,21 @@ class BuiltinJokersTest {
             "j_lusty_joker", "j_wrathful_joker", "j_gluttenous_joker", "j_jolly",
             "j_mystic_summit", "j_banner", "j_bull", "j_scary_face", "j_odd_todd", "j_square",
             "j_zany", "j_mad", "j_crazy", "j_droll",
-            "j_wily", "j_clever", "j_devious", "j_crafty", "j_scholar");
+            "j_wily", "j_clever", "j_devious", "j_crafty", "j_scholar",
+            "j_smiley", "j_walkie_talkie", "j_fibonacci", "j_shoot_the_moon",
+            "j_baron", "j_runner", "j_wee");
 
     private ScoreResult score(List<Card> played, Consumer<RunState> cfg, String... jokerKeys) {
         RunState run = new RunState();
         cfg.accept(run);
         for (String k : jokerKeys) run.addJoker(JokerLibrary.create(k));
         return new ScoringEngine().score(played, List.of(), run, new RandomStreams("T"));
+    }
+
+    private ScoreResult scoreHeld(List<Card> played, List<Card> held, String... jokerKeys) {
+        RunState run = new RunState();
+        for (String k : jokerKeys) run.addJoker(JokerLibrary.create(k));
+        return new ScoringEngine().score(played, held, run, new RandomStreams("T"));
     }
 
     private static final Consumer<RunState> DEFAULTS = r -> { };
@@ -118,6 +126,44 @@ class BuiltinJokersTest {
         ScoreResult without = score(aces, DEFAULTS);
         assertThat(with.chips() - without.chips()).isEqualTo(40); // two Aces × +20
         assertThat(with.mult() - without.mult()).isEqualTo(8.0);  // two Aces × +4 (same rule)
+    }
+
+    @Test
+    void walkieTalkieCompoundOnTensAndFours() {
+        // Two Pair of 10s and 4s -> all four score; Walkie fires per 10/4: +10 Chips & +4 Mult each.
+        List<Card> twoPair = List.of(c(Rank.TEN, Suit.SPADES), c(Rank.TEN, Suit.HEARTS),
+                c(Rank.FOUR, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS), c(Rank.SEVEN, Suit.SPADES));
+        ScoreResult with = score(twoPair, DEFAULTS, "j_walkie_talkie");
+        ScoreResult without = score(twoPair, DEFAULTS);
+        assertThat(with.chips() - without.chips()).isEqualTo(40); // 4 cards × +10
+        assertThat(with.mult() - without.mult()).isEqualTo(16.0); // 4 cards × +4
+    }
+
+    @Test
+    void fibonacciCountsAcesAndLowRanks() {
+        // Pair of Aces: both are Fibonacci ranks (A) -> +8 Mult each.
+        List<Card> aces = List.of(c(Rank.ACE, Suit.SPADES), c(Rank.ACE, Suit.HEARTS),
+                c(Rank.TEN, Suit.CLUBS), c(Rank.SEVEN, Suit.CLUBS), c(Rank.SIX, Suit.DIAMONDS));
+        assertThat(score(aces, DEFAULTS, "j_fibonacci").mult() - score(aces, DEFAULTS).mult())
+                .isEqualTo(16.0);
+    }
+
+    @Test
+    void baronMultipliesPerHeldKing() {
+        List<Card> played = List.of(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        List<Card> twoKingsHeld = List.of(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS));
+        double with = scoreHeld(played, twoKingsHeld, "j_baron").mult();
+        double without = scoreHeld(played, twoKingsHeld).mult();
+        assertThat(with).isEqualTo(without * 1.5 * 1.5); // x1.5 per held King
+    }
+
+    @Test
+    void runnerGainsChipsOnStraights() {
+        List<Card> straight = List.of(c(Rank.FIVE, Suit.SPADES), c(Rank.SIX, Suit.HEARTS),
+                c(Rank.SEVEN, Suit.CLUBS), c(Rank.EIGHT, Suit.DIAMONDS), c(Rank.NINE, Suit.SPADES));
+        assertThat(score(straight, DEFAULTS, "j_runner").chips() - score(straight, DEFAULTS).chips())
+                .isEqualTo(15); // gains +15 and applies it this hand
     }
 
     @Test
