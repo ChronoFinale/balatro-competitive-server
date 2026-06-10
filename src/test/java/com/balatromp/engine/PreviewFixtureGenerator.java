@@ -139,6 +139,25 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), run -> run.handsLeft = 1, "j_dusk");
 
+        // 20. Photograph: the first scored face card gives x2 (pair of Jacks)
+        scenario("photograph", play(c(Rank.JACK, Suit.HEARTS), c(Rank.JACK, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), "j_photograph");
+
+        // 21. Driver's License: x3 when >=16 enhanced cards in the deck
+        scenario("drivers-license", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> {
+                    for (int i = 0; i < 16; i++) {
+                        run.deckComposition.add(new Card(Rank.TWO, Suit.CLUBS, Enhancement.BONUS,
+                                Edition.NONE, Seal.NONE));
+                    }
+                }, "j_drivers_license");
+
+        // 22. Blackboard: x3 when all held cards are Spades/Clubs
+        scenario("blackboard", play(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                play(c(Rank.KING, Suit.SPADES), c(Rank.QUEEN, Suit.CLUBS)), "j_blackboard");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
@@ -215,7 +234,12 @@ class PreviewFixtureGenerator {
         Map<String, Object> deck = new LinkedHashMap<>();
         deck.put("size", run.deckComposition.size());
         deck.put("remaining", run.deck != null ? run.deck.remaining() : 0);
-        deck.put("enhancements", new LinkedHashMap<>());
+        // Match Run.view(): count enhancements across the full deck composition.
+        Map<String, Integer> enh = new LinkedHashMap<>();
+        for (Card cc : run.deckComposition) {
+            if (cc.enhancement != Enhancement.NONE) enh.merge(cc.enhancement.name(), 1, Integer::sum);
+        }
+        deck.put("enhancements", enh);
         m.put("deck", deck);
         Map<String, Object> levels = new LinkedHashMap<>();
         for (HandType t : HandType.values()) levels.put(t.display, run.handLevel(t));

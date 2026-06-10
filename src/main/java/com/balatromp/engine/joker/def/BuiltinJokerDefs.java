@@ -374,6 +374,25 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_golden_ticket", "Golden Ticket", "Played Gold cards give $4 when scored",
                         "Common", 5, 6, 7, null, null, true, List.of(),
                         List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.GOLD),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(4))))));
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(4))))),
+
+                // --- batch 2: first-face / stat-threshold / held-suit conditions ---
+                new JokerDef("j_photograph", "Photograph", "The first scored face card gives x2 Mult",
+                        "Common", 5, 4, 7, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredFirstFace(),
+                                new EffectTemplate(Op.XMULT, new Value.Const(2))))),
+                new JokerDef("j_drivers_license", "Driver's License",
+                        "x3 Mult if you have at least 16 enhanced cards in your deck",
+                        "Rare", 7, 6, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN,
+                                new Condition.ValueAtLeast(
+                                        new Value.Stat(Value.Which.ENHANCED_CARD_COUNT, 0, 1, null), 16),
+                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
+                new JokerDef("j_blackboard", "Blackboard",
+                        "x3 Mult if all cards held in hand are Spades or Clubs",
+                        "Uncommon", 6, 0, 7, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN,
+                                new Condition.HeldAllSuits(List.of(Suit.SPADES, Suit.CLUBS)),
+                                new EffectTemplate(Op.XMULT, new Value.Const(3))))));
     }
 }

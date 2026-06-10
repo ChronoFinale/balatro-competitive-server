@@ -150,6 +150,16 @@
       case 'playedCount': return cmp(cond.cmp, ctx.played.length, cond.n);
       case 'scoringAnyFace': return ctx.scoring.some((x) => isFace(x));
       case 'scoringContainsSuit': return ctx.scoring.some((x) => isSuit(x, cond.suit));
+      case 'scoredFirstFace': {
+        if (!c || !isFace(c)) return false;
+        const firstFace = ctx.scoring.find((x) => isFace(x));
+        return firstFace === c;
+      }
+      case 'valueAtLeast': {
+        const rv = valResolve(cond.value, ctx);
+        return rv === null ? null : rv >= cond.min;
+      }
+      case 'heldAllSuits': return (ctx.held || []).every((x) => cond.suits.some((s) => isSuit(x, s)));
       case 'moneyAtLeast': return ctx.run.money >= cond.min;
       case 'handsLeft': return cmp(cond.cmp, ctx.run.handsLeft, cond.n);
       case 'discardsLeft': return cmp(cond.cmp, ctx.run.discardsLeft, cond.n);

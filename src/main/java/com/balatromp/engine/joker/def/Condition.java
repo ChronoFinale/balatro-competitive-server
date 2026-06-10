@@ -38,6 +38,9 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.DiscardedFaceCount.class, name = "discardedFaceCount"),
     @JsonSubTypes.Type(value = Condition.ScoringAnyFace.class, name = "scoringAnyFace"),
     @JsonSubTypes.Type(value = Condition.ScoringContainsSuit.class, name = "scoringContainsSuit"),
+    @JsonSubTypes.Type(value = Condition.ScoredFirstFace.class, name = "scoredFirstFace"),
+    @JsonSubTypes.Type(value = Condition.ValueAtLeast.class, name = "valueAtLeast"),
+    @JsonSubTypes.Type(value = Condition.HeldAllSuits.class, name = "heldAllSuits"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -198,6 +201,37 @@ public sealed interface Condition {
                 if (c.isFace()) return true;
             }
             return false;
+        }
+    }
+
+    /** The scoring card is the first FACE card in scoring order (Photograph). */
+    record ScoredFirstFace() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            if (ctx.scoredCard == null || !ctx.scoredCard.isFace() || ctx.scoringCards == null) return false;
+            for (Card c : ctx.scoringCards) {
+                if (c.isFace()) return c == ctx.scoredCard; // first face must be this one
+            }
+            return false;
+        }
+    }
+
+    /** A resolved {@link Value} is at least {@code min} (Drivers License: >=16 enhanced). */
+    record ValueAtLeast(Value value, double min) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return value.resolve(ctx) >= min;
+        }
+    }
+
+    /** Every card held in hand is of one of {@code suits} (empty hand counts as true; Blackboard). */
+    record HeldAllSuits(List<Suit> suits) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            if (ctx.heldCards == null) return true;
+            for (Card c : ctx.heldCards) {
+                boolean ok = false;
+                for (Suit s : suits) if (c.isSuit(s)) { ok = true; break; }
+                if (!ok) return false;
+            }
+            return true;
         }
     }
 
