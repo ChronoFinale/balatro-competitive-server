@@ -24,6 +24,21 @@ public final class BuiltinJokerDefs {
 
     private BuiltinJokerDefs() {}
 
+    /**
+     * Behavior variants of existing jokers, keyed by variant name. A match's ruleset
+     * picks the variant (e.g. single-player "default" vs "multiplayer"); the joker key
+     * stays the same, only the rules differ. Example: multiplayer Hanging Chad retriggers
+     * the first card once (2x) instead of twice (3x).
+     */
+    public static java.util.Map<String, List<JokerDef>> variants() {
+        return java.util.Map.of("multiplayer", List.of(
+                new JokerDef("j_hanging_chad", "Hanging Chad",
+                        "Retrigger the first played card 1 additional time (multiplayer)",
+                        "Common", 4, 1, 5, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredFirst(),
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1)))))));
+    }
+
     /** Suit → +3 Mult per played card of that suit (Greedy/Lusty/Wrathful/Gluttonous family). */
     private static JokerDef suitMult(String key, String name, Suit suit, int atlasX, int atlasY) {
         return new JokerDef(key, name, "Each played " + suitName(suit) + " gives +3 Mult",

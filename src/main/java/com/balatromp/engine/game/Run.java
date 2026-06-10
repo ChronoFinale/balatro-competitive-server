@@ -363,7 +363,7 @@ public final class Run {
         if (!canAfford(item.cost())) return "not enough money";
         if (state.jokers().size() >= Shop.JOKER_SLOT_LIMIT) return "joker slots full";
         state.money -= item.cost();
-        state.addJoker(JokerLibrary.create(item.jokerKey()));
+        state.addJoker(JokerLibrary.create(item.jokerKey(), ruleset.jokerVariant()));
         shop.items().remove(index);
         return null;
     }

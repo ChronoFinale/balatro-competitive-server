@@ -84,6 +84,30 @@ public final class JokerLibrary {
         return f.get();
     }
 
+    // Variant defs: jokerKey -> variant -> def. A joker (e.g. Hanging Chad) can behave
+    // differently in single-player vs multiplayer; the active ruleset names the variant.
+    private static final Map<String, Map<String, com.balatromp.engine.joker.def.JokerDef>> VARIANTS =
+            new LinkedHashMap<>();
+
+    static {
+        com.balatromp.engine.joker.def.BuiltinJokerDefs.variants()
+                .forEach((variant, defs) -> defs.forEach(d -> registerVariant(variant, d)));
+    }
+
+    /** Register an alternate behavior for an existing joker key under a named variant. */
+    public static void registerVariant(String variant, com.balatromp.engine.joker.def.JokerDef def) {
+        VARIANTS.computeIfAbsent(def.key(), k -> new LinkedHashMap<>()).put(variant, def);
+    }
+
+    /** Create a joker, using {@code variant}'s behavior if one is registered, else the default. */
+    public static Joker create(String key, String variant) {
+        Map<String, com.balatromp.engine.joker.def.JokerDef> vs = VARIANTS.get(key);
+        if (variant != null && vs != null && vs.containsKey(variant)) {
+            return new com.balatromp.engine.joker.def.DataJoker(vs.get(variant));
+        }
+        return create(key);
+    }
+
     public static Map<String, Supplier<Joker>> registry() {
         return REGISTRY;
     }

@@ -27,12 +27,23 @@ public record Ruleset(
         double anteScaling,
         int winAnte,
         int[] blindBaseAmounts,
-        List<String> jokerPool) {
+        List<String> jokerPool,
+        String jokerVariant) {
 
     public Ruleset {
         jokerPool = (jokerPool == null || jokerPool.isEmpty())
                 ? JokerLibrary.builtinKeys()
                 : List.copyOf(jokerPool);
+        // Which joker behavior-variant this match uses (e.g. "default" single-player vs
+        // "multiplayer"); a joker key resolves to its matching variant def if one exists.
+        jokerVariant = (jokerVariant == null || jokerVariant.isBlank()) ? "default" : jokerVariant;
+    }
+
+    /** A ruleset with the built-in pool and a given joker variant. */
+    public Ruleset(String name, int startingMoney, int hands, int discards, int handSize,
+                   double anteScaling, int winAnte, int[] blindBaseAmounts, List<String> jokerPool) {
+        this(name, startingMoney, hands, discards, handSize, anteScaling, winAnte,
+                blindBaseAmounts, jokerPool, "default");
     }
 
     /** Convenience: a ruleset using the curated built-in joker pool. */

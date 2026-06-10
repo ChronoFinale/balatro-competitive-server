@@ -144,6 +144,19 @@ class ScoringEngineTest {
     }
 
     @Test
+    void hangingChadHasASinglePlayerAndMultiplayerVariant() {
+        List<Card> hand = List.of(c(KING, HEARTS), c(KING, SPADES));
+        RunState sp = new RunState();
+        sp.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_hanging_chad", "default"));
+        RunState mp = new RunState();
+        mp.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_hanging_chad", "multiplayer"));
+        double spScore = new ScoringEngine().score(hand, List.of(), sp, new RandomStreams("V")).score();
+        double mpScore = new ScoringEngine().score(hand, List.of(), mp, new RandomStreams("V")).score();
+        assertThat(spScore).as("single-player: first card 3x").isEqualTo(100.0);
+        assertThat(mpScore).as("multiplayer: first card 2x").isEqualTo(80.0);
+    }
+
+    @Test
     void rideTheBusScalesAcrossConsecutiveHands() {
         RunState run = new RunState();
         run.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_ride_the_bus"));
