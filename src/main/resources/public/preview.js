@@ -208,6 +208,7 @@
     switch (v.type) {
       case 'const': return v.amount;
       case 'state': return v.base + v.scale * (ctx.state[v.var] || 0);
+      case 'stateStep': return v.per === 0 ? v.base : v.base + v.scale * Math.floor((ctx.state[v.var] || 0) / v.per);
       case 'runVar': {
         const r = ctx.run, map = { MONEY: r.money, HANDS_LEFT: r.handsLeft, DISCARDS_LEFT: r.discardsLeft, HAND_SIZE: r.handSize, ANTE: r.ante };
         return v.base + v.scale * (map[v.which] || 0);

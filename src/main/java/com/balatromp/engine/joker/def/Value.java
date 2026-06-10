@@ -20,6 +20,7 @@ import java.util.List;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Value.Const.class, name = "const"),
     @JsonSubTypes.Type(value = Value.State.class, name = "state"),
+    @JsonSubTypes.Type(value = Value.StateStep.class, name = "stateStep"),
     @JsonSubTypes.Type(value = Value.Count.class, name = "count"),
     @JsonSubTypes.Type(value = Value.RunVar.class, name = "runVar"),
     @JsonSubTypes.Type(value = Value.RunVarStep.class, name = "runVarStep"),
@@ -45,6 +46,16 @@ public sealed interface Value {
             Object v = ctx.selfState().getOrDefault(var, 0);
             double n = (v instanceof Number num) ? num.doubleValue() : 0;
             return base + scale * n;
+        }
+    }
+
+    /** {@code base + scale * floor(state / per)} — stepwise state scaling (Yorick: x1 per 23 discarded). */
+    record StateStep(String var, double base, double scale, double per) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            if (per == 0) return base;
+            Object v = ctx.selfState().getOrDefault(var, 0);
+            double n = (v instanceof Number num) ? num.doubleValue() : 0;
+            return base + scale * Math.floor(n / per);
         }
     }
 

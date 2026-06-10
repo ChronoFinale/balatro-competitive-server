@@ -63,6 +63,17 @@ class CounterScalingTest {
     }
 
     @Test
+    void yorickAccumulatesDiscardedCards() {
+        RunState run = run("j_yorick");
+        Joker yorick = run.jokers().get(0);
+        // discard 3 cards, then 2 more -> total 5
+        GameEvents.preDiscard(run, run.rng, java.util.List.of(card(Enhancement.NONE),
+                card(Enhancement.NONE), card(Enhancement.NONE)));
+        GameEvents.preDiscard(run, run.rng, java.util.List.of(card(Enhancement.NONE), card(Enhancement.NONE)));
+        assertThat(((Number) run.jokerState(yorick).get("d")).intValue()).isEqualTo(5);
+    }
+
+    @Test
     void canioGainsPerFaceCardDestroyed() {
         RunState run = run("j_canio");
         Joker canio = run.jokers().get(0);

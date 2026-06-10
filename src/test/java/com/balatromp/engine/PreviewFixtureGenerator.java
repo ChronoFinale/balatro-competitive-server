@@ -187,6 +187,11 @@ class PreviewFixtureGenerator {
         scenario("raised-fist", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 play(c(Rank.FOUR, Suit.CLUBS), c(Rank.SEVEN, Suit.DIAMONDS)), "j_raised_fist");
 
+        // 29. Yorick with pre-set state (d=46 -> floor(46/23)=2 -> x3) validates StateStep on the client
+        scenario("yorick", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), run -> run.jokerState(run.jokers().get(0)).put("d", 46), "j_yorick");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
