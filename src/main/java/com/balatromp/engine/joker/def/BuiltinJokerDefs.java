@@ -609,6 +609,18 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 23: per-round dynamic targets (The Idol, Ancient Joker) ---
+                new JokerDef("j_idol", "The Idol",
+                        "Each played card matching this round's Idol card gives x2 Mult",
+                        "Uncommon", 6, 3, 14, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredIsIdol(),
+                                new EffectTemplate(Op.XMULT, new Value.Const(2))))),
+                new JokerDef("j_ancient_joker", "Ancient Joker",
+                        "Each played card of this round's Ancient suit gives x1.5 Mult",
+                        "Rare", 8, 4, 14, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredSuitIsAncient(),
+                                new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
+
                 // --- batch 22: joker-on-joker reads (Baseball Card, Swashbuckler) ---
                 new JokerDef("j_baseball_card", "Baseball Card", "Each Uncommon Joker gives x1.5 Mult",
                         "Rare", 8, 1, 14, null, null, true, List.of(),

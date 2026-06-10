@@ -204,6 +204,14 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 37. The Idol (King of Hearts this round): the played KH gives x2
+        scenario("idol", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> { run.idolRankId = 13; run.idolSuit = Suit.HEARTS; }, "j_idol");
+
+        // 38. Ancient (Hearts this round): the played KH gives x1.5
+        scenario("ancient", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.ancientSuit = Suit.HEARTS, "j_ancient_joker");
+
         // 35. Baseball Card + two (inert) Uncommon jokers -> x1.5 each = x2.25
         scenario("baseball", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), "j_baseball_card", "j_acrobat", "j_acrobat");
@@ -320,6 +328,9 @@ class PreviewFixtureGenerator {
         run.handTypePlays.forEach((t, n) -> typePlays.put(t.name(), n));
         counters.put("handTypePlays", typePlays);
         counters.put("handTypesThisRound", run.handTypesThisRound.stream().map(Enum::name).toList());
+        counters.put("idolRankId", run.idolRankId);
+        counters.put("idolSuit", run.idolSuit.name());
+        counters.put("ancientSuit", run.ancientSuit.name());
         m.put("counters", counters);
         return m;
     }

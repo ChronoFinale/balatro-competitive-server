@@ -177,6 +177,12 @@
       case 'handPlayedThisRound':
         return (((ctx.run.counters && ctx.run.counters.handTypesThisRound) || []).indexOf(ctx.handType) >= 0);
       case 'otherJokerRarity': return !!ctx.otherJoker && ctx.otherJoker.rarity === cond.rarity;
+      case 'scoredIsIdol': {
+        const k = ctx.run.counters || {};
+        return !!c && !isStone(c) && id(c) === k.idolRankId && c.suit === k.idolSuit;
+      }
+      case 'scoredSuitIsAncient':
+        return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {}).ancientSuit);
       default: return null;
     }
   }

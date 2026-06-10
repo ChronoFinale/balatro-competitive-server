@@ -35,6 +35,10 @@ public final class RunState {
     // Per-poker-hand play tracking (Supernova counts run-long; Card Sharp checks this round).
     public final Map<HandType, Integer> handTypePlays = new EnumMap<>(HandType.class);
     public final java.util.Set<HandType> handTypesThisRound = java.util.EnumSet.noneOf(HandType.class);
+    // Per-round dynamic targets (re-rolled each blind), shipped to the client.
+    public int idolRankId = 14;                                  // The Idol's target rank
+    public com.balatromp.engine.card.Suit idolSuit = com.balatromp.engine.card.Suit.HEARTS;
+    public com.balatromp.engine.card.Suit ancientSuit = com.balatromp.engine.card.Suit.HEARTS; // Ancient
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;

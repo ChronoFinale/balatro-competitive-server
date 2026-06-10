@@ -126,6 +126,7 @@ public final class Run {
             requirement = Blinds.requirement(ante, blind, ruleset);
         }
         applyJokerRunMods(); // passive hand/discard/hand-size deltas from owned jokers
+        rollRoundTargets();  // The Idol / Ancient targets, re-rolled each blind
         int deckBefore = composition.size();
         GameEvents.raise(Trigger.BLIND_SELECTED, state, rng, null); // Cartomancer, Marble, ...
         // Cards added to the deck (Marble/Certificate) raise CARD_ADDED so Hologram counts them.
@@ -137,6 +138,18 @@ public final class Run {
         state.deck.drawTo(state.hand, state.handSize);
         refreshDebuffs();
         phase = Phase.BLIND_ACTIVE;
+    }
+
+    /** Re-roll the per-round dynamic targets (The Idol's card, Ancient's suit). */
+    private void rollRoundTargets() {
+        com.balatromp.engine.card.Suit[] suits = com.balatromp.engine.card.Suit.values();
+        state.idolSuit = suits[(int) (roll("target:idol:suit") * suits.length) % suits.length];
+        state.idolRankId = 2 + (int) (roll("target:idol:rank") * 13) % 13;
+        state.ancientSuit = suits[(int) (roll("target:ancient:suit") * suits.length) % suits.length];
+    }
+
+    private double roll(String key) {
+        return state.queues.queue(key, com.balatromp.engine.rng.Rng::nextDouble).next();
     }
 
     /** Sum and apply passive run modifiers from owned data jokers (Juggler, Burglar, ...). */
@@ -484,6 +497,9 @@ public final class Run {
         state.handTypePlays.forEach((t, n) -> typePlays.put(t.name(), n));
         counters.put("handTypePlays", typePlays);
         counters.put("handTypesThisRound", state.handTypesThisRound.stream().map(Enum::name).toList());
+        counters.put("idolRankId", state.idolRankId);
+        counters.put("idolSuit", state.idolSuit.name());
+        counters.put("ancientSuit", state.ancientSuit.name());
 
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,

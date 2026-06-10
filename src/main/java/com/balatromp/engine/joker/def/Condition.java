@@ -44,6 +44,8 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.BossDefeated.class, name = "bossDefeated"),
     @JsonSubTypes.Type(value = Condition.HandPlayedThisRound.class, name = "handPlayedThisRound"),
     @JsonSubTypes.Type(value = Condition.OtherJokerRarity.class, name = "otherJokerRarity"),
+    @JsonSubTypes.Type(value = Condition.ScoredIsIdol.class, name = "scoredIsIdol"),
+    @JsonSubTypes.Type(value = Condition.ScoredSuitIsAncient.class, name = "scoredSuitIsAncient"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -251,6 +253,22 @@ public sealed interface Condition {
                 if (c.isSuit(suit)) return true;
             }
             return false;
+        }
+    }
+
+    /** The scoring card matches this round's Idol target (rank + suit). */
+    record ScoredIsIdol() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            Card c = ctx.scoredCard;
+            return c != null && !c.isStone() && ctx.run != null
+                    && c.id() == ctx.run.idolRankId && c.isSuit(ctx.run.idolSuit);
+        }
+    }
+
+    /** The scoring card is of this round's Ancient suit. */
+    record ScoredSuitIsAncient() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.scoredCard != null && ctx.run != null && ctx.scoredCard.isSuit(ctx.run.ancientSuit);
         }
     }
 
