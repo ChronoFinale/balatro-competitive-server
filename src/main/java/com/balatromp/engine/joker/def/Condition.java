@@ -46,6 +46,8 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.OtherJokerRarity.class, name = "otherJokerRarity"),
     @JsonSubTypes.Type(value = Condition.ScoredIsIdol.class, name = "scoredIsIdol"),
     @JsonSubTypes.Type(value = Condition.ScoredSuitIsAncient.class, name = "scoredSuitIsAncient"),
+    @JsonSubTypes.Type(value = Condition.ScoredSuitIsCastle.class, name = "scoredSuitIsCastle"),
+    @JsonSubTypes.Type(value = Condition.HandIsTodo.class, name = "handIsTodo"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -269,6 +271,20 @@ public sealed interface Condition {
     record ScoredSuitIsAncient() implements Condition {
         public boolean test(EvaluationContext ctx) {
             return ctx.scoredCard != null && ctx.run != null && ctx.scoredCard.isSuit(ctx.run.ancientSuit);
+        }
+    }
+
+    /** The (scored/event) card is of this round's Castle suit. */
+    record ScoredSuitIsCastle() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.scoredCard != null && ctx.run != null && ctx.scoredCard.isSuit(ctx.run.castleSuit);
+        }
+    }
+
+    /** The played poker hand is this round's To Do List hand. */
+    record HandIsTodo() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.run != null && ctx.handType == ctx.run.todoHandType;
         }
     }
 

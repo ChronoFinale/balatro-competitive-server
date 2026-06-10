@@ -609,6 +609,22 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 24: more dynamic targets (Castle chips, To Do List money) ---
+                new JokerDef("j_castle", "Castle",
+                        "Gains +3 Chips per discarded card of this round's suit",
+                        "Uncommon", 6, 5, 14, null, null, true,
+                        List.of(new Mutation(Trigger.BLIND_SELECTED, new Condition.Always(),
+                                        "chips", Mutation.Op.RESET, 0),
+                                new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "chips",
+                                        Mutation.Op.ADD, 3, new Condition.ScoredSuitIsCastle())),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("chips", 1),
+                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
+                new JokerDef("j_todo_list", "To Do List",
+                        "Earn $4 if the played poker hand is this round's hand",
+                        "Common", 4, 6, 14, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandIsTodo(),
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(4))))),
+
                 // --- batch 23: per-round dynamic targets (The Idol, Ancient Joker) ---
                 new JokerDef("j_idol", "The Idol",
                         "Each played card matching this round's Idol card gives x2 Mult",

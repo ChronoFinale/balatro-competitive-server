@@ -43,6 +43,19 @@ class EconomyJokerTest {
     }
 
     @Test
+    void todoListPaysWhenTheRoundHandIsPlayed() {
+        RunState run = new RunState();
+        run.money = 0;
+        run.todoHandType = com.balatromp.engine.hand.HandType.PAIR;
+        run.queues = new com.balatromp.engine.rng.QueueSet(rng);
+        run.addJoker(JokerLibrary.create("j_todo_list"));
+        // Play a pair (matches the round hand) -> $4.
+        new com.balatromp.engine.scoring.ScoringEngine().score(
+                java.util.List.of(c(NINE, HEARTS), c(NINE, SPADES)), java.util.List.of(), run, rng);
+        assertThat(run.money).isEqualTo(4);
+    }
+
+    @Test
     void delayedGratificationPaysOnlyIfNoDiscardsUsed() {
         RunState run = new RunState();
         run.money = 0;

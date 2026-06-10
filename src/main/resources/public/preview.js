@@ -183,6 +183,9 @@
       }
       case 'scoredSuitIsAncient':
         return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {}).ancientSuit);
+      case 'scoredSuitIsCastle':
+        return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {}).castleSuit);
+      case 'handIsTodo': return ctx.handType === ((ctx.run.counters || {}).todoHand);
       default: return null;
     }
   }

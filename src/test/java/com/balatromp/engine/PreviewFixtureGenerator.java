@@ -204,6 +204,10 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 39. Castle with pre-set chips (3 castle-suit cards discarded -> +9 Chips)
+        scenario("castle", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.jokerState(run.jokers().get(0)).put("chips", 9), "j_castle");
+
         // 37. The Idol (King of Hearts this round): the played KH gives x2
         scenario("idol", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> { run.idolRankId = 13; run.idolSuit = Suit.HEARTS; }, "j_idol");
@@ -331,6 +335,8 @@ class PreviewFixtureGenerator {
         counters.put("idolRankId", run.idolRankId);
         counters.put("idolSuit", run.idolSuit.name());
         counters.put("ancientSuit", run.ancientSuit.name());
+        counters.put("castleSuit", run.castleSuit.name());
+        counters.put("todoHand", run.todoHandType.name());
         m.put("counters", counters);
         return m;
     }

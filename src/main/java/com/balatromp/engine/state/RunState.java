@@ -39,6 +39,8 @@ public final class RunState {
     public int idolRankId = 14;                                  // The Idol's target rank
     public com.balatromp.engine.card.Suit idolSuit = com.balatromp.engine.card.Suit.HEARTS;
     public com.balatromp.engine.card.Suit ancientSuit = com.balatromp.engine.card.Suit.HEARTS; // Ancient
+    public com.balatromp.engine.card.Suit castleSuit = com.balatromp.engine.card.Suit.HEARTS;  // Castle
+    public HandType todoHandType = HandType.PAIR;                                              // To Do List
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;
