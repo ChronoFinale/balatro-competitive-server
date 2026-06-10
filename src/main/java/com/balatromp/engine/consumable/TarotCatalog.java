@@ -5,6 +5,7 @@ import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.card.Suit;
+import com.balatromp.engine.joker.def.CreateSpec;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -75,6 +76,46 @@ public final class TarotCatalog {
                 ConsumableType.SPECTRAL, 0, new Consumable.JokerEdition(Edition.NEGATIVE, 1, -1, false)));
         put(new Consumable("c_hex", "Hex", "Add Polychrome to a random Joker, destroy all other Jokers",
                 ConsumableType.SPECTRAL, 0, new Consumable.JokerEdition(Edition.POLYCHROME, 1, 0, true)));
+
+        // Generative consumables: create cards/consumables/jokers and/or move money.
+        put(new Consumable("c_emperor", "The Emperor", "Create up to 2 random Tarot cards",
+                ConsumableType.TAROT, 0, new Consumable.Generate(
+                        new CreateSpec(CreateSpec.Kind.TAROT, 2), 0, null, null)));
+        put(new Consumable("c_high_priestess", "The High Priestess", "Create up to 2 random Planet cards",
+                ConsumableType.TAROT, 0, new Consumable.Generate(
+                        new CreateSpec(CreateSpec.Kind.PLANET, 2), 0, null, null)));
+        put(new Consumable("c_judgement", "Judgement", "Create a random Joker",
+                ConsumableType.TAROT, 0, new Consumable.Generate(
+                        new CreateSpec(CreateSpec.Kind.JOKER, 1), 0, null, null)));
+        put(new Consumable("c_hermit", "The Hermit", "Double your money (max gain of $20)",
+                ConsumableType.TAROT, 0, new Consumable.Generate(
+                        null, 0, null, new Consumable.Generate.MoneyOp(
+                                Consumable.Generate.MoneyOp.Kind.DOUBLE_CAP, 20))));
+        put(new Consumable("c_temperance", "Temperance", "Gain the total sell value of all Jokers (max $50)",
+                ConsumableType.TAROT, 0, new Consumable.Generate(
+                        null, 0, null, new Consumable.Generate.MoneyOp(
+                                Consumable.Generate.MoneyOp.Kind.SELL_VALUE_CAP, 50))));
+
+        // Generative spectrals.
+        put(new Consumable("c_the_soul", "The Soul", "Create a random Legendary Joker",
+                ConsumableType.SPECTRAL, 0, new Consumable.Generate(
+                        new CreateSpec(CreateSpec.Kind.JOKER, 1, "Legendary", null), 0, null, null)));
+        put(new Consumable("c_wraith", "The Wraith", "Create a random Rare Joker, set money to $0",
+                ConsumableType.SPECTRAL, 0, new Consumable.Generate(
+                        new CreateSpec(CreateSpec.Kind.JOKER, 1, "Rare", null), 0, null,
+                        new Consumable.Generate.MoneyOp(Consumable.Generate.MoneyOp.Kind.SET, 0))));
+        put(new Consumable("c_immolate", "Immolate", "Destroy 5 random cards in hand, gain $20",
+                ConsumableType.SPECTRAL, 0, new Consumable.Generate(
+                        null, 5, null, new Consumable.Generate.MoneyOp(
+                                Consumable.Generate.MoneyOp.Kind.FLAT, 20))));
+        put(new Consumable("c_familiar", "Familiar", "Destroy 1 random card, add 3 random Enhanced face cards",
+                ConsumableType.SPECTRAL, 0, new Consumable.Generate(null, 1,
+                        new Consumable.Generate.AddCards(
+                                Consumable.Generate.AddCards.RankClass.FACE, 3, null), null)));
+        put(new Consumable("c_grim", "Grim", "Destroy 1 random card, add 2 random Enhanced Aces",
+                ConsumableType.SPECTRAL, 0, new Consumable.Generate(null, 1,
+                        new Consumable.Generate.AddCards(
+                                Consumable.Generate.AddCards.RankClass.ACE, 2, null), null)));
     }
 
     private static void put(Consumable c) {

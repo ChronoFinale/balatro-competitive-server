@@ -5,7 +5,9 @@ import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.card.Rank;
 import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.card.Suit;
+import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.consumable.Consumable;
+import com.balatromp.engine.consumable.Creation;
 import com.balatromp.engine.consumable.TarotCatalog;
 import com.balatromp.engine.game.Blinds.BlindType;
 import com.balatromp.engine.intent.Intent;
@@ -589,9 +591,11 @@ public final class Run {
                 }
             }
             if (targets.size() > c.maxTargets()) return "too many targets";
+            // Free this consumable's slot BEFORE applying, so a generative effect's created
+            // consumables can occupy the slot it just vacated (Balatro's ordering).
+            state.consumables.remove(index);
             applyConsumable(c, targets);
             GameEvents.useConsumable(state, rng, c.type().label());
-            state.consumables.remove(index);
             return null;
         }
         return "unknown consumable: " + key;
@@ -622,6 +626,73 @@ public final class Run {
                 for (HandType t : HandType.values()) state.levelUpHand(t); // Black Hole
             }
             case Consumable.JokerEdition je -> applyJokerEdition(c, je);
+            case Consumable.Generate g -> applyGenerate(c, g);
+        }
+    }
+
+    // Enhancements a "random Enhanced" created card (Familiar/Grim) may roll — every type but NONE.
+    private static final Enhancement[] RANDOM_ENHANCEMENTS = {
+        Enhancement.BONUS, Enhancement.MULT, Enhancement.GLASS, Enhancement.STEEL,
+        Enhancement.STONE, Enhancement.GOLD, Enhancement.WILD, Enhancement.LUCKY
+    };
+
+    /**
+     * Apply a generative consumable: destroy random hand cards, create
+     * consumables/jokers/cards, add rank-class cards, then run a money op — in order.
+     */
+    private void applyGenerate(Consumable c, Consumable.Generate g) {
+        // 1. destroy N random hand cards (and the same objects from the persistent deck).
+        for (int i = 0; i < g.destroyRandomInHand(); i++) {
+            List<Card> live = state.hand.stream().filter(x -> !x.destroyed).toList();
+            if (live.isEmpty()) break;
+            int pick = (int) (roll("consumable:" + c.key() + ":destroy:" + i) * live.size()) % live.size();
+            live.get(pick).destroyed = true;
+        }
+        if (g.destroyRandomInHand() > 0) {
+            composition.removeIf(x -> x.destroyed);
+            state.hand.removeIf(x -> x.destroyed);
+        }
+        // 2. create consumables / jokers / cards from the spec (server-only, queue-driven).
+        if (g.create() != null) Creation.apply(state, g.create(), state.queues);
+        // 3. add rank-class cards with a fixed or random enhancement.
+        if (g.add() != null) addRankClassCards(c, g.add());
+        // 4. money op.
+        if (g.money() != null) applyMoneyOp(g.money());
+    }
+
+    private void addRankClassCards(Consumable c, Consumable.Generate.AddCards add) {
+        Rank[] pool = switch (add.rankClass()) {
+            case FACE -> new Rank[]{Rank.JACK, Rank.QUEEN, Rank.KING};
+            case ACE -> new Rank[]{Rank.ACE};
+            case NUMBER -> java.util.Arrays.stream(Rank.values()).filter(r -> r.id <= 10).toArray(Rank[]::new);
+            case ANY -> Rank.values();
+        };
+        Suit[] suits = Suit.values();
+        for (int i = 0; i < add.count(); i++) {
+            Rank r = pool[(int) (roll("consumable:" + c.key() + ":rank:" + i) * pool.length) % pool.length];
+            Suit s = suits[(int) (roll("consumable:" + c.key() + ":suit:" + i) * suits.length) % suits.length];
+            Enhancement e = add.enhancement() != null ? add.enhancement()
+                    : RANDOM_ENHANCEMENTS[(int) (roll("consumable:" + c.key() + ":enh:" + i)
+                            * RANDOM_ENHANCEMENTS.length) % RANDOM_ENHANCEMENTS.length];
+            Card made = new Card(r, s, e, Edition.NONE, Seal.NONE);
+            composition.add(made); // persistent deck (drawn next blind)
+            state.hand.add(made);  // and usable now
+        }
+    }
+
+    private void applyMoneyOp(Consumable.Generate.MoneyOp m) {
+        switch (m.kind()) {
+            case FLAT -> state.money = Math.max(0, state.money + m.amount());
+            case SET -> state.money = Math.max(0, m.amount());
+            case DOUBLE_CAP -> state.money += Math.min(state.money, m.amount()); // Hermit: double, gain ≤ cap
+            case SELL_VALUE_CAP -> {
+                int sell = 0;
+                for (Joker j : state.jokers()) {
+                    int bonus = ((Number) state.jokerState(j).getOrDefault("sellBonus", 0)).intValue();
+                    sell += Math.max(1, j.info().cost() / 2) + bonus;
+                }
+                state.money += Math.min(sell, m.amount()); // Temperance: total sell value, capped
+            }
         }
     }
 

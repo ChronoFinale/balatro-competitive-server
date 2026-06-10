@@ -107,6 +107,106 @@ class ConsumableTest {
     }
 
     @Test
+    void emperorCreatesTwoTarotsIntoFreedSlots() {
+        Run run = freshRun();
+        run.state.consumableSlots = 3;
+        run.state.consumables.add("c_emperor");
+        assertThat(run.useConsumable(0)).isNull();
+        // Emperor is consumed; 2 new Tarots take its place (slot freed before creating).
+        assertThat(run.state.consumables).hasSize(2);
+        assertThat(run.state.consumables).allMatch(k ->
+                com.balatromp.engine.consumable.TarotCatalog.get(k).type()
+                        == com.balatromp.engine.consumable.ConsumableType.TAROT);
+    }
+
+    @Test
+    void highPriestessCreatesTwoPlanets() {
+        Run run = freshRun();
+        run.state.consumableSlots = 3;
+        run.state.consumables.add("c_high_priestess");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.consumables).hasSize(2);
+        assertThat(run.state.consumables).allMatch(k ->
+                com.balatromp.engine.game.PlanetCatalog.get(k) != null);
+    }
+
+    @Test
+    void judgementCreatesAJoker() {
+        Run run = freshRun();
+        int before = run.state.jokers().size();
+        run.state.consumables.add("c_judgement");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.jokers()).hasSize(before + 1);
+    }
+
+    @Test
+    void theSoulCreatesALegendaryJoker() {
+        Run run = freshRun();
+        run.state.consumables.add("c_the_soul");
+        assertThat(run.useConsumable(0)).isNull();
+        var made = run.state.jokers().get(run.state.jokers().size() - 1);
+        assertThat(made.info().rarity()).isEqualTo("Legendary");
+    }
+
+    @Test
+    void wraithCreatesARareJokerAndZeroesMoney() {
+        Run run = freshRun();
+        run.state.money = 17;
+        run.state.consumables.add("c_wraith");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.money).isEqualTo(0);
+        var made = run.state.jokers().get(run.state.jokers().size() - 1);
+        assertThat(made.info().rarity()).isEqualTo("Rare");
+    }
+
+    @Test
+    void hermitDoublesMoneyCappedAtTwenty() {
+        Run run = freshRun();
+        run.state.money = 8;
+        run.state.consumables.add("c_hermit");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.money).isEqualTo(16); // +min(8,20)
+        run.state.money = 50;
+        run.state.consumables.add("c_hermit");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.money).isEqualTo(70); // +min(50,20) cap
+    }
+
+    @Test
+    void temperanceGivesTotalJokerSellValueCappedAtFifty() {
+        Run run = new Run(Ruleset.standard(), "TEMP",
+                com.balatromp.engine.TestSupport.heartsKings(50),
+                com.balatromp.engine.TestSupport.jokers("j_joker", "j_joker")); // each cost 2 -> sell 1
+        run.state.money = 0;
+        run.state.consumables.add("c_temperance");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.money).isEqualTo(2); // 1 + 1 sell value, under the $50 cap
+    }
+
+    @Test
+    void immolateDestroysFiveCardsAndGainsTwenty() {
+        Run run = freshRun();
+        int before = run.state.hand.size();
+        run.state.money = 5;
+        run.state.consumables.add("c_immolate");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.hand).hasSize(before - 5);
+        assertThat(run.state.money).isEqualTo(25);
+    }
+
+    @Test
+    void familiarDestroysOneAndAddsThreeEnhancedFaceCards() {
+        Run run = freshRun();
+        int before = run.state.hand.size();
+        run.state.consumables.add("c_familiar");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.hand).hasSize(before - 1 + 3);
+        long enhancedFaces = run.state.hand.stream()
+                .filter(c -> c.rank.isFace() && c.enhancement != Enhancement.NONE).count();
+        assertThat(enhancedFaces).isGreaterThanOrEqualTo(3);
+    }
+
+    @Test
     void tooManyTargetsRejected() {
         Run run = freshRun();
         long[] three = {run.state.hand.get(0).uid, run.state.hand.get(1).uid, run.state.hand.get(2).uid};
