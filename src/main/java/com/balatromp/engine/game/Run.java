@@ -80,7 +80,9 @@ public final class Run {
     public Run(Ruleset ruleset, String seed, Deck deck, List<Joker> jokers) {
         this.ruleset = ruleset;
         this.rng = new RandomStreams(seed);
-        state.money = ruleset.startingMoney();
+        DeckCatalog.DeckType deckType = DeckCatalog.get(ruleset.deckType());
+        state.money = ruleset.startingMoney() + deckType.startMoneyDelta();
+        state.jokerSlots = 5 + deckType.jokerSlotsDelta();
         state.rng = rng;
         state.queues = new com.balatromp.engine.rng.QueueSet(rng);
         for (Joker j : jokers) state.addJoker(j);
@@ -197,6 +199,13 @@ public final class Run {
         return false;
     }
 
+    /** End-of-round interest: Green Deck pays per remaining hand/discard instead of $-interest. */
+    private int roundInterest() {
+        DeckCatalog.DeckType deck = DeckCatalog.get(ruleset.deckType());
+        if (deck.greenEconomy()) return 2 * state.handsLeft + state.discardsLeft;
+        return Math.min(state.interestCap, state.money / 5) + extraInterest();
+    }
+
     /** To the Moon: extra $1 of interest per $5 held at end of round (on top of the capped base). */
     private int extraInterest() {
         boolean toTheMoon = state.jokers().stream().anyMatch(j -> j.key().equals("j_to_the_moon"));
@@ -272,6 +281,10 @@ public final class Run {
         // Vouchers: permanent per-blind hand/discard upgrades.
         if (state.vouchers.contains("v_grabber")) state.handsLeft += 1;
         if (state.vouchers.contains("v_wasteful")) state.discardsLeft += 1;
+        // Deck variant: per-blind hand/discard deltas (Red/Blue/Black).
+        DeckCatalog.DeckType deck = DeckCatalog.get(ruleset.deckType());
+        state.handsLeft += deck.handsDelta();
+        state.discardsLeft += deck.discardsDelta();
         if (noDiscards) state.discardsLeft = 0;
         state.handsLeft = Math.max(1, state.handsLeft);
         state.discardsLeft = Math.max(0, state.discardsLeft);
@@ -347,7 +360,7 @@ public final class Run {
     public void endPvp() {
         if (!pvpActive) return;
         pvpActive = false;
-        int interest = Math.min(state.interestCap, state.money / 5) + extraInterest();
+        int interest = roundInterest();
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
         applyGiftCard();
@@ -359,7 +372,7 @@ public final class Run {
 
     private void winBlind() {
         // Economy: blind reward + interest ($1 per $5 held, capped at $5) + joker/gold payouts.
-        int interest = Math.min(state.interestCap, state.money / 5) + extraInterest();
+        int interest = roundInterest();
         int reward = (boss != null) ? boss.reward() : blind.reward;
         state.money += reward + interest;
         state.roundsPlayedTotal++;
@@ -377,7 +390,7 @@ public final class Run {
         if (index < 0 || index >= shop.items().size()) return "invalid shop slot";
         Shop.Item item = shop.items().get(index);
         if (!canAfford(price(item.cost()))) return "not enough money";
-        if (state.jokers().size() >= Shop.JOKER_SLOT_LIMIT) return "joker slots full";
+        if (state.jokers().size() >= state.jokerSlots) return "joker slots full";
         state.money -= price(item.cost());
         state.addJoker(JokerLibrary.create(item.jokerKey(), ruleset.jokerVariant()));
         shop.items().remove(index);

@@ -53,7 +53,7 @@ public final class Creation {
                 ? JokerLibrary.keysByRarity(spec.rarity()) : JokerLibrary.builtinKeys();
         if (pool.isEmpty()) return;
         for (int i = 0; i < spec.count(); i++) {
-            if (run.jokers().size() >= Shop.JOKER_SLOT_LIMIT) return;
+            if (run.jokers().size() >= run.jokerSlots) return;
             run.addJoker(JokerLibrary.create(pick(pool, queues, "create:joker:" + spec.rarity())));
         }
     }

@@ -28,7 +28,8 @@ public record Ruleset(
         int winAnte,
         int[] blindBaseAmounts,
         List<String> jokerPool,
-        String jokerVariant) {
+        String jokerVariant,
+        String deckType) {
 
     public Ruleset {
         jokerPool = (jokerPool == null || jokerPool.isEmpty())
@@ -37,13 +38,22 @@ public record Ruleset(
         // Which joker behavior-variant this match uses (e.g. "default" single-player vs
         // "multiplayer"); a joker key resolves to its matching variant def if one exists.
         jokerVariant = (jokerVariant == null || jokerVariant.isBlank()) ? "default" : jokerVariant;
+        deckType = (deckType == null || deckType.isBlank()) ? "d_base" : deckType;
     }
 
-    /** A ruleset with the built-in pool and a given joker variant. */
+    /** A ruleset with a joker variant and the base deck. */
+    public Ruleset(String name, int startingMoney, int hands, int discards, int handSize,
+                   double anteScaling, int winAnte, int[] blindBaseAmounts, List<String> jokerPool,
+                   String jokerVariant) {
+        this(name, startingMoney, hands, discards, handSize, anteScaling, winAnte,
+                blindBaseAmounts, jokerPool, jokerVariant, "d_base");
+    }
+
+    /** A ruleset with the built-in pool and the base deck/variant. */
     public Ruleset(String name, int startingMoney, int hands, int discards, int handSize,
                    double anteScaling, int winAnte, int[] blindBaseAmounts, List<String> jokerPool) {
         this(name, startingMoney, hands, discards, handSize, anteScaling, winAnte,
-                blindBaseAmounts, jokerPool, "default");
+                blindBaseAmounts, jokerPool, "default", "d_base");
     }
 
     /** Convenience: a ruleset using the curated built-in joker pool. */

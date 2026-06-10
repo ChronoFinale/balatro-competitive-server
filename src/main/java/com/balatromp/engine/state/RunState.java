@@ -55,6 +55,7 @@ public final class RunState {
     public final List<Card> deckComposition = new ArrayList<>();
     public final List<String> consumables = new ArrayList<>(); // held Planet (etc.) card keys
     public int consumableSlots = 2;
+    public int jokerSlots = 5; // max owned jokers (Black Deck raises it)
     public int interestCap = 5; // max interest per round ($1 per $5); Seed Money raises it
     public final java.util.Set<String> vouchers = new java.util.HashSet<>(); // owned vouchers
     public Deck deck;
