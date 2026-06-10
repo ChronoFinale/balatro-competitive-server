@@ -1,6 +1,7 @@
 package com.balatromp.engine.consumable;
 
 import com.balatromp.engine.card.CardMod;
+import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.card.Enhancement;
 
 /**
@@ -13,7 +14,7 @@ import com.balatromp.engine.card.Enhancement;
 public record Consumable(String key, String name, String description, ConsumableType type,
                          int maxTargets, Effect effect) {
 
-    public sealed interface Effect permits Enhance, Destroy, Create, LevelAllHands {}
+    public sealed interface Effect permits Enhance, Destroy, Create, LevelAllHands, JokerEdition {}
 
     /** Apply a card mutation to each selected target (enhance/convert/seal/edition). */
     public record Enhance(CardMod mod) implements Effect {}
@@ -26,4 +27,14 @@ public record Consumable(String key, String name, String description, Consumable
 
     /** Level up every poker hand by 1 (Black Hole). */
     public record LevelAllHands() implements Effect {}
+
+    /**
+     * Add an edition to a random owned joker. {@code edition == NONE} means "a random
+     * Foil/Holo/Poly" (The Wheel of Fortune). {@code chanceDenominator} gates the whole
+     * effect (Wheel = 4 → 1-in-4; others = 1 → always). {@code handSizeDelta} and
+     * {@code destroyOtherJokers} carry the side effects of Ectoplasm (-1 hand size)
+     * and Hex (destroy all other jokers).
+     */
+    public record JokerEdition(Edition edition, int chanceDenominator,
+                               int handSizeDelta, boolean destroyOtherJokers) implements Effect {}
 }

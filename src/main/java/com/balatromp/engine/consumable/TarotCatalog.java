@@ -66,6 +66,15 @@ public final class TarotCatalog {
                 ConsumableType.SPECTRAL, 1, new Consumable.Enhance(CardMod.setEdition(Edition.POLYCHROME))));
         put(new Consumable("c_black_hole", "Black Hole", "Upgrade every poker hand by 1 level",
                 ConsumableType.SPECTRAL, 0, new Consumable.LevelAllHands()));
+
+        // Joker-edition consumables (build on the joker-edition scoring mechanic).
+        put(new Consumable("c_wheel_of_fortune", "The Wheel of Fortune",
+                "1 in 4 chance to add Foil, Holographic, or Polychrome to a random Joker",
+                ConsumableType.TAROT, 0, new Consumable.JokerEdition(Edition.NONE, 4, 0, false)));
+        put(new Consumable("c_ectoplasm", "Ectoplasm", "Add Negative to a random Joker, -1 hand size",
+                ConsumableType.SPECTRAL, 0, new Consumable.JokerEdition(Edition.NEGATIVE, 1, -1, false)));
+        put(new Consumable("c_hex", "Hex", "Add Polychrome to a random Joker, destroy all other Jokers",
+                ConsumableType.SPECTRAL, 0, new Consumable.JokerEdition(Edition.POLYCHROME, 1, 0, true)));
     }
 
     private static void put(Consumable c) {

@@ -619,7 +619,32 @@ public final class Run {
             case Consumable.LevelAllHands ignored -> {
                 for (HandType t : HandType.values()) state.levelUpHand(t); // Black Hole
             }
+            case Consumable.JokerEdition je -> applyJokerEdition(c, je);
         }
+    }
+
+    /**
+     * Add an edition to a random owned joker (Wheel of Fortune / Ectoplasm / Hex).
+     * Wheel gates on a 1-in-N roll and picks a random Foil/Holo/Poly; Ectoplasm and
+     * Hex always fire and carry their own side effects (hand-size / destroy-others).
+     */
+    private void applyJokerEdition(Consumable c, Consumable.JokerEdition je) {
+        if (state.jokers().isEmpty()) return;
+        if (je.chanceDenominator() > 1 && roll("consumable:" + c.key() + ":gate") >= 1.0 / je.chanceDenominator()) {
+            return; // the roll missed (Wheel of Fortune's 3-in-4 nothing-happens)
+        }
+        int pick = (int) (roll("consumable:" + c.key() + ":joker") * state.jokers().size()) % state.jokers().size();
+        Joker target = state.jokers().get(pick);
+        Edition ed = je.edition();
+        if (ed == Edition.NONE) {
+            Edition[] pool = {Edition.FOIL, Edition.HOLOGRAPHIC, Edition.POLYCHROME};
+            ed = pool[(int) (roll("consumable:" + c.key() + ":ed") * pool.length) % pool.length];
+        }
+        if (je.destroyOtherJokers()) { // Hex: keep only the chosen joker
+            state.jokers().removeIf(j -> j != target);
+        }
+        state.setJokerEdition(target, ed);
+        if (je.handSizeDelta() != 0) state.handSize += je.handSizeDelta(); // Ectoplasm -1
     }
 
     /**

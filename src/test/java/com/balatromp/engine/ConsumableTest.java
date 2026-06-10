@@ -66,6 +66,47 @@ class ConsumableTest {
     }
 
     @Test
+    void ectoplasmAddsNegativeToARandomJokerAndDropsHandSize() {
+        Run run = new Run(Ruleset.standard(), "ECTO",
+                com.balatromp.engine.TestSupport.heartsKings(50),
+                com.balatromp.engine.TestSupport.jokers("j_joker"));
+        int handBefore = run.state.handSize;
+        run.state.consumables.add("c_ectoplasm");
+        assertThat(run.useConsumable(0)).isNull(); // no card targets
+        assertThat(run.state.jokerEdition(run.state.jokers().get(0)))
+                .isEqualTo(com.balatromp.engine.card.Edition.NEGATIVE);
+        assertThat(run.state.jokerSlots).isEqualTo(6); // Negative granted a slot
+        assertThat(run.state.handSize).isEqualTo(handBefore - 1);
+    }
+
+    @Test
+    void hexAddsPolychromeAndDestroysOtherJokers() {
+        Run run = new Run(Ruleset.standard(), "HEX",
+                com.balatromp.engine.TestSupport.heartsKings(50),
+                com.balatromp.engine.TestSupport.jokers("j_joker", "j_greedy_joker", "j_lusty_joker"));
+        run.state.consumables.add("c_hex");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.jokers()).hasSize(1); // only the chosen joker survives
+        assertThat(run.state.jokerEdition(run.state.jokers().get(0)))
+                .isEqualTo(com.balatromp.engine.card.Edition.POLYCHROME);
+    }
+
+    @Test
+    void wheelOfFortuneEitherGrantsAFoilHoloPolyOrDoesNothing() {
+        Run run = new Run(Ruleset.standard(), "WHEEL",
+                com.balatromp.engine.TestSupport.heartsKings(50),
+                com.balatromp.engine.TestSupport.jokers("j_joker"));
+        run.state.consumables.add("c_wheel_of_fortune");
+        assertThat(run.useConsumable(0)).isNull();
+        var ed = run.state.jokerEdition(run.state.jokers().get(0));
+        // 1-in-4: the joker ends up either un-editioned or with one of Foil/Holo/Poly (never Negative).
+        assertThat(ed).isIn(com.balatromp.engine.card.Edition.NONE,
+                com.balatromp.engine.card.Edition.FOIL,
+                com.balatromp.engine.card.Edition.HOLOGRAPHIC,
+                com.balatromp.engine.card.Edition.POLYCHROME);
+    }
+
+    @Test
     void tooManyTargetsRejected() {
         Run run = freshRun();
         long[] three = {run.state.hand.get(0).uid, run.state.hand.get(1).uid, run.state.hand.get(2).uid};
