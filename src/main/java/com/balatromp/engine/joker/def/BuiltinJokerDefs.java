@@ -609,6 +609,19 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
+                new JokerDef("j_perkeo", "Perkeo",
+                        "Creates a copy of a random held consumable when you leave the shop",
+                        "Legendary", 20, 1, 16, null, null, true, List.of(), List.of()),
+                new JokerDef("j_invisible", "Invisible Joker",
+                        "After 2 rounds, sell this to create a copy of a random Joker",
+                        "Rare", 8, 2, 16, null, null, true,
+                        List.of(new Mutation(Trigger.END_OF_ROUND, new Condition.Always(),
+                                "rounds", Mutation.Op.ADD, 1)),
+                        List.of()),
+                new JokerDef("j_luchador", "Luchador", "Sell this to disable the current Boss Blind",
+                        "Uncommon", 5, 3, 16, null, null, true, List.of(), List.of()),
+
                 // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
                 new JokerDef("j_ceremonial", "Ceremonial Dagger",
                         "When a blind is selected, destroys the Joker to the right and gains 2x its sell value as Mult",

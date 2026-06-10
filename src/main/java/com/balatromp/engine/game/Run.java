@@ -69,6 +69,7 @@ public final class Run {
     public int pvpFromAnte = 0;  // Attrition: boss blinds at/after this ante are PvP (0 = never)
     private boolean pvpActive = false;
     private boolean freeRerollUsed = false; // Chaos the Clown: one free reroll per shop visit
+    private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
     private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
     public Run(Ruleset ruleset, String seed) {
@@ -103,6 +104,7 @@ public final class Run {
         state.discardsUsedThisRound = 0;
         state.handsPlayedThisRound = 0;
         state.handTypesThisRound.clear();
+        luchadorDisabledBoss = false; // a fresh blind re-arms the boss (Luchador must be re-sold)
         pvpActive = false;
         boolean pvpBoss = blind == BlindType.BOSS && pvpFromAnte > 0 && ante >= pvpFromAnte;
         if (pvpBoss) {
@@ -171,9 +173,9 @@ public final class Run {
         }
     }
 
-    /** Chicot: the boss blind's special ability (debuffs / hand-discard-size overrides) is disabled. */
+    /** The boss blind's ability is off — Chicot (always) or Luchador (sold this blind). */
     private boolean bossDisabled() {
-        return state.jokers().stream().anyMatch(j -> j.key().equals("j_chicot"));
+        return luchadorDisabledBoss || state.jokers().stream().anyMatch(j -> j.key().equals("j_chicot"));
     }
 
     /** Mr Bones: survive a failed blind (and self-destruct) if at least 25% of the requirement was scored. */
@@ -360,6 +362,18 @@ public final class Run {
         Joker sold = state.jokers().remove(index);
         int bonus = ((Number) state.jokerState(sold).getOrDefault("sellBonus", 0)).intValue();
         state.money += Math.max(1, sold.info().cost() / 2) + bonus; // sell value (+ Egg/Gift bonus)
+        // Invisible Joker: sold after >=2 rounds owned, duplicate a random remaining joker.
+        if (sold.key().equals("j_invisible")
+                && ((Number) state.jokerState(sold).getOrDefault("rounds", 0)).intValue() >= 2
+                && !state.jokers().isEmpty() && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
+            int pick = (int) (roll("invisible:dup") * state.jokers().size()) % state.jokers().size();
+            state.addJoker(JokerLibrary.create(state.jokers().get(pick).key()));
+        }
+        // Luchador: sold during a boss blind, disable that boss's ability for the rest of the blind.
+        if (sold.key().equals("j_luchador") && boss != null) {
+            luchadorDisabledBoss = true;
+            refreshDebuffs();
+        }
         // A card was sold: remaining jokers react (Campfire gains x0.25 each).
         GameEvents.raise(Trigger.SELL_CARD, state, rng, null);
         return null;
@@ -608,9 +622,17 @@ public final class Run {
                 shopPlanets, shopConsumables, consumables, handLevels, deckStats, counters);
     }
 
+    /** Perkeo: leaving the shop, create a (Negative) copy of a random held consumable. */
+    private void applyShopExit() {
+        if (!hasJoker("j_perkeo") || state.consumables.isEmpty()) return;
+        int idx = (int) (roll("perkeo:dup") * state.consumables.size()) % state.consumables.size();
+        state.consumables.add(state.consumables.get(idx)); // Negative copy ignores the slot cap
+    }
+
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */
     public void proceed() {
         if (phase != Phase.SHOP) return;
+        applyShopExit(); // Perkeo duplicates a held consumable on the way out
         switch (blind) {
             case SMALL -> blind = BlindType.BIG;
             case BIG -> blind = BlindType.BOSS;

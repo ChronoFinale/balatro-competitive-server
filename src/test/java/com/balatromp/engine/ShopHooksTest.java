@@ -64,6 +64,26 @@ class ShopHooksTest {
     }
 
     @Test
+    void perkeoDuplicatesAConsumableOnShopExit() {
+        Run run = wonRun("j_perkeo");
+        run.state.consumables.add("c_pluto");
+        int before = run.state.consumables.size();
+        run.proceed(); // leaving the shop -> Perkeo copies a held consumable
+        assertThat(run.state.consumables.size()).isEqualTo(before + 1);
+    }
+
+    @Test
+    void invisibleJokerDuplicatesAJokerWhenSoldAfterTwoRounds() {
+        Run run = wonRun("j_invisible");
+        var inv = run.state.jokers().stream().filter(j -> j.key().equals("j_invisible")).findFirst().get();
+        run.state.jokerState(inv).put("rounds", 2); // pretend two rounds passed
+        int before = run.state.jokers().size();
+        assertThat(run.sellJoker(run.state.jokers().indexOf(inv))).isNull();
+        assertThat(run.state.jokers()).noneMatch(j -> j.key().equals("j_invisible"));
+        assertThat(run.state.jokers()).hasSize(before); // sold one, duplicated one
+    }
+
+    @Test
     void giftCardBoostsEveryJokersSellValue() {
         Run run = wonRun("j_gift_card"); // end of round -> +$1 sell value to every joker
         var plainJoker = run.state.jokers().get(0);
