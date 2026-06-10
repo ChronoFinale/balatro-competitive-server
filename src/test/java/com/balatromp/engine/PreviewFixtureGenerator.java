@@ -204,6 +204,10 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 42. Seltzer within its 10-hand window (acquired at hand 0, now hand 3) -> retrigger all
+        scenario("seltzer", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.handsPlayedTotal = 3, "j_seltzer");
+
         // 41. Obelisk after a 3-hand non-most-played streak -> x(1 + 0.2*3) = x1.6
         scenario("obelisk", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.obeliskStreak = 3, "j_obelisk");

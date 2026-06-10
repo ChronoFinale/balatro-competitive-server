@@ -72,6 +72,10 @@ public final class RunState {
 
     public void addJoker(Joker j) {
         jokers.add(j);
+        // Stamp when this joker was acquired (for "since acquired" jokers: Turtle Bean, Seltzer).
+        var st = jokerState(j);
+        st.putIfAbsent("acqHands", handsPlayedTotal);
+        st.putIfAbsent("acqRounds", roundsPlayedTotal);
     }
 
     public int handLevel(HandType t) {

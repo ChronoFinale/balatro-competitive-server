@@ -247,6 +247,12 @@ public final class Run {
             state.handSize += m.handSizeDelta();
             if (m.noDiscards()) noDiscards = true;
         }
+        // Turtle Bean: +5 hand size, decaying by 1 each round since it was acquired (floors at 0).
+        for (Joker j : state.jokers()) {
+            if (!j.key().equals("j_turtle_bean")) continue;
+            int acq = ((Number) state.jokerState(j).getOrDefault("acqRounds", 0)).intValue();
+            state.handSize += Math.max(0, 5 - (state.roundsPlayedTotal - acq));
+        }
         if (noDiscards) state.discardsLeft = 0;
         state.handsLeft = Math.max(1, state.handsLeft);
         state.discardsLeft = Math.max(0, state.discardsLeft);

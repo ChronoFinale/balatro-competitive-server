@@ -609,6 +609,16 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 37: "since acquired" jokers via acquire-stamp (Turtle Bean, Seltzer) ---
+                new JokerDef("j_turtle_bean", "Turtle Bean",
+                        "+5 hand size, which decreases by 1 each round (handled in Run.applyJokerRunMods)",
+                        "Uncommon", 6, 7, 16, null, null, true, List.of(), List.of()),
+                new JokerDef("j_seltzer", "Seltzer",
+                        "Retrigger all played cards for the first 10 hands after it is acquired",
+                        "Uncommon", 6, 8, 16, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.HandsSinceAcquire(10),
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+
                 // --- batch 36: Obelisk (consecutive non-most-played streak; shipped, preview-accurate) ---
                 new JokerDef("j_obelisk", "Obelisk",
                         "x0.2 Mult per consecutive hand played that is not your most-played hand",

@@ -192,6 +192,10 @@
         const n = runVarValue(cond.which, ctx.run);
         return ((n % cond.mod) + cond.mod) % cond.mod === cond.remainder;
       }
+      case 'handsSinceAcquire': {
+        const total = runVarValue('HANDS_PLAYED_TOTAL', ctx.run);
+        return total - (ctx.state.acqHands || 0) < cond.max;
+      }
       default: return null;
     }
   }

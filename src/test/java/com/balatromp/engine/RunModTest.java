@@ -82,6 +82,13 @@ class RunModTest {
     }
 
     @Test
+    void turtleBeanAddsFiveHandSizeWhenFreshlyAcquired() {
+        // Acquired at run start (round 0), so the +5 hasn't decayed yet.
+        Run run = new Run(std, "TB", stoneDeck(400), jokers("j_turtle_bean"));
+        assertThat(run.state.handSize).isEqualTo(std.handSize() + 5);
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());
