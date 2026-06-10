@@ -30,7 +30,9 @@ class BuiltinJokersTest {
             "j_zany", "j_mad", "j_crazy", "j_droll",
             "j_wily", "j_clever", "j_devious", "j_crafty", "j_scholar",
             "j_smiley", "j_walkie_talkie", "j_fibonacci", "j_shoot_the_moon",
-            "j_baron", "j_runner", "j_wee");
+            "j_baron", "j_runner", "j_wee",
+            "j_duo", "j_trio", "j_family", "j_order", "j_tribe",
+            "j_arrowhead", "j_onyx_agate", "j_sock_and_buskin", "j_flash", "j_trousers");
 
     private ScoreResult score(List<Card> played, Consumer<RunState> cfg, String... jokerKeys) {
         RunState run = new RunState();
@@ -164,6 +166,42 @@ class BuiltinJokersTest {
                 c(Rank.SEVEN, Suit.CLUBS), c(Rank.EIGHT, Suit.DIAMONDS), c(Rank.NINE, Suit.SPADES));
         assertThat(score(straight, DEFAULTS, "j_runner").chips() - score(straight, DEFAULTS).chips())
                 .isEqualTo(15); // gains +15 and applies it this hand
+    }
+
+    @Test
+    void xMultContainsFamily() {
+        // The Duo: x2 Mult if hand contains a Pair.
+        List<Card> pair = List.of(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        assertThat(score(pair, DEFAULTS, "j_duo").mult()).isEqualTo(score(pair, DEFAULTS).mult() * 2);
+
+        // The Family: x4 if hand contains a Four of a Kind.
+        List<Card> quads = List.of(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
+                c(Rank.KING, Suit.CLUBS), c(Rank.KING, Suit.DIAMONDS), c(Rank.TWO, Suit.SPADES));
+        assertThat(score(quads, DEFAULTS, "j_family").mult()).isEqualTo(score(quads, DEFAULTS).mult() * 4);
+        // ...and The Duo does NOT fire on Four of a Kind (no Pair part)
+        assertThat(score(quads, DEFAULTS, "j_duo").mult()).isEqualTo(score(quads, DEFAULTS).mult());
+    }
+
+    @Test
+    void gemSuitJokers() {
+        List<Card> spadeHand = List.of(c(Rank.TWO, Suit.SPADES), c(Rank.FOUR, Suit.SPADES),
+                c(Rank.SIX, Suit.SPADES), c(Rank.EIGHT, Suit.SPADES), c(Rank.TEN, Suit.SPADES));
+        assertThat(score(spadeHand, DEFAULTS, "j_arrowhead").chips() - score(spadeHand, DEFAULTS).chips())
+                .isEqualTo(250); // 5 Spades × +50
+        List<Card> clubHand = List.of(c(Rank.TWO, Suit.CLUBS), c(Rank.FOUR, Suit.CLUBS),
+                c(Rank.SIX, Suit.CLUBS), c(Rank.EIGHT, Suit.CLUBS), c(Rank.TEN, Suit.CLUBS));
+        assertThat(score(clubHand, DEFAULTS, "j_onyx_agate").mult() - score(clubHand, DEFAULTS).mult())
+                .isEqualTo(35.0); // 5 Clubs × +7
+    }
+
+    @Test
+    void sockAndBuskinRetriggersFaces() {
+        // Pair of Kings: Sock & Buskin retriggers each face once -> each King's chips count twice.
+        List<Card> kings = List.of(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        long delta = score(kings, DEFAULTS, "j_sock_and_buskin").chips() - score(kings, DEFAULTS).chips();
+        assertThat(delta).isEqualTo(20); // two Kings re-scored × 10 base chips
     }
 
     @Test

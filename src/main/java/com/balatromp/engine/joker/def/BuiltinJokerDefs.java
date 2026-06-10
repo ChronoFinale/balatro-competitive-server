@@ -55,6 +55,23 @@ public final class BuiltinJokerDefs {
                         new EffectTemplate(Op.CHIPS, new Value.Const(chips)))));
     }
 
+    /** "xN Mult if the played hand contains [type]" (The Duo/Trio/Family/Order/Tribe). Rare, $8. */
+    private static JokerDef typeXMult(String key, String name, HandType part, double xmult, int ax, int ay) {
+        return new JokerDef(key, name, "x" + xmult + " Mult if the played hand contains a " + part.display,
+                "Rare", 8, ax, ay, null, null, true, List.of(),
+                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandContains(part),
+                        new EffectTemplate(Op.XMULT, new Value.Const(xmult)))));
+    }
+
+    /** "Each played [suit] gives +N Chips/Mult" gem joker (Arrowhead/Onyx Agate). Uncommon, $7. */
+    private static JokerDef gem(String key, String name, Suit suit, Op op, int amount, int ax, int ay) {
+        String unit = op == Op.CHIPS ? " Chips" : " Mult";
+        return new JokerDef(key, name, "Each played " + suitName(suit) + " gives +" + amount + unit,
+                "Uncommon", 7, ax, ay, null, null, true, List.of(),
+                List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredSuit(suit),
+                        new EffectTemplate(op, new Value.Const(amount)))));
+    }
+
     public static List<JokerDef> all() {
         return List.of(
                 // --- suit-mult family (Greedy is hand-coded; here are the other three) ---
@@ -172,6 +189,39 @@ public final class BuiltinJokerDefs {
                         List.of(new Mutation(Trigger.ON_SCORED, new Condition.ScoredRankBetween(2, 2),
                                 "chips", Mutation.Op.ADD, 8)),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("chips", 1),
-                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))));
+                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
+
+                // --- xMult "contains" family (The Duo / Trio / Family / Order / Tribe) ---
+                typeXMult("j_duo", "The Duo", HandType.PAIR, 2, 5, 4),
+                typeXMult("j_trio", "The Trio", HandType.THREE_OF_A_KIND, 3, 6, 4),
+                typeXMult("j_family", "The Family", HandType.FOUR_OF_A_KIND, 4, 7, 4),
+                typeXMult("j_order", "The Order", HandType.STRAIGHT, 3, 8, 4),
+                typeXMult("j_tribe", "The Tribe", HandType.FLUSH, 2, 9, 4),
+
+                // --- gem suit jokers ---
+                gem("j_arrowhead", "Arrowhead", Suit.SPADES, Op.CHIPS, 50, 1, 8),
+                gem("j_onyx_agate", "Onyx Agate", Suit.CLUBS, Op.MULT, 7, 2, 8),
+
+                // --- retrigger: played face cards trigger again ---
+                new JokerDef("j_sock_and_buskin", "Sock and Buskin", "Retrigger all played face cards",
+                        "Uncommon", 6, 3, 1, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredIsFace(),
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+
+                // --- stateful: gains +2 Mult per shop reroll ---
+                new JokerDef("j_flash", "Flash Card", "Gains +2 Mult per shop reroll",
+                        "Uncommon", 5, 0, 15, null, null, true,
+                        List.of(new Mutation(Trigger.REROLL_SHOP, new Condition.Always(),
+                                "mult", Mutation.Op.ADD, 2)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
+                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
+
+                // --- stateful: gains +2 Mult whenever the played hand contains a Two Pair ---
+                new JokerDef("j_trousers", "Spare Trousers", "Gains +2 Mult if the played hand contains a Two Pair",
+                        "Uncommon", 6, 4, 15, null, null, true,
+                        List.of(new Mutation(Trigger.BEFORE, new Condition.HandContains(HandType.TWO_PAIR),
+                                "mult", Mutation.Op.ADD, 2)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
+                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))));
     }
 }
