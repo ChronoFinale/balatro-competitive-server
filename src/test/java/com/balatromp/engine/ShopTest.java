@@ -43,6 +43,36 @@ class ShopTest {
     }
 
     @Test
+    void editionRollHitsBaseRateBoundaries() {
+        // Base cumulative bands: Foil [0,2%), Holo [2%,3.4%), Poly [3.4%,3.7%), Negative [3.7%,4%).
+        assertThat(com.balatromp.engine.game.Shop.rollEdition(0.01, 1, 1)).isEqualTo(com.balatromp.engine.card.Edition.FOIL);
+        assertThat(com.balatromp.engine.game.Shop.rollEdition(0.025, 1, 1)).isEqualTo(com.balatromp.engine.card.Edition.HOLOGRAPHIC);
+        assertThat(com.balatromp.engine.game.Shop.rollEdition(0.035, 1, 1)).isEqualTo(com.balatromp.engine.card.Edition.POLYCHROME);
+        assertThat(com.balatromp.engine.game.Shop.rollEdition(0.038, 1, 1)).isEqualTo(com.balatromp.engine.card.Edition.NEGATIVE);
+        assertThat(com.balatromp.engine.game.Shop.rollEdition(0.5, 1, 1)).isEqualTo(com.balatromp.engine.card.Edition.NONE);
+        // Hone (2× foil/holo) widens the Foil band so 0.03 now lands Foil instead of Holo.
+        assertThat(com.balatromp.engine.game.Shop.rollEdition(0.03, 2, 3)).isEqualTo(com.balatromp.engine.card.Edition.FOIL);
+    }
+
+    @Test
+    void buyingANegativeJokerGrantsItsOwnSlotEvenWhenFull() {
+        Run run = winToShop();
+        // Stamp the first shop item Negative and fill the joker slots.
+        var first = run.shop.items().get(0);
+        run.shop.items().set(0, new com.balatromp.engine.game.Shop.Item(first.info(),
+                com.balatromp.engine.card.Edition.NEGATIVE));
+        run.state.jokerSlots = run.state.jokers().size(); // slots are full
+        run.state.money = 999;
+        int slotsBefore = run.state.jokerSlots;
+        int countBefore = run.state.jokers().size();
+        assertThat(run.buyJoker(0)).isNull(); // Negative bypasses the slots-full check
+        assertThat(run.state.jokers()).hasSize(countBefore + 1);
+        assertThat(run.state.jokerSlots).isEqualTo(slotsBefore + 1); // it brought its own slot
+        var bought = run.state.jokers().get(run.state.jokers().size() - 1);
+        assertThat(run.state.jokerEdition(bought)).isEqualTo(com.balatromp.engine.card.Edition.NEGATIVE);
+    }
+
+    @Test
     void unaffordableActionsRejectCleanlyWithoutSpending() {
         Run run = winToShop();
         run.state.money = 0;

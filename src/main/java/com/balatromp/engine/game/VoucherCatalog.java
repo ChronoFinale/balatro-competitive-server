@@ -27,6 +27,8 @@ public final class VoucherCatalog {
         put(new Voucher("v_seed_money", "Seed Money", "Raise the interest cap to $10 per round", 10));
         put(new Voucher("v_overstock", "Overstock", "+1 card slot in the shop", 10));
         put(new Voucher("v_clearance_sale", "Clearance Sale", "All shop cards are 25% cheaper", 10));
+        put(new Voucher("v_hone", "Hone", "Foil, Holographic, and Polychrome Jokers appear 2x more often", 10));
+        put(new Voucher("v_glow_up", "Glow Up", "Foil, Holographic, and Polychrome Jokers appear 4x more often", 10));
     }
 
     private static void put(Voucher v) {

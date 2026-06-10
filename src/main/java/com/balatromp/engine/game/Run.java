@@ -231,7 +231,12 @@ public final class Run {
         // the shop queue skips over them.
         if ("multiplayer".equals(ruleset.jokerVariant())) owned.addAll(MP_DISABLED);
         int slots = state.vouchers.contains("v_overstock") ? 3 : 2; // Overstock: +1 shop slot
-        return Shop.generate(state.queues, slots, ruleset.jokerPool(), owned, hasJoker("j_showman"));
+        // Hone (Foil/Holo 2×, Poly 3×) and its upgrade Glow Up (4× / 7×) raise edition odds.
+        double editionMult = 1.0, polyMult = 1.0;
+        if (state.vouchers.contains("v_glow_up")) { editionMult = 4.0; polyMult = 7.0; }
+        else if (state.vouchers.contains("v_hone")) { editionMult = 2.0; polyMult = 3.0; }
+        return Shop.generate(state.queues, slots, ruleset.jokerPool(), owned,
+                hasJoker("j_showman"), editionMult, polyMult);
     }
 
     /** Penny Pincher (Nemesis): on entering the shop, gain $1 per $3 your Nemesis spent last ante. */
@@ -443,9 +448,15 @@ public final class Run {
         if (index < 0 || index >= shop.items().size()) return "invalid shop slot";
         Shop.Item item = shop.items().get(index);
         if (!canAfford(price(item.cost()))) return "not enough money";
-        if (state.jokers().size() >= state.jokerSlots) return "joker slots full";
+        // A Negative joker grants its own slot, so it never fails the slots-full check.
+        boolean negative = item.edition() == com.balatromp.engine.card.Edition.NEGATIVE;
+        if (!negative && state.jokers().size() >= state.jokerSlots) return "joker slots full";
         spend(price(item.cost()));
-        state.addJoker(JokerLibrary.create(item.jokerKey(), ruleset.jokerVariant()));
+        Joker bought = JokerLibrary.create(item.jokerKey(), ruleset.jokerVariant());
+        state.addJoker(bought);
+        if (item.edition() != com.balatromp.engine.card.Edition.NONE) {
+            state.setJokerEdition(bought, item.edition());
+        }
         shop.items().remove(index);
         return null;
     }
@@ -676,7 +687,7 @@ public final class Run {
                 var info = it.info();
                 shopView.add(Map.of("key", info.key(), "name", info.name(), "cost", info.cost(),
                         "description", info.description(), "rarity", info.rarity(),
-                        "x", info.atlasX(), "y", info.atlasY()));
+                        "x", info.atlasX(), "y", info.atlasY(), "edition", it.edition().name()));
             }
             rerollCost = Shop.REROLL_COST;
         }

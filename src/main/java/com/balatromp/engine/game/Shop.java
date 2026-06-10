@@ -1,5 +1,6 @@
 package com.balatromp.engine.game;
 
+import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.consumable.Consumable;
 import com.balatromp.engine.consumable.TarotCatalog;
 import com.balatromp.engine.joker.JokerInfo;
@@ -28,11 +29,27 @@ public final class Shop {
     public static final int JOKER_SLOT_LIMIT = 5;
     public static final int CONSUMABLE_COST = 3;
 
-    /** A shop offering carries the joker's full display/shop metadata. */
-    public record Item(JokerInfo info) {
+    /** A shop offering carries the joker's full display/shop metadata + any rolled edition. */
+    public record Item(JokerInfo info, Edition edition) {
+        public Item(JokerInfo info) { this(info, Edition.NONE); }
         public String jokerKey() { return info.key(); }
         public String name() { return info.name(); }
         public int cost() { return info.cost(); }
+    }
+
+    /**
+     * Roll a shop joker's edition from a uniform draw, using the base appearance
+     * rates (Foil 2%, Holo 1.4%, Poly 0.3%, Negative 0.3%). {@code mult} scales
+     * Foil/Holo (Hone 2×, Glow Up 4×) and {@code polyMult} scales Poly (3×/7×);
+     * Negative is never voucher-scaled.
+     */
+    public static Edition rollEdition(double roll, double mult, double polyMult) {
+        double foil = 0.02 * mult, holo = 0.014 * mult, poly = 0.003 * polyMult, neg = 0.003;
+        if (roll < foil) return Edition.FOIL;
+        if (roll < foil + holo) return Edition.HOLOGRAPHIC;
+        if (roll < foil + holo + poly) return Edition.POLYCHROME;
+        if (roll < foil + holo + poly + neg) return Edition.NEGATIVE;
+        return Edition.NONE;
     }
 
     private final List<Item> items;
@@ -87,8 +104,21 @@ public final class Shop {
      */
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman) {
+        return generate(queues, slots, pool, owned, showman, 1.0, 1.0);
+    }
+
+    /**
+     * As above, but with edition-appearance multipliers (Hone/Glow Up vouchers).
+     * {@code editionMult} scales Foil/Holo, {@code polyMult} scales Polychrome.
+     */
+    public static Shop generate(QueueSet queues, int slots, List<String> pool,
+            Set<String> owned, boolean showman, double editionMult, double polyMult) {
         List<String> jokerKeys = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
         GameQueue<String> jokerQ = queues.queue("jokers", r -> jokerKeys.get(r.nextInt(jokerKeys.size())));
+        // Each shop joker draws one edition roll from its own game-long queue (so both
+        // players on a seed see the same editions, and a reroll continues the sequence).
+        GameQueue<Edition> editionQ = queues.queue("joker_edition",
+                r -> rollEdition(r.nextDouble(), editionMult, polyMult));
         List<Item> items = new ArrayList<>();
         Set<String> offered = new HashSet<>();
         for (int i = 0; i < slots; i++) {
@@ -100,7 +130,7 @@ public final class Shop {
                     ? jokerQ.nextWhere(k -> !owned.contains(k) && !offered.contains(k))
                     : jokerQ.next();
             offered.add(key);
-            items.add(new Item(JokerLibrary.create(key).info()));
+            items.add(new Item(JokerLibrary.create(key).info(), editionQ.next()));
         }
         List<String> planetKeys = PlanetCatalog.keys();
         GameQueue<String> planetQ = queues.queue("planets", r -> planetKeys.get(r.nextInt(planetKeys.size())));
