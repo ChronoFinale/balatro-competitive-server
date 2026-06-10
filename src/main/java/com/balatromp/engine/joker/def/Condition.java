@@ -28,6 +28,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoredIsFace.class, name = "scoredIsFace"),
     @JsonSubTypes.Type(value = Condition.ScoredRankBetween.class, name = "scoredRankBetween"),
     @JsonSubTypes.Type(value = Condition.ScoredFirst.class, name = "scoredFirst"),
+    @JsonSubTypes.Type(value = Condition.ScoredAmongFirst.class, name = "scoredAmongFirst"),
     @JsonSubTypes.Type(value = Condition.ScoredEnhancement.class, name = "scoredEnhancement"),
     @JsonSubTypes.Type(value = Condition.ScoredEdition.class, name = "scoredEdition"),
     @JsonSubTypes.Type(value = Condition.ScoredSeal.class, name = "scoredSeal"),
@@ -216,6 +217,15 @@ public sealed interface Condition {
                 if (isFace(ctx, c)) return true;
             }
             return false;
+        }
+    }
+
+    /** The scoring card is among the first {@code n} cards in scoring order (multiplayer Hanging Chad). */
+    record ScoredAmongFirst(int n) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            if (ctx.scoredCard == null || ctx.scoringCards == null) return false;
+            int idx = ctx.scoringCards.indexOf(ctx.scoredCard);
+            return idx >= 0 && idx < n;
         }
     }
 

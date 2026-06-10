@@ -145,6 +145,7 @@
       case 'scoredIsFace': return faceOf(c, ctx);
       case 'scoredRankBetween': return !!c && !isStone(c) && id(c) >= cond.min && id(c) <= cond.max;
       case 'scoredFirst': return !!c && ctx.scoring.length > 0 && ctx.scoring[0] === c;
+      case 'scoredAmongFirst': { const i = c ? ctx.scoring.indexOf(c) : -1; return i >= 0 && i < cond.n; }
       case 'scoredEnhancement': return !!c && c.enhancement === cond.enhancement;
       case 'scoredEdition': return !!c && c.edition === cond.edition;
       case 'scoredSeal': return !!c && c.seal === cond.seal;

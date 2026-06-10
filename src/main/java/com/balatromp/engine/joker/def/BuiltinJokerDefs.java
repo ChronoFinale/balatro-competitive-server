@@ -32,11 +32,24 @@ public final class BuiltinJokerDefs {
      */
     public static java.util.Map<String, List<JokerDef>> variants() {
         return java.util.Map.of("multiplayer", List.of(
+                // MP Hanging Chad: retrigger the first AND second scored card 1 additional time each.
                 new JokerDef("j_hanging_chad", "Hanging Chad",
-                        "Retrigger the first played card 1 additional time (multiplayer)",
+                        "Retrigger the first and second played cards 1 additional time each (multiplayer)",
                         "Common", 4, 1, 5, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredFirst(),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1)))))));
+                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredAmongFirst(2),
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+                // MP Seltzer: retrigger window is 8 hands (vanilla 10).
+                new JokerDef("j_seltzer", "Seltzer",
+                        "Retrigger all played cards for the first 8 hands after it is acquired (multiplayer)",
+                        "Uncommon", 6, 8, 16, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.HandsSinceAcquire(8),
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+                // MP Golden Ticket: $3 per scored Gold card (vanilla $4), Uncommon.
+                new JokerDef("j_golden_ticket", "Golden Ticket",
+                        "Played Gold cards give $3 when scored (multiplayer)",
+                        "Uncommon", 5, 6, 7, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.GOLD),
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(3)))))));
     }
 
     /** Suit → +3 Mult per played card of that suit (Greedy/Lusty/Wrathful/Gluttonous family). */

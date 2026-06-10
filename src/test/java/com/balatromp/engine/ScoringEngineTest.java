@@ -5,12 +5,18 @@ import static com.balatromp.engine.TestSupport.jokers;
 import static com.balatromp.engine.TestSupport.poly;
 import static com.balatromp.engine.TestSupport.score;
 import static com.balatromp.engine.card.Rank.ACE;
+import static com.balatromp.engine.card.Rank.EIGHT;
+import static com.balatromp.engine.card.Rank.FIVE;
 import static com.balatromp.engine.card.Rank.JACK;
 import static com.balatromp.engine.card.Rank.KING;
 import static com.balatromp.engine.card.Rank.NINE;
 import static com.balatromp.engine.card.Rank.QUEEN;
+import static com.balatromp.engine.card.Rank.SEVEN;
+import static com.balatromp.engine.card.Rank.SIX;
 import static com.balatromp.engine.card.Rank.TEN;
 import static com.balatromp.engine.card.Rank.THREE;
+import static com.balatromp.engine.card.Suit.CLUBS;
+import static com.balatromp.engine.card.Suit.DIAMONDS;
 import static com.balatromp.engine.card.Suit.HEARTS;
 import static com.balatromp.engine.card.Suit.SPADES;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -145,15 +151,18 @@ class ScoringEngineTest {
 
     @Test
     void hangingChadHasASinglePlayerAndMultiplayerVariant() {
-        List<Card> hand = List.of(c(KING, HEARTS), c(KING, SPADES));
+        // A straight (5,6,7,8,9) distinguishes the variants: SP triggers the first card 3x,
+        // MP triggers the first AND second 2x each -- same total retriggers, different cards.
+        List<Card> hand = List.of(c(FIVE, HEARTS), c(SIX, SPADES), c(SEVEN, CLUBS),
+                c(EIGHT, DIAMONDS), c(NINE, HEARTS));
         RunState sp = new RunState();
         sp.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_hanging_chad", "default"));
         RunState mp = new RunState();
         mp.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_hanging_chad", "multiplayer"));
         double spScore = new ScoringEngine().score(hand, List.of(), sp, new RandomStreams("V")).score();
         double mpScore = new ScoringEngine().score(hand, List.of(), mp, new RandomStreams("V")).score();
-        assertThat(spScore).as("single-player: first card 3x").isEqualTo(100.0);
-        assertThat(mpScore).as("multiplayer: first card 2x").isEqualTo(80.0);
+        assertThat(spScore).as("SP: first card 3x -> 75 chips x4").isEqualTo(300.0);
+        assertThat(mpScore).as("MP: first + second card 2x -> 76 chips x4").isEqualTo(304.0);
     }
 
     @Test
