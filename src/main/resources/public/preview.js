@@ -211,6 +211,10 @@
         const r = ctx.run, map = { MONEY: r.money, HANDS_LEFT: r.handsLeft, DISCARDS_LEFT: r.discardsLeft, HAND_SIZE: r.handSize, ANTE: r.ante };
         return v.base + v.scale * (map[v.which] || 0);
       }
+      case 'runVarStep': {
+        const r = ctx.run, map = { MONEY: r.money, HANDS_LEFT: r.handsLeft, DISCARDS_LEFT: r.discardsLeft, HAND_SIZE: r.handSize, ANTE: r.ante };
+        return v.per === 0 ? v.base : v.base + v.scale * Math.floor((map[v.which] || 0) / v.per);
+      }
       case 'count': {
         const src = v.source === 'PLAYED' ? ctx.played : v.source === 'HELD' ? ctx.held : ctx.scoring;
         let n = 0;
@@ -231,6 +235,7 @@
       case 'DECK_ENH_COUNT': return (d.enhancements || {})[v.enhancement] || 0;
       case 'OWNED_JOKERS': return ctx.run.jokerCount;
       case 'EMPTY_JOKER_SLOTS': return Math.max(0, 5 - ctx.run.jokerCount);
+      case 'CARDS_BELOW_FULL': return Math.max(0, 52 - (d.size || 0));
       default: return 0;
     }
   }

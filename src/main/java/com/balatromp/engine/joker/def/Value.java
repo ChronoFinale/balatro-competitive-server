@@ -22,6 +22,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.State.class, name = "state"),
     @JsonSubTypes.Type(value = Value.Count.class, name = "count"),
     @JsonSubTypes.Type(value = Value.RunVar.class, name = "runVar"),
+    @JsonSubTypes.Type(value = Value.RunVarStep.class, name = "runVarStep"),
     @JsonSubTypes.Type(value = Value.Stat.class, name = "stat"),
     @JsonSubTypes.Type(value = Value.Random.class, name = "random"),
 })
@@ -92,6 +93,24 @@ public sealed interface Value {
     }
 
     /**
+     * {@code base + scale * floor(runVar / per)} — stepwise scaling (Bootstraps:
+     * +2 Mult per $5 → base 0, scale 2, per 5 over MONEY).
+     */
+    record RunVarStep(Var which, double base, double scale, double per) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            if (ctx.run == null || per == 0) return base;
+            double v = switch (which) {
+                case MONEY -> ctx.run.money;
+                case HANDS_LEFT -> ctx.run.handsLeft;
+                case DISCARDS_LEFT -> ctx.run.discardsLeft;
+                case HAND_SIZE -> ctx.run.handSize;
+                case ANTE -> ctx.run.ante;
+            };
+            return base + scale * Math.floor(v / per);
+        }
+    }
+
+    /**
      * A uniform random integer magnitude in {@code [min, max]} (Misprint 0..23),
      * popped from a game-long queue keyed by {@code seedKey} so both players roll
      * the same sequence.
@@ -104,7 +123,11 @@ public sealed interface Value {
     }
 
     /** Which deck/run aggregate a {@link Stat} reads. */
-    enum Which { DECK_SIZE, DECK_REMAINING, ENHANCED_CARD_COUNT, DECK_ENH_COUNT, OWNED_JOKERS, EMPTY_JOKER_SLOTS }
+    enum Which { DECK_SIZE, DECK_REMAINING, ENHANCED_CARD_COUNT, DECK_ENH_COUNT, OWNED_JOKERS,
+        EMPTY_JOKER_SLOTS, CARDS_BELOW_FULL }
+
+    /** A standard full deck size — Erosion's reference point. */
+    int FULL_DECK = 52;
 
     /**
      * {@code base + scale * (deck/run aggregate)} — Blue (deck remaining), Abstract
@@ -124,6 +147,7 @@ public sealed interface Value {
                         .filter(c -> c.enhancement == enhancement).count();
                 case OWNED_JOKERS -> ctx.run.jokers().size();
                 case EMPTY_JOKER_SLOTS -> Math.max(0, 5 - ctx.run.jokers().size());
+                case CARDS_BELOW_FULL -> Math.max(0, FULL_DECK - ctx.run.deckComposition.size());
             };
             return base + scale * n;
         }

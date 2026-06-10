@@ -417,6 +417,18 @@ public final class BuiltinJokerDefs {
                         List.of(new Mutation(Trigger.USE_CONSUMABLE, new Condition.ConsumableType("Tarot"),
                                 "tarots", Mutation.Op.ADD, 1)),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("tarots", 1),
-                                new EffectTemplate(Op.MULT, new Value.State("tarots", 0, 1))))));
+                                new EffectTemplate(Op.MULT, new Value.State("tarots", 0, 1))))),
+
+                // --- batch 5: stepwise / deck-size scaling values ---
+                new JokerDef("j_bootstraps", "Bootstraps", "+2 Mult for every $5 you have",
+                        "Uncommon", 6, 9, 8, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.RunVarStep(Value.Var.MONEY, 0, 2, 5))))),
+                new JokerDef("j_erosion", "Erosion",
+                        "+4 Mult for each card below 52 in your full deck",
+                        "Uncommon", 6, 7, 8, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT,
+                                        new Value.Stat(Value.Which.CARDS_BELOW_FULL, 0, 4, null))))));
     }
 }

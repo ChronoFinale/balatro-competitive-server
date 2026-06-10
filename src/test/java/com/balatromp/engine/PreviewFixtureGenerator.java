@@ -173,6 +173,16 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), run -> run.jokerState(run.jokers().get(0)).put("m", 3), "j_green_joker");
 
+        // 26. Bootstraps: +2 Mult per $5 (money=25 -> +10)
+        scenario("bootstraps", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.money = 25, "j_bootstraps");
+
+        // 27. Erosion: +4 Mult per card below 52 (deck of 50 -> +8)
+        scenario("erosion", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> {
+                    for (int i = 0; i < 50; i++) run.deckComposition.add(c(Rank.TWO, Suit.CLUBS));
+                }, "j_erosion");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
