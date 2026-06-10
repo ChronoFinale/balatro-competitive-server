@@ -80,6 +80,33 @@ class CreationJokerTest {
         assertThat(run.consumables).as("preview is a dry-run").isEmpty();
     }
 
+    @Test
+    void marbleAddsAStoneCardToTheDeck() {
+        RunState run = run("j_marble", 4);
+        int before = run.deckComposition.size();
+        com.balatromp.engine.game.GameEvents.raise(
+                com.balatromp.engine.joker.Trigger.BLIND_SELECTED, run, run.rng, null);
+        assertThat(run.deckComposition).hasSize(before + 1);
+        assertThat(run.deckComposition.get(before).isStone()).isTrue();
+    }
+
+    @Test
+    void riffRaffCreatesTwoCommonJokers() {
+        RunState run = run("j_riff_raff", 4); // 1 joker to start
+        com.balatromp.engine.game.GameEvents.raise(
+                com.balatromp.engine.joker.Trigger.BLIND_SELECTED, run, run.rng, null);
+        assertThat(run.jokers()).hasSize(3); // +2 common
+    }
+
+    @Test
+    void sixthSenseDestroysASingleSixAndCreatesASpectral() {
+        RunState run = run("j_sixth_sense", 4);
+        com.balatromp.engine.card.Card six = c(SIX, HEARTS);
+        new ScoringEngine().score(List.of(six), List.of(), run, run.rng);
+        assertThat(six.destroyed).as("the played 6 is destroyed").isTrue();
+        assertThat(run.consumables).as("a Spectral is created").hasSize(1);
+    }
+
     private static RunState run(String jokerKey, int money) {
         RunState run = new RunState();
         run.money = money;

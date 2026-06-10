@@ -16,7 +16,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod, CreateSpec create) {
 
-    public enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD, CREATE }
+    public enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD,
+        CREATE, DESTROY_SCORED }
+
+    /** A pure destroy effect (destroys the scoring card; no numeric contribution). */
+    public static EffectTemplate destroyScored() {
+        return new EffectTemplate(Op.DESTROY_SCORED, null, null, null, null);
+    }
 
     // Explicit canonical creator so the convenience constructors don't confuse Jackson.
     @JsonCreator
@@ -63,7 +69,8 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
      * applied in order by the scoring engine.
      */
     public JokerEffect apply(EvaluationContext ctx) {
-        JokerEffect head = (op == Op.MUTATE_CARD || op == Op.CREATE) ? null : build(value.resolve(ctx));
+        boolean nonNumeric = op == Op.MUTATE_CARD || op == Op.CREATE || op == Op.DESTROY_SCORED;
+        JokerEffect head = nonNumeric ? null : build(value.resolve(ctx));
         if (cardMod != null) {
             if (head == null) head = new JokerEffect();
             head.cardMod = cardMod;
@@ -71,6 +78,10 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
         if (create != null) {
             if (head == null) head = new JokerEffect();
             head.create = create;
+        }
+        if (op == Op.DESTROY_SCORED) {
+            if (head == null) head = new JokerEffect();
+            head.destroyScored = true;
         }
         if (extra == null) {
             return head;
@@ -105,7 +116,7 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
                 e.hMult = v;
                 yield e.msg("+" + fmt(v) + " Mult");
             }
-            case MUTATE_CARD, CREATE -> null; // handled in apply(); no numeric contribution
+            case MUTATE_CARD, CREATE, DESTROY_SCORED -> null; // handled in apply(); no numeric
         };
     }
 

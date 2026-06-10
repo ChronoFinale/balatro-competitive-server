@@ -504,7 +504,26 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_seance", "Seance", "Create a Spectral if the played hand is a Straight Flush",
                         "Uncommon", 6, 5, 12, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandIs(HandType.STRAIGHT_FLUSH),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL))))));
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL))))),
+
+                // --- batch 11: joker / playing-card creation + card destruction ---
+                new JokerDef("j_marble", "Marble Joker", "Adds a Stone card to your deck when a blind is selected",
+                        "Uncommon", 6, 6, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null,
+                                        Enhancement.STONE))))),
+                new JokerDef("j_riff_raff", "Riff-Raff", "Create 2 Common jokers when a blind is selected (if room)",
+                        "Common", 6, 7, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.JOKER, 2, "Common", null))))),
+                new JokerDef("j_sixth_sense", "Sixth Sense",
+                        "Play a single 6: destroy it and create a Spectral",
+                        "Uncommon", 6, 8, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED,
+                                new Condition.And(List.of(new Condition.PlayedCount(Condition.Cmp.EQ, 1),
+                                        new Condition.ScoredRankBetween(6, 6))),
+                                new EffectTemplate(Op.DESTROY_SCORED, null,
+                                        EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL)))))));
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */

@@ -26,6 +26,8 @@ public final class JokerEffect {
     public com.balatromp.engine.card.CardMod cardMod;
     /** A card to create server-side (CREATE: 8 Ball/Cartomancer); applied only on a real play. */
     public com.balatromp.engine.joker.def.CreateSpec create;
+    /** Destroy the currently-scoring card after it scores (Sixth Sense); real play only. */
+    public boolean destroyScored;
     /** Swap the running chips and mult (Balatro {@code swap}). */
     public boolean swap;
     /** Balance chips and mult (Balatro {@code balance}); semantics TBD — no content uses it yet. */

@@ -4,7 +4,7 @@ import com.balatromp.engine.card.Card;
 import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.card.Seal;
-import com.balatromp.engine.consumable.ConsumableCreation;
+import com.balatromp.engine.consumable.Creation;
 import com.balatromp.engine.hand.HandEvaluator;
 import com.balatromp.engine.hand.HandMod;
 import com.balatromp.engine.hand.HandMods;
@@ -123,6 +123,10 @@ public final class ScoringEngine {
                     if (!preview) {
                         applyCardMods(acc, e, card);
                         applyCreate(e, run, queues);
+                        if (destroysScored(e)) {
+                            card.destroyed = true;
+                            log(acc, card.toString(), "destroy", "Destroyed");
+                        }
                     }
                 }
             }
@@ -197,8 +201,16 @@ public final class ScoringEngine {
     /** Apply any CREATE effects in the chain (real play only — never previewed). */
     private void applyCreate(JokerEffect e, RunState run, QueueSet queues) {
         for (JokerEffect cur = e; cur != null; cur = cur.extra) {
-            if (cur.create != null) ConsumableCreation.apply(run, cur.create, queues);
+            if (cur.create != null) Creation.apply(run, cur.create, queues);
         }
+    }
+
+    /** Mark the scored card destroyed if any effect in the chain says so (real play only). */
+    private static boolean destroysScored(JokerEffect e) {
+        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
+            if (cur.destroyScored) return true;
+        }
+        return false;
     }
 
     /** An effect-producing joker pass for a whole-hand phase (BEFORE-style seams). */

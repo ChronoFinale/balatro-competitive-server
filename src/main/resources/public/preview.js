@@ -262,6 +262,7 @@
       case 'POW_MULT': if (val !== 1) acc.mult = Math.pow(acc.mult, val); break;
       case 'DOLLARS': break; // no money in scoring math
       case 'CREATE': break; // server-side card creation; nothing to score
+      case 'DESTROY_SCORED': break; // card still scores this hand; destruction is post-score
       case 'REPETITIONS': break; // handled by the retrigger pass
       default: return false;
     }

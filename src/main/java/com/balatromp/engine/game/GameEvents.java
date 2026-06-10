@@ -87,7 +87,7 @@ public final class GameEvents {
             }
             if (cur.create != null && run.queues != null) {
                 int before = run.consumables.size();
-                com.balatromp.engine.consumable.ConsumableCreation.apply(run, cur.create, run.queues);
+                com.balatromp.engine.consumable.Creation.apply(run, cur.create, run.queues);
                 if (run.consumables.size() > before) {
                     log.add(new ReplayEntry(source, "create", "Created " + cur.create.kind(), 0, 0));
                 }

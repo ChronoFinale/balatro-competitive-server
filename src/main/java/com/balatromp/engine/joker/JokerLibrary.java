@@ -56,6 +56,13 @@ public final class JokerLibrary {
         return BUILTIN_KEYS;
     }
 
+    /** Built-in joker keys of a given rarity (e.g. "Common") — Riff Raff's creation pool. */
+    public static java.util.List<String> keysByRarity(String rarity) {
+        return BUILTIN_KEYS.stream()
+                .filter(k -> rarity.equals(create(k).info().rarity()))
+                .toList();
+    }
+
     private static void register(Supplier<Joker> factory) {
         REGISTRY.put(factory.get().key(), factory);
     }
