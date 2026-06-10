@@ -609,6 +609,17 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 22: joker-on-joker reads (Baseball Card, Swashbuckler) ---
+                new JokerDef("j_baseball_card", "Baseball Card", "Each Uncommon Joker gives x1.5 Mult",
+                        "Rare", 8, 1, 14, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_OTHER_JOKER, new Condition.OtherJokerRarity("Uncommon"),
+                                new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
+                new JokerDef("j_swashbuckler", "Swashbuckler",
+                        "Adds the sell value of all other owned Jokers to Mult",
+                        "Common", 4, 2, 14, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.OtherJokersSellSum(0, 1))))),
+
                 // --- batch 21: per-hand-type play tracking (Supernova, Card Sharp) ---
                 new JokerDef("j_supernova", "Supernova",
                         "Adds the number of times the played hand has been played this run to Mult",

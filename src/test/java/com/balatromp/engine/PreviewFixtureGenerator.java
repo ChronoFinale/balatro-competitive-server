@@ -204,6 +204,14 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 35. Baseball Card + two (inert) Uncommon jokers -> x1.5 each = x2.25
+        scenario("baseball", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), "j_baseball_card", "j_acrobat", "j_acrobat");
+
+        // 36. Swashbuckler + two other jokers -> adds their sell value to Mult
+        scenario("swashbuckler", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), "j_swashbuckler", "j_joker", "j_acrobat");
+
         // 33. Supernova: pair played twice before -> +2 Mult (HandTypePlays read of shipped map)
         scenario("supernova", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.handTypePlays.put(HandType.PAIR, 2), "j_supernova");
@@ -274,6 +282,8 @@ class PreviewFixtureGenerator {
         Object def = (j instanceof DataJoker dj) ? dj.def() : JokerDefLibrary.get(j.key());
         m.put("def", def);
         m.put("state", run.jokerState(j));
+        m.put("rarity", j.info().rarity()); // Baseball Card reads other jokers' rarity
+        m.put("cost", j.info().cost());      // Swashbuckler sums other jokers' sell value
         return m;
     }
 

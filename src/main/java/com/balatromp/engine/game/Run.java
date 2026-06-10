@@ -402,6 +402,7 @@ public final class Run {
             jv.put("name", info.name());
             jv.put("description", info.description());
             jv.put("rarity", info.rarity());
+            jv.put("cost", info.cost()); // for Swashbuckler's sell-value sum on the client
             jv.put("x", info.atlasX());
             jv.put("y", info.atlasY());
             // Built-in joker display: the joker's current live value (server-computed, no mod).

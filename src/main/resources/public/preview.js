@@ -176,6 +176,7 @@
       case 'bossDefeated': return null; // end-of-round only; never used in scoring
       case 'handPlayedThisRound':
         return (((ctx.run.counters && ctx.run.counters.handTypesThisRound) || []).indexOf(ctx.handType) >= 0);
+      case 'otherJokerRarity': return !!ctx.otherJoker && ctx.otherJoker.rarity === cond.rarity;
       default: return null;
     }
   }
@@ -223,6 +224,13 @@
       case 'handTypePlays': {
         const m = (ctx.run.counters && ctx.run.counters.handTypePlays) || {};
         return v.base + v.scale * (m[ctx.handType] || 0);
+      }
+      case 'otherJokersSellSum': {
+        let sum = 0;
+        (ctx.jokers || []).forEach((j, i) => {
+          if (i !== ctx.selfIndex) sum += Math.max(1, Math.floor((j.cost || 0) / 2));
+        });
+        return v.base + v.scale * sum;
       }
       case 'count': {
         const src = v.source === 'PLAYED' ? ctx.played : v.source === 'HELD' ? ctx.held : ctx.scoring;
@@ -330,16 +338,18 @@
     const baseCtx = (phase, scoredCard) => ({
       phase, scoredCard, played, held, scoring, handType: handKey(hr.type), run,
       allFaces: mods.pareidolia, // Pareidolia: face conditions treat every card as a face
+      jokers, selfIndex: 0, otherJoker: null,
       state: {}, // set per joker
     });
     const runJokerPass = (phase, scoredCard) => {
-      for (const j of jokers) {
+      jokers.forEach((j, i) => {
         const ctx = baseCtx(phase, scoredCard);
         ctx.state = j.state || {};
+        ctx.selfIndex = i;
         const e = jokerEffect(j, ctx);
-        if (!e.ok) { unsupported = true; continue; }
+        if (!e.ok) { unsupported = true; return; }
         if (e.effect && !effApply(acc, e.effect, ctx)) unsupported = true;
-      }
+      });
     };
 
     runJokerPass('BEFORE', null);
@@ -376,7 +386,19 @@
     }
 
     runJokerPass('JOKER_MAIN', null);
-    runJokerPass('ON_OTHER_JOKER', null);
+    // Joker-on-joker: each reactor k reacts to each current joker i (mirrors the server's
+    // nested pass). Baseball Card reacts to Uncommon neighbours, etc.
+    for (let i = 0; i < jokers.length; i++) {
+      for (let k = 0; k < jokers.length; k++) {
+        const ctx = baseCtx('ON_OTHER_JOKER', null);
+        ctx.state = jokers[k].state || {};
+        ctx.selfIndex = k;
+        ctx.otherJoker = jokers[i];
+        const e = jokerEffect(jokers[k], ctx);
+        if (!e.ok) unsupported = true;
+        else if (e.effect && !effApply(acc, e.effect, ctx)) unsupported = true;
+      }
+    }
     runJokerPass('FINAL_SCORING_STEP', null);
 
     if (unsupported) return null; // a joker used a probabilistic/native effect -> server fallback

@@ -43,6 +43,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.HeldAllSuits.class, name = "heldAllSuits"),
     @JsonSubTypes.Type(value = Condition.BossDefeated.class, name = "bossDefeated"),
     @JsonSubTypes.Type(value = Condition.HandPlayedThisRound.class, name = "handPlayedThisRound"),
+    @JsonSubTypes.Type(value = Condition.OtherJokerRarity.class, name = "otherJokerRarity"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -250,6 +251,13 @@ public sealed interface Condition {
                 if (c.isSuit(suit)) return true;
             }
             return false;
+        }
+    }
+
+    /** The joker being reacted to (ON_OTHER_JOKER) is of the given rarity (Baseball Card). */
+    record OtherJokerRarity(String rarity) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.otherJoker != null && rarity.equals(ctx.otherJoker.info().rarity());
         }
     }
 

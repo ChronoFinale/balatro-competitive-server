@@ -29,6 +29,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.DeckRankCount.class, name = "deckRankCount"),
     @JsonSubTypes.Type(value = Value.Clamp.class, name = "clamp"),
     @JsonSubTypes.Type(value = Value.HandTypePlays.class, name = "handTypePlays"),
+    @JsonSubTypes.Type(value = Value.OtherJokersSellSum.class, name = "otherJokersSellSum"),
     @JsonSubTypes.Type(value = Value.Random.class, name = "random"),
 })
 public sealed interface Value {
@@ -48,6 +49,19 @@ public sealed interface Value {
             Object v = ctx.selfState().getOrDefault(var, 0);
             double n = (v instanceof Number num) ? num.doubleValue() : 0;
             return base + scale * n;
+        }
+    }
+
+    /** {@code base + scale * (sum of OTHER owned jokers' sell value, max(1, cost/2))} — Swashbuckler. */
+    record OtherJokersSellSum(double base, double scale) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            if (ctx.jokers == null) return base;
+            int sum = 0;
+            for (int i = 0; i < ctx.jokers.size(); i++) {
+                if (i == ctx.selfIndex) continue;
+                sum += Math.max(1, ctx.jokers.get(i).info().cost() / 2);
+            }
+            return base + scale * sum;
         }
     }
 
