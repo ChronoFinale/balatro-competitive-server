@@ -163,6 +163,15 @@ public final class Run {
         return state.jokers().stream().anyMatch(j -> j.key().equals(key));
     }
 
+    /** Gift Card: +$1 of sell value to every owned Joker at end of round (Egg bumps only itself). */
+    private void applyGiftCard() {
+        if (!hasJoker("j_gift_card")) return;
+        for (Joker j : state.jokers()) {
+            var st = state.jokerState(j);
+            st.put("sellBonus", ((Number) st.getOrDefault("sellBonus", 0)).intValue() + 1);
+        }
+    }
+
     /** The lowest money a purchase may leave you at — Credit Card allows up to -$20 of debt. */
     private int minMoney() {
         return hasJoker("j_credit_card") ? -20 : 0;
@@ -276,6 +285,7 @@ public final class Run {
         int interest = Math.min(5, state.money / 5) + extraInterest();
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
+        applyGiftCard();
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
         freeRerollUsed = false;
         phase = Phase.SHOP;
@@ -288,6 +298,7 @@ public final class Run {
         state.money += reward + interest;
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
+        applyGiftCard();
         phase = Phase.SHOP;
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
         freeRerollUsed = false;
@@ -311,7 +322,8 @@ public final class Run {
         if (phase != Phase.SHOP && phase != Phase.BLIND_ACTIVE) return "cannot sell now";
         if (index < 0 || index >= state.jokers().size()) return "invalid joker";
         Joker sold = state.jokers().remove(index);
-        state.money += Math.max(1, sold.info().cost() / 2); // sell value
+        int bonus = ((Number) state.jokerState(sold).getOrDefault("sellBonus", 0)).intValue();
+        state.money += Math.max(1, sold.info().cost() / 2) + bonus; // sell value (+ Egg/Gift bonus)
         // A card was sold: remaining jokers react (Campfire gains x0.25 each).
         GameEvents.raise(Trigger.SELL_CARD, state, rng, null);
         return null;

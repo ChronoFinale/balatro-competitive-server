@@ -54,4 +54,20 @@ class ShopHooksTest {
         while (run.reroll() == null) { /* spend down */ }
         assertThat(run.state.money).isGreaterThanOrEqualTo(0);
     }
+
+    @Test
+    void eggSellsForMoreAfterARound() {
+        Run run = wonRun("j_egg"); // one round won -> Egg gained +$3 sell value
+        int money = run.state.money;
+        assertThat(run.sellJoker(3)).isNull(); // the Egg (cost 4 -> base sell $2, +$3 = $5)
+        assertThat(run.state.money).isEqualTo(money + 5);
+    }
+
+    @Test
+    void giftCardBoostsEveryJokersSellValue() {
+        Run run = wonRun("j_gift_card"); // end of round -> +$1 sell value to every joker
+        var plainJoker = run.state.jokers().get(0);
+        assertThat(((Number) run.state.jokerState(plainJoker).getOrDefault("sellBonus", 0)).intValue())
+                .isEqualTo(1);
+    }
 }

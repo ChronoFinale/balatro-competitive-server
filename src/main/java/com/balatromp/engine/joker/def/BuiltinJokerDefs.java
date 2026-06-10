@@ -609,6 +609,16 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 28: sell-value bonus (Egg, Gift Card) ---
+                new JokerDef("j_egg", "Egg", "Gains $3 of sell value at the end of each round",
+                        "Common", 4, 3, 15, null, null, true,
+                        List.of(new Mutation(Trigger.END_OF_ROUND, new Condition.Always(),
+                                "sellBonus", Mutation.Op.ADD, 3)),
+                        List.of()),
+                new JokerDef("j_gift_card", "Gift Card",
+                        "Adds $1 of sell value to every owned Joker at end of round",
+                        "Uncommon", 6, 4, 15, null, null, true, List.of(), List.of()),
+
                 // --- batch 27: shop/economy hooks (Credit Card, Chaos, Astronomer) ---
                 new JokerDef("j_credit_card", "Credit Card", "Go up to -$20 in debt",
                         "Common", 1, 0, 15, null, null, true, List.of(), List.of()),
