@@ -1,5 +1,7 @@
 package com.balatromp.engine.joker.def;
 
+import com.balatromp.engine.card.CardMod;
+import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.card.Suit;
 import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.Trigger;
@@ -222,6 +224,31 @@ public final class BuiltinJokerDefs {
                         List.of(new Mutation(Trigger.BEFORE, new Condition.HandContains(HandType.TWO_PAIR),
                                 "mult", Mutation.Op.ADD, 2)),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
-                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))));
+                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
+
+                // --- MUTATE_CARD: Hiker permanently adds chips to each played card ---
+                new JokerDef("j_hiker", "Hiker", "Each played card permanently gains +5 Chips",
+                        "Uncommon", 5, 0, 11, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.Always(),
+                                EffectTemplate.mutate(CardMod.addChips(5))))),
+
+                // --- MUTATE_CARD: Midas Mask turns played face cards into Gold cards ---
+                new JokerDef("j_midas_mask", "Midas Mask", "Played face cards become Gold cards when scored",
+                        "Uncommon", 7, 0, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredIsFace(),
+                                EffectTemplate.mutate(CardMod.setEnhancement(Enhancement.GOLD))))),
+
+                // --- MUTATE_CARD + stateful xMult: Vampire strips enhancements and grows ---
+                new JokerDef("j_vampire", "Vampire", "Gains x0.1 Mult per enhanced card played, removing its enhancement",
+                        "Uncommon", 7, 2, 12, null, null, true,
+                        List.of(new Mutation(Trigger.ON_SCORED,
+                                new Condition.Not(new Condition.ScoredEnhancement(Enhancement.NONE)),
+                                "xm", Mutation.Op.ADD, 0.1)),
+                        List.of(
+                                new Rule(Trigger.ON_SCORED,
+                                        new Condition.Not(new Condition.ScoredEnhancement(Enhancement.NONE)),
+                                        EffectTemplate.mutate(CardMod.removeEnhancement())),
+                                new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("xm", 0.1),
+                                        new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0))))));
     }
 }

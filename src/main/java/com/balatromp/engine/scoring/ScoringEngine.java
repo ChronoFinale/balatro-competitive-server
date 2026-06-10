@@ -91,7 +91,9 @@ public final class ScoringEngine {
                     ctx.selfIndex = i;
                     ctx.blueprintDepth = 0;
                     ctx.scoredCard = card;
-                    apply(acc, jokers.get(i).calculate(ctx), jokers.get(i).name());
+                    JokerEffect e = jokers.get(i).calculate(ctx);
+                    apply(acc, e, jokers.get(i).name());
+                    applyCardMods(acc, e, card);
                 }
             }
         }
@@ -108,7 +110,9 @@ public final class ScoringEngine {
                     ctx.selfIndex = i;
                     ctx.blueprintDepth = 0;
                     ctx.scoredCard = card;
-                    apply(acc, jokers.get(i).calculate(ctx), jokers.get(i).name());
+                    JokerEffect e = jokers.get(i).calculate(ctx);
+                    apply(acc, e, jokers.get(i).name());
+                    applyCardMods(acc, e, card);
                 }
             }
         }
@@ -138,6 +142,17 @@ public final class ScoringEngine {
         // (7) final score.
         double score = acc.chips * acc.mult;
         return new ScoreResult(hr.type(), acc.chips, acc.mult, score, acc.log, acc.destroyed);
+    }
+
+    /** Apply any card mutations carried by an effect (and its extra-chain) to the scored card. */
+    private void applyCardMods(Acc acc, JokerEffect e, Card target) {
+        if (target == null) return;
+        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
+            if (cur.cardMod != null) {
+                cur.cardMod.applyTo(target);
+                log(acc, target.toString(), "mutate", cur.cardMod.action().name());
+            }
+        }
     }
 
     /** An effect-producing joker pass for a whole-hand phase (BEFORE-style seams). */

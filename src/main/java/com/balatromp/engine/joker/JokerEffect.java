@@ -20,6 +20,8 @@ public final class JokerEffect {
     public double hMult;
     /** A nested effect applied immediately after this one's scoring fields (SMODS {@code extra} chain). */
     public JokerEffect extra;
+    /** A permanent mutation to apply to the relevant card (MUTATE_CARD: Hiker/Midas/Vampire). */
+    public com.balatromp.engine.card.CardMod cardMod;
     /** Swap the running chips and mult (Balatro {@code swap}). */
     public boolean swap;
     /** Balance chips and mult (Balatro {@code balance}); semantics TBD — no content uses it yet. */

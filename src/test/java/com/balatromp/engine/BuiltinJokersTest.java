@@ -4,7 +4,10 @@ import static com.balatromp.engine.TestSupport.c;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatromp.engine.card.Card;
+import com.balatromp.engine.card.Edition;
+import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.card.Rank;
+import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.card.Suit;
 import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.joker.def.DataJoker;
@@ -32,7 +35,8 @@ class BuiltinJokersTest {
             "j_smiley", "j_walkie_talkie", "j_fibonacci", "j_shoot_the_moon",
             "j_baron", "j_runner", "j_wee",
             "j_duo", "j_trio", "j_family", "j_order", "j_tribe",
-            "j_arrowhead", "j_onyx_agate", "j_sock_and_buskin", "j_flash", "j_trousers");
+            "j_arrowhead", "j_onyx_agate", "j_sock_and_buskin", "j_flash", "j_trousers",
+            "j_hiker", "j_midas_mask", "j_vampire");
 
     private ScoreResult score(List<Card> played, Consumer<RunState> cfg, String... jokerKeys) {
         RunState run = new RunState();
@@ -202,6 +206,47 @@ class BuiltinJokersTest {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
         long delta = score(kings, DEFAULTS, "j_sock_and_buskin").chips() - score(kings, DEFAULTS).chips();
         assertThat(delta).isEqualTo(20); // two Kings re-scored × 10 base chips
+    }
+
+    @Test
+    void hikerPermanentlyBuffsScoredCards() {
+        // Flush -> all five score; Hiker adds +5 permaChips to each.
+        List<Card> flush = List.of(c(Rank.TWO, Suit.HEARTS), c(Rank.FOUR, Suit.HEARTS),
+                c(Rank.SIX, Suit.HEARTS), c(Rank.EIGHT, Suit.HEARTS), c(Rank.TEN, Suit.HEARTS));
+        scoreHeld(flush, List.of(), "j_hiker");
+        assertThat(flush).allSatisfy(card -> assertThat(card.permaChips).isEqualTo(5));
+    }
+
+    @Test
+    void midasMaskGoldsScoredFaceCards() {
+        // Pair of Kings (faces that score) -> both become Gold; the non-scoring 2 stays plain.
+        Card k1 = c(Rank.KING, Suit.SPADES);
+        Card k2 = c(Rank.KING, Suit.HEARTS);
+        Card two = c(Rank.TWO, Suit.CLUBS);
+        List<Card> pair = List.of(k1, k2, two, c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        scoreHeld(pair, List.of(), "j_midas_mask");
+        assertThat(k1.enhancement).isEqualTo(Enhancement.GOLD);
+        assertThat(k2.enhancement).isEqualTo(Enhancement.GOLD);
+        assertThat(two.enhancement).isEqualTo(Enhancement.NONE); // didn't score -> untouched
+    }
+
+    @Test
+    void vampireStripsEnhancementsAndGrows() {
+        Card bonusK1 = new Card(Rank.KING, Suit.SPADES, Enhancement.BONUS, Edition.NONE, Seal.NONE);
+        Card bonusK2 = new Card(Rank.KING, Suit.HEARTS, Enhancement.BONUS, Edition.NONE, Seal.NONE);
+        List<Card> pair = List.of(bonusK1, bonusK2, c(Rank.TWO, Suit.CLUBS),
+                c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        ScoreResult r = scoreHeld(pair, List.of(), "j_vampire");
+        // both enhanced Kings had their enhancement stripped
+        assertThat(bonusK1.enhancement).isEqualTo(Enhancement.NONE);
+        assertThat(bonusK2.enhancement).isEqualTo(Enhancement.NONE);
+        // and Vampire applied x(1 + 0.1*2) = x1.2 this hand
+        ScoreResult baseline = scoreHeld(
+                List.of(new Card(Rank.KING, Suit.SPADES, Enhancement.BONUS, Edition.NONE, Seal.NONE),
+                        new Card(Rank.KING, Suit.HEARTS, Enhancement.BONUS, Edition.NONE, Seal.NONE),
+                        c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of());
+        assertThat(r.mult()).isEqualTo(baseline.mult() * 1.2);
     }
 
     @Test

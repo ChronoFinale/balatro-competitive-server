@@ -1,5 +1,6 @@
 package com.balatromp.engine.joker.def;
 
+import com.balatromp.engine.card.CardMod;
 import com.balatromp.engine.joker.EvaluationContext;
 import com.balatromp.engine.joker.JokerEffect;
 
@@ -11,23 +12,38 @@ import com.balatromp.engine.joker.JokerEffect;
  * (streak 0, planets 0) contribute nothing until it has ramped — exactly the
  * "return null when zero" behaviour of the hand-coded jokers.
  */
-public record EffectTemplate(Op op, Value value, EffectTemplate extra) {
+public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod) {
 
-    public enum Op { CHIPS, MULT, XMULT, DOLLARS, REPETITIONS, HELD_MULT }
+    public enum Op { CHIPS, MULT, XMULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD }
 
     /** Single-op effect (no extra chain). */
     public EffectTemplate(Op op, Value value) {
-        this(op, value, null);
+        this(op, value, null, null);
+    }
+
+    /** Compound effect (op + chained extra). */
+    public EffectTemplate(Op op, Value value, EffectTemplate extra) {
+        this(op, value, extra, null);
+    }
+
+    /** A pure card mutation (no numeric contribution). */
+    public static EffectTemplate mutate(CardMod mod) {
+        return new EffectTemplate(Op.MUTATE_CARD, null, null, mod);
     }
 
     /**
-     * Build the effect, chaining {@link #extra} so one rule can emit a compound
-     * effect (e.g. Scholar = +20 Chips and +4 Mult). The chain rides
-     * {@link JokerEffect#extra}, which the scoring engine applies in order after
-     * the head's own fields.
+     * Build the effect: a numeric contribution (op + value) and/or a card mutation
+     * ({@link #cardMod}), chaining {@link #extra} so one rule can emit a compound
+     * effect (e.g. Scholar = +20 Chips and +4 Mult, or Vampire = xMult and strip
+     * enhancement). Numeric and mutation rides {@link JokerEffect#extra}/{@code cardMod},
+     * applied in order by the scoring engine.
      */
     public JokerEffect apply(EvaluationContext ctx) {
-        JokerEffect head = build(value.resolve(ctx));
+        JokerEffect head = (op == Op.MUTATE_CARD) ? null : build(value.resolve(ctx));
+        if (cardMod != null) {
+            if (head == null) head = new JokerEffect();
+            head.cardMod = cardMod;
+        }
         if (extra == null) {
             return head;
         }
@@ -55,6 +71,7 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra) {
                 e.hMult = v;
                 yield e.msg("+" + fmt(v) + " Mult");
             }
+            case MUTATE_CARD -> null; // handled in apply(); no numeric contribution
         };
     }
 
