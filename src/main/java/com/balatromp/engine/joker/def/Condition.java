@@ -49,6 +49,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoredSuitIsCastle.class, name = "scoredSuitIsCastle"),
     @JsonSubTypes.Type(value = Condition.HandIsTodo.class, name = "handIsTodo"),
     @JsonSubTypes.Type(value = Condition.ScoredRankIsRebate.class, name = "scoredRankIsRebate"),
+    @JsonSubTypes.Type(value = Condition.RunVarModulo.class, name = "runVarModulo"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -279,6 +280,14 @@ public sealed interface Condition {
     record ScoredSuitIsCastle() implements Condition {
         public boolean test(EvaluationContext ctx) {
             return ctx.scoredCard != null && ctx.run != null && ctx.scoredCard.isSuit(ctx.run.castleSuit);
+        }
+    }
+
+    /** A run variable modulo {@code mod} equals {@code remainder} (Loyalty Card: every 6 hands). */
+    record RunVarModulo(Value.Var which, int mod, int remainder) implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            if (ctx.run == null || mod == 0) return false;
+            return Math.floorMod((long) new Value.RunVar(which, 0, 1).resolve(ctx), mod) == remainder;
         }
     }
 

@@ -204,6 +204,10 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 40. Loyalty Card on the 6th hand (handsPlayedTotal=5) -> x4
+        scenario("loyalty-card", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.handsPlayedTotal = 5, "j_loyalty_card");
+
         // 39. Castle with pre-set chips (3 castle-suit cards discarded -> +9 Chips)
         scenario("castle", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.jokerState(run.jokers().get(0)).put("chips", 9), "j_castle");

@@ -187,6 +187,11 @@
         return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {}).castleSuit);
       case 'handIsTodo': return ctx.handType === ((ctx.run.counters || {}).todoHand);
       case 'scoredRankIsRebate': return !!c && !isStone(c) && id(c) === ((ctx.run.counters || {}).rebateRankId);
+      case 'runVarModulo': {
+        if (cond.mod === 0) return false;
+        const n = runVarValue(cond.which, ctx.run);
+        return ((n % cond.mod) + cond.mod) % cond.mod === cond.remainder;
+      }
       default: return null;
     }
   }

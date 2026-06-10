@@ -609,6 +609,15 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 35: Loyalty Card (every-6-hands xMult; preview-accurate via shipped counter) ---
+                new JokerDef("j_loyalty_card", "Loyalty Card", "x4 Mult every 6 hands played",
+                        "Uncommon", 5, 5, 16, null, null, true, List.of(),
+                        // hands-played is incremented AFTER scoring, so this hand is play #(total+1);
+                        // x4 on the 6th, 12th, ... -> total % 6 == 5. Shipped counter -> previews exactly.
+                        List.of(new Rule(Trigger.JOKER_MAIN,
+                                new Condition.RunVarModulo(Value.Var.HANDS_PLAYED_TOTAL, 6, 5),
+                                new EffectTemplate(Op.XMULT, new Value.Const(4))))),
+
                 // --- batch 34: Trading Card (discard-destroy for money) ---
                 new JokerDef("j_trading", "Trading Card",
                         "If the first discard of a round is a single card, destroy it and earn $3",
