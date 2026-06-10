@@ -37,6 +37,9 @@
   .joker { background:#5b3b8c; border-radius:8px; padding:6px 10px; font-size:13px; font-weight:600; }
   .jsprite { width:71px; height:95px; background-repeat:no-repeat; border-radius:8px;
     box-shadow:0 3px 0 #0006; image-rendering:pixelated; }
+  .jdisplay { position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+    background:#1a1030ee; color:#ffd86b; font-size:12px; font-weight:700;
+    padding:1px 6px; border-radius:6px; white-space:nowrap; pointer-events:none; }
 
   /* cards */
   #hand { display:flex; gap:8px; flex-wrap:wrap; min-height:120px; align-items:flex-end; }
@@ -137,10 +140,20 @@
 </div>
 <div id="toast"></div>
 
+<script src="/preview.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 let ws, view = null, selected = new Set(), seq = 1, mode = null, myId = null;
 let myLives = 0, oppLives = 0;
+let pendingPreviewName = ''; // hand label awaiting a server /preview fallback score
+
+// Shape the current view into the `run` object BalatroPreview.previewScore expects.
+function buildRun(v) {
+  return { money: v.money, handsLeft: v.handsLeft, discardsLeft: v.discardsLeft,
+    ante: v.ante, handSize: v.handSize, jokerCount: (v.jokers || []).length,
+    deck: v.deckStats || {}, handLevels: v.handLevels || {} };
+}
+const fmt = n => (n == null) ? '?' : (Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100));
 function renderLives() {
   $('livesLine').textContent = `you ${'❤︎'.repeat(Math.max(0, myLives))} (${myLives})  vs  (${oppLives}) ${'❤︎'.repeat(Math.max(0, oppLives))} opp`;
 }
@@ -215,6 +228,14 @@ function jokerEl(j) {
   } else {
     el.className = 'joker';
     el.textContent = j.name || '?';
+  }
+  // Built-in joker display: the server-computed live value, no extra mod needed.
+  if (j.display != null && j.display !== '') {
+    el.style.position = 'relative';
+    const badge = document.createElement('span');
+    badge.className = 'jdisplay';
+    badge.textContent = j.display;
+    el.appendChild(badge);
   }
   return el;
 }
@@ -294,6 +315,13 @@ function handle(m) {
       if (m.replay && m.replay.length) {
         const last = m.replay[m.replay.length - 1];
         toast(`scored ${last.runningChips} × ${last.runningMult}`);
+      }
+      break;
+    case 'preview':
+      // Exact server score for a selection a local joker couldn't model. Only apply
+      // if we're still showing the placeholder for the same hand (selection unchanged).
+      if (pendingPreviewName && m.score !== undefined) {
+        $('preview').textContent = `${pendingPreviewName} · ${fmt(m.chips)} × ${fmt(m.mult)} = ${fmt(m.score)}`;
       }
       break;
     case 'error':
@@ -385,14 +413,30 @@ function render() {
   });
 
   const sel = [...selected].map(i => v.hand[i]).filter(Boolean);
-  const ph = sel.length ? detectHand(sel) : null;
-  let pvLvl = 1;
-  if (ph && v.handLevels) {
-    pvLvl = v.handLevels[ph.name] || 1;
-    const [lc, lm] = HAND_LVL[ph.name];
-    ph.chips += (pvLvl-1)*lc; ph.mult += (pvLvl-1)*lm;
+  let previewText = '';
+  pendingPreviewName = '';
+  if (sel.length) {
+    const ph = detectHand(sel);
+    const pvLvl = (v.handLevels && v.handLevels[ph.name]) || 1;
+    const label = `${ph.name}${pvLvl > 1 ? (' Lv' + pvLvl) : ''}`;
+    // Full local score: interprets the same JokerDefs the server sent, so jokers
+    // are reflected instantly with no round-trip. Returns null when a joker uses a
+    // probabilistic/native effect we don't model — then we ask the server for the
+    // exact score (the server is always authoritative on Play regardless).
+    const held = v.hand.filter((_, i) => !selected.has(i));
+    const local = (window.BalatroPreview && v.jokers)
+      ? BalatroPreview.previewScore(sel, held, v.jokers, buildRun(v)) : null;
+    if (local) {
+      previewText = `${label} · ${fmt(local.chips)} × ${fmt(local.mult)} = ${fmt(local.score)}`;
+    } else {
+      const [lc, lm] = HAND_LVL[ph.name];
+      const chips = ph.chips + (pvLvl - 1) * lc, mult = ph.mult + (pvLvl - 1) * lm;
+      previewText = `${label} · ${chips} × ${mult} …`;
+      pendingPreviewName = label;
+      send({ type: 'preview', cards: [...selected] });
+    }
   }
-  $('preview').textContent = ph ? `${ph.name}${pvLvl>1?(' Lv'+pvLvl):''} · ${ph.chips} × ${ph.mult}` : '';
+  $('preview').textContent = previewText;
 
   // held consumables (click to use)
   const cr = $('consumables'); cr.innerHTML = '';
