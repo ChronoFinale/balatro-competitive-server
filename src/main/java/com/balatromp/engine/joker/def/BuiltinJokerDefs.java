@@ -609,6 +609,17 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 19: sell action (Campfire) ---
+                new JokerDef("j_campfire", "Campfire",
+                        "Gains x0.25 Mult per card sold; resets when a Boss Blind is defeated",
+                        "Rare", 9, 5, 13, null, null, true,
+                        List.of(new Mutation(Trigger.SELL_CARD, new Condition.Always(),
+                                        "x", Mutation.Op.ADD, 0.25),
+                                new Mutation(Trigger.END_OF_ROUND, new Condition.BossDefeated(),
+                                        "x", Mutation.Op.RESET, 0)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
+
                 new JokerDef("j_ramen", "Ramen", "x2 Mult, loses x0.01 per card discarded",
                         "Uncommon", 6, 4, 13, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),

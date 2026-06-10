@@ -249,6 +249,17 @@ public final class Run {
         return null;
     }
 
+    /** Sell the joker at the given slot (shop or during a blind). Returns null on success. */
+    public String sellJoker(int index) {
+        if (phase != Phase.SHOP && phase != Phase.BLIND_ACTIVE) return "cannot sell now";
+        if (index < 0 || index >= state.jokers().size()) return "invalid joker";
+        Joker sold = state.jokers().remove(index);
+        state.money += Math.max(1, sold.info().cost() / 2); // sell value
+        // A card was sold: remaining jokers react (Campfire gains x0.25 each).
+        GameEvents.raise(Trigger.SELL_CARD, state, rng, null);
+        return null;
+    }
+
     /** Reroll the shop offerings. Returns null on success, else a reason. */
     public String reroll() {
         if (phase != Phase.SHOP || shop == null) return "not in shop";

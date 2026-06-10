@@ -42,6 +42,19 @@ class RunModTest {
     }
 
     @Test
+    void sellingAJokerRefundsMoneyAndGrowsCampfire() {
+        // Campfire + a Joker to sell ($2 -> sells for $1; Campfire gains x0.25).
+        Run run = new Run(std, "S", stoneDeck(400), jokers("j_campfire", "j_joker"));
+        int money = run.state.money;
+        String err = run.sellJoker(1); // sell the plain Joker
+        assertThat(err).isNull();
+        assertThat(run.state.jokers()).hasSize(1);
+        assertThat(run.state.money).isGreaterThan(money);
+        var campfire = run.state.jokers().get(0);
+        assertThat(((Number) run.state.jokerState(campfire).get("x")).doubleValue()).isEqualTo(0.25);
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());
