@@ -52,6 +52,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoredRankIsRebate.class, name = "scoredRankIsRebate"),
     @JsonSubTypes.Type(value = Condition.RunVarModulo.class, name = "runVarModulo"),
     @JsonSubTypes.Type(value = Condition.HandsSinceAcquire.class, name = "handsSinceAcquire"),
+    @JsonSubTypes.Type(value = Condition.InPvpBlind.class, name = "inPvpBlind"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -291,6 +292,13 @@ public sealed interface Condition {
     record ScoredSuitIsCastle() implements Condition {
         public boolean test(EvaluationContext ctx) {
             return ctx.scoredCard != null && ctx.run != null && ctx.scoredCard.isSuit(ctx.run.castleSuit);
+        }
+    }
+
+    /** Currently in a PvP (Nemesis) boss blind — Pacifist (negated) / Conjoined. */
+    record InPvpBlind() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.run != null && ctx.run.inPvpBlind;
         }
     }
 

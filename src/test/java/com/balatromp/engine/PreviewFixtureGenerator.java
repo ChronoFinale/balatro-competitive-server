@@ -204,6 +204,18 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 44. Pacifist: x10 Mult outside a PvP blind (default inPvpBlind=false)
+        scenario("pacifist", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), "j_pacifist");
+
+        // 45. Defensive Joker: +125 Chips per life behind (2 behind -> +250)
+        scenario("defensive", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> { run.oppLives = 3; run.myLives = 1; }, "j_defensive_joker");
+
+        // 46. Conjoined: in a PvP blind, x(1 + 0.5*oppHandsLeft) capped at x3 (4 left -> x3)
+        scenario("conjoined", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> { run.inPvpBlind = true; run.oppHandsLeft = 4; }, "j_conjoined");
+
         // 43. Throwback after 2 blinds skipped -> x(1 + 0.25*2) = x1.5
         scenario("throwback", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.blindsSkipped = 2, "j_throwback");
@@ -355,6 +367,10 @@ class PreviewFixtureGenerator {
         counters.put("todoHand", run.todoHandType.name());
         counters.put("OBELISK_STREAK", run.obeliskStreak);
         counters.put("BLINDS_SKIPPED", run.blindsSkipped);
+        counters.put("inPvpBlind", run.inPvpBlind);
+        counters.put("OPP_LIVES_BEHIND", Math.max(0, run.oppLives - run.myLives));
+        counters.put("OPP_HANDS_LEFT", run.oppHandsLeft);
+        counters.put("OPP_CARDS_SOLD", run.oppCardsSold);
         m.put("counters", counters);
         return m;
     }

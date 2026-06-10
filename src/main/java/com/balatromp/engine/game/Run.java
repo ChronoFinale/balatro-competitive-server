@@ -110,6 +110,7 @@ public final class Run {
         luchadorDisabledBoss = false; // a fresh blind re-arms the boss (Luchador must be re-sold)
         pvpActive = false;
         boolean pvpBoss = blind == BlindType.BOSS && pvpFromAnte > 0 && ante >= pvpFromAnte;
+        state.inPvpBlind = pvpBoss; // Nemesis jokers (Pacifist, Conjoined) read this
         if (pvpBoss) {
             // Attrition Nemesis blind: no clear-requirement; play all hands, compare to opponent.
             pvpActive = true;
@@ -682,6 +683,10 @@ public final class Run {
         counters.put("rebateRankId", state.rebateRankId);
         counters.put("OBELISK_STREAK", state.obeliskStreak);
         counters.put("BLINDS_SKIPPED", state.blindsSkipped);
+        counters.put("inPvpBlind", state.inPvpBlind);
+        counters.put("OPP_LIVES_BEHIND", Math.max(0, state.oppLives - state.myLives));
+        counters.put("OPP_HANDS_LEFT", state.oppHandsLeft);
+        counters.put("OPP_CARDS_SOLD", state.oppCardsSold);
 
         Map<String, Object> shopVoucher = null;
         if (phase == Phase.SHOP && shop != null && shop.voucher() != null) {

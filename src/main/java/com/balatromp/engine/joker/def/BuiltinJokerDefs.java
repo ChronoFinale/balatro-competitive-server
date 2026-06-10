@@ -664,6 +664,28 @@ public final class BuiltinJokerDefs {
                         "Joker and Consumable cards may appear multiple times in the shop",
                         "Uncommon", 5, 0, 17, null, null, true, List.of(), List.of()),
 
+                // --- batch 43: multiplayer-exclusive "Nemesis" jokers (read opponent state) ---
+                new JokerDef("j_pacifist", "Pacifist", "x10 Mult while not in a PvP blind",
+                        "Uncommon", 6, 2, 17, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Not(new Condition.InPvpBlind()),
+                                new EffectTemplate(Op.XMULT, new Value.Const(10))))),
+                new JokerDef("j_defensive_joker", "Defensive Joker",
+                        "+125 Chips for every life you are behind your Nemesis",
+                        "Uncommon", 6, 3, 17, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.CHIPS, new Value.RunVar(Value.Var.OPP_LIVES_BEHIND, 0, 125))))),
+                new JokerDef("j_conjoined", "Conjoined Joker",
+                        "In a PvP blind, x0.5 Mult per hand your Nemesis has left (max x3)",
+                        "Rare", 8, 4, 17, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.InPvpBlind(),
+                                new EffectTemplate(Op.XMULT, new Value.Clamp(
+                                        new Value.RunVar(Value.Var.OPP_HANDS_LEFT, 1, 0.5), 1, 3))))),
+                new JokerDef("j_taxes", "Taxes",
+                        "+4 Mult per card your Nemesis has sold since the last PvP blind",
+                        "Uncommon", 6, 5, 17, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.RunVar(Value.Var.OPP_CARDS_SOLD, 0, 4))))),
+
                 // --- batch 38: blind-skipping (Throwback) ---
                 new JokerDef("j_throwback", "Throwback", "x0.25 Mult for each blind skipped this run",
                         "Uncommon", 6, 9, 16, null, null, true, List.of(),

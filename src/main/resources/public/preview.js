@@ -197,6 +197,7 @@
         const total = runVarValue('HANDS_PLAYED_TOTAL', ctx.run);
         return total - (ctx.state.acqHands || 0) < cond.max;
       }
+      case 'inPvpBlind': return !!(ctx.run.counters && ctx.run.counters.inPvpBlind);
       default: return null;
     }
   }
