@@ -1,6 +1,12 @@
 package com.balatromp.engine.game;
 
 import com.balatromp.engine.card.Card;
+import com.balatromp.engine.card.Edition;
+import com.balatromp.engine.card.Rank;
+import com.balatromp.engine.card.Seal;
+import com.balatromp.engine.card.Suit;
+import com.balatromp.engine.consumable.Consumable;
+import com.balatromp.engine.consumable.TarotCatalog;
 import com.balatromp.engine.game.Blinds.BlindType;
 import com.balatromp.engine.intent.Intent;
 import com.balatromp.engine.intent.IntentHandler;
@@ -221,17 +227,68 @@ public final class Run {
         return null;
     }
 
-    /** Use a held consumable (Planet -> level its hand). Returns null on success. */
+    /** Use a held Planet (no card targets). */
     public String useConsumable(int index) {
+        return useConsumable(index, new long[0]);
+    }
+
+    /**
+     * Use a held consumable. Planets level their hand; Tarots/Spectrals act on the
+     * cards the client selected (resolved by unique id) — enhance, destroy, or
+     * create. Returns null on success, else a rejection reason.
+     */
+    public String useConsumable(int index, long[] targetUids) {
         if (phase == Phase.RUN_WON || phase == Phase.RUN_LOST) return "run is over";
         if (index < 0 || index >= state.consumables.size()) return "invalid consumable";
-        PlanetCatalog.Planet p = PlanetCatalog.get(state.consumables.get(index));
+        String key = state.consumables.get(index);
+
+        PlanetCatalog.Planet p = PlanetCatalog.get(key);
         if (p != null) {
             state.levelUpHand(p.hand());
             GameEvents.useConsumable(state, rng, "Planet");
+            state.consumables.remove(index);
+            return null;
         }
-        state.consumables.remove(index);
-        return null;
+
+        Consumable c = TarotCatalog.get(key);
+        if (c != null) {
+            List<Card> targets = new ArrayList<>();
+            for (long uid : targetUids) {
+                for (Card card : state.hand) {
+                    if (card.uid == uid) targets.add(card);
+                }
+            }
+            if (targets.size() > c.maxTargets()) return "too many targets";
+            applyConsumable(c, targets);
+            GameEvents.useConsumable(state, rng, c.type().label());
+            state.consumables.remove(index);
+            return null;
+        }
+        return "unknown consumable: " + key;
+    }
+
+    private void applyConsumable(Consumable c, List<Card> targets) {
+        switch (c.effect()) {
+            case Consumable.Enhance en -> targets.forEach(t -> en.mod().applyTo(t));
+            case Consumable.Destroy ignored -> {
+                targets.forEach(t -> t.destroyed = true);
+                composition.removeIf(x -> x.destroyed);
+                state.hand.removeIf(x -> x.destroyed);
+            }
+            case Consumable.Create cr -> {
+                var r = rng.stream("create:" + c.key());
+                Rank[] ranks = Rank.values();
+                Suit[] suits = Suit.values();
+                for (int i = 0; i < cr.count(); i++) {
+                    Rank rank;
+                    do { rank = ranks[r.nextInt(ranks.length)]; } while (rank.id > 10); // numbered cards
+                    Card made = new Card(rank, suits[r.nextInt(suits.length)],
+                            cr.enhancement(), Edition.NONE, Seal.NONE);
+                    composition.add(made); // persistent deck (drawn next blind)
+                    state.hand.add(made);  // and usable now
+                }
+            }
+        }
     }
 
     /** Client-facing entry: validate+apply an intent, return the authoritative update. */

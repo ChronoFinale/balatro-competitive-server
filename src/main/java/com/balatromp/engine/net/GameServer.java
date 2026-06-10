@@ -237,7 +237,8 @@ public final class GameServer implements AutoCloseable {
                 }
                 case "useConsumable" -> {
                     int index = msg.path("index").asInt();
-                    soloAction(ctx, seq, run -> run.useConsumable(index));
+                    long[] targets = longs(msg.path("targets")); // selected card ids (Tarots)
+                    soloAction(ctx, seq, run -> run.useConsumable(index, targets));
                 }
                 case "proceed" -> soloAction(ctx, seq, run -> {
                     run.proceed();
@@ -371,6 +372,13 @@ public final class GameServer implements AutoCloseable {
     private static List<Integer> ints(JsonNode arr) {
         List<Integer> r = new ArrayList<>();
         if (arr.isArray()) arr.forEach(n -> r.add(n.asInt()));
+        return r;
+    }
+
+    private static long[] longs(JsonNode arr) {
+        if (!arr.isArray()) return new long[0];
+        long[] r = new long[arr.size()];
+        for (int i = 0; i < arr.size(); i++) r[i] = arr.get(i).asLong();
         return r;
     }
 
