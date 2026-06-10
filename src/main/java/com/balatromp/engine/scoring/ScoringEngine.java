@@ -5,16 +5,20 @@ import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.hand.HandEvaluator;
+import com.balatromp.engine.hand.HandMod;
+import com.balatromp.engine.hand.HandMods;
 import com.balatromp.engine.hand.HandResult;
 import com.balatromp.engine.joker.EvaluationContext;
 import com.balatromp.engine.joker.Joker;
 import com.balatromp.engine.joker.JokerEffect;
 import com.balatromp.engine.joker.Trigger;
+import com.balatromp.engine.joker.def.DataJoker;
 import com.balatromp.engine.rng.GameQueue;
 import com.balatromp.engine.rng.QueueSet;
 import com.balatromp.engine.rng.RandomStreams;
 import com.balatromp.engine.state.RunState;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -62,7 +66,7 @@ public final class ScoringEngine {
 
     private ScoreResult score(List<Card> played, List<Card> held, RunState run, RandomStreams rng,
                               boolean preview) {
-        HandResult hr = HandEvaluator.evaluate(played);
+        HandResult hr = HandEvaluator.evaluate(played, activeMods(run.jokers()));
 
         // (1) scoring set = detected cards + any Stone cards, in play order.
         List<Card> scoring = new ArrayList<>(hr.scoringCards());
@@ -348,6 +352,15 @@ public final class ScoringEngine {
     private static double lucky(QueueSet queues, String key) {
         GameQueue<Double> q = queues.queue(key, com.balatromp.engine.rng.Rng::nextDouble);
         return q.next();
+    }
+
+    /** Union the global hand modifiers granted by the player's data-driven jokers. */
+    private static HandMods activeMods(List<Joker> jokers) {
+        EnumSet<HandMod> mods = EnumSet.noneOf(HandMod.class);
+        for (Joker j : jokers) {
+            if (j instanceof DataJoker dj) mods.addAll(dj.def().handMods());
+        }
+        return HandMods.from(mods);
     }
 
     private static boolean containsIdentity(List<Card> list, Card c) {

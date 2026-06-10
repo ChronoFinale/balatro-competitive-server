@@ -12,18 +12,24 @@ import java.util.List;
  * three-vs-full-house distinction (a triple is NOT counted as a pair —
  * Balatro's {@code get_X_same} matches groups of exactly n).
  *
- * <p>Out of scope for this slice (noted for parity later): Four Fingers
- * (4-card flush/straight), Shortcut (gapped straights), Splash, Wild suits.
+ * <p>Global modifiers ({@link HandMods}) are honoured: Four Fingers (4-card
+ * flush/straight), Shortcut (gapped straights) and Smeared (merged suits for
+ * flushes). Splash and Wild suits remain out of scope for this slice.
  */
 public final class HandEvaluator {
 
     private HandEvaluator() {}
 
+    /** Vanilla evaluation, no global modifiers. */
     public static HandResult evaluate(List<Card> played) {
+        return evaluate(played, HandMods.NONE);
+    }
+
+    public static HandResult evaluate(List<Card> played, HandMods mods) {
         List<Card> ranked = nonStone(played);
 
-        boolean flush = isFlush(ranked);
-        boolean straight = isStraight(ranked);
+        boolean flush = isFlush(ranked, mods);
+        boolean straight = isStraight(ranked, mods);
 
         int[] count = new int[15]; // ids 2..14
         for (Card c : ranked) count[c.id()]++;
@@ -81,18 +87,32 @@ public final class HandEvaluator {
         return r;
     }
 
-    /** Flush = 5 cards all one suit (Four Fingers / 4-card not modeled yet). */
-    private static boolean isFlush(List<Card> cards) {
-        if (cards.size() < 5) return false;
-        int[] counts = new int[Suit.values().length];
-        for (Card c : cards) counts[c.suit.ordinal()]++;
-        for (int n : counts) if (n >= 5) return true;
+    /**
+     * Flush = {@code runLength} cards of one suit. With Smeared, Hearts/Diamonds
+     * collapse to one suit-group and Spades/Clubs to another.
+     */
+    private static boolean isFlush(List<Card> cards, HandMods mods) {
+        int need = mods.runLength();
+        if (cards.size() < need) return false;
+        // group by suit, or by smeared pair (Hearts+Diamonds=0, Spades+Clubs=1)
+        int[] counts = new int[mods.smeared() ? 2 : Suit.values().length];
+        for (Card c : cards) counts[mods.smeared() ? smearedGroup(c.suit) : c.suit.ordinal()]++;
+        for (int n : counts) if (n >= need) return true;
         return false;
     }
 
-    /** Straight = 5 distinct consecutive ranks; Ace counts high (14) or low (1). */
-    private static boolean isStraight(List<Card> cards) {
-        if (cards.size() < 5) return false;
+    private static int smearedGroup(Suit s) {
+        return (s == Suit.HEARTS || s == Suit.DIAMONDS) ? 0 : 1;
+    }
+
+    /**
+     * Straight = {@code runLength} ranks where each consecutive present rank is
+     * within {@code maxGap} (Shortcut allows a gap of one). Ace counts high (14)
+     * or low (1).
+     */
+    private static boolean isStraight(List<Card> cards, HandMods mods) {
+        int need = mods.runLength();
+        if (cards.size() < need) return false;
         boolean[] present = new boolean[16]; // indices 1..14 (+ace-low at 1)
         boolean hasAce = false;
         for (Card c : cards) {
@@ -100,12 +120,18 @@ public final class HandEvaluator {
             if (c.id() == 14) hasAce = true;
         }
         if (hasAce) present[1] = true; // ace can be low
-        for (int start = 1; start <= 10; start++) {
-            boolean run = true;
-            for (int k = 0; k < 5; k++) {
-                if (!present[start + k]) { run = false; break; }
+        int gap = mods.maxGap();
+        // Walk upward collecting a run where each step to the next present rank is <= gap.
+        for (int start = 1; start <= 14; start++) {
+            if (!present[start]) continue;
+            int runLen = 1, last = start;
+            for (int next = start + 1; next <= 14 && runLen < need; next++) {
+                if (!present[next]) continue;
+                if (next - last > gap) break;
+                runLen++;
+                last = next;
             }
-            if (run) return true;
+            if (runLen >= need) return true;
         }
         return false;
     }

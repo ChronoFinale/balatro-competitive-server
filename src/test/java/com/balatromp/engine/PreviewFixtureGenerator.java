@@ -109,6 +109,20 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.SPADES), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), "j_seeing_double");
 
+        // 15. Four Fingers: four Hearts (4 cards played) form a Flush
+        scenario("four-fingers", play(c(Rank.TWO, Suit.HEARTS), c(Rank.FIVE, Suit.HEARTS),
+                c(Rank.EIGHT, Suit.HEARTS), c(Rank.JACK, Suit.HEARTS)), List.of(), "j_four_fingers");
+
+        // 16. Shortcut: 3-5-6-7-9 (gaps of one) forms a Straight
+        scenario("shortcut", play(c(Rank.THREE, Suit.SPADES), c(Rank.FIVE, Suit.HEARTS),
+                c(Rank.SIX, Suit.CLUBS), c(Rank.SEVEN, Suit.DIAMONDS), c(Rank.NINE, Suit.SPADES)),
+                List.of(), "j_shortcut");
+
+        // 17. Smeared Joker: Hearts+Diamonds collapse to one suit -> Flush
+        scenario("smeared", play(c(Rank.TWO, Suit.HEARTS), c(Rank.FOUR, Suit.DIAMONDS),
+                c(Rank.SIX, Suit.HEARTS), c(Rank.EIGHT, Suit.DIAMONDS), c(Rank.TEN, Suit.HEARTS)),
+                List.of(), "j_smeared_joker");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }

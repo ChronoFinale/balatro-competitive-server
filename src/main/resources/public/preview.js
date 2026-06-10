@@ -30,7 +30,9 @@
   const isSuit = (c, s) => !isStone(c) && c.suit === s;
 
   // --- hand evaluation (port of HandEvaluator) ------------------------------
-  function evaluateHand(played) {
+  // mods: {fourFingers, shortcut, smeared} — global modifiers from owned jokers.
+  function evaluateHand(played, mods) {
+    mods = mods || {};
     const ranked = played.filter((c) => !isStone(c));
     const count = {};
     for (const c of ranked) count[id(c)] = (count[id(c)] || 0) + 1;
@@ -45,7 +47,7 @@
       if (n >= 3) triples++;
       if (n >= 2) pairs.push(i);
     }
-    const flush = isFlush(ranked), straight = isStraight(ranked);
+    const flush = isFlush(ranked, mods), straight = isStraight(ranked, mods);
     const five = hi5 >= 0, four = hi4 >= 0, three = hi3 >= 0;
     const fullHouse = triples >= 1 && pairs.length >= 2;
     const twoPair = pairs.length >= 2, pair = pairs.length > 0;
@@ -68,22 +70,44 @@
   }
   const res = (type, scoring) => ({ type, scoring });
 
-  function isFlush(cards) {
-    if (cards.length < 5) return false;
-    const c = {};
-    for (const x of cards) c[x.suit] = (c[x.suit] || 0) + 1;
-    return Object.values(c).some((n) => n >= 5);
+  // Union the global hand modifiers from the owned jokers' defs (mirrors HandMods.from).
+  function activeMods(jokers) {
+    const m = { fourFingers: false, shortcut: false, smeared: false };
+    for (const j of jokers || []) {
+      for (const mod of (j.def && j.def.handMods) || []) {
+        if (mod === 'FOUR_FINGERS') m.fourFingers = true;
+        else if (mod === 'SHORTCUT') m.shortcut = true;
+        else if (mod === 'SMEARED') m.smeared = true;
+      }
+    }
+    return m;
   }
-  function isStraight(cards) {
-    if (cards.length < 5) return false;
+
+  const smearGroup = (s) => (s === 'HEARTS' || s === 'DIAMONDS') ? 'RD' : 'BK';
+  function isFlush(cards, mods) {
+    const need = mods.fourFingers ? 4 : 5;
+    if (cards.length < need) return false;
+    const c = {};
+    for (const x of cards) { const k = mods.smeared ? smearGroup(x.suit) : x.suit; c[k] = (c[k] || 0) + 1; }
+    return Object.values(c).some((n) => n >= need);
+  }
+  function isStraight(cards, mods) {
+    const need = mods.fourFingers ? 4 : 5;
+    if (cards.length < need) return false;
     const present = {};
     let ace = false;
     for (const x of cards) { present[id(x)] = true; if (id(x) === 14) ace = true; }
     if (ace) present[1] = true;
-    for (let s = 1; s <= 10; s++) {
-      let run = true;
-      for (let k = 0; k < 5; k++) if (!present[s + k]) { run = false; break; }
-      if (run) return true;
+    const gap = mods.shortcut ? 2 : 1;
+    for (let s = 1; s <= 14; s++) {
+      if (!present[s]) continue;
+      let runLen = 1, last = s;
+      for (let next = s + 1; next <= 14 && runLen < need; next++) {
+        if (!present[next]) continue;
+        if (next - last > gap) break;
+        runLen++; last = next;
+      }
+      if (runLen >= need) return true;
     }
     return false;
   }
@@ -234,7 +258,7 @@
   // returns {chips, mult, score} or null if any joker is unsupported (caller falls back to server).
   function previewScore(played, held, jokers, run) {
     let unsupported = false;
-    const hr = evaluateHand(played);
+    const hr = evaluateHand(played, activeMods(jokers));
     const scoring = hr.scoring.slice();
     for (const c of played) if (isStone(c) && !scoring.includes(c)) scoring.push(c);
     scoring.sort((a, b) => played.indexOf(a) - played.indexOf(b));
@@ -295,7 +319,7 @@
     runJokerPass('FINAL_SCORING_STEP', null);
 
     if (unsupported) return null; // a joker used a probabilistic/native effect -> server fallback
-    return { chips: acc.chips, mult: acc.mult, score: acc.chips * acc.mult };
+    return { type: hr.type, chips: acc.chips, mult: acc.mult, score: acc.chips * acc.mult };
   }
 
   function applyCardScored(acc, card) {

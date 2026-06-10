@@ -427,7 +427,12 @@ function render() {
     const local = (window.BalatroPreview && v.jokers)
       ? BalatroPreview.previewScore(sel, held, v.jokers, buildRun(v)) : null;
     if (local) {
-      previewText = `${label} · ${fmt(local.chips)} × ${fmt(local.mult)} = ${fmt(local.score)}`;
+      // local.type reflects global hand modifiers (Four Fingers, Shortcut, ...) that
+      // detectHand can't see, so prefer it for the label.
+      const ln = local.type || ph.name;
+      const lv = (v.handLevels && v.handLevels[ln]) || 1;
+      const lbl = `${ln}${lv > 1 ? (' Lv' + lv) : ''}`;
+      previewText = `${lbl} · ${fmt(local.chips)} × ${fmt(local.mult)} = ${fmt(local.score)}`;
     } else {
       const [lc, lm] = HAND_LVL[ph.name];
       const chips = ph.chips + (pvLvl - 1) * lc, mult = ph.mult + (pvLvl - 1) * lm;

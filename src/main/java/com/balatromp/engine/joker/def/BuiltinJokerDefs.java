@@ -344,6 +344,20 @@ public final class BuiltinJokerDefs {
                                         new Condition.ScoringContainsSuit(Suit.DIAMONDS),
                                         new Condition.ScoringContainsSuit(Suit.HEARTS),
                                         new Condition.ScoringContainsSuit(Suit.SPADES))))),
-                                new EffectTemplate(Op.XMULT, new Value.Const(2))))));
+                                new EffectTemplate(Op.XMULT, new Value.Const(2))))),
+
+                // --- global hand-evaluation modifiers (HandMod): change what hands form ---
+                new JokerDef("j_four_fingers", "Four Fingers",
+                        "All Flushes and Straights can be made with 4 cards",
+                        "Uncommon", 7, 1, 6, null, null, true, List.of(), List.of(),
+                        List.of(com.balatromp.engine.hand.HandMod.FOUR_FINGERS)),
+                new JokerDef("j_shortcut", "Shortcut",
+                        "Allows Straights to be made with gaps of 1 rank",
+                        "Uncommon", 7, 2, 6, null, null, true, List.of(), List.of(),
+                        List.of(com.balatromp.engine.hand.HandMod.SHORTCUT)),
+                new JokerDef("j_smeared_joker", "Smeared Joker",
+                        "Hearts and Diamonds count as the same suit, Spades and Clubs the same",
+                        "Uncommon", 7, 3, 6, null, null, true, List.of(), List.of(),
+                        List.of(com.balatromp.engine.hand.HandMod.SMEARED)));
     }
 }
