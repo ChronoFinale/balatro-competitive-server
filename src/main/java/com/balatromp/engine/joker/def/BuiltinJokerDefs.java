@@ -664,6 +664,17 @@ public final class BuiltinJokerDefs {
                         "Joker and Consumable cards may appear multiple times in the shop",
                         "Uncommon", 5, 0, 17, null, null, true, List.of(), List.of()),
 
+                // --- batch 44: more Nemesis jokers (Skip-Off, Let's Go Gambling) ---
+                new JokerDef("j_skip_off", "Skip-Off",
+                        "+1 Hand and +1 Discard per additional blind skipped vs your Nemesis",
+                        "Uncommon", 6, 6, 17, null, null, true, List.of(), List.of()),
+                new JokerDef("j_lets_go_gambling", "Let's Go Gambling",
+                        "1 in 4 chance for x4 Mult and $10",
+                        "Uncommon", 6, 7, 17, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Chance(1, 4, "gambling"),
+                                new EffectTemplate(Op.XMULT, new Value.Const(4),
+                                        new EffectTemplate(Op.DOLLARS, new Value.Const(10)))))),
+
                 // --- batch 43: multiplayer-exclusive "Nemesis" jokers (read opponent state) ---
                 new JokerDef("j_pacifist", "Pacifist", "x10 Mult while not in a PvP blind",
                         "Uncommon", 6, 2, 17, null, null, true, List.of(),

@@ -113,6 +113,14 @@ class RunModTest {
     }
 
     @Test
+    void skipOffGivesHandsAndDiscardsPerExtraSkip() {
+        Run run = new Run(std, "SO", stoneDeck(400), jokers("j_skip_off"));
+        run.skipBlind(); // 1 skip vs Nemesis 0 -> Big blind gets +1 hand and +1 discard
+        assertThat(run.state.handsLeft).isEqualTo(std.hands() + 1);
+        assertThat(run.state.discardsLeft).isEqualTo(std.discards() + 1);
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());

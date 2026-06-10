@@ -115,6 +115,17 @@ class ShopTest {
     }
 
     @Test
+    void multiplayerShopExcludesBannedJokers() {
+        Ruleset mp = new Ruleset("MP", 4, 4, 3, 8, 1.0, 8, std.blindBaseAmounts(),
+                List.of("j_bull", "j_banner", "j_chicot", "j_matador"), "multiplayer");
+        Run run = new Run(mp, "MP", heartsKings(200), jokers("j_joker", "j_joker", "j_joker"));
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        assertThat(run.phase).isEqualTo(Run.Phase.SHOP);
+        assertThat(run.shop.items())
+                .noneMatch(it -> it.jokerKey().equals("j_chicot") || it.jokerKey().equals("j_matador"));
+    }
+
+    @Test
     void showmanAllowsOwnedAndDuplicateOfferings() {
         var queues = new com.balatromp.engine.rng.QueueSet(new com.balatromp.engine.rng.RandomStreams("SM"));
         var shop = com.balatromp.engine.game.Shop.generate(queues, 2,

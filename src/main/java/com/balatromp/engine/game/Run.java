@@ -218,10 +218,17 @@ public final class Run {
     }
 
     /** Generate a shop that skips jokers you already own (unless Showman allows duplicates). */
+    /** Jokers banned in Standard Ranked multiplayer (boss-blind interactions). */
+    private static final java.util.Set<String> MP_DISABLED =
+            java.util.Set.of("j_chicot", "j_matador", "j_mr_bones", "j_luchador");
+
     private Shop generateShop() {
         java.util.Set<String> owned = new java.util.HashSet<>();
         for (Joker j : state.jokers()) owned.add(j.key());
         owned.addAll(state.vouchers); // skip vouchers you already own too (distinct v_ namespace)
+        // In multiplayer, the boss-disabling jokers are banned — treat them as "already owned" so
+        // the shop queue skips over them.
+        if ("multiplayer".equals(ruleset.jokerVariant())) owned.addAll(MP_DISABLED);
         int slots = state.vouchers.contains("v_overstock") ? 3 : 2; // Overstock: +1 shop slot
         return Shop.generate(state.queues, slots, ruleset.jokerPool(), owned, hasJoker("j_showman"));
     }
@@ -286,6 +293,12 @@ public final class Run {
         DeckCatalog.DeckType deck = DeckCatalog.get(ruleset.deckType());
         state.handsLeft += deck.handsDelta();
         state.discardsLeft += deck.discardsDelta();
+        // Skip-Off (Nemesis): +1 hand and +1 discard per extra blind skipped vs your Nemesis.
+        if (hasJoker("j_skip_off")) {
+            int diff = Math.max(0, state.blindsSkipped - state.oppBlindsSkipped);
+            state.handsLeft += diff;
+            state.discardsLeft += diff;
+        }
         if (noDiscards) state.discardsLeft = 0;
         state.handsLeft = Math.max(1, state.handsLeft);
         state.discardsLeft = Math.max(0, state.discardsLeft);
