@@ -68,6 +68,7 @@ public final class Run {
     public BossBlind forcedBoss; // test/dev hook to pin a boss
     public int pvpFromAnte = 0;  // Attrition: boss blinds at/after this ante are PvP (0 = never)
     private boolean pvpActive = false;
+    private boolean freeRerollUsed = false; // Chaos the Clown: one free reroll per shop visit
     private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
     public Run(Ruleset ruleset, String seed) {
@@ -156,6 +157,20 @@ public final class Run {
     private int extraInterest() {
         boolean toTheMoon = state.jokers().stream().anyMatch(j -> j.key().equals("j_to_the_moon"));
         return toTheMoon ? state.money / 5 : 0;
+    }
+
+    private boolean hasJoker(String key) {
+        return state.jokers().stream().anyMatch(j -> j.key().equals(key));
+    }
+
+    /** The lowest money a purchase may leave you at — Credit Card allows up to -$20 of debt. */
+    private int minMoney() {
+        return hasJoker("j_credit_card") ? -20 : 0;
+    }
+
+    /** True if {@code cost} is affordable given the current debt floor. */
+    private boolean canAfford(int cost) {
+        return state.money - cost >= minMoney();
     }
 
     /** Re-roll the per-round dynamic targets (The Idol's card, Ancient's suit). */
@@ -262,6 +277,7 @@ public final class Run {
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
+        freeRerollUsed = false;
         phase = Phase.SHOP;
     }
 
@@ -274,6 +290,7 @@ public final class Run {
         GameEvents.endOfRound(state, rng, boss != null);
         phase = Phase.SHOP;
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
+        freeRerollUsed = false;
     }
 
     /** Buy the joker at the given shop slot. Returns null on success, else a reason. */
@@ -281,7 +298,7 @@ public final class Run {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         if (index < 0 || index >= shop.items().size()) return "invalid shop slot";
         Shop.Item item = shop.items().get(index);
-        if (state.money < item.cost()) return "not enough money";
+        if (!canAfford(item.cost())) return "not enough money";
         if (state.jokers().size() >= Shop.JOKER_SLOT_LIMIT) return "joker slots full";
         state.money -= item.cost();
         state.addJoker(JokerLibrary.create(item.jokerKey()));
@@ -303,8 +320,12 @@ public final class Run {
     /** Reroll the shop offerings. Returns null on success, else a reason. */
     public String reroll() {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
-        if (state.money < Shop.REROLL_COST) return "not enough money";
-        state.money -= Shop.REROLL_COST;
+        // Chaos the Clown: the first reroll each shop visit is free.
+        boolean free = hasJoker("j_chaos") && !freeRerollUsed;
+        int cost = free ? 0 : Shop.REROLL_COST;
+        if (!canAfford(cost)) return "not enough money";
+        state.money -= cost;
+        if (free) freeRerollUsed = true;
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool()); // advances the same game-long queue
         return null;
     }
@@ -314,8 +335,9 @@ public final class Run {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         if (index < 0 || index >= shop.planets().size()) return "invalid planet slot";
         if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
-        if (state.money < PlanetCatalog.COST) return "not enough money";
-        state.money -= PlanetCatalog.COST;
+        int cost = hasJoker("j_astronomer") ? 0 : PlanetCatalog.COST; // Astronomer: Planets are free
+        if (!canAfford(cost)) return "not enough money";
+        state.money -= cost;
         state.consumables.add(shop.planets().get(index).key());
         shop.planets().remove(index);
         return null;
@@ -326,7 +348,7 @@ public final class Run {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         if (index < 0 || index >= shop.consumables().size()) return "invalid consumable slot";
         if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
-        if (state.money < Shop.CONSUMABLE_COST) return "not enough money";
+        if (!canAfford(Shop.CONSUMABLE_COST)) return "not enough money";
         state.money -= Shop.CONSUMABLE_COST;
         state.consumables.add(shop.consumables().get(index).key());
         shop.consumables().remove(index);

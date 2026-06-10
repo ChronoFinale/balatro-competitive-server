@@ -609,6 +609,14 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 27: shop/economy hooks (Credit Card, Chaos, Astronomer) ---
+                new JokerDef("j_credit_card", "Credit Card", "Go up to -$20 in debt",
+                        "Common", 1, 0, 15, null, null, true, List.of(), List.of()),
+                new JokerDef("j_chaos", "Chaos the Clown", "1 free reroll each shop",
+                        "Common", 4, 1, 15, null, null, true, List.of(), List.of()),
+                new JokerDef("j_astronomer", "Astronomer", "All Planet cards in the shop are free",
+                        "Uncommon", 8, 2, 15, null, null, true, List.of(), List.of()),
+
                 // --- batch 26: Run-level hooks (Mr Bones death-save, To the Moon interest) ---
                 new JokerDef("j_mr_bones", "Mr. Bones",
                         "Prevents death if at least 25% of the required score was reached (then self-destructs)",
