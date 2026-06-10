@@ -186,6 +186,7 @@
       case 'scoredSuitIsCastle':
         return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {}).castleSuit);
       case 'handIsTodo': return ctx.handType === ((ctx.run.counters || {}).todoHand);
+      case 'scoredRankIsRebate': return !!c && !isStone(c) && id(c) === ((ctx.run.counters || {}).rebateRankId);
       default: return null;
     }
   }
@@ -242,7 +243,8 @@
         return v.base + v.scale * sum;
       }
       case 'count': {
-        const src = v.source === 'PLAYED' ? ctx.played : v.source === 'HELD' ? ctx.held : ctx.scoring;
+        const src = v.source === 'PLAYED' ? ctx.played : v.source === 'HELD' ? ctx.held
+          : v.source === 'EVENT' ? (ctx.event || []) : ctx.scoring;
         let n = 0;
         for (const card of src) if (condTest(v.match, Object.assign({}, ctx, { scoredCard: card }))) n++;
         return v.base + v.scale * n;

@@ -91,7 +91,7 @@ public sealed interface Value {
     }
 
     /** Which set of cards a {@link Count} scans. */
-    enum Source { PLAYED, SCORING, HELD }
+    enum Source { PLAYED, SCORING, HELD, EVENT }
 
     /**
      * {@code base + scale * (number of cards in source matching match)}. The
@@ -105,6 +105,7 @@ public sealed interface Value {
                 case PLAYED -> ctx.playedCards;
                 case SCORING -> ctx.scoringCards;
                 case HELD -> ctx.heldCards;
+                case EVENT -> ctx.eventCards; // discarded set (PRE_DISCARD), etc.
             };
             if (cards == null) return base;
             Card prev = ctx.scoredCard;

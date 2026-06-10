@@ -149,6 +149,7 @@ public final class Run {
         state.castleSuit = suits[(int) (roll("target:castle:suit") * suits.length) % suits.length];
         com.balatromp.engine.hand.HandType[] hands = com.balatromp.engine.hand.HandType.values();
         state.todoHandType = hands[(int) (roll("target:todo:hand") * hands.length) % hands.length];
+        state.rebateRankId = 2 + (int) (roll("target:rebate:rank") * 13) % 13;
     }
 
     private double roll(String key) {
@@ -505,6 +506,7 @@ public final class Run {
         counters.put("ancientSuit", state.ancientSuit.name());
         counters.put("castleSuit", state.castleSuit.name());
         counters.put("todoHand", state.todoHandType.name());
+        counters.put("rebateRankId", state.rebateRankId);
 
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,

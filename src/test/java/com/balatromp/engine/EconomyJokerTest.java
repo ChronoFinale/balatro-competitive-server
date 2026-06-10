@@ -56,6 +56,21 @@ class EconomyJokerTest {
     }
 
     @Test
+    void mailInRebatePaysPerDiscardedCardOfTheRoundRank() {
+        RunState run = new RunState();
+        run.money = 0;
+        run.rebateRankId = 9; // nines this round
+        run.queues = new com.balatromp.engine.rng.QueueSet(rng);
+        run.addJoker(JokerLibrary.create("j_mail_in_rebate"));
+        // Discard two 9s and a King -> $3 x 2 = $6.
+        GameEvents.preDiscard(run, rng, java.util.List.of(c(NINE, HEARTS), c(NINE, SPADES),
+                new com.balatromp.engine.card.Card(com.balatromp.engine.card.Rank.KING, HEARTS,
+                        com.balatromp.engine.card.Enhancement.NONE, com.balatromp.engine.card.Edition.NONE,
+                        com.balatromp.engine.card.Seal.NONE)));
+        assertThat(run.money).isEqualTo(6);
+    }
+
+    @Test
     void delayedGratificationPaysOnlyIfNoDiscardsUsed() {
         RunState run = new RunState();
         run.money = 0;

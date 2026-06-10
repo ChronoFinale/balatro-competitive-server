@@ -609,6 +609,14 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 25: Mail-In Rebate (event-count money) ---
+                new JokerDef("j_mail_in_rebate", "Mail-In Rebate",
+                        "Earn $3 for each discarded card of this round's rank",
+                        "Common", 4, 7, 14, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.PRE_DISCARD, new Condition.Always(),
+                                new EffectTemplate(Op.DOLLARS, new Value.Count(Value.Source.EVENT,
+                                        new Condition.ScoredRankIsRebate(), 0, 3))))),
+
                 // --- batch 24: more dynamic targets (Castle chips, To Do List money) ---
                 new JokerDef("j_castle", "Castle",
                         "Gains +3 Chips per discarded card of this round's suit",

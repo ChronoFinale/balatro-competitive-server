@@ -41,6 +41,7 @@ public final class RunState {
     public com.balatromp.engine.card.Suit ancientSuit = com.balatromp.engine.card.Suit.HEARTS; // Ancient
     public com.balatromp.engine.card.Suit castleSuit = com.balatromp.engine.card.Suit.HEARTS;  // Castle
     public HandType todoHandType = HandType.PAIR;                                              // To Do List
+    public int rebateRankId = 2;                                                              // Mail-In Rebate
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;

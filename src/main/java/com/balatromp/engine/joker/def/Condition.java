@@ -48,6 +48,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoredSuitIsAncient.class, name = "scoredSuitIsAncient"),
     @JsonSubTypes.Type(value = Condition.ScoredSuitIsCastle.class, name = "scoredSuitIsCastle"),
     @JsonSubTypes.Type(value = Condition.HandIsTodo.class, name = "handIsTodo"),
+    @JsonSubTypes.Type(value = Condition.ScoredRankIsRebate.class, name = "scoredRankIsRebate"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -278,6 +279,14 @@ public sealed interface Condition {
     record ScoredSuitIsCastle() implements Condition {
         public boolean test(EvaluationContext ctx) {
             return ctx.scoredCard != null && ctx.run != null && ctx.scoredCard.isSuit(ctx.run.castleSuit);
+        }
+    }
+
+    /** The (event) card's rank is this round's Mail-In Rebate rank. */
+    record ScoredRankIsRebate() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            Card c = ctx.scoredCard;
+            return c != null && !c.isStone() && ctx.run != null && c.id() == ctx.run.rebateRankId;
         }
     }
 
