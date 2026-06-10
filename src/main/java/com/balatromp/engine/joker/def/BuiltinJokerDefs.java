@@ -545,6 +545,16 @@ public final class BuiltinJokerDefs {
                                 "x", Mutation.Op.ADD, 1)),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
+                new JokerDef("j_hit_the_road", "Hit the Road",
+                        "Gains x0.5 Mult for every Jack discarded this round",
+                        "Rare", 8, 7, 13, null, null, true,
+                        List.of(new Mutation(Trigger.BLIND_SELECTED, new Condition.Always(),
+                                        "x", Mutation.Op.RESET, 0),
+                                // +0.5 per Jack in the discarded set (count-mutation)
+                                new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "x",
+                                        Mutation.Op.ADD, 0.5, new Condition.ScoredRankBetween(11, 11))),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
 
                 new JokerDef("j_burnt", "Burnt Joker", "Upgrade the level of the first discarded poker hand each round",
                         "Rare", 8, 1, 13, null, null, true,

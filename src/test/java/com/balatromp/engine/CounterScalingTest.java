@@ -48,6 +48,21 @@ class CounterScalingTest {
     }
 
     @Test
+    void hitTheRoadGainsPerJackDiscarded() {
+        RunState run = run("j_hit_the_road");
+        Joker htr = run.jokers().get(0);
+        GameEvents.raise(Trigger.BLIND_SELECTED, run, run.rng, null); // reset
+        // discard a set with two Jacks and a non-Jack
+        java.util.List<Card> discarded = java.util.List.of(
+                new Card(com.balatromp.engine.card.Rank.JACK, HEARTS, Enhancement.NONE, Edition.NONE, Seal.NONE),
+                new Card(com.balatromp.engine.card.Rank.JACK, com.balatromp.engine.card.Suit.SPADES,
+                        Enhancement.NONE, Edition.NONE, Seal.NONE),
+                new Card(TWO, HEARTS, Enhancement.NONE, Edition.NONE, Seal.NONE));
+        GameEvents.preDiscard(run, run.rng, discarded);
+        assertThat(((Number) run.jokerState(htr).get("x")).doubleValue()).isEqualTo(1.0); // 2 Jacks x 0.5
+    }
+
+    @Test
     void canioGainsPerFaceCardDestroyed() {
         RunState run = run("j_canio");
         Joker canio = run.jokers().get(0);
