@@ -281,6 +281,18 @@ public final class BuiltinJokerDefs {
                                         new Condition.Not(new Condition.ScoredEnhancement(Enhancement.NONE)),
                                         EffectTemplate.mutate(CardMod.removeEnhancement())),
                                 new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("xm", 0.1),
-                                        new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0))))));
+                                        new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0))))),
+
+                // --- economy-during-scoring: money earned mid-hand (credited at end) ---
+                new JokerDef("j_rough_gem", "Rough Gem", "Each played Diamond gives $1 when scored",
+                        "Uncommon", 7, 5, 9, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredSuit(Suit.DIAMONDS),
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(1))))),
+                new JokerDef("j_business_card", "Business Card", "Played face cards have a 1 in 2 chance to give $2",
+                        "Common", 4, 1, 9, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED,
+                                new Condition.And(List.of(new Condition.ScoredIsFace(),
+                                        new Condition.Chance(1, 2, "business_card"))),
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(2))))));
     }
 }

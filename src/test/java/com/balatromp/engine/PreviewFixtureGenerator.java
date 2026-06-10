@@ -79,6 +79,11 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), "j_scholar");
 
+        // 9. Rough Gem (DOLLARS during scoring): money must NOT leak into the preview score
+        scenario("rough-gem", play(c(Rank.NINE, Suit.DIAMONDS), c(Rank.NINE, Suit.DIAMONDS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.SPADES)),
+                List.of(), "j_rough_gem");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }

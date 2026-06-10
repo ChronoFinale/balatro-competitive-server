@@ -67,6 +67,23 @@ class ScoringEngineTest {
     }
 
     @Test
+    void roughGemCreditsMoneyOnScoreButNotOnPreview() {
+        RunState run = new RunState();
+        run.money = 10;
+        run.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_rough_gem"));
+        RandomStreams rng = new RandomStreams("GEM");
+        // two played Diamonds -> +$2; the other three cards earn nothing
+        List<Card> hand = List.of(c(NINE, com.balatromp.engine.card.Suit.DIAMONDS),
+                c(NINE, com.balatromp.engine.card.Suit.DIAMONDS), c(THREE, SPADES),
+                c(KING, SPADES), c(QUEEN, HEARTS));
+        ScoringEngine eng = new ScoringEngine();
+        eng.preview(hand, List.of(), run, rng);
+        assertThat(run.money).as("preview is a dry-run, no money credited").isEqualTo(10);
+        eng.score(hand, List.of(), run, rng);
+        assertThat(run.money).as("two scored Diamonds give $1 each").isEqualTo(12);
+    }
+
+    @Test
     void rideTheBusScalesAcrossConsecutiveHands() {
         RunState run = new RunState();
         run.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_ride_the_bus"));

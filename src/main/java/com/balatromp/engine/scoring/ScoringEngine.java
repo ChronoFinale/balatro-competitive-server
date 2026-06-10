@@ -40,6 +40,7 @@ public final class ScoringEngine {
     private static final class Acc {
         BigNum chips = BigNum.ZERO;
         BigNum mult = BigNum.ZERO;
+        int dollars = 0; // money earned during scoring (credited once at the end, never in preview)
         final List<ReplayEntry> log = new ArrayList<>();
         final List<Card> destroyed = new ArrayList<>();
     }
@@ -157,6 +158,12 @@ public final class ScoringEngine {
 
         // (6b) FINAL_SCORING_STEP — effect seam after the main joker pass.
         effectPass(Trigger.FINAL_SCORING_STEP, acc, ctx, jokers);
+
+        // (6c) credit money earned during scoring (Rough Gem, Business Card, Bootstraps,
+        // Gold/Lucky seals already credited inline). Never in preview — it's a dry-run.
+        if (!preview && acc.dollars != 0) {
+            run.money = Math.max(0, run.money + acc.dollars);
+        }
 
         // (7) final score (big-number; chips × mult).
         BigNum score = acc.chips.multiply(acc.mult);
@@ -324,7 +331,8 @@ public final class ScoringEngine {
         }
         applyEffect(acc, e.extra, src); // the extra-chain recurses with the same ordering
         if (e.dollars != 0) {
-            acc.log.add(new ReplayEntry(src, "dollars", "+$" + e.dollars,
+            acc.dollars += e.dollars;
+            acc.log.add(new ReplayEntry(src, "dollars", (e.dollars >= 0 ? "+$" : "-$") + Math.abs(e.dollars),
                     Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
         }
         if (e.swap) {
