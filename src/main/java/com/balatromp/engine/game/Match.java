@@ -81,6 +81,7 @@ public final class Match {
         if (me == null) return;
         Side opp = (me == host) ? guest : host;
 
+        syncNemesis(); // refresh each Run's opponent view so Nemesis jokers read live state
         send(opp, opponentSummary(me));
 
         if (me.run.phase == Run.Phase.RUN_LOST) { // solo safety; shouldn't happen in Attrition
@@ -128,6 +129,7 @@ public final class Match {
         }
 
         if (loser != null) loser.lives--;
+        syncNemesis(); // lives changed -> refresh Defensive Joker's "lives behind", etc.
         announce(host, guest, h, g, loser);
         announce(guest, host, g, h, loser);
         host.run.endPvp();   // both leave the Nemesis blind for their shop
@@ -137,6 +139,22 @@ public final class Match {
 
         if (host.lives <= 0) finish(guest.playerId);
         else if (guest.lives <= 0) finish(host.playerId);
+    }
+
+    /** Push each Run its opponent's live state, so the Nemesis jokers (Defensive, Conjoined,
+     *  Taxes, Skip-Off, Pacifist) score off real opponent data instead of solo defaults. */
+    private void syncNemesis() {
+        if (host == null || guest == null || host.run == null || guest.run == null) return;
+        applyOpponent(host, guest);
+        applyOpponent(guest, host);
+    }
+
+    private static void applyOpponent(Side me, Side opp) {
+        me.run.state.myLives = me.lives;
+        me.run.state.oppLives = opp.lives;
+        me.run.state.oppHandsLeft = opp.run.state.handsLeft;
+        me.run.state.oppCardsSold = opp.run.state.cardsSoldSinceLastPvp;
+        me.run.state.oppBlindsSkipped = opp.run.state.blindsSkipped;
     }
 
     private void announce(Side me, Side opp, long myScore, long oppScore, Side loser) {
@@ -217,6 +235,7 @@ public final class Match {
         host.run.pvpFromAnte = PVP_FROM_ANTE;
         guest.run = new Run(ruleset, seed);
         guest.run.pvpFromAnte = PVP_FROM_ANTE;
+        syncNemesis(); // seed each Run's opponent view before the first hand
         sendStart(host, guest);
         sendStart(guest, host);
     }

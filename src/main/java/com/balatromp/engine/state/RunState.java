@@ -53,6 +53,7 @@ public final class RunState {
     public int oppHandsLeft = 0;       // nemesis hands left in the current PvP blind (Conjoined)
     public int oppCardsSold = 0;       // nemesis cards sold since the last PvP blind (Taxes)
     public int oppBlindsSkipped = 0;   // nemesis blinds skipped (Skip-Off)
+    public int cardsSoldSinceLastPvp = 0; // your sells since the last PvP (feeds the opponent's Taxes)
     public final java.util.List<String> tags = new java.util.ArrayList<>(); // held tags (skip rewards, Diet Cola)
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.

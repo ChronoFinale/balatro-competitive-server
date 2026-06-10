@@ -71,6 +71,9 @@ class MatchTest {
             assertThat(aStart.path("opponent").asText()).isEqualTo("bob");
             assertThat(aStart.path("view").path("hand").size()).isEqualTo(8); // "Standard" survived
             assertThat(bStart.path("view").path("hand").size()).isEqualTo(8);
+            // Nemesis state is synced into each Run: the view's counters carry the opponent's
+            // live values (both start with 4 hands), which the Nemesis jokers score off.
+            assertThat(aStart.path("view").path("counters").path("OPP_HANDS_LEFT").asInt()).isEqualTo(4);
 
             // Alice plays a hand: she gets an authoritative update; Bob gets a push.
             a.sendText(playHand(2), true).join();

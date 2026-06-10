@@ -375,6 +375,7 @@ public final class Run {
     public void endPvp() {
         if (!pvpActive) return;
         pvpActive = false;
+        state.cardsSoldSinceLastPvp = 0; // Taxes counts sells between PvP blinds
         int interest = roundInterest();
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
@@ -439,6 +440,7 @@ public final class Run {
         if (phase != Phase.SHOP && phase != Phase.BLIND_ACTIVE) return "cannot sell now";
         if (index < 0 || index >= state.jokers().size()) return "invalid joker";
         Joker sold = state.jokers().remove(index);
+        state.cardsSoldSinceLastPvp++; // feeds the opponent's Taxes joker
         int bonus = ((Number) state.jokerState(sold).getOrDefault("sellBonus", 0)).intValue();
         state.money += Math.max(1, sold.info().cost() / 2) + bonus; // sell value (+ Egg/Gift bonus)
         // Invisible Joker: sold after >=2 rounds owned, duplicate a random remaining joker.
