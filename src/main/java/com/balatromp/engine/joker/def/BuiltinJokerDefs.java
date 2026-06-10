@@ -317,6 +317,12 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_triboulet", "Triboulet", "Played Kings and Queens each give x2 Mult",
                         "Legendary", 20, 4, 15, null, null, true, List.of(),
                         List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredRankBetween(12, 13),
-                                new EffectTemplate(Op.XMULT, new Value.Const(2))))));
+                                new EffectTemplate(Op.XMULT, new Value.Const(2))))),
+
+                // --- ScoredFirst: retrigger the first scored card (Hanging Chad) ---
+                new JokerDef("j_hanging_chad", "Hanging Chad", "Retrigger the first played card 2 additional times",
+                        "Common", 4, 1, 5, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredFirst(),
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(2))))));
     }
 }

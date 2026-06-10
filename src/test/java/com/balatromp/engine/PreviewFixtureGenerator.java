@@ -99,6 +99,11 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), "j_joker_stencil");
 
+        // 13. Hanging Chad: the first scored card triggers 3x (ScoredFirst + REPETITIONS 2)
+        scenario("hanging-chad", play(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), "j_hanging_chad");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }

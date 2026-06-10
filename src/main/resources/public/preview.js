@@ -103,6 +103,7 @@
       }
       case 'scoredIsFace': return !!c && isFace(c);
       case 'scoredRankBetween': return !!c && !isStone(c) && id(c) >= cond.min && id(c) <= cond.max;
+      case 'scoredFirst': return !!c && ctx.scoring.length > 0 && ctx.scoring[0] === c;
       case 'scoredEnhancement': return !!c && c.enhancement === cond.enhancement;
       case 'scoredEdition': return !!c && c.edition === cond.edition;
       case 'scoredSeal': return !!c && c.seal === cond.seal;

@@ -27,6 +27,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoredParity.class, name = "scoredParity"),
     @JsonSubTypes.Type(value = Condition.ScoredIsFace.class, name = "scoredIsFace"),
     @JsonSubTypes.Type(value = Condition.ScoredRankBetween.class, name = "scoredRankBetween"),
+    @JsonSubTypes.Type(value = Condition.ScoredFirst.class, name = "scoredFirst"),
     @JsonSubTypes.Type(value = Condition.ScoredEnhancement.class, name = "scoredEnhancement"),
     @JsonSubTypes.Type(value = Condition.ScoredEdition.class, name = "scoredEdition"),
     @JsonSubTypes.Type(value = Condition.ScoredSeal.class, name = "scoredSeal"),
@@ -112,6 +113,14 @@ public sealed interface Condition {
             if (c == null || c.isStone()) return false;
             int id = c.id();
             return id >= min && id <= max;
+        }
+    }
+
+    /** The scoring card is the first card in scoring order (Photograph, Hanging Chad). */
+    record ScoredFirst() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.scoredCard != null && ctx.scoringCards != null
+                    && !ctx.scoringCards.isEmpty() && ctx.scoringCards.get(0) == ctx.scoredCard;
         }
     }
 
