@@ -263,6 +263,7 @@
       case 'DOLLARS': break; // no money in scoring math
       case 'CREATE': break; // server-side card creation; nothing to score
       case 'DESTROY_SCORED': break; // card still scores this hand; destruction is post-score
+      case 'LEVEL_UP_HAND': break; // affects future hands, not this already-scored one
       case 'REPETITIONS': break; // handled by the retrigger pass
       default: return false;
     }

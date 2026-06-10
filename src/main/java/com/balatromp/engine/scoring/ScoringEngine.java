@@ -161,7 +161,10 @@ public final class ScoringEngine {
             ctx.otherJoker = null;
             JokerEffect me = current.calculate(ctx);
             apply(acc, me, current.name());
-            if (!preview) applyCreate(me, run, queues);
+            if (!preview) {
+                applyCreate(me, run, queues);
+                applyLevelUp(me, run);
+            }
 
             for (int j = 0; j < jokers.size(); j++) {
                 ctx.phase = Trigger.ON_OTHER_JOKER;
@@ -202,6 +205,15 @@ public final class ScoringEngine {
     private void applyCreate(JokerEffect e, RunState run, QueueSet queues) {
         for (JokerEffect cur = e; cur != null; cur = cur.extra) {
             if (cur.create != null) Creation.apply(run, cur.create, queues);
+        }
+    }
+
+    /** Apply any LEVEL_UP_HAND effects in the chain (real play only). */
+    private void applyLevelUp(JokerEffect e, RunState run) {
+        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
+            if (cur.levelUpHand != null) {
+                for (int i = 0; i < cur.levelUpAmount; i++) run.levelUpHand(cur.levelUpHand);
+            }
         }
     }
 

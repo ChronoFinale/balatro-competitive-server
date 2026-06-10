@@ -523,7 +523,25 @@ public final class BuiltinJokerDefs {
                                 new Condition.And(List.of(new Condition.PlayedCount(Condition.Cmp.EQ, 1),
                                         new Condition.ScoredRankBetween(6, 6))),
                                 new EffectTemplate(Op.DESTROY_SCORED, null,
-                                        EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL)))))));
+                                        EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL)))))),
+
+                // --- batch 12: hand level-up ---
+                new JokerDef("j_space", "Space Joker", "1 in 4 chance to upgrade the level of the played hand",
+                        "Uncommon", 5, 0, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Chance(1, 4, "space"),
+                                EffectTemplate.levelUpHand(1)))),
+                new JokerDef("j_burnt", "Burnt Joker", "Upgrade the level of the first discarded poker hand each round",
+                        "Rare", 8, 1, 13, null, null, true,
+                        // count discards this round (reset at blind select); mutations run before rules,
+                        // so on the first discard the counter is exactly 1 when the rule is checked.
+                        List.of(new Mutation(Trigger.BLIND_SELECTED, new Condition.Always(),
+                                        "discards", Mutation.Op.RESET, 0),
+                                new Mutation(Trigger.PRE_DISCARD, new Condition.Always(),
+                                        "discards", Mutation.Op.ADD, 1)),
+                        List.of(new Rule(Trigger.PRE_DISCARD,
+                                new Condition.And(List.of(new Condition.StateAtLeast("discards", 1),
+                                        new Condition.Not(new Condition.StateAtLeast("discards", 2)))),
+                                EffectTemplate.levelUpHand(1)))));
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */

@@ -17,7 +17,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod, CreateSpec create) {
 
     public enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD,
-        CREATE, DESTROY_SCORED }
+        CREATE, DESTROY_SCORED, LEVEL_UP_HAND }
+
+    /** Level up the current poker hand by {@code levels} (Space/Burnt). */
+    public static EffectTemplate levelUpHand(int levels) {
+        return new EffectTemplate(Op.LEVEL_UP_HAND, new Value.Const(levels), null, null, null);
+    }
 
     /** A pure destroy effect (destroys the scoring card; no numeric contribution). */
     public static EffectTemplate destroyScored() {
@@ -69,7 +74,8 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
      * applied in order by the scoring engine.
      */
     public JokerEffect apply(EvaluationContext ctx) {
-        boolean nonNumeric = op == Op.MUTATE_CARD || op == Op.CREATE || op == Op.DESTROY_SCORED;
+        boolean nonNumeric = op == Op.MUTATE_CARD || op == Op.CREATE || op == Op.DESTROY_SCORED
+                || op == Op.LEVEL_UP_HAND;
         JokerEffect head = nonNumeric ? null : build(value.resolve(ctx));
         if (cardMod != null) {
             if (head == null) head = new JokerEffect();
@@ -82,6 +88,11 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
         if (op == Op.DESTROY_SCORED) {
             if (head == null) head = new JokerEffect();
             head.destroyScored = true;
+        }
+        if (op == Op.LEVEL_UP_HAND && ctx.handType != null) {
+            if (head == null) head = new JokerEffect();
+            head.levelUpHand = ctx.handType;
+            head.levelUpAmount = Math.max(1, (int) Math.round(value.resolve(ctx)));
         }
         if (extra == null) {
             return head;
@@ -116,7 +127,7 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
                 e.hMult = v;
                 yield e.msg("+" + fmt(v) + " Mult");
             }
-            case MUTATE_CARD, CREATE, DESTROY_SCORED -> null; // handled in apply(); no numeric
+            case MUTATE_CARD, CREATE, DESTROY_SCORED, LEVEL_UP_HAND -> null; // handled in apply()
         };
     }
 

@@ -28,6 +28,9 @@ public final class JokerEffect {
     public com.balatromp.engine.joker.def.CreateSpec create;
     /** Destroy the currently-scoring card after it scores (Sixth Sense); real play only. */
     public boolean destroyScored;
+    /** Level up this poker hand (Space/Burnt); applied server-side, affects future hands. */
+    public com.balatromp.engine.hand.HandType levelUpHand;
+    public int levelUpAmount;
     /** Swap the running chips and mult (Balatro {@code swap}). */
     public boolean swap;
     /** Balance chips and mult (Balatro {@code balance}); semantics TBD — no content uses it yet. */

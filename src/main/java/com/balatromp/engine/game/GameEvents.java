@@ -68,9 +68,13 @@ public final class GameEvents {
         return log;
     }
 
-    /** Before a discard resolves; jokers see the discarded set via {@code eventCards}. */
+    /** Before a discard resolves; jokers see the discarded set via {@code eventCards}, and
+     *  {@code handType} is the discarded cards' poker hand (Burnt levels it up). */
     public static List<ReplayEntry> preDiscard(RunState run, RandomStreams rng, List<Card> discarded) {
-        return raise(Trigger.PRE_DISCARD, run, rng, ctx -> ctx.eventCards = discarded);
+        return raise(Trigger.PRE_DISCARD, run, rng, ctx -> {
+            ctx.eventCards = discarded;
+            ctx.handType = com.balatromp.engine.hand.HandEvaluator.evaluate(discarded).type();
+        });
     }
 
     /** A consumable (Tarot/Planet/Spectral) is used. */
@@ -91,6 +95,10 @@ public final class GameEvents {
                 if (run.consumables.size() > before) {
                     log.add(new ReplayEntry(source, "create", "Created " + cur.create.kind(), 0, 0));
                 }
+            }
+            if (cur.levelUpHand != null) {
+                for (int i = 0; i < cur.levelUpAmount; i++) run.levelUpHand(cur.levelUpHand);
+                log.add(new ReplayEntry(source, "levelup", "Level up " + cur.levelUpHand.display, 0, 0));
             }
         }
     }
