@@ -74,4 +74,21 @@ class BossBlindTest {
         assertThat(run.state.handSize).isEqualTo(7);         // 8 - 1
         assertThat(run.requirement).isEqualTo(900);          // getBlindAmount(1)=300 * 3
     }
+
+    @Test
+    void chicotDisablesTheBossAbilityButNotItsRequirement() {
+        Run run = new Run(Ruleset.standard(), "B", stoneDeck(300),
+                jokers("j_joker", "j_joker", "j_chicot"));
+        run.forcedBoss = new BossBlind("bl_test", "Test Boss", "x3, 2 hands, -1 size",
+                1, false, 3.0, 7, 2, -1, -1, null, false);
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        run.proceed();
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        run.proceed();
+
+        assertThat(run.blind).isEqualTo(BlindType.BOSS);
+        assertThat(run.state.handsLeft).isEqualTo(Ruleset.standard().hands()); // override ignored
+        assertThat(run.state.handSize).isEqualTo(8);                           // -1 delta ignored
+        assertThat(run.requirement).isEqualTo(900);                            // requirement still applies
+    }
 }

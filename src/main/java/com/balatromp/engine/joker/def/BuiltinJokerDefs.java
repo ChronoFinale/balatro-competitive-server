@@ -609,6 +609,10 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 29: boss-ability disable (Chicot) ---
+                new JokerDef("j_chicot", "Chicot", "Disables the effect of every Boss Blind",
+                        "Legendary", 20, 5, 15, null, null, true, List.of(), List.of()),
+
                 // --- batch 28: sell-value bonus (Egg, Gift Card) ---
                 new JokerDef("j_egg", "Egg", "Gains $3 of sell value at the end of each round",
                         "Common", 4, 3, 15, null, null, true,

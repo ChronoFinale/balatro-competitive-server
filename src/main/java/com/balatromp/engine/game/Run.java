@@ -115,9 +115,10 @@ public final class Run {
             requirement = 0; // outcome is decided by the head-to-head comparison
         } else if (blind == BlindType.BOSS) {
             boss = (forcedBoss != null) ? forcedBoss : BossCatalog.pick(ante, rng);
-            state.handsLeft = boss.handsOverride() >= 0 ? boss.handsOverride() : ruleset.hands();
-            state.discardsLeft = boss.discardsOverride() >= 0 ? boss.discardsOverride() : ruleset.discards();
-            state.handSize = Math.max(1, ruleset.handSize() + boss.handSizeDelta());
+            boolean disabled = bossDisabled(); // Chicot: ignore the boss's hand/discard/size ability
+            state.handsLeft = (!disabled && boss.handsOverride() >= 0) ? boss.handsOverride() : ruleset.hands();
+            state.discardsLeft = (!disabled && boss.discardsOverride() >= 0) ? boss.discardsOverride() : ruleset.discards();
+            state.handSize = Math.max(1, ruleset.handSize() + (disabled ? 0 : boss.handSizeDelta()));
             requirement = Math.round(Blinds.getBlindAmount(ante, ruleset) * boss.reqMult() * ruleset.anteScaling());
         } else {
             boss = null;
@@ -139,6 +140,11 @@ public final class Run {
         state.deck.drawTo(state.hand, state.handSize);
         refreshDebuffs();
         phase = Phase.BLIND_ACTIVE;
+    }
+
+    /** Chicot: the boss blind's special ability (debuffs / hand-discard-size overrides) is disabled. */
+    private boolean bossDisabled() {
+        return state.jokers().stream().anyMatch(j -> j.key().equals("j_chicot"));
     }
 
     /** Mr Bones: survive a failed blind (and self-destruct) if at least 25% of the requirement was scored. */
@@ -218,8 +224,9 @@ public final class Run {
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */
     private void refreshDebuffs() {
+        boolean disabled = bossDisabled(); // Chicot turns off the boss's debuffs
         for (Card c : state.hand) {
-            c.debuffed = boss != null
+            c.debuffed = !disabled && boss != null
                     && ((boss.debuffSuit() != null && c.isSuit(boss.debuffSuit()))
                         || (boss.debuffFaces() && c.isFace()));
         }
