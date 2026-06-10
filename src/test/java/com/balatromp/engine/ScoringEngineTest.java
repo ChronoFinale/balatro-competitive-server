@@ -109,6 +109,35 @@ class ScoringEngineTest {
     }
 
     @Test
+    void greenJokerGrowsPerHandAndShrinksPerDiscard() {
+        RunState run = new RunState();
+        var gj = com.balatromp.engine.joker.JokerLibrary.create("j_green_joker");
+        run.addJoker(gj);
+        RandomStreams rng = new RandomStreams("GREEN");
+        ScoringEngine eng = new ScoringEngine();
+        List<Card> hand = List.of(c(KING, HEARTS), c(KING, SPADES));
+        eng.score(hand, List.of(), run, rng);
+        eng.score(hand, List.of(), run, rng);
+        assertThat(run.jokerState(gj).get("m")).as("+1 per hand played").isEqualTo(2);
+        com.balatromp.engine.game.GameEvents.preDiscard(run, rng, List.of(c(THREE, SPADES)));
+        assertThat(run.jokerState(gj).get("m")).as("-1 per discard").isEqualTo(1);
+        // Preview must NOT advance the counter.
+        eng.preview(hand, List.of(), run, rng);
+        assertThat(run.jokerState(gj).get("m")).as("preview is a dry-run").isEqualTo(1);
+    }
+
+    @Test
+    void fortuneTellerCountsTarotsUsed() {
+        RunState run = new RunState();
+        var ft = com.balatromp.engine.joker.JokerLibrary.create("j_fortune_teller");
+        run.addJoker(ft);
+        RandomStreams rng = new RandomStreams("FT");
+        com.balatromp.engine.game.GameEvents.useConsumable(run, rng, "Tarot");
+        com.balatromp.engine.game.GameEvents.useConsumable(run, rng, "Planet"); // not a Tarot
+        assertThat(run.jokerState(ft).get("tarots")).isEqualTo(1);
+    }
+
+    @Test
     void rideTheBusScalesAcrossConsecutiveHands() {
         RunState run = new RunState();
         run.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_ride_the_bus"));

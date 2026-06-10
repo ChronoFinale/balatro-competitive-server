@@ -168,6 +168,11 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), "j_splash");
 
+        // 25. Green Joker with pre-set state (m=3) — validates the client State value read
+        scenario("green-joker", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), run -> run.jokerState(run.jokers().get(0)).put("m", 3), "j_green_joker");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
@@ -191,14 +196,14 @@ class PreviewFixtureGenerator {
         RunState run = new RunState();
         run.rng = new RandomStreams("FIXTURE");
         run.queues = new QueueSet(run.rng);
-        if (tweak != null) tweak.accept(run);
         List<Joker> jokers = new ArrayList<>();
         for (String k : jokerKeys) {
             Joker j = JokerLibrary.create(k);
             jokers.add(j);
             run.addJoker(j);
         }
-        // Steel/stat scenarios would populate run.deckComposition here; these don't need it.
+        // Tweak runs AFTER jokers are added, so it can set both run fields and joker state.
+        if (tweak != null) tweak.accept(run);
 
         ScoreResult expected = new ScoringEngine().preview(played, held, run, run.rng);
 

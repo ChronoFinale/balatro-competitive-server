@@ -401,6 +401,22 @@ public final class BuiltinJokerDefs {
                         List.of(com.balatromp.engine.hand.HandMod.PAREIDOLIA)),
                 new JokerDef("j_splash", "Splash", "Every played card counts in scoring",
                         "Common", 3, 6, 6, null, null, true, List.of(), List.of(),
-                        List.of(com.balatromp.engine.hand.HandMod.SPLASH)));
+                        List.of(com.balatromp.engine.hand.HandMod.SPLASH)),
+
+                // --- batch 4: lifecycle counter-scaling (state ships to client, JOKER_MAIN reads it) ---
+                new JokerDef("j_green_joker", "Green Joker",
+                        "+1 Mult per hand played, -1 Mult per discard",
+                        "Common", 4, 6, 5, null, null, true,
+                        List.of(new Mutation(Trigger.BEFORE, new Condition.Always(), "m", Mutation.Op.ADD, 1),
+                                new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "m", Mutation.Op.ADD, -1)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("m", 1),
+                                new EffectTemplate(Op.MULT, new Value.State("m", 0, 1))))),
+                new JokerDef("j_fortune_teller", "Fortune Teller",
+                        "+1 Mult per Tarot card used this run",
+                        "Common", 6, 8, 8, null, null, true,
+                        List.of(new Mutation(Trigger.USE_CONSUMABLE, new Condition.ConsumableType("Tarot"),
+                                "tarots", Mutation.Op.ADD, 1)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("tarots", 1),
+                                new EffectTemplate(Op.MULT, new Value.State("tarots", 0, 1))))));
     }
 }
