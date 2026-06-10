@@ -222,6 +222,12 @@
         return v.base + v.scale * n;
       }
       case 'stat': return v.base + v.scale * statCount(v, ctx);
+      case 'heldExtreme': {
+        const held = (ctx.held || []).filter((x) => !isStone(x));
+        if (!held.length) return v.base;
+        const vals = held.map((x) => baseChips(x));
+        return v.base + v.scale * (v.lowest ? Math.min(...vals) : Math.max(...vals));
+      }
       case 'random': return null; // probabilistic -> fall back
       default: return null;
     }

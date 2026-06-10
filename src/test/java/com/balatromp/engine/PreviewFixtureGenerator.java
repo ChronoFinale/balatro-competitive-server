@@ -183,6 +183,10 @@ class PreviewFixtureGenerator {
                     for (int i = 0; i < 50; i++) run.deckComposition.add(c(Rank.TWO, Suit.CLUBS));
                 }, "j_erosion");
 
+        // 28. Raised Fist: +2x lowest held card rank (held 4 and 7 -> lowest 4 -> +8 Mult)
+        scenario("raised-fist", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                play(c(Rank.FOUR, Suit.CLUBS), c(Rank.SEVEN, Suit.DIAMONDS)), "j_raised_fist");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }

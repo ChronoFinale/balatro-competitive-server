@@ -446,7 +446,14 @@ public final class BuiltinJokerDefs {
                         "Rare", 7, 5, 10, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.CHIPS, new Value.Const(250)))),
-                        List.of(), new RunMod(0, 0, -2, false)));
+                        List.of(), new RunMod(0, 0, -2, false)),
+
+                // --- batch 7: held-card extreme value ---
+                new JokerDef("j_raised_fist", "Raised Fist",
+                        "Adds double the rank of the lowest card held in hand to Mult",
+                        "Common", 5, 7, 9, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.HeldExtreme(true, 0, 2))))));
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */

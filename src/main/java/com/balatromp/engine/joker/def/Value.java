@@ -24,6 +24,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.RunVar.class, name = "runVar"),
     @JsonSubTypes.Type(value = Value.RunVarStep.class, name = "runVarStep"),
     @JsonSubTypes.Type(value = Value.Stat.class, name = "stat"),
+    @JsonSubTypes.Type(value = Value.HeldExtreme.class, name = "heldExtreme"),
     @JsonSubTypes.Type(value = Value.Random.class, name = "random"),
 })
 public sealed interface Value {
@@ -107,6 +108,26 @@ public sealed interface Value {
                 case ANTE -> ctx.run.ante;
             };
             return base + scale * Math.floor(v / per);
+        }
+    }
+
+    /**
+     * {@code base + scale * (lowest|highest base-chip value among held cards)} —
+     * Raised Fist (double the lowest held card's rank). Stone cards are ignored; an
+     * empty hand resolves to {@code base}.
+     */
+    record HeldExtreme(boolean lowest, double base, double scale) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            if (ctx.heldCards == null) return base;
+            int extreme = lowest ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            boolean found = false;
+            for (Card c : ctx.heldCards) {
+                if (c.isStone()) continue;
+                int v = c.baseChips();
+                extreme = lowest ? Math.min(extreme, v) : Math.max(extreme, v);
+                found = true;
+            }
+            return found ? base + scale * extreme : base;
         }
     }
 
