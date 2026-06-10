@@ -100,6 +100,7 @@ public final class Run {
     private void startBlind() {
         state.roundScore = 0;
         state.discardsUsedThisRound = 0;
+        state.handsPlayedThisRound = 0;
         pvpActive = false;
         boolean pvpBoss = blind == BlindType.BOSS && pvpFromAnte > 0 && ante >= pvpFromAnte;
         if (pvpBoss) {
@@ -179,6 +180,7 @@ public final class Run {
         refreshDebuffs(); // re-mark the freshly drawn hand
 
         if (intent instanceof Intent.PlayHand) {
+            state.handsPlayedThisRound++; // after scoring, so DNA's "first hand" check saw 0
             if (pvpActive) {
                 // PvP blind: play all hands, then await the head-to-head comparison.
                 if (state.handsLeft <= 0) phase = Phase.PVP_PENDING;

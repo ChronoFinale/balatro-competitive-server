@@ -127,6 +127,12 @@ public final class ScoringEngine {
                             card.destroyed = true;
                             log(acc, card.toString(), "destroy", "Destroyed");
                         }
+                        if (copiesScored(e)) {
+                            Card copy = card.copy();
+                            run.deckComposition.add(copy);
+                            run.hand.add(copy);
+                            log(acc, card.toString(), "copy", "Copied to deck");
+                        }
                     }
                 }
             }
@@ -221,6 +227,13 @@ public final class ScoringEngine {
     private static boolean destroysScored(JokerEffect e) {
         for (JokerEffect cur = e; cur != null; cur = cur.extra) {
             if (cur.destroyScored) return true;
+        }
+        return false;
+    }
+
+    private static boolean copiesScored(JokerEffect e) {
+        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
+            if (cur.copyScored) return true;
         }
         return false;
     }

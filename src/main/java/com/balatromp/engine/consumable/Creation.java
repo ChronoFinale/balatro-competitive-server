@@ -1,8 +1,10 @@
 package com.balatromp.engine.consumable;
 
 import com.balatromp.engine.card.Card;
+import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.card.Rank;
+import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.card.Suit;
 import com.balatromp.engine.game.PlanetCatalog;
 import com.balatromp.engine.game.Shop;
@@ -56,16 +58,25 @@ public final class Creation {
         }
     }
 
+    // Seals a Certificate-style created card may roll (excludes NONE).
+    private static final Seal[] RANDOM_SEALS = { Seal.GOLD, Seal.RED, Seal.BLUE, Seal.PURPLE };
+
     private static void addCards(RunState run, CreateSpec spec, QueueSet queues) {
+        Rank[] ranks = Rank.values();
+        Suit[] suits = Suit.values();
         for (int i = 0; i < spec.count(); i++) {
-            Rank[] ranks = Rank.values();
-            Suit[] suits = Suit.values();
-            Rank r = ranks[(int) Math.floor(roll(queues, "create:card:rank") * ranks.length)];
-            Suit s = suits[(int) Math.floor(roll(queues, "create:card:suit") * suits.length)];
+            Rank r = ranks[idx(roll(queues, "create:card:rank"), ranks.length)];
+            Suit s = suits[idx(roll(queues, "create:card:suit"), suits.length)];
             Enhancement enh = spec.enhancement() != null ? spec.enhancement() : Enhancement.NONE;
-            run.deckComposition.add(new Card(r, s, enh,
-                    com.balatromp.engine.card.Edition.NONE, com.balatromp.engine.card.Seal.NONE));
+            Seal seal = spec.randomSeal()
+                    ? RANDOM_SEALS[idx(roll(queues, "create:card:seal"), RANDOM_SEALS.length)]
+                    : (spec.seal() != null ? spec.seal() : Seal.NONE);
+            run.deckComposition.add(new Card(r, s, enh, Edition.NONE, seal));
         }
+    }
+
+    private static int idx(double roll, int size) {
+        return Math.min((int) Math.floor(roll * size), size - 1);
     }
 
     private static String pick(List<String> pool, QueueSet queues, String key) {

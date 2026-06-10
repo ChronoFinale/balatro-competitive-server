@@ -88,7 +88,7 @@ public sealed interface Value {
     }
 
     /** Which live run-state quantity a {@link RunVar} reads. */
-    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, ANTE, DISCARDS_USED }
+    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, ANTE, DISCARDS_USED, HANDS_PLAYED }
 
     /** {@code base + scale * (live run-state quantity)} (per dollar, per remaining hand, ...). */
     record RunVar(Var which, double base, double scale) implements Value {
@@ -101,6 +101,7 @@ public sealed interface Value {
                 case HAND_SIZE -> ctx.run.handSize;
                 case ANTE -> ctx.run.ante;
                 case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
+                case HANDS_PLAYED -> ctx.run.handsPlayedThisRound;
             };
             return base + scale * v;
         }
@@ -120,6 +121,7 @@ public sealed interface Value {
                 case HAND_SIZE -> ctx.run.handSize;
                 case ANTE -> ctx.run.ante;
                 case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
+                case HANDS_PLAYED -> ctx.run.handsPlayedThisRound;
             };
             return base + scale * Math.floor(v / per);
         }

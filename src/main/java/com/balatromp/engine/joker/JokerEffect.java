@@ -31,6 +31,8 @@ public final class JokerEffect {
     /** Level up this poker hand (Space/Burnt); applied server-side, affects future hands. */
     public com.balatromp.engine.hand.HandType levelUpHand;
     public int levelUpAmount;
+    /** Add a permanent copy of the scoring card to the deck (DNA); real play only. */
+    public boolean copyScored;
     /** Swap the running chips and mult (Balatro {@code swap}). */
     public boolean swap;
     /** Balance chips and mult (Balatro {@code balance}); semantics TBD — no content uses it yet. */

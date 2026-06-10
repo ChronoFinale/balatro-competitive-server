@@ -26,6 +26,7 @@ public final class RunState {
     public int handSize = 8;
     public long roundScore = 0;
     public int discardsUsedThisRound = 0; // reset at blind start (Delayed Gratification)
+    public int handsPlayedThisRound = 0;  // reset at blind start (DNA's "first hand")
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;

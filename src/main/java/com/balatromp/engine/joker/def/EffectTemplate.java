@@ -17,7 +17,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod, CreateSpec create) {
 
     public enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD,
-        CREATE, DESTROY_SCORED, LEVEL_UP_HAND }
+        CREATE, DESTROY_SCORED, LEVEL_UP_HAND, COPY_SCORED }
+
+    /** Add a permanent copy of the scoring card to the deck (DNA). */
+    public static EffectTemplate copyScored() {
+        return new EffectTemplate(Op.COPY_SCORED, null, null, null, null);
+    }
 
     /** Level up the current poker hand by {@code levels} (Space/Burnt). */
     public static EffectTemplate levelUpHand(int levels) {
@@ -75,7 +80,7 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
      */
     public JokerEffect apply(EvaluationContext ctx) {
         boolean nonNumeric = op == Op.MUTATE_CARD || op == Op.CREATE || op == Op.DESTROY_SCORED
-                || op == Op.LEVEL_UP_HAND;
+                || op == Op.LEVEL_UP_HAND || op == Op.COPY_SCORED;
         JokerEffect head = nonNumeric ? null : build(value.resolve(ctx));
         if (cardMod != null) {
             if (head == null) head = new JokerEffect();
@@ -93,6 +98,10 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
             if (head == null) head = new JokerEffect();
             head.levelUpHand = ctx.handType;
             head.levelUpAmount = Math.max(1, (int) Math.round(value.resolve(ctx)));
+        }
+        if (op == Op.COPY_SCORED) {
+            if (head == null) head = new JokerEffect();
+            head.copyScored = true;
         }
         if (extra == null) {
             return head;
@@ -127,7 +136,7 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
                 e.hMult = v;
                 yield e.msg("+" + fmt(v) + " Mult");
             }
-            case MUTATE_CARD, CREATE, DESTROY_SCORED, LEVEL_UP_HAND -> null; // handled in apply()
+            case MUTATE_CARD, CREATE, DESTROY_SCORED, LEVEL_UP_HAND, COPY_SCORED -> null; // in apply()
         };
     }
 

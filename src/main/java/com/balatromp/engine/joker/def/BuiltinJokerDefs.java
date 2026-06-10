@@ -573,7 +573,23 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.PRE_DISCARD,
                                 new Condition.And(List.of(new Condition.StateAtLeast("discards", 1),
                                         new Condition.Not(new Condition.StateAtLeast("discards", 2)))),
-                                EffectTemplate.levelUpHand(1)))));
+                                EffectTemplate.levelUpHand(1)))),
+
+                // --- batch 16: card copy (DNA) + sealed card creation (Certificate) ---
+                new JokerDef("j_dna", "DNA",
+                        "If the first hand of the round is a single card, add a permanent copy to your deck",
+                        "Rare", 8, 9, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.And(List.of(
+                                new Condition.PlayedCount(Condition.Cmp.EQ, 1),
+                                new Condition.Not(new Condition.ValueAtLeast(
+                                        new Value.RunVar(Value.Var.HANDS_PLAYED, 0, 1), 1)))),
+                                EffectTemplate.copyScored()))),
+                new JokerDef("j_certificate", "Certificate",
+                        "When a blind is selected, add a random playing card with a random seal to your deck",
+                        "Uncommon", 6, 0, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1,
+                                        null, null, null, true))))));
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */

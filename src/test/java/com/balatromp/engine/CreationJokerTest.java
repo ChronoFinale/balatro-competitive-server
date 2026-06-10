@@ -107,6 +107,27 @@ class CreationJokerTest {
         assertThat(run.consumables).as("a Spectral is created").hasSize(1);
     }
 
+    @Test
+    void dnaCopiesASingleCardOnTheFirstHand() {
+        RunState run = run("j_dna", 4);
+        int before = run.deckComposition.size();
+        new ScoringEngine().score(List.of(c(KING, HEARTS)), List.of(), run, run.rng);
+        assertThat(run.deckComposition).as("a copy is added to the deck").hasSize(before + 1);
+        // not the first hand any more -> no copy
+        run.handsPlayedThisRound = 1;
+        new ScoringEngine().score(List.of(c(KING, HEARTS)), List.of(), run, run.rng);
+        assertThat(run.deckComposition).hasSize(before + 1);
+    }
+
+    @Test
+    void certificateAddsASealedCardAtBlindSelect() {
+        Run run = new Run(Ruleset.standard(), "C", stoneDeck(400), jokers("j_certificate"));
+        // BLIND_SELECTED added one card; it should carry a (non-NONE) seal.
+        long sealed = run.state.deckComposition.stream()
+                .filter(cc -> cc.seal != com.balatromp.engine.card.Seal.NONE).count();
+        assertThat(sealed).isGreaterThanOrEqualTo(1);
+    }
+
     private static RunState run(String jokerKey, int money) {
         RunState run = new RunState();
         run.money = money;
