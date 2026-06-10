@@ -204,6 +204,14 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 33. Supernova: pair played twice before -> +2 Mult (HandTypePlays read of shipped map)
+        scenario("supernova", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.handTypePlays.put(HandType.PAIR, 2), "j_supernova");
+
+        // 34. Card Sharp: pair already played this round -> x3
+        scenario("card-sharp", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.handTypesThisRound.add(HandType.PAIR), "j_card_sharp");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
@@ -298,6 +306,10 @@ class PreviewFixtureGenerator {
         counters.put("LUCKY_TRIGGERS", run.luckyTriggersTotal);
         counters.put("DISCARDS_USED", run.discardsUsedThisRound);
         counters.put("HANDS_PLAYED", run.handsPlayedThisRound);
+        Map<String, Object> typePlays = new LinkedHashMap<>();
+        run.handTypePlays.forEach((t, n) -> typePlays.put(t.name(), n));
+        counters.put("handTypePlays", typePlays);
+        counters.put("handTypesThisRound", run.handTypesThisRound.stream().map(Enum::name).toList());
         m.put("counters", counters);
         return m;
     }

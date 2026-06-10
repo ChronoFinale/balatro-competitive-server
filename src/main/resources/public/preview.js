@@ -174,6 +174,8 @@
       case 'not': return !condTest(cond.inner, ctx);
       case 'chance': return null; // probabilistic — signal "unsupported" -> caller falls back
       case 'bossDefeated': return null; // end-of-round only; never used in scoring
+      case 'handPlayedThisRound':
+        return (((ctx.run.counters && ctx.run.counters.handTypesThisRound) || []).indexOf(ctx.handType) >= 0);
       default: return null;
     }
   }
@@ -217,6 +219,10 @@
       case 'clamp': {
         const x = valResolve(v.inner, ctx);
         return x === null ? null : Math.max(v.min, Math.min(v.max, x));
+      }
+      case 'handTypePlays': {
+        const m = (ctx.run.counters && ctx.run.counters.handTypePlays) || {};
+        return v.base + v.scale * (m[ctx.handType] || 0);
       }
       case 'count': {
         const src = v.source === 'PLAYED' ? ctx.played : v.source === 'HELD' ? ctx.held : ctx.scoring;

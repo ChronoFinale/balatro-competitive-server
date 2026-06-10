@@ -609,6 +609,18 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 21: per-hand-type play tracking (Supernova, Card Sharp) ---
+                new JokerDef("j_supernova", "Supernova",
+                        "Adds the number of times the played hand has been played this run to Mult",
+                        "Common", 5, 8, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.HandTypePlays(1, 1))))),
+                new JokerDef("j_card_sharp", "Card Sharp",
+                        "x3 Mult if the played poker hand was already played this round",
+                        "Uncommon", 6, 9, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandPlayedThisRound(),
+                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
+
                 // --- batch 20: Lucky Cat (counts Lucky triggers) ---
                 new JokerDef("j_lucky_cat", "Lucky Cat",
                         "Gains x0.25 Mult each time a Lucky card successfully triggers",

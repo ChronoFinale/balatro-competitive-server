@@ -42,6 +42,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ValueAtLeast.class, name = "valueAtLeast"),
     @JsonSubTypes.Type(value = Condition.HeldAllSuits.class, name = "heldAllSuits"),
     @JsonSubTypes.Type(value = Condition.BossDefeated.class, name = "bossDefeated"),
+    @JsonSubTypes.Type(value = Condition.HandPlayedThisRound.class, name = "handPlayedThisRound"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
@@ -249,6 +250,14 @@ public sealed interface Condition {
                 if (c.isSuit(suit)) return true;
             }
             return false;
+        }
+    }
+
+    /** The current poker hand has already been played earlier this round (Card Sharp). */
+    record HandPlayedThisRound() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.run != null && ctx.handType != null
+                    && ctx.run.handTypesThisRound.contains(ctx.handType);
         }
     }
 

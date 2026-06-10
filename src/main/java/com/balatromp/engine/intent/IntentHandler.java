@@ -48,9 +48,12 @@ public final class IntentHandler {
 
         ScoreResult score = engine.score(played, held, run, rng);
 
-        // Commit authoritative state changes.
+        // Commit authoritative state changes. Per-type play tracking is updated AFTER
+        // scoring, so Supernova/Card Sharp saw the pre-this-hand counts during the hand.
         run.handsLeft--;
         run.roundScore += Math.round(score.score());
+        run.handTypePlays.merge(score.handType(), 1, Integer::sum);
+        run.handTypesThisRound.add(score.handType());
         run.hand.removeAll(played);
         if (run.deck != null) {
             run.deck.drawTo(run.hand, run.handSize);

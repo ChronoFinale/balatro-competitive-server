@@ -101,6 +101,7 @@ public final class Run {
         state.roundScore = 0;
         state.discardsUsedThisRound = 0;
         state.handsPlayedThisRound = 0;
+        state.handTypesThisRound.clear();
         pvpActive = false;
         boolean pvpBoss = blind == BlindType.BOSS && pvpFromAnte > 0 && ante >= pvpFromAnte;
         if (pvpBoss) {
@@ -478,6 +479,10 @@ public final class Run {
         counters.put("LUCKY_TRIGGERS", state.luckyTriggersTotal);
         counters.put("DISCARDS_USED", state.discardsUsedThisRound);
         counters.put("HANDS_PLAYED", state.handsPlayedThisRound);
+        Map<String, Object> typePlays = new LinkedHashMap<>();
+        state.handTypePlays.forEach((t, n) -> typePlays.put(t.name(), n));
+        counters.put("handTypePlays", typePlays);
+        counters.put("handTypesThisRound", state.handTypesThisRound.stream().map(Enum::name).toList());
 
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,

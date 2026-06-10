@@ -28,6 +28,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.HeldExtreme.class, name = "heldExtreme"),
     @JsonSubTypes.Type(value = Value.DeckRankCount.class, name = "deckRankCount"),
     @JsonSubTypes.Type(value = Value.Clamp.class, name = "clamp"),
+    @JsonSubTypes.Type(value = Value.HandTypePlays.class, name = "handTypePlays"),
     @JsonSubTypes.Type(value = Value.Random.class, name = "random"),
 })
 public sealed interface Value {
@@ -47,6 +48,14 @@ public sealed interface Value {
             Object v = ctx.selfState().getOrDefault(var, 0);
             double n = (v instanceof Number num) ? num.doubleValue() : 0;
             return base + scale * n;
+        }
+    }
+
+    /** {@code base + scale * (times the current poker hand has been played this run)} — Supernova. */
+    record HandTypePlays(double base, double scale) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            if (ctx.run == null || ctx.handType == null) return base;
+            return base + scale * ctx.run.handTypePlays.getOrDefault(ctx.handType, 0);
         }
     }
 
