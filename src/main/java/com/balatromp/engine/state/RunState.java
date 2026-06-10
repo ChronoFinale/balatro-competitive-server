@@ -57,6 +57,8 @@ public final class RunState {
     public int shopSpentThisAnte = 0;     // money spent in the shop this ante
     public int shopSpentLastAnte = 0;     // snapshot at ante rollover
     public int oppShopSpentLastAnte = 0;  // nemesis shop spend last ante (Penny Pincher)
+    public int pizzaDiscardBonus = 0;     // temporary +discards from Pizza
+    public int pizzaBlindsLeft = 0;       // blinds the Pizza discard bonus still applies for
     public final java.util.List<String> tags = new java.util.ArrayList<>(); // held tags (skip rewards, Diet Cola)
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.

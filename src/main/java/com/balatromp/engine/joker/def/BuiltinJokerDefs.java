@@ -664,6 +664,11 @@ public final class BuiltinJokerDefs {
                         "Joker and Consumable cards may appear multiple times in the shop",
                         "Uncommon", 5, 0, 17, null, null, true, List.of(), List.of()),
 
+                // --- batch 47: Pizza (consumed at PvP end -> temporary discards) ---
+                new JokerDef("j_pizza", "Pizza",
+                        "At the end of the next PvP blind, consumed for +1 discard to you and +2 to your Nemesis",
+                        "Uncommon", 5, 0, 18, null, null, true, List.of(), List.of()),
+
                 // --- batch 46: Speedrun (reach PvP first -> Spectral; match-coordinated) ---
                 new JokerDef("j_speedrun", "Speedrun",
                         "If you reach a PvP blind before your Nemesis, create a random Spectral",

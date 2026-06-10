@@ -305,6 +305,11 @@ public final class Run {
             state.handsLeft += diff;
             state.discardsLeft += diff;
         }
+        // Pizza: temporary +discards for the ante after it's consumed at a PvP blind.
+        if (state.pizzaBlindsLeft > 0) {
+            state.discardsLeft += state.pizzaDiscardBonus;
+            state.pizzaBlindsLeft--;
+        }
         if (noDiscards) state.discardsLeft = 0;
         state.handsLeft = Math.max(1, state.handsLeft);
         state.discardsLeft = Math.max(0, state.discardsLeft);
@@ -370,6 +375,19 @@ public final class Run {
     /** Whether this run currently owns a joker with the given key (match-layer queries). */
     public boolean ownsJoker(String key) {
         return hasJoker(key);
+    }
+
+    /** Remove the first joker with the given key (match-layer consumption, e.g. Pizza). */
+    public void removeJoker(String key) {
+        for (int i = 0; i < state.jokers().size(); i++) {
+            if (state.jokers().get(i).key().equals(key)) { state.jokers().remove(i); return; }
+        }
+    }
+
+    /** Pizza: add a temporary discard bonus that applies for the next {@code blinds} blinds. */
+    public void grantPizzaDiscards(int amount, int blinds) {
+        state.pizzaDiscardBonus += amount;
+        state.pizzaBlindsLeft = Math.max(state.pizzaBlindsLeft, blinds);
     }
 
     /** Create a random Spectral into this run if there's a consumable slot (Speedrun). */

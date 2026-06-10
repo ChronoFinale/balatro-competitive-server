@@ -121,6 +121,14 @@ class RunModTest {
     }
 
     @Test
+    void pizzaGrantsTemporaryDiscardsForTheNextBlinds() {
+        Run run = new Run(std, "PZ", stoneDeck(400), jokers());
+        run.grantPizzaDiscards(2, 3); // +2 discards for the next 3 blinds
+        run.skipBlind(); // advance to Big -> the bonus applies
+        assertThat(run.state.discardsLeft).isEqualTo(std.discards() + 2);
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());
