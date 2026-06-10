@@ -128,6 +128,7 @@ public final class Run {
             requirement = Blinds.requirement(ante, blind, ruleset);
         }
         applyJokerRunMods(); // passive hand/discard/hand-size deltas from owned jokers
+        applyJokerDestroyers(); // Ceremonial Dagger / Madness eat a joker at blind select
         // Oops! All 6s doubles every listed probability (numerator) per copy owned.
         long oops = state.jokers().stream().filter(j -> j.key().equals("j_oops")).count();
         state.probabilityNumerator = 1 << Math.min((int) oops, 8);
@@ -143,6 +144,31 @@ public final class Run {
         state.deck.drawTo(state.hand, state.handSize);
         refreshDebuffs();
         phase = Phase.BLIND_ACTIVE;
+    }
+
+    /** Jokers that consume another joker at blind select: Ceremonial Dagger (right neighbour ->
+     *  +Mult from 2x its sell value) and Madness (a random other joker -> +x0.5 Mult, non-boss only). */
+    private void applyJokerDestroyers() {
+        List<Joker> js = state.jokers();
+        for (int i = 0; i < js.size(); i++) {
+            if (!js.get(i).key().equals("j_ceremonial") || i + 1 >= js.size()) continue;
+            Joker victim = js.remove(i + 1);
+            int gain = 2 * Math.max(1, victim.info().cost() / 2);
+            var st = state.jokerState(js.get(i));
+            st.put("mult", ((Number) st.getOrDefault("mult", 0)).intValue() + gain);
+        }
+        if (blind == BlindType.BOSS) return; // Madness doesn't trigger on boss blinds
+        for (int i = 0; i < js.size(); i++) {
+            if (!js.get(i).key().equals("j_madness")) continue;
+            var st = state.jokerState(js.get(i));
+            st.put("xm", ((Number) st.getOrDefault("xm", 0.0)).doubleValue() + 0.5);
+            List<Integer> others = new ArrayList<>();
+            for (int k = 0; k < js.size(); k++) if (k != i) others.add(k);
+            if (others.isEmpty()) continue;
+            int victim = others.get((int) (roll("madness:destroy") * others.size()) % others.size());
+            js.remove(victim);
+            if (victim < i) i--; // a joker before us was removed; stay aligned
+        }
     }
 
     /** Chicot: the boss blind's special ability (debuffs / hand-discard-size overrides) is disabled. */

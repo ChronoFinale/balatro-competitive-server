@@ -63,6 +63,25 @@ class RunModTest {
     }
 
     @Test
+    void ceremonialDaggerEatsRightNeighbourForMult() {
+        Run run = new Run(std, "CD", stoneDeck(400), jokers("j_ceremonial", "j_joker"));
+        assertThat(run.state.jokers()).hasSize(1); // the Joker to the right was consumed
+        var dagger = run.state.jokers().get(0);
+        assertThat(((Number) run.state.jokerState(dagger).getOrDefault("mult", 0)).intValue())
+                .isGreaterThan(0); // gained mult from its sell value
+    }
+
+    @Test
+    void madnessDestroysAJokerAndGainsXMult() {
+        Run run = new Run(std, "MD", stoneDeck(400), jokers("j_madness", "j_joker"));
+        assertThat(run.state.jokers()).hasSize(1); // a random other joker was destroyed
+        var madness = run.state.jokers().get(0);
+        assertThat(madness.key()).isEqualTo("j_madness");
+        assertThat(((Number) run.state.jokerState(madness).getOrDefault("xm", 0.0)).doubleValue())
+                .isEqualTo(0.5);
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());

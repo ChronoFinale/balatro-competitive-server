@@ -609,6 +609,18 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
+                new JokerDef("j_ceremonial", "Ceremonial Dagger",
+                        "When a blind is selected, destroys the Joker to the right and gains 2x its sell value as Mult",
+                        "Uncommon", 6, 9, 15, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
+                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
+                new JokerDef("j_madness", "Madness",
+                        "On Small/Big blind select, gains x0.5 Mult and destroys a random Joker",
+                        "Uncommon", 7, 0, 16, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("xm", 0.5),
+                                new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0))))),
+
                 // --- batch 31: Satellite (unique-planet economy) ---
                 new JokerDef("j_satellite", "Satellite",
                         "Earn $1 at end of round per unique Planet card used this run",
