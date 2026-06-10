@@ -30,4 +30,11 @@ public enum Rank {
     public boolean isOdd() {
         return this == THREE || this == FIVE || this == SEVEN || this == NINE || this == ACE;
     }
+
+    /** The rank {@code n} steps higher, wrapping Ace → Two (Balatro's Strength up_rank). */
+    public Rank shifted(int n) {
+        Rank[] order = values(); // TWO..ACE, 13 ranks in id order
+        int idx = Math.floorMod(ordinal() + n, order.length);
+        return order[idx];
+    }
 }

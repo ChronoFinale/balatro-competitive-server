@@ -15,8 +15,10 @@ public final class Card {
      */
     public final long uid = com.balatromp.engine.Ids.next();
 
-    public final Rank rank;
-    public final Suit suit;
+    // Rank/suit are mutable: effects (Strength, the suit Tarots, Death) change them
+    // in place, keeping the card's identity (uid) — exactly like Balatro's set_base.
+    public Rank rank;
+    public Suit suit;
     public Enhancement enhancement;
     public Edition edition;
     public Seal seal;

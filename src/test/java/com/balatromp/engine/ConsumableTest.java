@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatromp.engine.card.Card;
 import com.balatromp.engine.card.Enhancement;
+import com.balatromp.engine.card.Rank;
+import com.balatromp.engine.card.Suit;
 import com.balatromp.engine.game.Run;
 import com.balatromp.engine.state.Ruleset;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,29 @@ class ConsumableTest {
         run.state.consumables.add("c_magician"); // max 2
         assertThat(run.useConsumable(0, three)).isEqualTo("too many targets");
         assertThat(run.state.consumables).hasSize(1); // not consumed on rejection
+    }
+
+    @Test
+    void strengthIncreasesRankAndWrapsAce() {
+        Run run = freshRun();
+        Card a = run.state.hand.get(0);
+        a.rank = Rank.KING;        // King -> Ace
+        Card b = run.state.hand.get(1);
+        b.rank = Rank.ACE;         // Ace wraps -> Two
+        run.state.consumables.add("c_strength");
+        assertThat(run.useConsumable(0, new long[]{a.uid, b.uid})).isNull();
+        assertThat(a.rank).isEqualTo(Rank.ACE);
+        assertThat(b.rank).isEqualTo(Rank.TWO); // same card objects, identity (uid) preserved
+    }
+
+    @Test
+    void theSunConvertsSelectedCardsToHearts() {
+        Run run = freshRun();
+        Card a = run.state.hand.get(0);
+        a.suit = Suit.SPADES;
+        run.state.consumables.add("c_sun");
+        assertThat(run.useConsumable(0, new long[]{a.uid})).isNull();
+        assertThat(a.suit).isEqualTo(Suit.HEARTS);
     }
 
     @Test

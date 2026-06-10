@@ -2,6 +2,7 @@ package com.balatromp.engine.consumable;
 
 import com.balatromp.engine.card.CardMod;
 import com.balatromp.engine.card.Enhancement;
+import com.balatromp.engine.card.Suit;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -29,6 +30,16 @@ public final class TarotCatalog {
                 ConsumableType.TAROT, 1, new Consumable.Enhance(CardMod.setEnhancement(Enhancement.GOLD))));
         put(new Consumable("c_hanged_man", "The Hanged Man", "Destroy up to 2 selected cards",
                 ConsumableType.TAROT, 2, new Consumable.Destroy()));
+        put(new Consumable("c_strength", "Strength", "Increase rank of up to 2 selected cards by 1",
+                ConsumableType.TAROT, 2, new Consumable.Enhance(CardMod.incRank(1))));
+        put(new Consumable("c_star", "The Star", "Convert up to 3 selected cards to Diamonds",
+                ConsumableType.TAROT, 3, new Consumable.Enhance(CardMod.setSuit(Suit.DIAMONDS))));
+        put(new Consumable("c_moon", "The Moon", "Convert up to 3 selected cards to Clubs",
+                ConsumableType.TAROT, 3, new Consumable.Enhance(CardMod.setSuit(Suit.CLUBS))));
+        put(new Consumable("c_sun", "The Sun", "Convert up to 3 selected cards to Hearts",
+                ConsumableType.TAROT, 3, new Consumable.Enhance(CardMod.setSuit(Suit.HEARTS))));
+        put(new Consumable("c_world", "The World", "Convert up to 3 selected cards to Spades",
+                ConsumableType.TAROT, 3, new Consumable.Enhance(CardMod.setSuit(Suit.SPADES))));
         put(new Consumable("c_incantation", "Incantation", "Add 4 Bonus number cards to your deck",
                 ConsumableType.SPECTRAL, 0, new Consumable.Create(4, Enhancement.BONUS)));
     }
