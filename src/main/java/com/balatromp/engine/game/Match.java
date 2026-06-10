@@ -82,6 +82,13 @@ public final class Match {
         Side opp = (me == host) ? guest : host;
 
         syncNemesis(); // refresh each Run's opponent view so Nemesis jokers read live state
+
+        // Speedrun: reaching a PvP blind before your Nemesis creates a Spectral (once per arrival).
+        if (me.run.inPvpBlind() && !me.wasInPvp && !opp.run.inPvpBlind() && me.run.ownsJoker("j_speedrun")) {
+            me.run.grantSpectral();
+        }
+        me.wasInPvp = me.run.inPvpBlind();
+
         send(opp, opponentSummary(me));
 
         if (me.run.phase == Run.Phase.RUN_LOST) { // solo safety; shouldn't happen in Attrition
@@ -286,6 +293,7 @@ public final class Match {
         final String playerId;
         Run run;
         int lives;
+        boolean wasInPvp; // tracks the transition into a PvP blind (Speedrun fires once)
 
         Side(String sessionId, String playerId) {
             this.sessionId = sessionId;

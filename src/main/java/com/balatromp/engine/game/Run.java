@@ -367,6 +367,18 @@ public final class Run {
         return pvpActive;
     }
 
+    /** Whether this run currently owns a joker with the given key (match-layer queries). */
+    public boolean ownsJoker(String key) {
+        return hasJoker(key);
+    }
+
+    /** Create a random Spectral into this run if there's a consumable slot (Speedrun). */
+    public void grantSpectral() {
+        com.balatromp.engine.consumable.Creation.apply(state,
+                new com.balatromp.engine.joker.def.CreateSpec(
+                        com.balatromp.engine.joker.def.CreateSpec.Kind.SPECTRAL), state.queues);
+    }
+
     /** Attrition: after the match deducts a life for a failed blind, continue to the shop. */
     public void continueAfterFail() {
         if (phase != Phase.BLIND_FAILED) return;

@@ -664,6 +664,11 @@ public final class BuiltinJokerDefs {
                         "Joker and Consumable cards may appear multiple times in the shop",
                         "Uncommon", 5, 0, 17, null, null, true, List.of(), List.of()),
 
+                // --- batch 46: Speedrun (reach PvP first -> Spectral; match-coordinated) ---
+                new JokerDef("j_speedrun", "Speedrun",
+                        "If you reach a PvP blind before your Nemesis, create a random Spectral",
+                        "Uncommon", 6, 9, 17, null, null, true, List.of(), List.of()),
+
                 // --- batch 45: Penny Pincher (Nemesis shop-spend economy) ---
                 new JokerDef("j_penny_pincher", "Penny Pincher",
                         "On entering the shop, gain $1 for every $3 your Nemesis spent last ante",
