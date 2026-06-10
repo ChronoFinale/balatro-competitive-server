@@ -200,6 +200,10 @@ class PreviewFixtureGenerator {
         scenario("ramen", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.cardsDiscardedTotal = 50, "j_ramen");
 
+        // 32. Lucky Cat after 4 Lucky triggers: x(1 + 0.25*4) = x2 (shipped LUCKY_TRIGGERS counter)
+        scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
@@ -291,6 +295,7 @@ class PreviewFixtureGenerator {
         counters.put("HANDS_PLAYED_TOTAL", run.handsPlayedTotal);
         counters.put("ROUNDS_PLAYED", run.roundsPlayedTotal);
         counters.put("CARDS_DISCARDED_TOTAL", run.cardsDiscardedTotal);
+        counters.put("LUCKY_TRIGGERS", run.luckyTriggersTotal);
         counters.put("DISCARDS_USED", run.discardsUsedThisRound);
         counters.put("HANDS_PLAYED", run.handsPlayedThisRound);
         m.put("counters", counters);

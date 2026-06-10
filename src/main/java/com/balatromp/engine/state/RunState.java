@@ -31,6 +31,7 @@ public final class RunState {
     public int handsPlayedTotal = 0;      // Ice Cream
     public int roundsPlayedTotal = 0;     // Popcorn
     public int cardsDiscardedTotal = 0;   // Ramen / Yorick
+    public int luckyTriggersTotal = 0;    // Lucky Cat
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;

@@ -475,6 +475,7 @@ public final class Run {
         counters.put("HANDS_PLAYED_TOTAL", state.handsPlayedTotal);
         counters.put("ROUNDS_PLAYED", state.roundsPlayedTotal);
         counters.put("CARDS_DISCARDED_TOTAL", state.cardsDiscardedTotal);
+        counters.put("LUCKY_TRIGGERS", state.luckyTriggersTotal);
         counters.put("DISCARDS_USED", state.discardsUsedThisRound);
         counters.put("HANDS_PLAYED", state.handsPlayedThisRound);
 

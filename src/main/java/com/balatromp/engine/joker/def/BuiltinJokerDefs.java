@@ -609,6 +609,14 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 20: Lucky Cat (counts Lucky triggers) ---
+                new JokerDef("j_lucky_cat", "Lucky Cat",
+                        "Gains x0.25 Mult each time a Lucky card successfully triggers",
+                        "Uncommon", 6, 6, 13, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT,
+                                        new Value.RunVar(Value.Var.LUCKY_TRIGGERS, 1, 0.25))))),
+
                 // --- batch 19: sell action (Campfire) ---
                 new JokerDef("j_campfire", "Campfire",
                         "Gains x0.25 Mult per card sold; resets when a Boss Blind is defeated",

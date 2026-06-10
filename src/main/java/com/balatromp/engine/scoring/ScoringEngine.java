@@ -311,9 +311,13 @@ public final class ScoringEngine {
             if (lucky(queues, "lucky_mult") < run.probabilityNumerator / 5.0) {
                 acc.mult = acc.mult.add(BigNum.of(20));
                 log(acc, card.toString(), "mult", "Lucky! +20 Mult");
+                if (!preview) run.luckyTriggersTotal++; // Lucky Cat counts triggers
             }
             if (lucky(queues, "lucky_money") < run.probabilityNumerator / 15.0) {
-                if (!preview) run.money += 20;
+                if (!preview) {
+                    run.money += 20;
+                    run.luckyTriggersTotal++;
+                }
                 log(acc, card.toString(), "dollars", "Lucky! +$20");
             }
         }
