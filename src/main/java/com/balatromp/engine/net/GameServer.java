@@ -284,6 +284,19 @@ public final class GameServer implements AutoCloseable {
                     if (m != null) m.respond(ctx.sessionId(), msg.path("accept").asBoolean());
                     else respond(ctx, error(seq, "not in a match"));
                 }
+                case "preview" -> {
+                    Run run = runFor(ctx.sessionId());
+                    if (run == null) {
+                        respond(ctx, error(seq, "no active run"));
+                        break;
+                    }
+                    var pre = run.previewScore(ints(msg.path("cards"))); // read-only, no state change
+                    respond(ctx, Map.of("type", "preview", "seq", seq,
+                            "chips", pre != null ? pre.chips() : 0L,
+                            "mult", pre != null ? pre.mult() : 0.0,
+                            "score", pre != null ? pre.score() : 0.0,
+                            "replay", pre != null ? pre.replayLog() : List.of()));
+                }
                 case "playHand" -> route(ctx, seq, new Intent.PlayHand(ints(msg.path("cards"))));
                 case "discard" -> route(ctx, seq, new Intent.Discard(ints(msg.path("cards"))));
                 case "buyJoker" -> {

@@ -20,6 +20,7 @@ import com.balatromp.engine.rng.RandomStreams;
 import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.scoring.ReplayEntry;
+import com.balatromp.engine.scoring.ScoreResult;
 import com.balatromp.engine.state.Deck;
 import com.balatromp.engine.state.Ruleset;
 import com.balatromp.engine.state.RunState;
@@ -302,6 +303,23 @@ public final class Run {
                 }
             }
         }
+    }
+
+    /**
+     * Side-effect-free preview of playing the selected hand cards — the
+     * authoritative score projection the client renders as the player selects
+     * cards (so jokers whose value depends on the prospective play, like Greedy or
+     * The Duo, show correctly). Commits nothing. Returns null if nothing selected.
+     */
+    public ScoreResult previewScore(List<Integer> cardIndices) {
+        List<Card> played = new ArrayList<>();
+        for (int i : cardIndices) {
+            if (i >= 0 && i < state.hand.size()) played.add(state.hand.get(i));
+        }
+        if (played.isEmpty()) return null;
+        List<Card> held = new ArrayList<>(state.hand);
+        held.removeAll(played);
+        return new com.balatromp.engine.scoring.ScoringEngine().preview(played, held, state, rng);
     }
 
     /** Client-facing entry: validate+apply an intent, return the authoritative update. */

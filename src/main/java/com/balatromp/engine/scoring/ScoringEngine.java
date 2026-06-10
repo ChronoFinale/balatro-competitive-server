@@ -45,6 +45,22 @@ public final class ScoringEngine {
     }
 
     public ScoreResult score(List<Card> played, List<Card> held, RunState run, RandomStreams rng) {
+        return score(played, held, run, rng, false);
+    }
+
+    /**
+     * A side-effect-free projection of the score for a given card selection — what
+     * the client shows as a live preview as the player selects cards. Computes the
+     * full pipeline (so per-joker contributions appear in the replay log) but
+     * commits nothing: no money credited, no cards destroyed or mutated, and the
+     * run's real RNG queues are never advanced (a throwaway queue is used).
+     */
+    public ScoreResult preview(List<Card> played, List<Card> held, RunState run, RandomStreams rng) {
+        return score(played, held, run, rng, true);
+    }
+
+    private ScoreResult score(List<Card> played, List<Card> held, RunState run, RandomStreams rng,
+                              boolean preview) {
         HandResult hr = HandEvaluator.evaluate(played);
 
         // (1) scoring set = detected cards + any Stone cards, in play order.
@@ -67,7 +83,9 @@ public final class ScoringEngine {
         // (BMP shape): both players get the same procs for the same cards played,
         // regardless of order/timing. Fall back to a transient set for bare-state
         // tests that pass an rng directly without a persistent run.
-        QueueSet queues = (run.queues != null) ? run.queues : new QueueSet(rng);
+        QueueSet queues = preview ? new QueueSet(new RandomStreams("preview"))
+                : (run.queues != null) ? run.queues : new QueueSet(rng);
+        ctx.preview = preview;
 
         // (3) BEFORE pass.
         for (int i = 0; i < jokers.size(); i++) {
@@ -86,7 +104,7 @@ public final class ScoringEngine {
             if (card.debuffed) continue;
             int reps = retriggers(card, Trigger.REPETITION_PLAYED, ctx, jokers, acc);
             for (int r = 0; r < reps; r++) {
-                applyCardScored(acc, card, run, queues);
+                applyCardScored(acc, card, run, queues, preview);
                 for (int i = 0; i < jokers.size(); i++) {
                     ctx.phase = Trigger.ON_SCORED;
                     ctx.selfIndex = i;
@@ -94,7 +112,7 @@ public final class ScoringEngine {
                     ctx.scoredCard = card;
                     JokerEffect e = jokers.get(i).calculate(ctx);
                     apply(acc, e, jokers.get(i).name());
-                    applyCardMods(acc, e, card);
+                    if (!preview) applyCardMods(acc, e, card);
                 }
             }
         }
@@ -113,7 +131,7 @@ public final class ScoringEngine {
                     ctx.scoredCard = card;
                     JokerEffect e = jokers.get(i).calculate(ctx);
                     apply(acc, e, jokers.get(i).name());
-                    applyCardMods(acc, e, card);
+                    if (!preview) applyCardMods(acc, e, card);
                 }
             }
         }
@@ -206,7 +224,7 @@ public final class ScoringEngine {
     }
 
     /** Card base + enhancement + edition + seal, applied as one ordered entry. */
-    private void applyCardScored(Acc acc, Card card, RunState run, QueueSet queues) {
+    private void applyCardScored(Acc acc, Card card, RunState run, QueueSet queues, boolean preview) {
         long chips = card.baseChips();
         if (card.enhancement == Enhancement.STONE) chips += 50;
         if (card.enhancement == Enhancement.BONUS) chips += 30;
@@ -232,21 +250,21 @@ public final class ScoringEngine {
                 log(acc, card.toString(), "mult", "Lucky! +20 Mult");
             }
             if (lucky(queues, "lucky_money") < run.probabilityNumerator / 15.0) {
-                run.money += 20;
+                if (!preview) run.money += 20;
                 log(acc, card.toString(), "dollars", "Lucky! +$20");
             }
         }
         if (card.enhancement == Enhancement.GLASS) {
             acc.mult = acc.mult.multiply(2);
             log(acc, card.toString(), "xmult", "x2 Mult");
-            if (lucky(queues, "glass") < 0.25) { // game-long break queue (1-in-4)
+            if (!preview && lucky(queues, "glass") < 0.25) { // game-long break queue (1-in-4)
                 card.destroyed = true;
                 acc.destroyed.add(card);
             }
         }
         applyCardEdition(acc, card);
         if (card.seal == Seal.GOLD) {
-            run.money += 3;
+            if (!preview) run.money += 3;
             log(acc, card.toString(), "dollars", "+$3 (Gold Seal)");
         }
     }
