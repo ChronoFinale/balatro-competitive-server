@@ -358,6 +358,22 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_smeared_joker", "Smeared Joker",
                         "Hearts and Diamonds count as the same suit, Spades and Clubs the same",
                         "Uncommon", 7, 3, 6, null, null, true, List.of(), List.of(),
-                        List.of(com.balatromp.engine.hand.HandMod.SMEARED)));
+                        List.of(com.balatromp.engine.hand.HandMod.SMEARED)),
+
+                // --- retrigger jokers (existing algebra) ---
+                new JokerDef("j_mime", "Mime", "Retrigger all cards held in hand",
+                        "Uncommon", 5, 8, 5, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.REPETITION_HELD, new Condition.Always(),
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+                new JokerDef("j_dusk", "Dusk", "Retrigger all played cards on the final hand of the round",
+                        "Uncommon", 5, 9, 5, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.HandsLeft(Cmp.LTE, 1),
+                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+
+                // --- Gold-card economy when scored ---
+                new JokerDef("j_golden_ticket", "Golden Ticket", "Played Gold cards give $4 when scored",
+                        "Common", 5, 6, 7, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.GOLD),
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(4))))));
     }
 }

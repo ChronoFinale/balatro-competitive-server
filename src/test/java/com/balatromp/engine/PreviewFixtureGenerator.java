@@ -128,6 +128,17 @@ class PreviewFixtureGenerator {
                 c(Rank.SIX, Suit.HEARTS), c(Rank.EIGHT, Suit.DIAMONDS), c(Rank.TEN, Suit.HEARTS)),
                 List.of(), "j_smeared_joker");
 
+        // 18. Mime: retrigger held cards — a held Steel card applies its x1.5 twice
+        Card steelHeld = new Card(Rank.QUEEN, Suit.SPADES, Enhancement.STEEL, Edition.NONE, Seal.NONE);
+        scenario("mime", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(steelHeld), "j_mime");
+
+        // 19. Dusk: on the final hand (handsLeft=1) all played cards retrigger
+        scenario("dusk", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), run -> run.handsLeft = 1, "j_dusk");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
@@ -143,9 +154,15 @@ class PreviewFixtureGenerator {
     }
 
     private void scenario(String name, List<Card> played, List<Card> held, String... jokerKeys) {
+        scenario(name, played, held, null, jokerKeys);
+    }
+
+    private void scenario(String name, List<Card> played, List<Card> held,
+            java.util.function.Consumer<RunState> tweak, String... jokerKeys) {
         RunState run = new RunState();
         run.rng = new RandomStreams("FIXTURE");
         run.queues = new QueueSet(run.rng);
+        if (tweak != null) tweak.accept(run);
         List<Joker> jokers = new ArrayList<>();
         for (String k : jokerKeys) {
             Joker j = JokerLibrary.create(k);

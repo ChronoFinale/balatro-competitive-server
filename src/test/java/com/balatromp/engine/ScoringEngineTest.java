@@ -96,6 +96,19 @@ class ScoringEngineTest {
     }
 
     @Test
+    void goldenTicketPaysForScoredGoldCards() {
+        RunState run = new RunState();
+        run.money = 0;
+        run.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_golden_ticket"));
+        RandomStreams rng = new RandomStreams("GT");
+        com.balatromp.engine.card.Card gold = new com.balatromp.engine.card.Card(
+                KING, HEARTS, com.balatromp.engine.card.Enhancement.GOLD,
+                com.balatromp.engine.card.Edition.NONE, com.balatromp.engine.card.Seal.NONE);
+        new ScoringEngine().score(List.of(gold, c(KING, SPADES)), List.of(), run, rng);
+        assertThat(run.money).as("one scored Gold card pays $4").isEqualTo(4);
+    }
+
+    @Test
     void rideTheBusScalesAcrossConsecutiveHands() {
         RunState run = new RunState();
         run.addJoker(com.balatromp.engine.joker.JokerLibrary.create("j_ride_the_bus"));
