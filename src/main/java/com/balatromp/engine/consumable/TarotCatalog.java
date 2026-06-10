@@ -116,6 +116,20 @@ public final class TarotCatalog {
                 ConsumableType.SPECTRAL, 0, new Consumable.Generate(null, 1,
                         new Consumable.Generate.AddCards(
                                 Consumable.Generate.AddCards.RankClass.ACE, 2, null), null)));
+
+        // Transform / copy consumables.
+        put(new Consumable("c_fool", "The Fool", "Create a copy of the last Tarot or Planet used this run",
+                ConsumableType.TAROT, 0, new Consumable.CopyLastConsumable()));
+        put(new Consumable("c_death", "Death", "Select 2 cards: the left card becomes a copy of the right",
+                ConsumableType.TAROT, 2, new Consumable.OverwriteSelected()));
+        put(new Consumable("c_sigil", "Sigil", "Convert all cards in hand to a single random suit",
+                ConsumableType.SPECTRAL, 0, new Consumable.ConvertHand(true, false, 0)));
+        put(new Consumable("c_ouija", "Ouija", "Convert all cards in hand to a single random rank, -1 hand size",
+                ConsumableType.SPECTRAL, 0, new Consumable.ConvertHand(false, true, -1)));
+        put(new Consumable("c_cryptid", "Cryptid", "Create 2 copies of 1 selected card",
+                ConsumableType.SPECTRAL, 1, new Consumable.CopySelected(2)));
+        put(new Consumable("c_ankh", "Ankh", "Copy a random Joker, destroy all other Jokers",
+                ConsumableType.SPECTRAL, 0, new Consumable.CopyRandomJoker(true)));
     }
 
     private static void put(Consumable c) {

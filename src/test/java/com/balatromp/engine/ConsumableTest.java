@@ -207,6 +207,84 @@ class ConsumableTest {
     }
 
     @Test
+    void deathConvertsTheLeftSelectedCardIntoTheRight() {
+        Run run = freshRun();
+        Card left = run.state.hand.get(0);
+        Card right = run.state.hand.get(1);
+        right.rank = Rank.ACE;
+        right.suit = Suit.SPADES;
+        right.enhancement = Enhancement.GLASS;
+        run.state.consumables.add("c_death");
+        assertThat(run.useConsumable(0, new long[]{left.uid, right.uid})).isNull();
+        assertThat(left.rank).isEqualTo(Rank.ACE);
+        assertThat(left.suit).isEqualTo(Suit.SPADES);
+        assertThat(left.enhancement).isEqualTo(Enhancement.GLASS);
+    }
+
+    @Test
+    void sigilConvertsWholeHandToOneSuit() {
+        Run run = freshRun();
+        run.state.consumables.add("c_sigil");
+        assertThat(run.useConsumable(0)).isNull();
+        long distinctSuits = run.state.hand.stream().map(c -> c.suit).distinct().count();
+        assertThat(distinctSuits).isEqualTo(1);
+    }
+
+    @Test
+    void ouijaConvertsWholeHandToOneRankAndDropsHandSize() {
+        Run run = freshRun();
+        int handSizeBefore = run.state.handSize;
+        run.state.consumables.add("c_ouija");
+        assertThat(run.useConsumable(0)).isNull();
+        long distinctRanks = run.state.hand.stream().map(c -> c.rank).distinct().count();
+        assertThat(distinctRanks).isEqualTo(1);
+        assertThat(run.state.handSize).isEqualTo(handSizeBefore - 1);
+    }
+
+    @Test
+    void cryptidCreatesTwoCopiesOfASelectedCard() {
+        Run run = freshRun();
+        Card src = run.state.hand.get(0);
+        src.rank = Rank.ACE;
+        src.suit = Suit.HEARTS;
+        int before = run.state.hand.size();
+        run.state.consumables.add("c_cryptid");
+        assertThat(run.useConsumable(0, new long[]{src.uid})).isNull();
+        assertThat(run.state.hand).hasSize(before + 2);
+        long aceHearts = run.state.hand.stream()
+                .filter(c -> c.rank == Rank.ACE && c.suit == Suit.HEARTS).count();
+        assertThat(aceHearts).isGreaterThanOrEqualTo(3); // original + 2 copies
+        // copies carry fresh ids (no duplicate uids)
+        assertThat(run.state.hand.stream().map(c -> c.uid).distinct().count())
+                .isEqualTo(run.state.hand.size());
+    }
+
+    @Test
+    void ankhCopiesAJokerAndDestroysTheOthers() {
+        Run run = new Run(Ruleset.standard(), "ANKH",
+                com.balatromp.engine.TestSupport.heartsKings(50),
+                com.balatromp.engine.TestSupport.jokers("j_joker", "j_greedy_joker", "j_lusty_joker"));
+        run.state.consumables.add("c_ankh");
+        assertThat(run.useConsumable(0)).isNull();
+        // The chosen joker survives plus its copy = 2, all of the same key.
+        assertThat(run.state.jokers()).hasSize(2);
+        assertThat(run.state.jokers().get(0).key()).isEqualTo(run.state.jokers().get(1).key());
+    }
+
+    @Test
+    void foolCopiesTheLastTarotOrPlanetUsed() {
+        Run run = freshRun();
+        run.state.consumableSlots = 4;
+        // Use a Planet first so it becomes the "last used".
+        run.state.consumables.add("c_pluto"); // a Planet
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.lastTarotPlanetUsed).isEqualTo("c_pluto");
+        run.state.consumables.add("c_fool");
+        assertThat(run.useConsumable(run.state.consumables.size() - 1)).isNull();
+        assertThat(run.state.consumables).contains("c_pluto"); // Fool re-created the Planet
+    }
+
+    @Test
     void tooManyTargetsRejected() {
         Run run = freshRun();
         long[] three = {run.state.hand.get(0).uid, run.state.hand.get(1).uid, run.state.hand.get(2).uid};

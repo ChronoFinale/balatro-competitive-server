@@ -16,7 +16,8 @@ public record Consumable(String key, String name, String description, Consumable
                          int maxTargets, Effect effect) {
 
     public sealed interface Effect
-            permits Enhance, Destroy, Create, LevelAllHands, JokerEdition, Generate {}
+            permits Enhance, Destroy, Create, LevelAllHands, JokerEdition, Generate,
+                    ConvertHand, CopySelected, OverwriteSelected, CopyRandomJoker, CopyLastConsumable {}
 
     /** Apply a card mutation to each selected target (enhance/convert/seal/edition). */
     public record Enhance(CardMod mod) implements Effect {}
@@ -65,4 +66,19 @@ public record Consumable(String key, String name, String description, Consumable
             public enum Kind { DOUBLE_CAP, SELL_VALUE_CAP, FLAT, SET }
         }
     }
+
+    /** Convert EVERY card in hand to one random suit (Sigil) or rank (Ouija); Ouija also -1 hand size. */
+    public record ConvertHand(boolean toRandomSuit, boolean toRandomRank, int handSizeDelta) implements Effect {}
+
+    /** Create {@code copies} exact copies of the single selected card (Cryptid). */
+    public record CopySelected(int copies) implements Effect {}
+
+    /** Overwrite the first selected card with the attributes of the second (Death: left becomes right). */
+    public record OverwriteSelected() implements Effect {}
+
+    /** Copy a random owned Joker (edition-free); optionally destroy all others (Ankh). */
+    public record CopyRandomJoker(boolean destroyOthers) implements Effect {}
+
+    /** Create a copy of the last Tarot or Planet used this run (The Fool). */
+    public record CopyLastConsumable() implements Effect {}
 }

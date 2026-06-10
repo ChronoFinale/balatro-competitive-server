@@ -577,6 +577,7 @@ public final class Run {
         if (p != null) {
             state.levelUpHand(p.hand());
             state.planetsUsedThisRun.add(key); // Satellite counts unique planets used
+            state.lastTarotPlanetUsed = key;    // The Fool can copy it
             GameEvents.useConsumable(state, rng, "Planet");
             state.consumables.remove(index);
             return null;
@@ -595,6 +596,10 @@ public final class Run {
             // consumables can occupy the slot it just vacated (Balatro's ordering).
             state.consumables.remove(index);
             applyConsumable(c, targets);
+            // The Fool copies the last Tarot/Planet used — track Tarots here (but never The Fool itself).
+            if (c.type() == com.balatromp.engine.consumable.ConsumableType.TAROT && !key.equals("c_fool")) {
+                state.lastTarotPlanetUsed = key;
+            }
             GameEvents.useConsumable(state, rng, c.type().label());
             return null;
         }
@@ -627,6 +632,61 @@ public final class Run {
             }
             case Consumable.JokerEdition je -> applyJokerEdition(c, je);
             case Consumable.Generate g -> applyGenerate(c, g);
+            case Consumable.ConvertHand ch -> applyConvertHand(c, ch);
+            case Consumable.CopySelected cs -> {
+                if (!targets.isEmpty()) {
+                    Card src = targets.get(0);
+                    for (int i = 0; i < cs.copies(); i++) {
+                        Card dup = src.copy(); // fresh uid, same rank/suit/enh/edition/seal
+                        composition.add(dup);
+                        state.hand.add(dup);
+                    }
+                }
+            }
+            case Consumable.OverwriteSelected ignored -> {
+                if (targets.size() == 2) { // Death: the left (first) card becomes a copy of the right
+                    Card left = targets.get(0), right = targets.get(1);
+                    left.rank = right.rank;
+                    left.suit = right.suit;
+                    left.enhancement = right.enhancement;
+                    left.edition = right.edition;
+                    left.seal = right.seal;
+                }
+            }
+            case Consumable.CopyRandomJoker cj -> applyCopyRandomJoker(c, cj);
+            case Consumable.CopyLastConsumable ignored -> {
+                String last = state.lastTarotPlanetUsed;
+                if (last != null && state.consumables.size() < state.consumableSlots) {
+                    state.consumables.add(last);
+                }
+            }
+        }
+    }
+
+    /** Sigil (all cards to one random suit) / Ouija (all to one random rank, -1 hand size). */
+    private void applyConvertHand(Consumable c, Consumable.ConvertHand ch) {
+        if (ch.toRandomSuit()) {
+            Suit[] suits = Suit.values();
+            Suit s = suits[(int) (roll("consumable:" + c.key() + ":suit") * suits.length) % suits.length];
+            for (Card card : state.hand) card.suit = s;
+        }
+        if (ch.toRandomRank()) {
+            Rank[] ranks = Rank.values();
+            Rank r = ranks[(int) (roll("consumable:" + c.key() + ":rank") * ranks.length) % ranks.length];
+            for (Card card : state.hand) card.rank = r;
+        }
+        if (ch.handSizeDelta() != 0) state.handSize = Math.max(1, state.handSize + ch.handSizeDelta());
+    }
+
+    /** Ankh: copy a random owned joker (edition-free) and, if set, destroy all other jokers. */
+    private void applyCopyRandomJoker(Consumable c, Consumable.CopyRandomJoker cj) {
+        if (state.jokers().isEmpty()) return;
+        int pick = (int) (roll("consumable:" + c.key() + ":joker") * state.jokers().size())
+                % state.jokers().size();
+        Joker chosen = state.jokers().get(pick);
+        if (cj.destroyOthers()) state.jokers().removeIf(j -> j != chosen);
+        if (state.jokers().size() < state.jokerSlots) {
+            state.addJoker(JokerLibrary.create(chosen.key(), ruleset.jokerVariant())); // copy has no edition
         }
     }
 
