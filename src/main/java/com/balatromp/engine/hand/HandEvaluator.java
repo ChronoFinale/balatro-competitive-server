@@ -28,8 +28,10 @@ public final class HandEvaluator {
     public static HandResult evaluate(List<Card> played, HandMods mods) {
         List<Card> ranked = nonStone(played);
 
-        boolean flush = isFlush(ranked, mods);
-        boolean straight = isStraight(ranked, mods);
+        List<Card> flushCards = flushCards(ranked, mods);
+        List<Card> straightCards = straightCards(ranked, mods);
+        boolean flush = !flushCards.isEmpty();
+        boolean straight = !straightCards.isEmpty();
 
         int[] count = new int[15]; // ids 2..14
         for (Card c : ranked) count[c.id()]++;
@@ -59,11 +61,14 @@ public final class HandEvaluator {
         if (five && flush) return new HandResult(HandType.FLUSH_FIVE, all);
         if (fullHouse && flush) return new HandResult(HandType.FLUSH_HOUSE, all);
         if (five) return new HandResult(HandType.FIVE_OF_A_KIND, cardsOf(played, highestFive));
-        if (straight && flush) return new HandResult(HandType.STRAIGHT_FLUSH, all);
+        // Straight flush scores the cards in the run (which are necessarily one suit).
+        if (straight && flush) return new HandResult(HandType.STRAIGHT_FLUSH, straightCards);
         if (four) return new HandResult(HandType.FOUR_OF_A_KIND, cardsOf(played, highestFour));
         if (fullHouse) return new HandResult(HandType.FULL_HOUSE, all);
-        if (flush) return new HandResult(HandType.FLUSH, all);
-        if (straight) return new HandResult(HandType.STRAIGHT, all);
+        // Only the cards that actually form the flush/straight score (matters under
+        // Four Fingers: a 4-card flush in a 5-card hand leaves the odd card out).
+        if (flush) return new HandResult(HandType.FLUSH, flushCards);
+        if (straight) return new HandResult(HandType.STRAIGHT, straightCards);
         if (three) return new HandResult(HandType.THREE_OF_A_KIND, cardsOf(played, highestThree));
         if (twoPair) {
             List<Card> tp = cardsOf(played, pairRanks.get(0));
@@ -88,31 +93,40 @@ public final class HandEvaluator {
     }
 
     /**
-     * Flush = {@code runLength} cards of one suit. With Smeared, Hearts/Diamonds
-     * collapse to one suit-group and Spades/Clubs to another.
+     * Flush cards = the cards of the dominant suit-group when it reaches
+     * {@code runLength}, else empty. With Smeared, Hearts/Diamonds collapse to one
+     * group and Spades/Clubs to another.
      */
-    private static boolean isFlush(List<Card> cards, HandMods mods) {
+    private static List<Card> flushCards(List<Card> cards, HandMods mods) {
         int need = mods.runLength();
-        if (cards.size() < need) return false;
-        // group by suit, or by smeared pair (Hearts+Diamonds=0, Spades+Clubs=1)
-        int[] counts = new int[mods.smeared() ? 2 : Suit.values().length];
-        for (Card c : cards) counts[mods.smeared() ? smearedGroup(c.suit) : c.suit.ordinal()]++;
-        for (int n : counts) if (n >= need) return true;
-        return false;
+        if (cards.size() < need) return List.of();
+        int groups = mods.smeared() ? 2 : Suit.values().length;
+        int[] counts = new int[groups];
+        for (Card c : cards) counts[group(c.suit, mods)]++;
+        for (int g = 0; g < groups; g++) {
+            if (counts[g] >= need) {
+                List<Card> r = new ArrayList<>();
+                for (Card c : cards) if (group(c.suit, mods) == g) r.add(c);
+                return r;
+            }
+        }
+        return List.of();
     }
 
-    private static int smearedGroup(Suit s) {
+    private static int group(Suit s, HandMods mods) {
+        if (!mods.smeared()) return s.ordinal();
         return (s == Suit.HEARTS || s == Suit.DIAMONDS) ? 0 : 1;
     }
 
     /**
-     * Straight = {@code runLength} ranks where each consecutive present rank is
-     * within {@code maxGap} (Shortcut allows a gap of one). Ace counts high (14)
-     * or low (1).
+     * Straight cards = one card per rank in the qualifying run, where each
+     * consecutive present rank is within {@code maxGap} (Shortcut allows a gap of
+     * one) and the run reaches {@code runLength}. Ace counts high (14) or low (1).
+     * Returns empty if no straight.
      */
-    private static boolean isStraight(List<Card> cards, HandMods mods) {
+    private static List<Card> straightCards(List<Card> cards, HandMods mods) {
         int need = mods.runLength();
-        if (cards.size() < need) return false;
+        if (cards.size() < need) return List.of();
         boolean[] present = new boolean[16]; // indices 1..14 (+ace-low at 1)
         boolean hasAce = false;
         for (Card c : cards) {
@@ -121,19 +135,32 @@ public final class HandEvaluator {
         }
         if (hasAce) present[1] = true; // ace can be low
         int gap = mods.maxGap();
-        // Walk upward collecting a run where each step to the next present rank is <= gap.
         for (int start = 1; start <= 14; start++) {
             if (!present[start]) continue;
-            int runLen = 1, last = start;
-            for (int next = start + 1; next <= 14 && runLen < need; next++) {
+            List<Integer> runRanks = new ArrayList<>();
+            runRanks.add(start);
+            int last = start;
+            for (int next = start + 1; next <= 14 && runRanks.size() < need; next++) {
                 if (!present[next]) continue;
                 if (next - last > gap) break;
-                runLen++;
+                runRanks.add(next);
                 last = next;
             }
-            if (runLen >= need) return true;
+            if (runRanks.size() >= need) return cardsForRanks(cards, runRanks);
         }
-        return false;
+        return List.of();
+    }
+
+    /** One card per rank id in the run (ace-low rank 1 maps to the Ace, id 14). */
+    private static List<Card> cardsForRanks(List<Card> cards, List<Integer> ranks) {
+        List<Card> r = new ArrayList<>();
+        for (int rank : ranks) {
+            int wanted = rank == 1 ? 14 : rank;
+            for (Card c : cards) {
+                if (c.id() == wanted && !r.contains(c)) { r.add(c); break; }
+            }
+        }
+        return r;
     }
 
     private static List<Card> highest(List<Card> cards) {

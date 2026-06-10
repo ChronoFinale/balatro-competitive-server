@@ -113,6 +113,11 @@ class PreviewFixtureGenerator {
         scenario("four-fingers", play(c(Rank.TWO, Suit.HEARTS), c(Rank.FIVE, Suit.HEARTS),
                 c(Rank.EIGHT, Suit.HEARTS), c(Rank.JACK, Suit.HEARTS)), List.of(), "j_four_fingers");
 
+        // 15b. Four Fingers, 5 cards played: only the 4 Hearts score, the odd Spade does not
+        scenario("four-fingers-5", play(c(Rank.TWO, Suit.HEARTS), c(Rank.FIVE, Suit.HEARTS),
+                c(Rank.EIGHT, Suit.HEARTS), c(Rank.JACK, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), "j_four_fingers");
+
         // 16. Shortcut: 3-5-6-7-9 (gaps of one) forms a Straight
         scenario("shortcut", play(c(Rank.THREE, Suit.SPADES), c(Rank.FIVE, Suit.HEARTS),
                 c(Rank.SIX, Suit.CLUBS), c(Rank.SEVEN, Suit.DIAMONDS), c(Rank.NINE, Suit.SPADES)),

@@ -47,7 +47,8 @@
       if (n >= 3) triples++;
       if (n >= 2) pairs.push(i);
     }
-    const flush = isFlush(ranked, mods), straight = isStraight(ranked, mods);
+    const flushCards = flushCardsOf(ranked, mods), straightCards = straightCardsOf(ranked, mods);
+    const flush = flushCards.length > 0, straight = straightCards.length > 0;
     const five = hi5 >= 0, four = hi4 >= 0, three = hi3 >= 0;
     const fullHouse = triples >= 1 && pairs.length >= 2;
     const twoPair = pairs.length >= 2, pair = pairs.length > 0;
@@ -56,11 +57,11 @@
     if (five && flush) return res('Flush Five', played);
     if (fullHouse && flush) return res('Flush House', played);
     if (five) return res('Five of a Kind', cardsOf(hi5));
-    if (straight && flush) return res('Straight Flush', played);
+    if (straight && flush) return res('Straight Flush', straightCards);
     if (four) return res('Four of a Kind', cardsOf(hi4));
     if (fullHouse) return res('Full House', played);
-    if (flush) return res('Flush', played);
-    if (straight) return res('Straight', played);
+    if (flush) return res('Flush', flushCards);
+    if (straight) return res('Straight', straightCards);
     if (three) return res('Three of a Kind', cardsOf(hi3));
     if (twoPair) return res('Two Pair', cardsOf(pairs[0]).concat(cardsOf(pairs[1])));
     if (pair) return res('Pair', cardsOf(pairs[0]));
@@ -83,17 +84,20 @@
     return m;
   }
 
-  const smearGroup = (s) => (s === 'HEARTS' || s === 'DIAMONDS') ? 'RD' : 'BK';
-  function isFlush(cards, mods) {
+  const group = (s, mods) => mods.smeared ? ((s === 'HEARTS' || s === 'DIAMONDS') ? 'RD' : 'BK') : s;
+  function flushCardsOf(cards, mods) {
     const need = mods.fourFingers ? 4 : 5;
-    if (cards.length < need) return false;
+    if (cards.length < need) return [];
     const c = {};
-    for (const x of cards) { const k = mods.smeared ? smearGroup(x.suit) : x.suit; c[k] = (c[k] || 0) + 1; }
-    return Object.values(c).some((n) => n >= need);
+    for (const x of cards) { const k = group(x.suit, mods); c[k] = (c[k] || 0) + 1; }
+    for (const k of Object.keys(c)) {
+      if (c[k] >= need) return cards.filter((x) => group(x.suit, mods) === k);
+    }
+    return [];
   }
-  function isStraight(cards, mods) {
+  function straightCardsOf(cards, mods) {
     const need = mods.fourFingers ? 4 : 5;
-    if (cards.length < need) return false;
+    if (cards.length < need) return [];
     const present = {};
     let ace = false;
     for (const x of cards) { present[id(x)] = true; if (id(x) === 14) ace = true; }
@@ -101,15 +105,24 @@
     const gap = mods.shortcut ? 2 : 1;
     for (let s = 1; s <= 14; s++) {
       if (!present[s]) continue;
-      let runLen = 1, last = s;
-      for (let next = s + 1; next <= 14 && runLen < need; next++) {
+      const ranks = [s];
+      let last = s;
+      for (let next = s + 1; next <= 14 && ranks.length < need; next++) {
         if (!present[next]) continue;
         if (next - last > gap) break;
-        runLen++; last = next;
+        ranks.push(next); last = next;
       }
-      if (runLen >= need) return true;
+      if (ranks.length >= need) {
+        const out = [];
+        for (const rank of ranks) {
+          const wanted = rank === 1 ? 14 : rank;
+          const card = cards.find((x) => id(x) === wanted && !out.includes(x));
+          if (card) out.push(card);
+        }
+        return out;
+      }
     }
-    return false;
+    return [];
   }
 
   // --- algebra interpreter (Condition / Value / EffectTemplate / DataJoker) --
