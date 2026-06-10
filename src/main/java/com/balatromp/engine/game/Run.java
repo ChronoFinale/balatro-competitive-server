@@ -12,6 +12,7 @@ import com.balatromp.engine.intent.Intent;
 import com.balatromp.engine.intent.IntentHandler;
 import com.balatromp.engine.intent.IntentResult;
 import com.balatromp.engine.joker.Joker;
+import com.balatromp.engine.joker.JokerDisplay;
 import com.balatromp.engine.net.CardView;
 import com.balatromp.engine.net.ClientView;
 import com.balatromp.engine.net.ServerUpdate;
@@ -316,10 +317,13 @@ public final class Run {
         for (Card c : state.hand) handView.add(CardView.of(c));
 
         List<Map<String, Object>> jokerView = new ArrayList<>();
-        for (Joker j : state.jokers()) {
-            var info = j.info();
-            jokerView.add(Map.of("name", info.name(), "description", info.description(),
-                    "rarity", info.rarity(), "x", info.atlasX(), "y", info.atlasY()));
+        for (int i = 0; i < state.jokers().size(); i++) {
+            var info = state.jokers().get(i).info();
+            // Built-in joker display: the joker's current live value (e.g. "x1.4 Mult"),
+            // computed server-side so clients render it without the JokerDisplay mod.
+            String display = JokerDisplay.currentValue(state.jokers(), i, state);
+            jokerView.add(Map.of("key", info.key(), "name", info.name(), "description", info.description(),
+                    "rarity", info.rarity(), "x", info.atlasX(), "y", info.atlasY(), "display", display));
         }
 
         List<Map<String, Object>> shopView = null;

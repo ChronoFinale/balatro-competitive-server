@@ -41,14 +41,24 @@ public final class EvaluationContext {
         return jokers.get(selfIndex);
     }
 
+    /** Display dry-run: when true, probabilistic reads use a throwaway queue and never
+     *  advance the run's real queues (so computing joker display has no side effects). */
+    public boolean preview;
+
     /**
      * Pop the next roll [0,1) from a named game-long probability queue (Chance /
      * Random effects). Uses the run's persistent QueueSet so both players get the
-     * same procs; falls back to a transient set for bare-state contexts.
+     * same procs; falls back to a transient set for bare-state/preview contexts.
      */
     public double nextProb(String seedKey) {
-        QueueSet qs = (run != null && run.queues != null) ? run.queues
-                : new QueueSet(rng != null ? rng : new RandomStreams("prob"));
+        QueueSet qs;
+        if (preview) {
+            qs = new QueueSet(new RandomStreams("preview")); // throwaway: never touch real queues
+        } else if (run != null && run.queues != null) {
+            qs = run.queues;
+        } else {
+            qs = new QueueSet(rng != null ? rng : new RandomStreams("prob"));
+        }
         return qs.queue("prob:" + seedKey, Rng::nextDouble).next();
     }
 
@@ -75,6 +85,7 @@ public final class EvaluationContext {
         c.blueprintDepth = blueprintDepth + 1;
         c.run = run;
         c.rng = rng;
+        c.preview = preview;
         return c;
     }
 }
