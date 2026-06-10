@@ -81,6 +81,7 @@ public final class Run {
         this.ruleset = ruleset;
         this.rng = new RandomStreams(seed);
         DeckCatalog.DeckType deckType = DeckCatalog.get(ruleset.deckType());
+        state.multiplayer = "multiplayer".equals(ruleset.jokerVariant()); // MP rules (Glass x1.5, ...)
         state.money = ruleset.startingMoney() + deckType.startMoneyDelta();
         state.jokerSlots = 5 + deckType.jokerSlotsDelta();
         state.rng = rng;
@@ -697,6 +698,7 @@ public final class Run {
         counters.put("OBELISK_STREAK", state.obeliskStreak);
         counters.put("BLINDS_SKIPPED", state.blindsSkipped);
         counters.put("inPvpBlind", state.inPvpBlind);
+        counters.put("multiplayer", state.multiplayer);
         counters.put("OPP_LIVES_BEHIND", Math.max(0, state.oppLives - state.myLives));
         counters.put("OPP_HANDS_LEFT", state.oppHandsLeft);
         counters.put("OPP_CARDS_SOLD", state.oppCardsSold);

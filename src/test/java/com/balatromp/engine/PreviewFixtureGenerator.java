@@ -204,6 +204,12 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 47. Glass card in multiplayer scores x1.5 (vanilla x2)
+        Card glassMp = new Card(Rank.KING, Suit.HEARTS, Enhancement.GLASS, Edition.NONE, Seal.NONE);
+        scenario("glass-mp", play(glassMp, c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), run -> run.multiplayer = true);
+
         // 44. Pacifist: x10 Mult outside a PvP blind (default inPvpBlind=false)
         scenario("pacifist", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), "j_pacifist");
@@ -368,6 +374,7 @@ class PreviewFixtureGenerator {
         counters.put("OBELISK_STREAK", run.obeliskStreak);
         counters.put("BLINDS_SKIPPED", run.blindsSkipped);
         counters.put("inPvpBlind", run.inPvpBlind);
+        counters.put("multiplayer", run.multiplayer);
         counters.put("OPP_LIVES_BEHIND", Math.max(0, run.oppLives - run.myLives));
         counters.put("OPP_HANDS_LEFT", run.oppHandsLeft);
         counters.put("OPP_CARDS_SOLD", run.oppCardsSold);

@@ -46,6 +46,7 @@ public final class RunState {
     public int obeliskStreak = 0; // consecutive hands not playing your most-played hand (Obelisk)
     public int blindsSkipped = 0; // blinds skipped this run (Throwback)
     // Multiplayer "Nemesis" state (set by the match layer; default 0/false in solo).
+    public boolean multiplayer = false; // Standard Ranked MP rules (Glass x1.5, etc.)
     public boolean inPvpBlind = false; // currently in a PvP boss blind (Pacifist, Conjoined)
     public int myLives = 0;            // your Attrition lives
     public int oppLives = 0;           // nemesis lives (Defensive Joker)

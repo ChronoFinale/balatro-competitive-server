@@ -322,8 +322,9 @@ public final class ScoringEngine {
             }
         }
         if (card.enhancement == Enhancement.GLASS) {
-            acc.mult = acc.mult.multiply(2);
-            log(acc, card.toString(), "xmult", "x2 Mult");
+            double glassMult = run.multiplayer ? 1.5 : 2.0; // multiplayer nerfs Glass to x1.5
+            acc.mult = acc.mult.multiply(glassMult);
+            log(acc, card.toString(), "xmult", "x" + fmt(glassMult) + " Mult");
             if (!preview && lucky(queues, "glass") < 0.25) { // game-long break queue (1-in-4)
                 card.destroyed = true;
                 acc.destroyed.add(card);

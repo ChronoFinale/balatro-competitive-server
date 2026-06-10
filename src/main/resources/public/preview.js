@@ -386,8 +386,9 @@
         const r = repetitions(j, ctx);
         if (!r.ok) unsupported = true; else reps += r.reps;
       }
+      const mp = !!(run.counters && run.counters.multiplayer);
       for (let i = 0; i < reps; i++) {
-        applyCardScored(acc, card);
+        applyCardScored(acc, card, mp);
         runJokerPass('ON_SCORED', card);
       }
     }
@@ -427,7 +428,7 @@
     return { type: hr.type, chips: acc.chips, mult: acc.mult, score: acc.chips * acc.mult };
   }
 
-  function applyCardScored(acc, card) {
+  function applyCardScored(acc, card, mp) {
     let chips = baseChips(card);
     if (card.enhancement === 'STONE') chips += 50;
     if (card.enhancement === 'BONUS') chips += 30;
@@ -435,7 +436,8 @@
     acc.chips += chips;
     if (card.permaMult) acc.mult += card.permaMult;
     if (card.enhancement === 'MULT') acc.mult += 4;
-    if (card.enhancement === 'GLASS') acc.mult *= 2; // no break in preview
+    // Glass: x2 (vanilla) or x1.5 (multiplayer); no break in preview.
+    if (card.enhancement === 'GLASS') acc.mult *= mp ? 1.5 : 2;
     if (card.edition === 'FOIL') acc.chips += 50;
     else if (card.edition === 'HOLOGRAPHIC') acc.mult += 10;
     else if (card.edition === 'POLYCHROME') acc.mult *= 1.5;
