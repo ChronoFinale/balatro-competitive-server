@@ -234,6 +234,11 @@ public final class Run {
         return Shop.generate(state.queues, slots, ruleset.jokerPool(), owned, hasJoker("j_showman"));
     }
 
+    /** Penny Pincher (Nemesis): on entering the shop, gain $1 per $3 your Nemesis spent last ante. */
+    private void applyPennyPincher() {
+        if (hasJoker("j_penny_pincher")) state.money += state.oppShopSpentLastAnte / 3;
+    }
+
     /** Gift Card: +$1 of sell value to every owned Joker at end of round (Egg bumps only itself). */
     private void applyGiftCard() {
         if (!hasJoker("j_gift_card")) return;
@@ -380,6 +385,7 @@ public final class Run {
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
         applyGiftCard();
+        applyPennyPincher();
         shop = generateShop();
         freeRerollUsed = false;
         boosterAvailable = true;
@@ -394,6 +400,7 @@ public final class Run {
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
         applyGiftCard();
+        applyPennyPincher();
         phase = Phase.SHOP;
         shop = generateShop();
         freeRerollUsed = false;
@@ -407,7 +414,7 @@ public final class Run {
         Shop.Item item = shop.items().get(index);
         if (!canAfford(price(item.cost()))) return "not enough money";
         if (state.jokers().size() >= state.jokerSlots) return "joker slots full";
-        state.money -= price(item.cost());
+        spend(price(item.cost()));
         state.addJoker(JokerLibrary.create(item.jokerKey(), ruleset.jokerVariant()));
         shop.items().remove(index);
         return null;
@@ -418,7 +425,7 @@ public final class Run {
         if (phase != Phase.SHOP || shop == null || shop.voucher() == null) return "no voucher offered";
         var v = VoucherCatalog.get(shop.voucher());
         if (!canAfford(price(v.cost()))) return "not enough money";
-        state.money -= price(v.cost());
+        spend(price(v.cost()));
         state.vouchers.add(v.key());
         // Immediate-effect vouchers resolve now; per-blind ones (Grabber/Wasteful) apply each blind.
         switch (v.key()) {
@@ -433,6 +440,12 @@ public final class Run {
     /** Apply the Clearance Sale discount (25% off, rounded down) to a shop price. */
     private int price(int cost) {
         return state.vouchers.contains("v_clearance_sale") ? (int) (cost * 0.75) : cost;
+    }
+
+    /** Pay {@code cost} from money and record it as shop spend this ante (feeds Penny Pincher). */
+    private void spend(int cost) {
+        state.money -= cost;
+        state.shopSpentThisAnte += cost;
     }
 
     /** Sell the joker at the given slot (shop or during a blind). Returns null on success. */
@@ -469,7 +482,7 @@ public final class Run {
         boolean free = hasJoker("j_chaos") && !freeRerollUsed;
         int cost = free ? 0 : Shop.REROLL_COST;
         if (!canAfford(cost)) return "not enough money";
-        state.money -= cost;
+        spend(cost);
         if (free) freeRerollUsed = true;
         shop = generateShop(); // advances the same game-long queue, skipping owned
         return null;
@@ -482,7 +495,7 @@ public final class Run {
         if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
         int cost = hasJoker("j_astronomer") ? 0 : price(PlanetCatalog.COST); // Astronomer: Planets free
         if (!canAfford(cost)) return "not enough money";
-        state.money -= cost;
+        spend(cost);
         state.consumables.add(shop.planets().get(index).key());
         shop.planets().remove(index);
         return null;
@@ -494,7 +507,7 @@ public final class Run {
         if (index < 0 || index >= shop.consumables().size()) return "invalid consumable slot";
         if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
         if (!canAfford(price(Shop.CONSUMABLE_COST))) return "not enough money";
-        state.money -= price(Shop.CONSUMABLE_COST);
+        spend(price(Shop.CONSUMABLE_COST));
         state.consumables.add(shop.consumables().get(index).key());
         shop.consumables().remove(index);
         return null;
@@ -744,7 +757,7 @@ public final class Run {
     public String openBooster() {
         if (phase != Phase.SHOP || !boosterAvailable) return "no booster available";
         if (!canAfford(4)) return "not enough money";
-        state.money -= 4;
+        spend(4);
         boosterAvailable = false;
         GameEvents.raise(Trigger.OPEN_BOOSTER, state, rng, null); // Hallucination may add a Tarot
         // The pack's pick (simplified to one Tarot, if there's a consumable slot).
@@ -789,6 +802,8 @@ public final class Run {
                 }
                 ante++;
                 blind = BlindType.SMALL;
+                state.shopSpentLastAnte = state.shopSpentThisAnte; // snapshot for Penny Pincher
+                state.shopSpentThisAnte = 0;
             }
         }
         startBlind();

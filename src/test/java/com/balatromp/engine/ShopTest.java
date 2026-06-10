@@ -115,6 +115,19 @@ class ShopTest {
     }
 
     @Test
+    void pennyPincherPaysFromNemesisShopSpend() {
+        var all = new Intent.PlayHand(List.of(0, 1, 2, 3, 4));
+        Run base = new Run(std, "PP", heartsKings(200), jokers("j_joker", "j_joker", "j_joker"));
+        base.play(all); // win Small -> shop
+        Run pp = new Run(std, "PP", heartsKings(200),
+                jokers("j_joker", "j_joker", "j_joker", "j_penny_pincher"));
+        pp.state.oppShopSpentLastAnte = 9; // nemesis spent $9 last ante -> $3 on entering the shop
+        pp.play(all);
+        assertThat(pp.phase).isEqualTo(Run.Phase.SHOP);
+        assertThat(pp.state.money - base.state.money).isEqualTo(3); // only difference is Penny Pincher
+    }
+
+    @Test
     void multiplayerShopExcludesBannedJokers() {
         Ruleset mp = new Ruleset("MP", 4, 4, 3, 8, 1.0, 8, std.blindBaseAmounts(),
                 List.of("j_bull", "j_banner", "j_chicot", "j_matador"), "multiplayer");

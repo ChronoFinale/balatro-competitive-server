@@ -155,6 +155,7 @@ public final class Match {
         me.run.state.oppHandsLeft = opp.run.state.handsLeft;
         me.run.state.oppCardsSold = opp.run.state.cardsSoldSinceLastPvp;
         me.run.state.oppBlindsSkipped = opp.run.state.blindsSkipped;
+        me.run.state.oppShopSpentLastAnte = opp.run.state.shopSpentLastAnte;
     }
 
     private void announce(Side me, Side opp, long myScore, long oppScore, Side loser) {

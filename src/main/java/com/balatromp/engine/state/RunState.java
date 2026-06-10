@@ -54,6 +54,9 @@ public final class RunState {
     public int oppCardsSold = 0;       // nemesis cards sold since the last PvP blind (Taxes)
     public int oppBlindsSkipped = 0;   // nemesis blinds skipped (Skip-Off)
     public int cardsSoldSinceLastPvp = 0; // your sells since the last PvP (feeds the opponent's Taxes)
+    public int shopSpentThisAnte = 0;     // money spent in the shop this ante
+    public int shopSpentLastAnte = 0;     // snapshot at ante rollover
+    public int oppShopSpentLastAnte = 0;  // nemesis shop spend last ante (Penny Pincher)
     public final java.util.List<String> tags = new java.util.ArrayList<>(); // held tags (skip rewards, Diet Cola)
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
