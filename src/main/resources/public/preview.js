@@ -173,6 +173,7 @@
       case 'or': return cond.any.some((x) => condTest(x, ctx));
       case 'not': return !condTest(cond.inner, ctx);
       case 'chance': return null; // probabilistic — signal "unsupported" -> caller falls back
+      case 'bossDefeated': return null; // end-of-round only; never used in scoring
       default: return null;
     }
   }
@@ -228,6 +229,7 @@
         const vals = held.map((x) => baseChips(x));
         return v.base + v.scale * (v.lowest ? Math.min(...vals) : Math.max(...vals));
       }
+      case 'deckRankCount': return null; // deck rank composition isn't shipped; end-of-round only
       case 'random': return null; // probabilistic -> fall back
       default: return null;
     }

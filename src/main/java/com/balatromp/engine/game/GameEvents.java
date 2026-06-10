@@ -50,7 +50,15 @@ public final class GameEvents {
 
     /** End of a won round: joker economy + Gold-card payouts on held cards. */
     public static List<ReplayEntry> endOfRound(RunState run, RandomStreams rng) {
-        List<ReplayEntry> log = raise(Trigger.END_OF_ROUND, run, rng, ctx -> ctx.eventCards = run.hand);
+        return endOfRound(run, rng, false);
+    }
+
+    /** End of a won round; {@code bossDefeated} marks a Boss-blind win (Rocket). */
+    public static List<ReplayEntry> endOfRound(RunState run, RandomStreams rng, boolean bossDefeated) {
+        List<ReplayEntry> log = raise(Trigger.END_OF_ROUND, run, rng, ctx -> {
+            ctx.eventCards = run.hand;
+            ctx.bossDefeated = bossDefeated;
+        });
         for (Card c : run.hand) {
             if (c.enhancement == Enhancement.GOLD) {
                 run.money += 3;

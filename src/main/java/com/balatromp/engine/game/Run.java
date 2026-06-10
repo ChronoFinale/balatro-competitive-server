@@ -98,6 +98,7 @@ public final class Run {
 
     private void startBlind() {
         state.roundScore = 0;
+        state.discardsUsedThisRound = 0;
         pvpActive = false;
         boolean pvpBoss = blind == BlindType.BOSS && pvpFromAnte > 0 && ante >= pvpFromAnte;
         if (pvpBoss) {
@@ -203,7 +204,7 @@ public final class Run {
         pvpActive = false;
         int interest = Math.min(5, state.money / 5);
         state.money += NEMESIS.reward() + interest;
-        GameEvents.endOfRound(state, rng);
+        GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
         phase = Phase.SHOP;
     }
@@ -213,7 +214,7 @@ public final class Run {
         int interest = Math.min(5, state.money / 5);
         int reward = (boss != null) ? boss.reward() : blind.reward;
         state.money += reward + interest;
-        GameEvents.endOfRound(state, rng);
+        GameEvents.endOfRound(state, rng, boss != null);
         phase = Phase.SHOP;
         shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
     }

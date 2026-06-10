@@ -38,6 +38,8 @@ public final class EvaluationContext {
     public RandomStreams rng;
     /** Pareidolia: when true, every card is treated as a face card by face conditions. */
     public boolean allFaces;
+    /** END_OF_ROUND: true when the round just won was a Boss blind (Rocket). */
+    public boolean bossDefeated;
 
     public Joker self() {
         return jokers.get(selfIndex);
@@ -89,6 +91,7 @@ public final class EvaluationContext {
         c.rng = rng;
         c.preview = preview;
         c.allFaces = allFaces;
+        c.bossDefeated = bossDefeated;
         return c;
     }
 }

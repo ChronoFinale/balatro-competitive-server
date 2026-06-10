@@ -453,7 +453,28 @@ public final class BuiltinJokerDefs {
                         "Adds double the rank of the lowest card held in hand to Mult",
                         "Common", 5, 7, 9, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.HeldExtreme(true, 0, 2))))));
+                                new EffectTemplate(Op.MULT, new Value.HeldExtreme(true, 0, 2))))),
+
+                // --- batch 8: end-of-round economy (END_OF_ROUND credits DOLLARS) ---
+                new JokerDef("j_cloud_9", "Cloud 9", "Earn $1 for each 9 in your full deck at end of round",
+                        "Uncommon", 7, 1, 11, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.END_OF_ROUND, new Condition.Always(),
+                                new EffectTemplate(Op.DOLLARS, new Value.DeckRankCount(9, 0, 1))))),
+                new JokerDef("j_rocket", "Rocket",
+                        "Earn $1 at end of round; payout grows by $2 each Boss defeated",
+                        "Uncommon", 6, 2, 11, null, null, true,
+                        List.of(new Mutation(Trigger.END_OF_ROUND, new Condition.BossDefeated(),
+                                "bosses", Mutation.Op.ADD, 1)),
+                        List.of(new Rule(Trigger.END_OF_ROUND, new Condition.Always(),
+                                new EffectTemplate(Op.DOLLARS, new Value.State("bosses", 1, 2))))),
+                new JokerDef("j_delayed_gratification", "Delayed Gratification",
+                        "Earn $2 per remaining discard at end of round if no discards were used",
+                        "Common", 4, 3, 11, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.END_OF_ROUND,
+                                new Condition.Not(new Condition.ValueAtLeast(
+                                        new Value.RunVar(Value.Var.DISCARDS_USED, 0, 1), 1)),
+                                new EffectTemplate(Op.DOLLARS,
+                                        new Value.RunVar(Value.Var.DISCARDS_LEFT, 0, 2))))));
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */

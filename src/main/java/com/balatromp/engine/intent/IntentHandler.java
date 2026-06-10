@@ -76,6 +76,7 @@ public final class IntentHandler {
         GameEvents.preDiscard(run, rng, toDiscard);
 
         run.discardsLeft--;
+        run.discardsUsedThisRound++;
         run.hand.removeAll(toDiscard);
         if (run.deck != null) {
             run.deck.drawTo(run.hand, run.handSize);

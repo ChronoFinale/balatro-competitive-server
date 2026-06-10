@@ -25,6 +25,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.RunVarStep.class, name = "runVarStep"),
     @JsonSubTypes.Type(value = Value.Stat.class, name = "stat"),
     @JsonSubTypes.Type(value = Value.HeldExtreme.class, name = "heldExtreme"),
+    @JsonSubTypes.Type(value = Value.DeckRankCount.class, name = "deckRankCount"),
     @JsonSubTypes.Type(value = Value.Random.class, name = "random"),
 })
 public sealed interface Value {
@@ -76,7 +77,7 @@ public sealed interface Value {
     }
 
     /** Which live run-state quantity a {@link RunVar} reads. */
-    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, ANTE }
+    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, ANTE, DISCARDS_USED }
 
     /** {@code base + scale * (live run-state quantity)} (per dollar, per remaining hand, ...). */
     record RunVar(Var which, double base, double scale) implements Value {
@@ -88,6 +89,7 @@ public sealed interface Value {
                 case DISCARDS_LEFT -> ctx.run.discardsLeft;
                 case HAND_SIZE -> ctx.run.handSize;
                 case ANTE -> ctx.run.ante;
+                case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
             };
             return base + scale * v;
         }
@@ -106,6 +108,7 @@ public sealed interface Value {
                 case DISCARDS_LEFT -> ctx.run.discardsLeft;
                 case HAND_SIZE -> ctx.run.handSize;
                 case ANTE -> ctx.run.ante;
+                case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
             };
             return base + scale * Math.floor(v / per);
         }
@@ -128,6 +131,18 @@ public sealed interface Value {
                 found = true;
             }
             return found ? base + scale * extreme : base;
+        }
+    }
+
+    /**
+     * {@code base + scale * (cards of rank id {@code rankId} in the full deck)} —
+     * Cloud 9 ($1 per 9 in the deck). Reads the persistent deck composition.
+     */
+    record DeckRankCount(int rankId, double base, double scale) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            if (ctx.run == null) return base;
+            long n = ctx.run.deckComposition.stream().filter(c -> c.id() == rankId).count();
+            return base + scale * n;
         }
     }
 

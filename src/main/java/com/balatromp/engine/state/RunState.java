@@ -25,6 +25,7 @@ public final class RunState {
     public int ante = 1;
     public int handSize = 8;
     public long roundScore = 0;
+    public int discardsUsedThisRound = 0; // reset at blind start (Delayed Gratification)
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;
