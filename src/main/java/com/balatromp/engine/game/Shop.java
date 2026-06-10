@@ -7,7 +7,9 @@ import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.rng.GameQueue;
 import com.balatromp.engine.rng.QueueSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A between-blinds shop. Offerings are drawn from the run's game-long
@@ -64,11 +66,30 @@ public final class Shop {
      * same sequence — matching BMP's shared-queue behavior.
      */
     public static Shop generate(QueueSet queues, int slots, List<String> pool) {
+        return generate(queues, slots, pool, Set.of(), false);
+    }
+
+    /**
+     * As {@link #generate(QueueSet, int, List)}, but the joker queue skips any key in
+     * {@code owned} (and already offered this shop) — the BMP "you already have it, skip
+     * over it" rule — unless {@code showman} is set, which allows duplicate offerings.
+     */
+    public static Shop generate(QueueSet queues, int slots, List<String> pool,
+            Set<String> owned, boolean showman) {
         List<String> jokerKeys = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
         GameQueue<String> jokerQ = queues.queue("jokers", r -> jokerKeys.get(r.nextInt(jokerKeys.size())));
         List<Item> items = new ArrayList<>();
+        Set<String> offered = new HashSet<>();
         for (int i = 0; i < slots; i++) {
-            items.add(new Item(JokerLibrary.create(jokerQ.next()).info()));
+            // Skip owned / already-offered keys, but only while an acceptable key remains
+            // (else nextWhere would loop forever). Showman disables skipping entirely.
+            boolean canSkip = !showman && jokerKeys.stream()
+                    .anyMatch(k -> !owned.contains(k) && !offered.contains(k));
+            String key = canSkip
+                    ? jokerQ.nextWhere(k -> !owned.contains(k) && !offered.contains(k))
+                    : jokerQ.next();
+            offered.add(key);
+            items.add(new Item(JokerLibrary.create(key).info()));
         }
         List<String> planetKeys = PlanetCatalog.keys();
         GameQueue<String> planetQ = queues.queue("planets", r -> planetKeys.get(r.nextInt(planetKeys.size())));

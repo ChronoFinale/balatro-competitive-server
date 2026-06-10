@@ -200,6 +200,13 @@ public final class Run {
         return state.jokers().stream().anyMatch(j -> j.key().equals(key));
     }
 
+    /** Generate a shop that skips jokers you already own (unless Showman allows duplicates). */
+    private Shop generateShop() {
+        java.util.Set<String> owned = new java.util.HashSet<>();
+        for (Joker j : state.jokers()) owned.add(j.key());
+        return Shop.generate(state.queues, 2, ruleset.jokerPool(), owned, hasJoker("j_showman"));
+    }
+
     /** Gift Card: +$1 of sell value to every owned Joker at end of round (Egg bumps only itself). */
     private void applyGiftCard() {
         if (!hasJoker("j_gift_card")) return;
@@ -317,7 +324,7 @@ public final class Run {
     public void continueAfterFail() {
         if (phase != Phase.BLIND_FAILED) return;
         pvpActive = false;
-        shop = Shop.generate(state.queues, 2, ruleset.jokerPool()); // no reward for a failed blind
+        shop = generateShop(); // no reward for a failed blind
         phase = Phase.SHOP;
     }
 
@@ -330,7 +337,7 @@ public final class Run {
         state.money += NEMESIS.reward() + interest;
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
         applyGiftCard();
-        shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
+        shop = generateShop();
         freeRerollUsed = false;
         phase = Phase.SHOP;
     }
@@ -344,7 +351,7 @@ public final class Run {
         GameEvents.endOfRound(state, rng, boss != null);
         applyGiftCard();
         phase = Phase.SHOP;
-        shop = Shop.generate(state.queues, 2, ruleset.jokerPool());
+        shop = generateShop();
         freeRerollUsed = false;
     }
 
@@ -394,7 +401,7 @@ public final class Run {
         if (!canAfford(cost)) return "not enough money";
         state.money -= cost;
         if (free) freeRerollUsed = true;
-        shop = Shop.generate(state.queues, 2, ruleset.jokerPool()); // advances the same game-long queue
+        shop = generateShop(); // advances the same game-long queue, skipping owned
         return null;
     }
 

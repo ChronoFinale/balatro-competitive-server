@@ -79,4 +79,21 @@ class ShopTest {
         assertThat(run.phase).isEqualTo(Run.Phase.BLIND_ACTIVE);
         assertThat(run.blind).isEqualTo(BlindType.BIG);
     }
+
+    @Test
+    void shopSkipsJokersYouAlreadyOwn() {
+        var queues = new com.balatromp.engine.rng.QueueSet(new com.balatromp.engine.rng.RandomStreams("SK"));
+        var shop = com.balatromp.engine.game.Shop.generate(queues, 2,
+                List.of("j_joker", "j_bull", "j_banner"), java.util.Set.of("j_bull"), false);
+        assertThat(shop.items()).noneMatch(it -> it.jokerKey().equals("j_bull")); // owned -> skipped
+        assertThat(shop.items().get(0).jokerKey()).isNotEqualTo(shop.items().get(1).jokerKey());
+    }
+
+    @Test
+    void showmanAllowsOwnedAndDuplicateOfferings() {
+        var queues = new com.balatromp.engine.rng.QueueSet(new com.balatromp.engine.rng.RandomStreams("SM"));
+        var shop = com.balatromp.engine.game.Shop.generate(queues, 2,
+                List.of("j_bull"), java.util.Set.of("j_bull"), true); // Showman: duplicates allowed
+        assertThat(shop.items()).allMatch(it -> it.jokerKey().equals("j_bull"));
+    }
 }

@@ -609,6 +609,11 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 39: Showman (allow duplicate shop offerings; disables the skip-if-owned rule) ---
+                new JokerDef("j_showman", "Showman",
+                        "Joker and Consumable cards may appear multiple times in the shop",
+                        "Uncommon", 5, 0, 17, null, null, true, List.of(), List.of()),
+
                 // --- batch 38: blind-skipping (Throwback) ---
                 new JokerDef("j_throwback", "Throwback", "x0.25 Mult for each blind skipped this run",
                         "Uncommon", 6, 9, 16, null, null, true, List.of(),
