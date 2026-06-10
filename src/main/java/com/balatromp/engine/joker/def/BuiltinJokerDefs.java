@@ -474,7 +474,20 @@ public final class BuiltinJokerDefs {
                                 new Condition.Not(new Condition.ValueAtLeast(
                                         new Value.RunVar(Value.Var.DISCARDS_USED, 0, 1), 1)),
                                 new EffectTemplate(Op.DOLLARS,
-                                        new Value.RunVar(Value.Var.DISCARDS_LEFT, 0, 2))))));
+                                        new Value.RunVar(Value.Var.DISCARDS_LEFT, 0, 2))))),
+
+                // --- batch 9: consumable creation ---
+                new JokerDef("j_8_ball", "8 Ball",
+                        "1 in 4 chance for each played 8 to create a Tarot card (if room)",
+                        "Common", 5, 1, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED,
+                                new Condition.And(List.of(new Condition.ScoredRankBetween(8, 8),
+                                        new Condition.Chance(1, 4, "8ball"))),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
+                new JokerDef("j_cartomancer", "Cartomancer", "Create a Tarot card when a blind is selected",
+                        "Uncommon", 6, 2, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))));
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */

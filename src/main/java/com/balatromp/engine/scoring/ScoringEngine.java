@@ -4,6 +4,7 @@ import com.balatromp.engine.card.Card;
 import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.card.Seal;
+import com.balatromp.engine.consumable.ConsumableCreation;
 import com.balatromp.engine.hand.HandEvaluator;
 import com.balatromp.engine.hand.HandMod;
 import com.balatromp.engine.hand.HandMods;
@@ -119,7 +120,10 @@ public final class ScoringEngine {
                     ctx.scoredCard = card;
                     JokerEffect e = jokers.get(i).calculate(ctx);
                     apply(acc, e, jokers.get(i).name());
-                    if (!preview) applyCardMods(acc, e, card);
+                    if (!preview) {
+                        applyCardMods(acc, e, card);
+                        applyCreate(e, run, queues);
+                    }
                 }
             }
         }
@@ -185,6 +189,13 @@ public final class ScoringEngine {
                 cur.cardMod.applyTo(target);
                 log(acc, target.toString(), "mutate", cur.cardMod.action().name());
             }
+        }
+    }
+
+    /** Apply any CREATE effects in the chain (real play only — never previewed). */
+    private void applyCreate(JokerEffect e, RunState run, QueueSet queues) {
+        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
+            if (cur.create != null) ConsumableCreation.apply(run, cur.create, queues);
         }
     }
 

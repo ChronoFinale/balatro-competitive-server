@@ -3,6 +3,8 @@ package com.balatromp.engine.joker.def;
 import com.balatromp.engine.card.CardMod;
 import com.balatromp.engine.joker.EvaluationContext;
 import com.balatromp.engine.joker.JokerEffect;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A data effect: an operation plus the {@link Value} it contributes. {@link #apply}
@@ -12,23 +14,45 @@ import com.balatromp.engine.joker.JokerEffect;
  * (streak 0, planets 0) contribute nothing until it has ramped — exactly the
  * "return null when zero" behaviour of the hand-coded jokers.
  */
-public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod) {
+public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod, CreateSpec create) {
 
-    public enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD }
+    public enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD, CREATE }
+
+    // Explicit canonical creator so the convenience constructors don't confuse Jackson.
+    @JsonCreator
+    public EffectTemplate(@JsonProperty("op") Op op, @JsonProperty("value") Value value,
+            @JsonProperty("extra") EffectTemplate extra, @JsonProperty("cardMod") CardMod cardMod,
+            @JsonProperty("create") CreateSpec create) {
+        this.op = op;
+        this.value = value;
+        this.extra = extra;
+        this.cardMod = cardMod;
+        this.create = create;
+    }
 
     /** Single-op effect (no extra chain). */
     public EffectTemplate(Op op, Value value) {
-        this(op, value, null, null);
+        this(op, value, null, null, null);
     }
 
     /** Compound effect (op + chained extra). */
     public EffectTemplate(Op op, Value value, EffectTemplate extra) {
-        this(op, value, extra, null);
+        this(op, value, extra, null, null);
+    }
+
+    /** Numeric + card-mutation effect. */
+    public EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod) {
+        this(op, value, extra, cardMod, null);
     }
 
     /** A pure card mutation (no numeric contribution). */
     public static EffectTemplate mutate(CardMod mod) {
-        return new EffectTemplate(Op.MUTATE_CARD, null, null, mod);
+        return new EffectTemplate(Op.MUTATE_CARD, null, null, mod, null);
+    }
+
+    /** A pure create effect (no numeric contribution). */
+    public static EffectTemplate create(CreateSpec spec) {
+        return new EffectTemplate(Op.CREATE, null, null, null, spec);
     }
 
     /**
@@ -39,10 +63,14 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
      * applied in order by the scoring engine.
      */
     public JokerEffect apply(EvaluationContext ctx) {
-        JokerEffect head = (op == Op.MUTATE_CARD) ? null : build(value.resolve(ctx));
+        JokerEffect head = (op == Op.MUTATE_CARD || op == Op.CREATE) ? null : build(value.resolve(ctx));
         if (cardMod != null) {
             if (head == null) head = new JokerEffect();
             head.cardMod = cardMod;
+        }
+        if (create != null) {
+            if (head == null) head = new JokerEffect();
+            head.create = create;
         }
         if (extra == null) {
             return head;
@@ -77,7 +105,7 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
                 e.hMult = v;
                 yield e.msg("+" + fmt(v) + " Mult");
             }
-            case MUTATE_CARD -> null; // handled in apply(); no numeric contribution
+            case MUTATE_CARD, CREATE -> null; // handled in apply(); no numeric contribution
         };
     }
 

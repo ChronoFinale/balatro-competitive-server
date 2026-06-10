@@ -79,11 +79,19 @@ public final class GameEvents {
     }
 
     private static void applyEconomy(JokerEffect e, RunState run, List<ReplayEntry> log, String source) {
-        if (e == null) return;
-        if (e.dollars != 0) {
-            run.money += e.dollars;
-            String text = e.message != null ? e.message : "+$" + e.dollars;
-            log.add(new ReplayEntry(source, "dollars", text, 0, 0));
+        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
+            if (cur.dollars != 0) {
+                run.money += cur.dollars;
+                String text = cur.message != null ? cur.message : "+$" + cur.dollars;
+                log.add(new ReplayEntry(source, "dollars", text, 0, 0));
+            }
+            if (cur.create != null && run.queues != null) {
+                int before = run.consumables.size();
+                com.balatromp.engine.consumable.ConsumableCreation.apply(run, cur.create, run.queues);
+                if (run.consumables.size() > before) {
+                    log.add(new ReplayEntry(source, "create", "Created " + cur.create.kind(), 0, 0));
+                }
+            }
         }
     }
 }

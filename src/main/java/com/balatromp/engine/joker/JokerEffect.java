@@ -24,6 +24,8 @@ public final class JokerEffect {
     public JokerEffect extra;
     /** A permanent mutation to apply to the relevant card (MUTATE_CARD: Hiker/Midas/Vampire). */
     public com.balatromp.engine.card.CardMod cardMod;
+    /** A card to create server-side (CREATE: 8 Ball/Cartomancer); applied only on a real play. */
+    public com.balatromp.engine.joker.def.CreateSpec create;
     /** Swap the running chips and mult (Balatro {@code swap}). */
     public boolean swap;
     /** Balance chips and mult (Balatro {@code balance}); semantics TBD — no content uses it yet. */

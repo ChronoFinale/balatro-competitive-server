@@ -12,6 +12,7 @@ import com.balatromp.engine.intent.Intent;
 import com.balatromp.engine.intent.IntentHandler;
 import com.balatromp.engine.intent.IntentResult;
 import com.balatromp.engine.joker.Joker;
+import com.balatromp.engine.joker.Trigger;
 import com.balatromp.engine.joker.JokerDisplay;
 import com.balatromp.engine.joker.def.DataJoker;
 import com.balatromp.engine.joker.def.JokerDef;
@@ -123,6 +124,7 @@ public final class Run {
             requirement = Blinds.requirement(ante, blind, ruleset);
         }
         applyJokerRunMods(); // passive hand/discard/hand-size deltas from owned jokers
+        GameEvents.raise(Trigger.BLIND_SELECTED, state, rng, null); // Cartomancer, Marble, ...
         dealNewDeck(); // full deck reshuffled fresh each blind
         state.hand.clear();
         state.deck.drawTo(state.hand, state.handSize);

@@ -59,4 +59,12 @@ public final class TarotCatalog {
                 .map(Consumable::key)
                 .toList();
     }
+
+    /** Spectral keys (from packs / Spectral-creating jokers). */
+    public static java.util.List<String> spectralKeys() {
+        return BY_KEY.values().stream()
+                .filter(c -> c.type() == ConsumableType.SPECTRAL)
+                .map(Consumable::key)
+                .toList();
+    }
 }
