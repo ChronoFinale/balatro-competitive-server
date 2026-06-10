@@ -36,6 +36,8 @@ public final class EvaluationContext {
     public int blueprintDepth;
     public RunState run;
     public RandomStreams rng;
+    /** Pareidolia: when true, every card is treated as a face card by face conditions. */
+    public boolean allFaces;
 
     public Joker self() {
         return jokers.get(selfIndex);
@@ -86,6 +88,7 @@ public final class EvaluationContext {
         c.run = run;
         c.rng = rng;
         c.preview = preview;
+        c.allFaces = allFaces;
         return c;
     }
 }

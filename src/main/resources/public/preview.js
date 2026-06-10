@@ -27,6 +27,8 @@
   const baseChips = (c) => c.enhancement === 'STONE' ? 0 : RANK[c.rank][1];
   const isStone = (c) => c.enhancement === 'STONE';
   const isFace = (c) => !isStone(c) && (c.rank === 'JACK' || c.rank === 'QUEEN' || c.rank === 'KING');
+  // Face-ness honouring Pareidolia (ctx.allFaces); Stone cards never count.
+  const faceOf = (c, ctx) => !!c && !isStone(c) && (isFace(c) || (ctx && ctx.allFaces));
   const isSuit = (c, s) => !isStone(c) && c.suit === s;
 
   // --- hand evaluation (port of HandEvaluator) ------------------------------
@@ -73,12 +75,14 @@
 
   // Union the global hand modifiers from the owned jokers' defs (mirrors HandMods.from).
   function activeMods(jokers) {
-    const m = { fourFingers: false, shortcut: false, smeared: false };
+    const m = { fourFingers: false, shortcut: false, smeared: false, pareidolia: false, splash: false };
     for (const j of jokers || []) {
       for (const mod of (j.def && j.def.handMods) || []) {
         if (mod === 'FOUR_FINGERS') m.fourFingers = true;
         else if (mod === 'SHORTCUT') m.shortcut = true;
         else if (mod === 'SMEARED') m.smeared = true;
+        else if (mod === 'PAREIDOLIA') m.pareidolia = true;
+        else if (mod === 'SPLASH') m.splash = true;
       }
     }
     return m;
@@ -138,7 +142,7 @@
         const odd = r === 3 || r === 5 || r === 7 || r === 9 || r === 14;
         return cond.even ? even : odd;
       }
-      case 'scoredIsFace': return !!c && isFace(c);
+      case 'scoredIsFace': return faceOf(c, ctx);
       case 'scoredRankBetween': return !!c && !isStone(c) && id(c) >= cond.min && id(c) <= cond.max;
       case 'scoredFirst': return !!c && ctx.scoring.length > 0 && ctx.scoring[0] === c;
       case 'scoredEnhancement': return !!c && c.enhancement === cond.enhancement;
@@ -148,11 +152,11 @@
       case 'handContains': return handContains(ctx.handType, cond.hand);
       case 'handIs': return ctx.handType === cond.hand;
       case 'playedCount': return cmp(cond.cmp, ctx.played.length, cond.n);
-      case 'scoringAnyFace': return ctx.scoring.some((x) => isFace(x));
+      case 'scoringAnyFace': return ctx.scoring.some((x) => faceOf(x, ctx));
       case 'scoringContainsSuit': return ctx.scoring.some((x) => isSuit(x, cond.suit));
       case 'scoredFirstFace': {
-        if (!c || !isFace(c)) return false;
-        const firstFace = ctx.scoring.find((x) => isFace(x));
+        if (!faceOf(c, ctx)) return false;
+        const firstFace = ctx.scoring.find((x) => faceOf(x, ctx));
         return firstFace === c;
       }
       case 'valueAtLeast': {
@@ -281,9 +285,10 @@
   // returns {chips, mult, score} or null if any joker is unsupported (caller falls back to server).
   function previewScore(played, held, jokers, run) {
     let unsupported = false;
-    const hr = evaluateHand(played, activeMods(jokers));
+    const mods = activeMods(jokers);
+    const hr = evaluateHand(played, mods);
     const scoring = hr.scoring.slice();
-    for (const c of played) if (isStone(c) && !scoring.includes(c)) scoring.push(c);
+    for (const c of played) if ((isStone(c) || mods.splash) && !scoring.includes(c)) scoring.push(c);
     scoring.sort((a, b) => played.indexOf(a) - played.indexOf(b));
 
     const [bChips, bMult, lc, lm] = HAND[hr.type];
@@ -292,6 +297,7 @@
 
     const baseCtx = (phase, scoredCard) => ({
       phase, scoredCard, played, held, scoring, handType: handKey(hr.type), run,
+      allFaces: mods.pareidolia, // Pareidolia: face conditions treat every card as a face
       state: {}, // set per joker
     });
     const runJokerPass = (phase, scoredCard) => {

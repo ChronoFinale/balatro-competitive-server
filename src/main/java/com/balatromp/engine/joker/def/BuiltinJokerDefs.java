@@ -393,6 +393,14 @@ public final class BuiltinJokerDefs {
                         "Uncommon", 6, 0, 7, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN,
                                 new Condition.HeldAllSuits(List.of(Suit.SPADES, Suit.CLUBS)),
-                                new EffectTemplate(Op.XMULT, new Value.Const(3))))));
+                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
+
+                // --- batch 3: global scoring modifiers ---
+                new JokerDef("j_pareidolia", "Pareidolia", "All cards are considered face cards",
+                        "Uncommon", 5, 5, 6, null, null, true, List.of(), List.of(),
+                        List.of(com.balatromp.engine.hand.HandMod.PAREIDOLIA)),
+                new JokerDef("j_splash", "Splash", "Every played card counts in scoring",
+                        "Common", 3, 6, 6, null, null, true, List.of(), List.of(),
+                        List.of(com.balatromp.engine.hand.HandMod.SPLASH)));
     }
 }

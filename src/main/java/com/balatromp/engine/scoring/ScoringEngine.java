@@ -66,12 +66,13 @@ public final class ScoringEngine {
 
     private ScoreResult score(List<Card> played, List<Card> held, RunState run, RandomStreams rng,
                               boolean preview) {
-        HandResult hr = HandEvaluator.evaluate(played, activeMods(run.jokers()));
+        HandMods mods = activeMods(run.jokers());
+        HandResult hr = HandEvaluator.evaluate(played, mods);
 
-        // (1) scoring set = detected cards + any Stone cards, in play order.
+        // (1) scoring set = detected cards + Stone cards (+ ALL played under Splash), in play order.
         List<Card> scoring = new ArrayList<>(hr.scoringCards());
         for (Card c : played) {
-            if (c.isStone() && !containsIdentity(scoring, c)) scoring.add(c);
+            if ((c.isStone() || mods.splash()) && !containsIdentity(scoring, c)) scoring.add(c);
         }
         scoring.sort((a, b) -> Integer.compare(played.indexOf(a), played.indexOf(b)));
 
@@ -83,6 +84,7 @@ public final class ScoringEngine {
 
         List<Joker> jokers = run.jokers();
         EvaluationContext ctx = baseContext(hr, played, scoring, held, run, rng, jokers);
+        ctx.allFaces = mods.pareidolia(); // Pareidolia: face conditions treat every card as a face
 
         // Probabilistic card effects (Lucky, Glass) read game-long hit/miss queues
         // (BMP shape): both players get the same procs for the same cards played,

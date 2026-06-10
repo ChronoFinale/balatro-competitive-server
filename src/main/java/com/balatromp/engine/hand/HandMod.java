@@ -12,5 +12,9 @@ public enum HandMod {
     /** Shortcut: Straights can be made with gaps of one rank (e.g. 3 5 6 7 9). */
     SHORTCUT,
     /** Smeared Joker: Hearts and Diamonds count as one suit, Spades and Clubs as one. */
-    SMEARED
+    SMEARED,
+    /** Pareidolia: every card counts as a face card (consumed by scoring, not hand type). */
+    PAREIDOLIA,
+    /** Splash: every played card is added to the scoring set, even off-hand cards. */
+    SPLASH
 }

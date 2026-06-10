@@ -7,14 +7,16 @@ import java.util.Collection;
  * so {@link HandEvaluator} stays branch-cheap. Built from the {@link HandMod}s
  * granted by the player's owned jokers.
  */
-public record HandMods(boolean fourFingers, boolean shortcut, boolean smeared) {
+public record HandMods(boolean fourFingers, boolean shortcut, boolean smeared,
+                       boolean pareidolia, boolean splash) {
 
-    public static final HandMods NONE = new HandMods(false, false, false);
+    public static final HandMods NONE = new HandMods(false, false, false, false, false);
 
     public static HandMods from(Collection<HandMod> mods) {
         if (mods == null || mods.isEmpty()) return NONE;
         return new HandMods(mods.contains(HandMod.FOUR_FINGERS),
-                mods.contains(HandMod.SHORTCUT), mods.contains(HandMod.SMEARED));
+                mods.contains(HandMod.SHORTCUT), mods.contains(HandMod.SMEARED),
+                mods.contains(HandMod.PAREIDOLIA), mods.contains(HandMod.SPLASH));
     }
 
     /** Cards needed for a Flush/Straight (Four Fingers drops it to 4). */

@@ -56,6 +56,11 @@ public sealed interface Condition {
 
     boolean test(EvaluationContext ctx);
 
+    /** Face-ness honouring Pareidolia ({@code ctx.allFaces}); Stone cards never count. */
+    static boolean isFace(EvaluationContext ctx, Card c) {
+        return c != null && !c.isStone() && (c.isFace() || ctx.allFaces);
+    }
+
     /** Comparison for count-style conditions. */
     enum Cmp {
         LTE, GTE, EQ;
@@ -106,7 +111,7 @@ public sealed interface Condition {
     /** The scoring card is a face card (J/Q/K). */
     record ScoredIsFace() implements Condition {
         public boolean test(EvaluationContext ctx) {
-            return ctx.scoredCard != null && ctx.scoredCard.isFace();
+            return isFace(ctx, ctx.scoredCard);
         }
     }
 
@@ -198,7 +203,7 @@ public sealed interface Condition {
         public boolean test(EvaluationContext ctx) {
             if (ctx.scoringCards == null) return false;
             for (Card c : ctx.scoringCards) {
-                if (c.isFace()) return true;
+                if (isFace(ctx, c)) return true;
             }
             return false;
         }
@@ -207,9 +212,9 @@ public sealed interface Condition {
     /** The scoring card is the first FACE card in scoring order (Photograph). */
     record ScoredFirstFace() implements Condition {
         public boolean test(EvaluationContext ctx) {
-            if (ctx.scoredCard == null || !ctx.scoredCard.isFace() || ctx.scoringCards == null) return false;
+            if (!isFace(ctx, ctx.scoredCard) || ctx.scoringCards == null) return false;
             for (Card c : ctx.scoringCards) {
-                if (c.isFace()) return c == ctx.scoredCard; // first face must be this one
+                if (isFace(ctx, c)) return c == ctx.scoredCard; // first face must be this one
             }
             return false;
         }

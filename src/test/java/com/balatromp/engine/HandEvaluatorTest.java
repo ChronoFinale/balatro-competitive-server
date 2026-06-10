@@ -109,7 +109,8 @@ class HandEvaluatorTest {
         var cards = new com.balatromp.engine.card.Card[] {
                 c(TWO, HEARTS), c(FIVE, HEARTS), c(EIGHT, HEARTS), c(JACK, HEARTS) };
         assertThat(type(cards)).isEqualTo(HIGH_CARD); // vanilla: 4 cards is not a flush
-        assertThat(type(new com.balatromp.engine.hand.HandMods(true, false, false), cards)).isEqualTo(FLUSH);
+        assertThat(type(new com.balatromp.engine.hand.HandMods(true, false, false, false, false), cards))
+                .isEqualTo(FLUSH);
     }
 
     @Test
@@ -117,7 +118,8 @@ class HandEvaluatorTest {
         var cards = new com.balatromp.engine.card.Card[] {
                 c(THREE, SPADES), c(FIVE, HEARTS), c(SIX, CLUBS), c(SEVEN, DIAMONDS), c(NINE, SPADES) };
         assertThat(type(cards)).isEqualTo(HIGH_CARD);
-        assertThat(type(new com.balatromp.engine.hand.HandMods(false, true, false), cards)).isEqualTo(STRAIGHT);
+        assertThat(type(new com.balatromp.engine.hand.HandMods(false, true, false, false, false), cards))
+                .isEqualTo(STRAIGHT);
     }
 
     @Test
@@ -125,6 +127,7 @@ class HandEvaluatorTest {
         var cards = new com.balatromp.engine.card.Card[] { // 3 Hearts + 2 Diamonds
                 c(TWO, HEARTS), c(FOUR, DIAMONDS), c(SIX, HEARTS), c(EIGHT, DIAMONDS), c(TEN, HEARTS) };
         assertThat(type(cards)).isEqualTo(HIGH_CARD);
-        assertThat(type(new com.balatromp.engine.hand.HandMods(false, false, true), cards)).isEqualTo(FLUSH);
+        assertThat(type(new com.balatromp.engine.hand.HandMods(false, false, true, false, false), cards))
+                .isEqualTo(FLUSH);
     }
 }

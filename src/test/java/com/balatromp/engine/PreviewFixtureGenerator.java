@@ -158,6 +158,16 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 play(c(Rank.KING, Suit.SPADES), c(Rank.QUEEN, Suit.CLUBS)), "j_blackboard");
 
+        // 23. Pareidolia: Scary Face's +30/face applies to non-face cards too
+        scenario("pareidolia", play(c(Rank.TWO, Suit.HEARTS), c(Rank.TWO, Suit.SPADES),
+                c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.CLUBS), c(Rank.FIVE, Suit.DIAMONDS)),
+                List.of(), "j_scary_face", "j_pareidolia");
+
+        // 24. Splash: every played card scores (the three off-pair cards add chips)
+        scenario("splash", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), "j_splash");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
