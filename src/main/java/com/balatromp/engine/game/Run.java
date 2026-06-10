@@ -13,6 +13,9 @@ import com.balatromp.engine.intent.IntentHandler;
 import com.balatromp.engine.intent.IntentResult;
 import com.balatromp.engine.joker.Joker;
 import com.balatromp.engine.joker.JokerDisplay;
+import com.balatromp.engine.joker.def.DataJoker;
+import com.balatromp.engine.joker.def.JokerDef;
+import com.balatromp.engine.joker.def.JokerDefLibrary;
 import com.balatromp.engine.net.CardView;
 import com.balatromp.engine.net.ClientView;
 import com.balatromp.engine.net.ServerUpdate;
@@ -329,6 +332,12 @@ public final class Run {
         return new ServerUpdate(r.ok(), r.error(), view(), replay);
     }
 
+    /** The data definition backing a joker (for the client preview), or null if native-only. */
+    private static JokerDef defFor(Joker j) {
+        if (j instanceof DataJoker dj) return dj.def();
+        return JokerDefLibrary.get(j.key()); // hand-coded jokers have data equivalents (except Blueprint)
+    }
+
     /** The safe projection of authoritative state the client may render (spec §8). */
     public ClientView view() {
         List<CardView> handView = new ArrayList<>();
@@ -336,12 +345,23 @@ public final class Run {
 
         List<Map<String, Object>> jokerView = new ArrayList<>();
         for (int i = 0; i < state.jokers().size(); i++) {
-            var info = state.jokers().get(i).info();
-            // Built-in joker display: the joker's current live value (e.g. "x1.4 Mult"),
-            // computed server-side so clients render it without the JokerDisplay mod.
-            String display = JokerDisplay.currentValue(state.jokers(), i, state);
-            jokerView.add(Map.of("key", info.key(), "name", info.name(), "description", info.description(),
-                    "rarity", info.rarity(), "x", info.atlasX(), "y", info.atlasY(), "display", display));
+            Joker j = state.jokers().get(i);
+            var info = j.info();
+            Map<String, Object> jv = new LinkedHashMap<>();
+            jv.put("key", info.key());
+            jv.put("name", info.name());
+            jv.put("description", info.description());
+            jv.put("rarity", info.rarity());
+            jv.put("x", info.atlasX());
+            jv.put("y", info.atlasY());
+            // Built-in joker display: the joker's current live value (server-computed, no mod).
+            jv.put("display", JokerDisplay.currentValue(state.jokers(), i, state));
+            // The joker's data definition + live state, so the client can compute an
+            // instant local score preview (interpreting the same JokerDef the server uses).
+            JokerDef def = defFor(j);
+            if (def != null) jv.put("def", def);
+            jv.put("state", state.jokerState(j));
+            jokerView.add(jv);
         }
 
         List<Map<String, Object>> shopView = null;
@@ -390,11 +410,23 @@ public final class Run {
         Map<String, Object> handLevels = new LinkedHashMap<>();
         for (HandType t : HandType.values()) handLevels.put(t.display, state.handLevel(t));
 
+        // Deck aggregates the client's local preview needs for deck-stat jokers.
+        Map<String, Object> deckStats = new LinkedHashMap<>();
+        deckStats.put("size", state.deckComposition.size());
+        deckStats.put("remaining", state.deck != null ? state.deck.remaining() : 0);
+        Map<String, Integer> enh = new LinkedHashMap<>();
+        for (Card c : state.deckComposition) {
+            if (c.enhancement != com.balatromp.engine.card.Enhancement.NONE) {
+                enh.merge(c.enhancement.name(), 1, Integer::sum);
+            }
+        }
+        deckStats.put("enhancements", enh);
+
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
                 boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
-                shopPlanets, shopConsumables, consumables, handLevels);
+                shopPlanets, shopConsumables, consumables, handLevels, deckStats);
     }
 
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */
