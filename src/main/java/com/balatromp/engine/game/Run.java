@@ -128,6 +128,9 @@ public final class Run {
             requirement = Blinds.requirement(ante, blind, ruleset);
         }
         applyJokerRunMods(); // passive hand/discard/hand-size deltas from owned jokers
+        // Oops! All 6s doubles every listed probability (numerator) per copy owned.
+        long oops = state.jokers().stream().filter(j -> j.key().equals("j_oops")).count();
+        state.probabilityNumerator = 1 << Math.min((int) oops, 8);
         rollRoundTargets();  // The Idol / Ancient targets, re-rolled each blind
         int deckBefore = composition.size();
         GameEvents.raise(Trigger.BLIND_SELECTED, state, rng, null); // Cartomancer, Marble, ...

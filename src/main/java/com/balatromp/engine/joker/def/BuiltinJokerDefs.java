@@ -609,6 +609,17 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 30: Oops! All 6s (probability doubler) + Reserved Parking ---
+                new JokerDef("j_oops", "Oops! All 6s", "Doubles all listed probabilities",
+                        "Uncommon", 4, 6, 15, null, null, true, List.of(), List.of()),
+                new JokerDef("j_reserved_parking", "Reserved Parking",
+                        "Each face card held in hand has a 1 in 2 chance to give $1",
+                        "Common", 5, 7, 15, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_HELD,
+                                new Condition.And(List.of(new Condition.ScoredIsFace(),
+                                        new Condition.Chance(1, 2, "reserved_parking"))),
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(1))))),
+
                 // --- batch 29: boss-ability disable (Chicot) ---
                 new JokerDef("j_chicot", "Chicot", "Disables the effect of every Boss Blind",
                         "Legendary", 20, 5, 15, null, null, true, List.of(), List.of()),

@@ -55,6 +55,14 @@ class RunModTest {
     }
 
     @Test
+    void oopsAllSixesDoublesTheProbabilityNumerator() {
+        Run with = new Run(std, "O", stoneDeck(400), jokers("j_oops"));
+        assertThat(with.state.probabilityNumerator).isEqualTo(2);
+        Run without = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
+        assertThat(without.state.probabilityNumerator).isEqualTo(1);
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());
