@@ -111,6 +111,11 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of(), r -> r.setJokerEdition(r.jokers().get(0), Edition.POLYCHROME), "j_joker");
 
+        // 12c. The Flint: base chips + mult are halved before any joker scores.
+        scenario("flint", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), r -> r.bossHalveBase = true, "j_joker");
+
         // 13. Hanging Chad: the first scored card triggers 3x (ScoredFirst + REPETITIONS 2)
         scenario("hanging-chad", play(c(Rank.KING, Suit.SPADES), c(Rank.KING, Suit.HEARTS),
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
@@ -386,6 +391,7 @@ class PreviewFixtureGenerator {
         counters.put("OBELISK_STREAK", run.obeliskStreak);
         counters.put("BLINDS_SKIPPED", run.blindsSkipped);
         counters.put("inPvpBlind", run.inPvpBlind);
+        counters.put("bossHalveBase", run.bossHalveBase);
         counters.put("multiplayer", run.multiplayer);
         counters.put("OPP_LIVES_BEHIND", Math.max(0, run.oppLives - run.myLives));
         counters.put("OPP_HANDS_LEFT", run.oppHandsLeft);

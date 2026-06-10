@@ -356,6 +356,10 @@
     const [bChips, bMult, lc, lm] = HAND[hr.type];
     const lvl = (run.handLevels && run.handLevels[hr.type]) ? run.handLevels[hr.type] : 1;
     const acc = { chips: bChips + (lvl - 1) * lc, mult: bMult + (lvl - 1) * lm };
+    if (run.counters && run.counters.bossHalveBase) { // The Flint: halve base chips + mult
+      acc.chips *= 0.5;
+      acc.mult *= 0.5;
+    }
 
     const baseCtx = (phase, scoredCard) => ({
       phase, scoredCard, played, held, scoring, handType: handKey(hr.type), run,

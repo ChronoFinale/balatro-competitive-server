@@ -81,6 +81,10 @@ public final class ScoringEngine {
         Acc acc = new Acc();
         acc.chips = BigNum.of(hr.type().baseChips + run.handLevelChipBonus(hr.type()));
         acc.mult = BigNum.of(hr.type().baseMult + run.handLevelMultBonus(hr.type()));
+        if (run.bossHalveBase) { // The Flint: halve the base chips and mult before any joker
+            acc.chips = acc.chips.multiply(0.5);
+            acc.mult = acc.mult.multiply(0.5);
+        }
         log(acc, hr.type().display, "info", "Base " + acc.chips + " x " + acc.mult);
 
         List<Joker> jokers = run.jokers();

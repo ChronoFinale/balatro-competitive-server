@@ -26,6 +26,8 @@ public final class BossCatalog {
             b("bl_wall", "The Wall", "Very large blind (4x score)", 2, false, 4, 5, -1, -1, 0, null, false),
             b("bl_needle", "The Needle", "Only one hand", 2, false, 1, 5, 1, -1, 0, null, false),
             b("bl_water", "The Water", "Start with 0 discards", 2, false, 2, 5, -1, 0, 0, null, false),
+            new BossBlind("bl_flint", "The Flint", "Base Chips and Mult are halved", 2, false,
+                    2, 5, -1, -1, 0, null, false, true),
             // finisher / showdown bosses (ante 8)
             b("bl_final_vessel", "Violet Vessel", "Colossal blind (6x score)", 8, true, 6, 8, -1, -1, 0, null, false),
             b("bl_final_bell", "Cerulean Bell", "Finisher blind", 8, true, 2, 8, -1, -1, 0, null, false),

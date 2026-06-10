@@ -110,6 +110,7 @@ public final class Run {
         state.handTypesThisRound.clear();
         luchadorDisabledBoss = false; // a fresh blind re-arms the boss (Luchador must be re-sold)
         pvpActive = false;
+        state.bossHalveBase = false; // re-armed below only for The Flint
         boolean pvpBoss = blind == BlindType.BOSS && pvpFromAnte > 0 && ante >= pvpFromAnte;
         state.inPvpBlind = pvpBoss; // Nemesis jokers (Pacifist, Conjoined) read this
         if (pvpBoss) {
@@ -126,6 +127,7 @@ public final class Run {
             state.handsLeft = (!disabled && boss.handsOverride() >= 0) ? boss.handsOverride() : ruleset.hands();
             state.discardsLeft = (!disabled && boss.discardsOverride() >= 0) ? boss.discardsOverride() : ruleset.discards();
             state.handSize = Math.max(1, ruleset.handSize() + (disabled ? 0 : boss.handSizeDelta()));
+            state.bossHalveBase = !disabled && boss.halveBase(); // The Flint
             requirement = Math.round(Blinds.getBlindAmount(ante, ruleset) * boss.reqMult() * ruleset.anteScaling());
         } else {
             boss = null;
@@ -180,7 +182,7 @@ public final class Run {
 
     /** Whether the active boss has an ability (a debuff or a hand/discard/size override). */
     private boolean bossHasAbility() {
-        return boss != null && (boss.debuffSuit() != null || boss.debuffFaces()
+        return boss != null && (boss.debuffSuit() != null || boss.debuffFaces() || boss.halveBase()
                 || boss.handsOverride() >= 0 || boss.discardsOverride() >= 0 || boss.handSizeDelta() != 0);
     }
 
@@ -782,6 +784,7 @@ public final class Run {
         counters.put("OBELISK_STREAK", state.obeliskStreak);
         counters.put("BLINDS_SKIPPED", state.blindsSkipped);
         counters.put("inPvpBlind", state.inPvpBlind);
+        counters.put("bossHalveBase", state.bossHalveBase); // The Flint: preview halves base too
         counters.put("multiplayer", state.multiplayer);
         counters.put("OPP_LIVES_BEHIND", Math.max(0, state.oppLives - state.myLives));
         counters.put("OPP_HANDS_LEFT", state.oppHandsLeft);

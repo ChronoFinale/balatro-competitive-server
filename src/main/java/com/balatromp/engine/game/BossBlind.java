@@ -29,5 +29,14 @@ public record BossBlind(
         int discardsOverride,
         int handSizeDelta,
         Suit debuffSuit,
-        boolean debuffFaces) {
+        boolean debuffFaces,
+        boolean halveBase) {
+
+    /** Back-compat: bosses with no score-modifying ability (halveBase defaults false). */
+    public BossBlind(String key, String name, String effect, int minAnte, boolean finisher,
+            double reqMult, int reward, int handsOverride, int discardsOverride, int handSizeDelta,
+            Suit debuffSuit, boolean debuffFaces) {
+        this(key, name, effect, minAnte, finisher, reqMult, reward, handsOverride, discardsOverride,
+                handSizeDelta, debuffSuit, debuffFaces, false);
+    }
 }

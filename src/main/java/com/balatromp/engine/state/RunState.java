@@ -49,6 +49,7 @@ public final class RunState {
     // Multiplayer "Nemesis" state (set by the match layer; default 0/false in solo).
     public boolean multiplayer = false; // Standard Ranked MP rules (Glass x1.5, etc.)
     public boolean inPvpBlind = false; // currently in a PvP boss blind (Pacifist, Conjoined)
+    public boolean bossHalveBase = false; // The Flint: base chips AND mult are halved this blind
     public int myLives = 0;            // your Attrition lives
     public int oppLives = 0;           // nemesis lives (Defensive Joker)
     public int oppHandsLeft = 0;       // nemesis hands left in the current PvP blind (Conjoined)

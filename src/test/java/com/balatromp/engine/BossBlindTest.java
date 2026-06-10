@@ -56,6 +56,35 @@ class BossBlindTest {
     }
 
     @Test
+    void flintHalvesBaseChipsAndMult() {
+        var played = List.of(c(KING, HEARTS), c(KING, SPADES)); // pair: base 10 chips x 2 mult, +20 from Kings
+        RunState normal = new RunState();
+        double full = new ScoringEngine().score(played, List.of(), normal, new RandomStreams("F")).score();
+        RunState flint = new RunState();
+        flint.bossHalveBase = true;
+        var r = new ScoringEngine().score(played, List.of(), flint, new RandomStreams("F"));
+        // Base 10x2 -> 5x1; the King chips (+20) are added after halving, so it is not simply full/4.
+        assertThat(r.chips()).isEqualTo(25L);   // 5 (halved base) + 20 (two Kings)
+        assertThat(r.mult()).isEqualTo(1.0);     // 2 -> 1
+        assertThat(r.score()).isEqualTo(25.0);
+        assertThat(r.score()).isLessThan(full);
+    }
+
+    @Test
+    void flintIsInThePoolAndDisabledByChicot() {
+        Run run = new Run(Ruleset.standard(), "FL", stoneDeck(300),
+                jokers("j_joker", "j_joker", "j_chicot"));
+        run.forcedBoss = new BossBlind("bl_flint", "The Flint", "halve base",
+                1, false, 2.0, 5, -1, -1, 0, null, false, true);
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        run.proceed();
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        run.proceed();
+        assertThat(run.blind).isEqualTo(BlindType.BOSS);
+        assertThat(run.state.bossHalveBase).isFalse(); // Chicot disabled the ability
+    }
+
+    @Test
     void runAppliesBossOverridesAtBossBlind() {
         Run run = new Run(Ruleset.standard(), "B", stoneDeck(300),
                 jokers("j_joker", "j_joker", "j_joker"));
