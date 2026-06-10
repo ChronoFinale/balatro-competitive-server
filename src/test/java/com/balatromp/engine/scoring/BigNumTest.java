@@ -1,7 +1,6 @@
 package com.balatromp.engine.scoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,10 +12,13 @@ import org.junit.jupiter.api.Test;
 class BigNumTest {
 
     @Test
-    void smallValuesBehaveLikeDoubles() {
+    void smallValuesAreExactLikeDoubles() {
         assertThat(BigNum.of(1234).doubleValue()).isEqualTo(1234.0);
         assertThat(BigNum.of(5).multiply(BigNum.of(6)).doubleValue()).isEqualTo(30.0);
         assertThat(BigNum.of(300).add(BigNum.of(800)).doubleValue()).isEqualTo(1100.0);
+        // hybrid: in-range integer math is EXACT (no base-10 normalization drift)
+        assertThat(BigNum.of(3).multiply(BigNum.of(4)).doubleValue()).isEqualTo(12.0);
+        assertThat(BigNum.of(2).pow(10).doubleValue()).isEqualTo(1024.0);
     }
 
     @Test
@@ -30,8 +32,6 @@ class BigNumTest {
 
     @Test
     void powerGoesWellBeyondDoubleRange() {
-        // pow uses log/exp, so it's approximate (like break_infinity/Cryptid big-nums) — tolerant compare
-        assertThat(BigNum.of(2).pow(10).doubleValue()).isCloseTo(1024.0, within(1e-6));
         BigNum tenTo400 = BigNum.of(10).pow(400); // 10^400 — a plain double is Infinity here
         assertThat(Double.isInfinite(tenTo400.doubleValue())).isTrue();
         assertThat(tenTo400.toString()).isEqualTo("1.00e400"); // but BigNum holds it exactly
@@ -59,6 +59,6 @@ class BigNumTest {
         // chips=500, mult grows ×3 ×4 then ^2 -> score = 500 * ((1*3*4)^2) = 500*144 = 72000
         BigNum mult = BigNum.ONE.multiply(3).multiply(4).pow(2);
         BigNum score = BigNum.of(500).multiply(mult);
-        assertThat(score.doubleValue()).isCloseTo(72000.0, within(1e-3)); // pow(2) -> tolerant
+        assertThat(score.doubleValue()).isEqualTo(72000.0); // in-range -> exact
     }
 }

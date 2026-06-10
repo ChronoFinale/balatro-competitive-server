@@ -1,139 +1,166 @@
 package com.balatromp.engine.scoring;
 
 /**
- * A break_infinity-style big number for Cryptid-scale scoring: value =
- * {@code sign · mantissa · 10^exponent}, mantissa in [1,10), exponent a
- * {@code double}. This holds numbers up to ~10^(1.8·10^308) — vastly beyond a
- * plain {@code double}'s ~1.8·10^308 ceiling — so exponential/hyper-scaling
- * effects (Cryptid {@code e_mult}, big antes) don't overflow.
+ * A hybrid big number for Cryptid-scale scoring. While a value fits a normal
+ * {@code double} it is stored and computed as one — so ordinary scoring is bit-for-bit
+ * identical to plain {@code double}/{@code long} arithmetic (no base-10 normalization
+ * drift). Only when an operation would overflow {@code double} (~1.8·10^308) does it
+ * switch to a {@code mantissa · 10^exponent} form (exponent a {@code double}), holding
+ * numbers up to ~10^(1.8·10^308). This is the Talisman/break_infinity approach: exact
+ * where it matters, unbounded where it counts.
  *
- * <p>Why this exists: chips × mult can grow without bound once jokers multiply
- * and exponentiate; {@code double} silently becomes {@code Infinity}. This type
- * is the universal scoring number (chips, mult, score) and supports the three
- * operations scoring needs — add, multiply, and power — plus ordered compare and
- * human notation. (Tetration-scale / OmegaNum layering is a future extension; the
- * exponent-as-double form already covers exponential growth enormously.)
- *
- * <p>Immutable. Optimized for non-negative scoring values; signed ops are
- * supported but addition of opposite signs falls back to the larger magnitude
- * when the other is negligible (the break_infinity convention).
+ * <p>Supports the three operations scoring needs — add, multiply, power — plus ordered
+ * compare and human notation. The {@code pow} path uses log/exp once big, so it is
+ * approximate at astronomical scale (as all floating big-nums are; the final score is
+ * floored anyway). Immutable.
  */
 public final class BigNum implements Comparable<BigNum> {
 
-    public static final BigNum ZERO = new BigNum(0, 0, 0);
-    public static final BigNum ONE = new BigNum(1, 1, 0);
+    public static final BigNum ZERO = small(0);
+    public static final BigNum ONE = small(1);
 
-    /** Magnitudes more than this many orders apart: the smaller is negligible in +/-. */
+    /** Orders of magnitude apart beyond which the smaller addend is negligible. */
     private static final double NEGLIGIBLE = 15.0;
+    /** Below this exponent a value collapses back to an exact double. */
+    private static final double COLLAPSE_EXP = 300.0;
 
-    private final int sign;       // -1, 0, +1
-    private final double mant;    // in [1,10) when sign != 0, else 0
-    private final double exp;     // power of ten
+    private final boolean big;
+    private final double d;      // value when !big
+    private final int sign;      // when big: -1 / +1 (never 0 — zero is small)
+    private final double mant;   // when big: [1,10)
+    private final double exp;    // when big
 
-    private BigNum(int sign, double mant, double exp) {
+    private BigNum(boolean big, double d, int sign, double mant, double exp) {
+        this.big = big;
+        this.d = d;
         this.sign = sign;
         this.mant = mant;
         this.exp = exp;
     }
 
-    public static BigNum of(double value) {
-        if (value == 0 || Double.isNaN(value)) return ZERO;
-        int s = value < 0 ? -1 : 1;
-        double a = Math.abs(value);
-        if (Double.isInfinite(a)) return new BigNum(s, 1, Double.MAX_VALUE);
-        double e = Math.floor(Math.log10(a));
-        double m = a / Math.pow(10, e);
-        return normalized(s, m, e);
+    private static BigNum small(double v) {
+        return new BigNum(false, v, 0, 0, 0);
     }
 
-    /** Construct {@code sign · mantissa · 10^exponent} (mantissa need not be normalized). */
-    public static BigNum of(int sign, double mantissa, double exponent) {
+    /** Build (and normalize) a big-form value, collapsing back to a double when it fits. */
+    private static BigNum bignum(int sign, double mantissa, double exponent) {
         if (sign == 0 || mantissa == 0) return ZERO;
-        return normalized(sign < 0 ? -1 : 1, Math.abs(mantissa), exponent);
-    }
-
-    private static BigNum normalized(int sign, double mant, double exp) {
-        if (mant == 0) return ZERO;
-        double e = exp + Math.floor(Math.log10(mant));
-        double m = mant / Math.pow(10, Math.floor(Math.log10(mant)));
-        // guard tiny FP drift out of [1,10)
+        int s = sign < 0 ? -1 : 1;
+        double m = Math.abs(mantissa);
+        double e = exponent + Math.floor(Math.log10(m));
+        m = m / Math.pow(10, Math.floor(Math.log10(m)));
         if (m >= 10) { m /= 10; e += 1; }
         if (m < 1) { m *= 10; e -= 1; }
-        return new BigNum(sign, m, e);
+        if (e < COLLAPSE_EXP) return small(s * m * Math.pow(10, e)); // fits a double exactly enough
+        return new BigNum(true, 0, s, m, e);
+    }
+
+    public static BigNum of(double v) {
+        if (Double.isNaN(v)) return ZERO;
+        if (Double.isInfinite(v)) return new BigNum(true, 0, v < 0 ? -1 : 1, 1, Double.MAX_VALUE);
+        return small(v);
+    }
+
+    /** {sign, mantissa, exponent} for either representation. */
+    private double[] parts() {
+        if (big) return new double[]{sign, mant, exp};
+        if (d == 0) return new double[]{0, 0, 0};
+        int s = d < 0 ? -1 : 1;
+        double a = Math.abs(d);
+        double e = Math.floor(Math.log10(a));
+        return new double[]{s, a / Math.pow(10, e), e};
     }
 
     public BigNum add(BigNum o) {
-        if (sign == 0) return o;
-        if (o.sign == 0) return this;
-        BigNum big = this.compareMagnitude(o) >= 0 ? this : o;
-        BigNum small = big == this ? o : this;
-        if (big.exp - small.exp > NEGLIGIBLE) {
-            return big; // small disappears at this scale
+        if (!big && !o.big) {
+            double r = d + o.d;
+            if (Double.isFinite(r)) return small(r);
         }
-        double scaled = small.mant * Math.pow(10, small.exp - big.exp);
-        double m = big.mant + (big.sign == small.sign ? scaled : -scaled);
+        double[] a = parts();
+        double[] b = o.parts();
+        if (a[0] == 0) return o;
+        if (b[0] == 0) return this;
+        // order by magnitude
+        boolean aBigger = a[2] > b[2] || (a[2] == b[2] && a[1] >= b[1]);
+        double[] hi = aBigger ? a : b;
+        double[] lo = aBigger ? b : a;
+        if (hi[2] - lo[2] > NEGLIGIBLE) return aBigger ? this : o;
+        double scaled = lo[1] * Math.pow(10, lo[2] - hi[2]);
+        double m = hi[1] + (hi[0] == lo[0] ? scaled : -scaled);
         if (m == 0) return ZERO;
-        return normalized(m < 0 ? -big.sign : big.sign, Math.abs(m), big.exp);
+        return bignum(m < 0 ? -(int) hi[0] : (int) hi[0], Math.abs(m), hi[2]);
     }
 
     public BigNum multiply(BigNum o) {
-        if (sign == 0 || o.sign == 0) return ZERO;
-        return normalized(sign * o.sign, mant * o.mant, exp + o.exp);
+        if (!big && !o.big) {
+            double r = d * o.d;
+            if (Double.isFinite(r)) return small(r);
+        }
+        double[] a = parts();
+        double[] b = o.parts();
+        if (a[0] == 0 || b[0] == 0) return ZERO;
+        return bignum((int) (a[0] * b[0]), a[1] * b[1], a[2] + b[2]);
     }
 
-    public BigNum multiply(double d) {
-        return multiply(of(d));
+    public BigNum multiply(double factor) {
+        return multiply(of(factor));
     }
 
-    /** this^p (this must be {@code >= 0}). Handles exponents far beyond double range. */
+    /** this^p (this must be {@code >= 0}). */
     public BigNum pow(double p) {
-        if (sign == 0) return p == 0 ? ONE : ZERO;
-        if (p == 0) return ONE;
-        double log10 = exp + Math.log10(mant); // log10(value)
-        double r = p * log10;                  // log10(result)
+        if (!big) {
+            double r = Math.pow(d, p);
+            if (Double.isFinite(r)) return small(r);
+        }
+        double[] a = parts();
+        if (a[0] <= 0) return p == 0 ? ONE : ZERO;
+        double log10 = a[2] + Math.log10(a[1]);
+        double r = p * log10;
         double re = Math.floor(r);
-        double rm = Math.pow(10, r - re);
-        return normalized(1, rm, re);
+        return bignum(1, Math.pow(10, r - re), re);
     }
 
+    @Override
     public int compareTo(BigNum o) {
-        if (sign != o.sign) return Integer.compare(sign, o.sign);
-        if (sign == 0) return 0;
-        return sign * compareMagnitude(o);
-    }
-
-    private int compareMagnitude(BigNum o) {
-        if (exp != o.exp) return Double.compare(exp, o.exp);
-        return Double.compare(mant, o.mant);
+        if (!big && !o.big) return Double.compare(d, o.d);
+        double[] a = parts();
+        double[] b = o.parts();
+        if (a[0] != b[0]) return Double.compare(a[0], b[0]);
+        if (a[0] == 0) return 0;
+        int mag = a[2] != b[2] ? Double.compare(a[2], b[2]) : Double.compare(a[1], b[1]);
+        return (int) a[0] * mag;
     }
 
     /** Best-effort double (may be {@code Infinity} for values beyond ~1.8e308). */
     public double doubleValue() {
-        if (sign == 0) return 0;
-        return sign * mant * Math.pow(10, exp);
+        return big ? sign * mant * Math.pow(10, exp) : d;
     }
 
     @Override
     public String toString() {
-        if (sign == 0) return "0";
-        String s = sign < 0 ? "-" : "";
-        if (exp < 6) {
-            double v = mant * Math.pow(10, exp);
-            return s + (v == Math.rint(v) ? Long.toString((long) v) : String.format(java.util.Locale.ROOT, "%.2f", v));
+        if (!big) {
+            if (d == 0) return "0";
+            double a = Math.abs(d);
+            String s = d < 0 ? "-" : "";
+            if (a < 1e6) return s + (a == Math.rint(a)
+                    ? Long.toString((long) a) : String.format(java.util.Locale.ROOT, "%.2f", a));
+            double e = Math.floor(Math.log10(a));
+            return s + String.format(java.util.Locale.ROOT, "%.2f", a / Math.pow(10, e)) + "e" + (long) e;
         }
+        String s = sign < 0 ? "-" : "";
         String m = String.format(java.util.Locale.ROOT, "%.2f", mant);
-        if (exp < 1e9) return s + m + "e" + (long) exp;          // 1.50e308
-        return s + m + "e" + String.format(java.util.Locale.ROOT, "%.2e", exp); // 1.50e1.20e9 (huge)
+        if (exp < 1e9) return s + m + "e" + (long) exp;
+        return s + m + "e" + String.format(java.util.Locale.ROOT, "%.2e", exp);
     }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof BigNum b)) return false;
-        return sign == b.sign && mant == b.mant && exp == b.exp;
+        return compareTo(b) == 0;
     }
 
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(sign, mant, exp);
+        return big ? Double.hashCode(exp) : Double.hashCode(d);
     }
 }
