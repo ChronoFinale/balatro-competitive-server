@@ -61,7 +61,7 @@ public final class Run {
     public BossBlind forcedBoss; // test/dev hook to pin a boss
     public int pvpFromAnte = 0;  // Attrition: boss blinds at/after this ante are PvP (0 = never)
     private boolean pvpActive = false;
-    private final List<Card> composition = new ArrayList<>(); // the full deck, reshuffled each blind
+    private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
     public Run(Ruleset ruleset, String seed) {
         this(ruleset, seed, Deck.standard(), List.of());

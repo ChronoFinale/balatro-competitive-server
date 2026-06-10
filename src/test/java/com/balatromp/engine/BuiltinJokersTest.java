@@ -14,6 +14,7 @@ import com.balatromp.engine.joker.def.DataJoker;
 import com.balatromp.engine.rng.RandomStreams;
 import com.balatromp.engine.scoring.ScoreResult;
 import com.balatromp.engine.scoring.ScoringEngine;
+import com.balatromp.engine.state.Deck;
 import com.balatromp.engine.state.RunState;
 import java.util.List;
 import java.util.function.Consumer;
@@ -36,7 +37,8 @@ class BuiltinJokersTest {
             "j_baron", "j_runner", "j_wee",
             "j_duo", "j_trio", "j_family", "j_order", "j_tribe",
             "j_arrowhead", "j_onyx_agate", "j_sock_and_buskin", "j_flash", "j_trousers",
-            "j_hiker", "j_midas_mask", "j_vampire");
+            "j_hiker", "j_midas_mask", "j_vampire",
+            "j_blue_joker", "j_abstract", "j_stone", "j_steel_joker");
 
     private ScoreResult score(List<Card> played, Consumer<RunState> cfg, String... jokerKeys) {
         RunState run = new RunState();
@@ -247,6 +249,41 @@ class BuiltinJokersTest {
                         c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
                 List.of());
         assertThat(r.mult()).isEqualTo(baseline.mult() * 1.2);
+    }
+
+    @Test
+    void deckAndRunStatJokers() {
+        List<Card> hand = List.of(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+
+        // Abstract Joker: +3 Mult per Joker. With itself + 2 inert jokers = 3 jokers -> +9.
+        double abs = score(hand, DEFAULTS, "j_abstract", "j_golden", "j_golden").mult()
+                - score(hand, DEFAULTS, "j_golden", "j_golden").mult();
+        assertThat(abs).isEqualTo(9.0);
+
+        // Steel Joker: x0.2 Mult per Steel card in the full deck. 3 Steel -> x1.6.
+        Consumer<RunState> steel = r -> {
+            for (int i = 0; i < 3; i++) {
+                r.deckComposition.add(new Card(Rank.KING, Suit.SPADES, Enhancement.STEEL, Edition.NONE, Seal.NONE));
+            }
+        };
+        assertThat(score(hand, steel, "j_steel_joker").mult()).isEqualTo(score(hand, steel).mult() * 1.6);
+
+        // Stone Joker: +25 Chips per Stone card in the deck. 2 Stone -> +50.
+        Consumer<RunState> stone = r -> {
+            for (int i = 0; i < 2; i++) {
+                r.deckComposition.add(new Card(Rank.TWO, Suit.SPADES, Enhancement.STONE, Edition.NONE, Seal.NONE));
+            }
+        };
+        assertThat(score(hand, stone, "j_stone").chips() - score(hand, stone).chips()).isEqualTo(50);
+
+        // Blue Joker: +2 Chips per card remaining in the deck. A 10-card deck -> +20.
+        Consumer<RunState> blue = r -> {
+            List<Card> ten = new java.util.ArrayList<>();
+            for (int i = 0; i < 10; i++) ten.add(c(Rank.FIVE, Suit.HEARTS));
+            r.deck = Deck.of(ten);
+        };
+        assertThat(score(hand, blue, "j_blue_joker").chips() - score(hand, blue).chips()).isEqualTo(20);
     }
 
     @Test

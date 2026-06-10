@@ -30,6 +30,8 @@ public final class RunState {
     public int probabilityNumerator = 1;
 
     public final List<Card> hand = new ArrayList<>();
+    /** The full persistent deck (every card the run owns), reshuffled each blind. Read by deck-stat jokers. */
+    public final List<Card> deckComposition = new ArrayList<>();
     public final List<String> consumables = new ArrayList<>(); // held Planet (etc.) card keys
     public int consumableSlots = 2;
     public Deck deck;

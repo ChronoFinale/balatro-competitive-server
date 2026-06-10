@@ -1,6 +1,7 @@
 package com.balatromp.engine.joker.def;
 
 import com.balatromp.engine.card.Card;
+import com.balatromp.engine.card.Enhancement;
 import com.balatromp.engine.joker.EvaluationContext;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -21,6 +22,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.State.class, name = "state"),
     @JsonSubTypes.Type(value = Value.Count.class, name = "count"),
     @JsonSubTypes.Type(value = Value.RunVar.class, name = "runVar"),
+    @JsonSubTypes.Type(value = Value.Stat.class, name = "stat"),
 })
 public sealed interface Value {
 
@@ -85,6 +87,32 @@ public sealed interface Value {
                 case ANTE -> ctx.run.ante;
             };
             return base + scale * v;
+        }
+    }
+
+    /** Which deck/run aggregate a {@link Stat} reads. */
+    enum Which { DECK_SIZE, DECK_REMAINING, ENHANCED_CARD_COUNT, DECK_ENH_COUNT, OWNED_JOKERS, EMPTY_JOKER_SLOTS }
+
+    /**
+     * {@code base + scale * (deck/run aggregate)} — Blue (deck remaining), Abstract
+     * (jokers owned), Stone/Steel (cards of an enhancement in the full deck), etc.
+     * Reads {@code RunState} (the persistent deckComposition / jokers); pure and
+     * deterministic. {@code enhancement} is used only by DECK_ENH_COUNT.
+     */
+    record Stat(Which which, double base, double scale, Enhancement enhancement) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            if (ctx.run == null) return base;
+            long n = switch (which) {
+                case DECK_SIZE -> ctx.run.deckComposition.size();
+                case DECK_REMAINING -> ctx.run.deck != null ? ctx.run.deck.remaining() : 0;
+                case ENHANCED_CARD_COUNT -> ctx.run.deckComposition.stream()
+                        .filter(c -> c.enhancement != Enhancement.NONE).count();
+                case DECK_ENH_COUNT -> ctx.run.deckComposition.stream()
+                        .filter(c -> c.enhancement == enhancement).count();
+                case OWNED_JOKERS -> ctx.run.jokers().size();
+                case EMPTY_JOKER_SLOTS -> Math.max(0, 5 - ctx.run.jokers().size());
+            };
+            return base + scale * n;
         }
     }
 }

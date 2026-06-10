@@ -226,6 +226,26 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
                                 new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
 
+                // --- deck/run-stat scaling (Value.Stat) ---
+                new JokerDef("j_blue_joker", "Blue Joker", "+2 Chips for each card remaining in the deck",
+                        "Common", 5, 7, 10, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.CHIPS, new Value.Stat(Value.Which.DECK_REMAINING, 0, 2, null))))),
+                new JokerDef("j_abstract", "Abstract Joker", "+3 Mult for each Joker",
+                        "Common", 4, 3, 3, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.Stat(Value.Which.OWNED_JOKERS, 0, 3, null))))),
+                new JokerDef("j_stone", "Stone Joker", "+25 Chips for each Stone card in the deck",
+                        "Uncommon", 6, 9, 0, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.CHIPS,
+                                        new Value.Stat(Value.Which.DECK_ENH_COUNT, 0, 25, Enhancement.STONE))))),
+                new JokerDef("j_steel_joker", "Steel Joker", "x0.2 Mult for each Steel card in the deck",
+                        "Uncommon", 7, 7, 2, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT,
+                                        new Value.Stat(Value.Which.DECK_ENH_COUNT, 1.0, 0.2, Enhancement.STEEL))))),
+
                 // --- MUTATE_CARD: Hiker permanently adds chips to each played card ---
                 new JokerDef("j_hiker", "Hiker", "Each played card permanently gains +5 Chips",
                         "Uncommon", 5, 0, 11, null, null, true, List.of(),
