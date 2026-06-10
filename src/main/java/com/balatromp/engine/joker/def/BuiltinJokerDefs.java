@@ -624,6 +624,10 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 41: tags (Diet Cola) ---
+                new JokerDef("j_diet_cola", "Diet Cola", "Sell this to create a free Double Tag",
+                        "Uncommon", 6, 0, 18, null, null, true, List.of(), List.of()),
+
                 // --- batch 40: booster packs (Hallucination, Red Card) ---
                 new JokerDef("j_hallucination", "Hallucination",
                         "1 in 2 chance to create a Tarot card when a booster pack is opened",

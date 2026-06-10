@@ -102,6 +102,17 @@ class RunModTest {
     }
 
     @Test
+    void dietColaMakesADoubleTagThatDoublesTheNextSkipReward() {
+        Run run = new Run(std, "DC", stoneDeck(400), jokers("j_diet_cola"));
+        assertThat(run.sellJoker(0)).isNull();          // sell -> free Double Tag
+        assertThat(run.state.tags).contains("tag_double");
+        int money = run.state.money;
+        assertThat(run.skipBlind()).isNull();           // skip -> $15 tag, doubled by the Double Tag
+        assertThat(run.state.money).isEqualTo(money + 30);
+        assertThat(run.state.tags).doesNotContain("tag_double"); // consumed
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());

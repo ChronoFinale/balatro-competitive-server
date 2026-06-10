@@ -385,6 +385,8 @@ public final class Run {
             int pick = (int) (roll("invisible:dup") * state.jokers().size()) % state.jokers().size();
             state.addJoker(JokerLibrary.create(state.jokers().get(pick).key()));
         }
+        // Diet Cola: sold, creates a free Double Tag (duplicates the next tag you gain).
+        if (sold.key().equals("j_diet_cola")) state.tags.add("tag_double");
         // Luchador: sold during a boss blind, disable that boss's ability for the rest of the blind.
         if (sold.key().equals("j_luchador") && boss != null) {
             luchadorDisabledBoss = true;
@@ -647,6 +649,20 @@ public final class Run {
         state.consumables.add(state.consumables.get(idx)); // Negative copy ignores the slot cap
     }
 
+    /** Grant a tag, honoring a held Double Tag (which duplicates the next tag gained). */
+    private void grantTag(String key) {
+        int copies = state.tags.remove("tag_double") ? 2 : 1; // Double Tag duplicates the next tag
+        for (int i = 0; i < copies; i++) applyTag(key);
+    }
+
+    /** Apply a tag's effect (immediate ones resolve now; others are held in the inventory). */
+    private void applyTag(String key) {
+        switch (key) {
+            case "tag_investment" -> state.money += 15; // skip reward: a cash bonus
+            default -> state.tags.add(key);             // held (e.g. tag_double) for later
+        }
+    }
+
     /** Open the shop's booster pack: pay, reveal a Tarot, raise OPEN_BOOSTER (Hallucination). */
     public String openBooster() {
         if (phase != Phase.SHOP || !boosterAvailable) return "no booster available";
@@ -675,6 +691,7 @@ public final class Run {
         if (blind == BlindType.BOSS || pvpActive) return "cannot skip this blind";
         state.blindsSkipped++;
         GameEvents.raise(Trigger.SKIP_BLIND, state, rng, null); // Throwback / skip-tag jokers
+        grantTag("tag_investment"); // skipping a blind awards a tag (honors a held Double Tag)
         blind = (blind == BlindType.SMALL) ? BlindType.BIG : BlindType.BOSS;
         startBlind();
         return null;

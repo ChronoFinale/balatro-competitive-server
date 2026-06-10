@@ -45,6 +45,7 @@ public final class RunState {
     public final java.util.Set<String> planetsUsedThisRun = new java.util.HashSet<>();         // Satellite
     public int obeliskStreak = 0; // consecutive hands not playing your most-played hand (Obelisk)
     public int blindsSkipped = 0; // blinds skipped this run (Throwback)
+    public final java.util.List<String> tags = new java.util.ArrayList<>(); // held tags (skip rewards, Diet Cola)
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;
