@@ -155,7 +155,9 @@ public final class ScoringEngine {
             ctx.blueprintDepth = 0;
             ctx.scoredCard = null;
             ctx.otherJoker = null;
-            apply(acc, current.calculate(ctx), current.name());
+            JokerEffect me = current.calculate(ctx);
+            apply(acc, me, current.name());
+            if (!preview) applyCreate(me, run, queues);
 
             for (int j = 0; j < jokers.size(); j++) {
                 ctx.phase = Trigger.ON_OTHER_JOKER;

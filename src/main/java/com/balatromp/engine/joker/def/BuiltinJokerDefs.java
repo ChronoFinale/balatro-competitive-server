@@ -487,7 +487,24 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_cartomancer", "Cartomancer", "Create a Tarot card when a blind is selected",
                         "Uncommon", 6, 2, 12, null, null, true, List.of(),
                         List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))));
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
+                new JokerDef("j_vagabond", "Vagabond", "Create a Tarot if a hand is played with $4 or less",
+                        "Rare", 8, 3, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN,
+                                new Condition.Not(new Condition.MoneyAtLeast(5)),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
+                new JokerDef("j_superposition", "Superposition",
+                        "Create a Tarot if a played hand contains an Ace and a Straight",
+                        "Common", 5, 4, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.And(List.of(
+                                new Condition.HandContains(HandType.STRAIGHT),
+                                new Condition.ValueAtLeast(new Value.Count(Value.Source.SCORING,
+                                        new Condition.ScoredRankBetween(14, 14), 0, 1), 1))),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
+                new JokerDef("j_seance", "Seance", "Create a Spectral if the played hand is a Straight Flush",
+                        "Uncommon", 6, 5, 12, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandIs(HandType.STRAIGHT_FLUSH),
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL))))));
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */
