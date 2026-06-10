@@ -34,6 +34,14 @@ class RunModTest {
     }
 
     @Test
+    void hologramGainsWhenMarbleAddsACard() {
+        // Marble adds a Stone card at blind select -> CARD_ADDED -> Hologram gains x0.25.
+        Run run = new Run(std, "H", stoneDeck(400), jokers("j_hologram", "j_marble"));
+        var holo = run.state.jokers().get(0);
+        assertThat(((Number) run.state.jokerState(holo).get("x")).doubleValue()).isEqualTo(0.25);
+    }
+
+    @Test
     void modsWithoutJokersAreUnchanged() {
         Run run = new Run(std, "N", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.handSize).isEqualTo(std.handSize());

@@ -584,6 +584,13 @@ public final class BuiltinJokerDefs {
                                 new Condition.Not(new Condition.ValueAtLeast(
                                         new Value.RunVar(Value.Var.HANDS_PLAYED, 0, 1), 1)))),
                                 EffectTemplate.copyScored()))),
+                new JokerDef("j_hologram", "Hologram",
+                        "Gains x0.25 Mult for every playing card added to your deck",
+                        "Uncommon", 7, 8, 13, null, null, true,
+                        List.of(new Mutation(Trigger.CARD_ADDED, new Condition.Always(),
+                                "x", Mutation.Op.ADD, 0.25)),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
                 new JokerDef("j_certificate", "Certificate",
                         "When a blind is selected, add a random playing card with a random seal to your deck",
                         "Uncommon", 6, 0, 13, null, null, true, List.of(),
