@@ -174,6 +174,12 @@ public final class Run {
         }
     }
 
+    /** Whether the active boss has an ability (a debuff or a hand/discard/size override). */
+    private boolean bossHasAbility() {
+        return boss != null && (boss.debuffSuit() != null || boss.debuffFaces()
+                || boss.handsOverride() >= 0 || boss.discardsOverride() >= 0 || boss.handSizeDelta() != 0);
+    }
+
     /** The boss blind's ability is off — Chicot (always) or Luchador (sold this blind). */
     private boolean bossDisabled() {
         return luchadorDisabledBoss || state.jokers().stream().anyMatch(j -> j.key().equals("j_chicot"));
@@ -299,6 +305,8 @@ public final class Run {
         if (intent instanceof Intent.PlayHand) {
             state.handsPlayedThisRound++; // after scoring, so DNA's "first hand" check saw 0
             state.handsPlayedTotal++;
+            // Matador: $8 when you play a hand against an active boss ability.
+            if (hasJoker("j_matador") && !bossDisabled() && bossHasAbility()) state.money += 8;
             if (pvpActive) {
                 // PvP blind: play all hands, then await the head-to-head comparison.
                 if (state.handsLeft <= 0) phase = Phase.PVP_PENDING;

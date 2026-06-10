@@ -76,6 +76,24 @@ class BossBlindTest {
     }
 
     @Test
+    void matadorPaysWhenPlayingAgainstABossAbility() {
+        Run run = new Run(Ruleset.standard(), "M", stoneDeck(300),
+                jokers("j_joker", "j_joker", "j_matador"));
+        // A boss with an ability (debuffs Spades).
+        run.forcedBoss = new BossBlind("bl_test", "Test Boss", "debuff Spades",
+                1, false, 2.0, 7, -1, -1, 0, com.balatromp.engine.card.Suit.SPADES, false);
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        run.proceed();
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        run.proceed();
+        assertThat(run.blind).isEqualTo(BlindType.BOSS);
+
+        int money = run.state.money;
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // play against the ability
+        assertThat(run.state.money).isGreaterThanOrEqualTo(money + 8); // Matador's $8 (+ any win economy)
+    }
+
+    @Test
     void chicotDisablesTheBossAbilityButNotItsRequirement() {
         Run run = new Run(Ruleset.standard(), "B", stoneDeck(300),
                 jokers("j_joker", "j_joker", "j_chicot"));

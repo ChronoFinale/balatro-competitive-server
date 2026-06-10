@@ -624,6 +624,11 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 42: Matador (boss-ability interaction) ---
+                new JokerDef("j_matador", "Matador",
+                        "Earn $8 if the played hand triggers the Boss Blind's ability",
+                        "Uncommon", 7, 1, 18, null, null, true, List.of(), List.of()),
+
                 // --- batch 41: tags (Diet Cola) ---
                 new JokerDef("j_diet_cola", "Diet Cola", "Sell this to create a free Double Tag",
                         "Uncommon", 6, 0, 18, null, null, true, List.of(), List.of()),
