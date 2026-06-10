@@ -609,6 +609,13 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.MULT, new Value.Clamp(
                                         new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                // --- batch 36: Obelisk (consecutive non-most-played streak; shipped, preview-accurate) ---
+                new JokerDef("j_obelisk", "Obelisk",
+                        "x0.2 Mult per consecutive hand played that is not your most-played hand",
+                        "Legendary", 20, 6, 16, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT, new Value.RunVar(Value.Var.OBELISK_STREAK, 1, 0.2))))),
+
                 // --- batch 35: Loyalty Card (every-6-hands xMult; preview-accurate via shipped counter) ---
                 new JokerDef("j_loyalty_card", "Loyalty Card", "x4 Mult every 6 hands played",
                         "Uncommon", 5, 5, 16, null, null, true, List.of(),

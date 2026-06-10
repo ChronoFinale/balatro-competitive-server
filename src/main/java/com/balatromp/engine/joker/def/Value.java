@@ -121,7 +121,8 @@ public sealed interface Value {
 
     /** Which live run-state quantity a {@link RunVar} reads. */
     enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, ANTE, DISCARDS_USED, HANDS_PLAYED,
-        HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS, UNIQUE_PLANETS }
+        HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS, UNIQUE_PLANETS,
+        OBELISK_STREAK }
 
     /** {@code base + scale * (live run-state quantity)} (per dollar, per remaining hand, ...). */
     record RunVar(Var which, double base, double scale) implements Value {
@@ -140,6 +141,7 @@ public sealed interface Value {
                 case CARDS_DISCARDED_TOTAL -> ctx.run.cardsDiscardedTotal;
                 case LUCKY_TRIGGERS -> ctx.run.luckyTriggersTotal;
                 case UNIQUE_PLANETS -> ctx.run.planetsUsedThisRun.size();
+                case OBELISK_STREAK -> ctx.run.obeliskStreak;
             };
             return base + scale * v;
         }
@@ -165,6 +167,7 @@ public sealed interface Value {
                 case CARDS_DISCARDED_TOTAL -> ctx.run.cardsDiscardedTotal;
                 case LUCKY_TRIGGERS -> ctx.run.luckyTriggersTotal;
                 case UNIQUE_PLANETS -> ctx.run.planetsUsedThisRun.size();
+                case OBELISK_STREAK -> ctx.run.obeliskStreak;
             };
             return base + scale * Math.floor(v / per);
         }

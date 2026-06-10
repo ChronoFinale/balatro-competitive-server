@@ -204,6 +204,10 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 41. Obelisk after a 3-hand non-most-played streak -> x(1 + 0.2*3) = x1.6
+        scenario("obelisk", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
+                List.of(), run -> run.obeliskStreak = 3, "j_obelisk");
+
         // 40. Loyalty Card on the 6th hand (handsPlayedTotal=5) -> x4
         scenario("loyalty-card", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.handsPlayedTotal = 5, "j_loyalty_card");
@@ -341,6 +345,7 @@ class PreviewFixtureGenerator {
         counters.put("ancientSuit", run.ancientSuit.name());
         counters.put("castleSuit", run.castleSuit.name());
         counters.put("todoHand", run.todoHandType.name());
+        counters.put("OBELISK_STREAK", run.obeliskStreak);
         m.put("counters", counters);
         return m;
     }

@@ -52,6 +52,12 @@ public final class IntentHandler {
         // scoring, so Supernova/Card Sharp saw the pre-this-hand counts during the hand.
         run.handsLeft--;
         run.roundScore += Math.round(score.score());
+        // Obelisk: streak of consecutive hands that aren't your most-played hand (pre-this-hand
+        // counts), reset when you play the most-played. Updated after scoring, so the value the
+        // joker used this hand was the pre-hand streak (shipped -> previews exactly).
+        com.balatromp.engine.hand.HandType mostPlayed = mostPlayedType(run);
+        if (mostPlayed != null && score.handType() == mostPlayed) run.obeliskStreak = 0;
+        else run.obeliskStreak++;
         run.handTypePlays.merge(score.handType(), 1, Integer::sum);
         run.handTypesThisRound.add(score.handType());
         run.hand.removeAll(played);
@@ -61,6 +67,16 @@ public final class IntentHandler {
 
         return new IntentResult(true, null, score, run.handsLeft, run.discardsLeft,
                 run.roundScore, new ArrayList<>(run.hand));
+    }
+
+    /** The poker hand played most this run (count > 0), or null if none played yet. */
+    private static com.balatromp.engine.hand.HandType mostPlayedType(RunState run) {
+        com.balatromp.engine.hand.HandType best = null;
+        int bestN = 0;
+        for (var e : run.handTypePlays.entrySet()) {
+            if (e.getValue() > bestN) { bestN = e.getValue(); best = e.getKey(); }
+        }
+        return best;
     }
 
     private IntentResult discard(RunState run, RandomStreams rng, Intent.Discard d) {

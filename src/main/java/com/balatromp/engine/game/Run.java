@@ -614,6 +614,7 @@ public final class Run {
         counters.put("castleSuit", state.castleSuit.name());
         counters.put("todoHand", state.todoHandType.name());
         counters.put("rebateRankId", state.rebateRankId);
+        counters.put("OBELISK_STREAK", state.obeliskStreak);
 
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
