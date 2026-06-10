@@ -67,6 +67,22 @@ class FieldOrderTest {
     }
 
     @Test
+    void perCardPermanentBonusIsScored() {
+        // A card can carry permanent chip/mult bonuses (Hiker etc.) that the engine scores.
+        List<Card> plain = List.of(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        Card buffedKing = c(Rank.KING, Suit.HEARTS);
+        buffedKing.permaChips = 15;
+        buffedKing.permaMult = 3;
+        List<Card> buffed = List.of(buffedKing, c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        ScoreResult a = new ScoringEngine().score(plain, List.of(), new RunState(), new RandomStreams("X"));
+        ScoreResult b = new ScoringEngine().score(buffed, List.of(), new RunState(), new RandomStreams("X"));
+        assertThat(b.chips() - a.chips()).isEqualTo(15);
+        assertThat(b.mult() - a.mult()).isEqualTo(3.0);
+    }
+
+    @Test
     void finalScoringStepSeamFiresOnceAfterTheMainPass() {
         int[] fired = {0};
         Joker j = new Joker() {

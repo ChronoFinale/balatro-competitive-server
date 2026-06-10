@@ -13,6 +13,12 @@ public final class Card {
     public Edition edition;
     public Seal seal;
 
+    // Permanent per-card bonuses accumulated by jokers/effects (Balatro's
+    // card.ability.perma_bonus): e.g. Hiker adds chips to a card forever, other
+    // effects add permanent mult. These ride with the card (deck-persistent).
+    public int permaChips = 0;
+    public double permaMult = 0;
+
     // Transient per-evaluation flags.
     public boolean debuffed = false;
     public boolean destroyed = false;
@@ -52,7 +58,10 @@ public final class Card {
     }
 
     public Card copy() {
-        return new Card(rank, suit, enhancement, edition, seal);
+        Card c = new Card(rank, suit, enhancement, edition, seal);
+        c.permaChips = permaChips;
+        c.permaMult = permaMult;
+        return c;
     }
 
     @Override

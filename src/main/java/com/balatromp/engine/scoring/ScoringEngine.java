@@ -193,9 +193,14 @@ public final class ScoringEngine {
         long chips = card.baseChips();
         if (card.enhancement == Enhancement.STONE) chips += 50;
         if (card.enhancement == Enhancement.BONUS) chips += 30;
+        chips += card.permaChips; // permanent per-card chip bonus (Hiker etc.)
         if (chips != 0) {
             acc.chips += chips;
             log(acc, card.toString(), "chips", "+" + chips + " Chips");
+        }
+        if (card.permaMult != 0) {
+            acc.mult += card.permaMult; // permanent per-card mult bonus
+            log(acc, card.toString(), "mult", "+" + fmt(card.permaMult) + " Mult");
         }
         if (card.enhancement == Enhancement.MULT) {
             acc.mult += 4;
