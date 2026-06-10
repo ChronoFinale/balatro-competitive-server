@@ -1,7 +1,9 @@
 package com.balatromp.engine.consumable;
 
 import com.balatromp.engine.card.CardMod;
+import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.card.Enhancement;
+import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.card.Suit;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,8 +42,30 @@ public final class TarotCatalog {
                 ConsumableType.TAROT, 3, new Consumable.Enhance(CardMod.setSuit(Suit.HEARTS))));
         put(new Consumable("c_world", "The World", "Convert up to 3 selected cards to Spades",
                 ConsumableType.TAROT, 3, new Consumable.Enhance(CardMod.setSuit(Suit.SPADES))));
+        put(new Consumable("c_lovers", "The Lovers", "Enhance 1 selected card to Wild (counts as every suit)",
+                ConsumableType.TAROT, 1, new Consumable.Enhance(CardMod.setEnhancement(Enhancement.WILD))));
+        put(new Consumable("c_chariot", "The Chariot", "Enhance 1 selected card to Steel",
+                ConsumableType.TAROT, 1, new Consumable.Enhance(CardMod.setEnhancement(Enhancement.STEEL))));
+        put(new Consumable("c_justice", "Justice", "Enhance 1 selected card to Glass",
+                ConsumableType.TAROT, 1, new Consumable.Enhance(CardMod.setEnhancement(Enhancement.GLASS))));
+        put(new Consumable("c_tower", "The Tower", "Enhance 1 selected card to Stone",
+                ConsumableType.TAROT, 1, new Consumable.Enhance(CardMod.setEnhancement(Enhancement.STONE))));
         put(new Consumable("c_incantation", "Incantation", "Add 4 Bonus number cards to your deck",
                 ConsumableType.SPECTRAL, 0, new Consumable.Create(4, Enhancement.BONUS)));
+
+        // Spectral seal/edition cards (each targets one held card).
+        put(new Consumable("c_talisman", "Talisman", "Add a Gold Seal to 1 selected card",
+                ConsumableType.SPECTRAL, 1, new Consumable.Enhance(CardMod.setSeal(Seal.GOLD))));
+        put(new Consumable("c_deja_vu", "Deja Vu", "Add a Red Seal to 1 selected card",
+                ConsumableType.SPECTRAL, 1, new Consumable.Enhance(CardMod.setSeal(Seal.RED))));
+        put(new Consumable("c_trance", "Trance", "Add a Blue Seal to 1 selected card",
+                ConsumableType.SPECTRAL, 1, new Consumable.Enhance(CardMod.setSeal(Seal.BLUE))));
+        put(new Consumable("c_medium", "Medium", "Add a Purple Seal to 1 selected card",
+                ConsumableType.SPECTRAL, 1, new Consumable.Enhance(CardMod.setSeal(Seal.PURPLE))));
+        put(new Consumable("c_aura", "Aura", "Add Polychrome to 1 selected card in hand",
+                ConsumableType.SPECTRAL, 1, new Consumable.Enhance(CardMod.setEdition(Edition.POLYCHROME))));
+        put(new Consumable("c_black_hole", "Black Hole", "Upgrade every poker hand by 1 level",
+                ConsumableType.SPECTRAL, 0, new Consumable.LevelAllHands()));
     }
 
     private static void put(Consumable c) {

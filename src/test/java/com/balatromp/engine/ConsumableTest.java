@@ -46,6 +46,26 @@ class ConsumableTest {
     }
 
     @Test
+    void talismanAddsAGoldSealToASelectedCard() {
+        Run run = freshRun();
+        Card a = run.state.hand.get(0);
+        run.state.consumables.add("c_talisman");
+        assertThat(run.useConsumable(0, new long[]{a.uid})).isNull();
+        assertThat(a.seal).isEqualTo(com.balatromp.engine.card.Seal.GOLD);
+    }
+
+    @Test
+    void blackHoleLevelsUpEveryHand() {
+        Run run = freshRun();
+        int pairBefore = run.state.handLevel(com.balatromp.engine.hand.HandType.PAIR);
+        int flushBefore = run.state.handLevel(com.balatromp.engine.hand.HandType.FLUSH);
+        run.state.consumables.add("c_black_hole");
+        assertThat(run.useConsumable(0)).isNull(); // no targets
+        assertThat(run.state.handLevel(com.balatromp.engine.hand.HandType.PAIR)).isEqualTo(pairBefore + 1);
+        assertThat(run.state.handLevel(com.balatromp.engine.hand.HandType.FLUSH)).isEqualTo(flushBefore + 1);
+    }
+
+    @Test
     void tooManyTargetsRejected() {
         Run run = freshRun();
         long[] three = {run.state.hand.get(0).uid, run.state.hand.get(1).uid, run.state.hand.get(2).uid};

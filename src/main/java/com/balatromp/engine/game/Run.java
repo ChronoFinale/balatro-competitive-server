@@ -605,6 +605,9 @@ public final class Run {
                     state.hand.add(made);  // and usable now
                 }
             }
+            case Consumable.LevelAllHands ignored -> {
+                for (HandType t : HandType.values()) state.levelUpHand(t); // Black Hole
+            }
         }
     }
 
