@@ -293,6 +293,30 @@ public final class BuiltinJokerDefs {
                         List.of(new Rule(Trigger.ON_SCORED,
                                 new Condition.And(List.of(new Condition.ScoredIsFace(),
                                         new Condition.Chance(1, 2, "business_card"))),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(2))))));
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(2))))),
+
+                // --- flat / xMult jokers expressible with the existing algebra ---
+                new JokerDef("j_gros_michel", "Gros Michel", "+15 Mult",
+                        "Common", 5, 8, 2, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.MULT, new Value.Const(15))))),
+                new JokerDef("j_cavendish", "Cavendish", "x3 Mult",
+                        "Common", 5, 9, 2, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
+                new JokerDef("j_acrobat", "Acrobat", "x3 Mult on the final hand of the round",
+                        "Uncommon", 7, 8, 3, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandsLeft(Condition.Cmp.LTE, 1),
+                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
+                new JokerDef("j_joker_stencil", "Joker Stencil",
+                        "x1 Mult for each empty Joker slot (Joker Stencil included)",
+                        "Uncommon", 7, 0, 4, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
+                                new EffectTemplate(Op.XMULT,
+                                        new Value.Stat(Value.Which.EMPTY_JOKER_SLOTS, 1.0, 1.0, null))))),
+                new JokerDef("j_triboulet", "Triboulet", "Played Kings and Queens each give x2 Mult",
+                        "Legendary", 20, 4, 15, null, null, true, List.of(),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredRankBetween(12, 13),
+                                new EffectTemplate(Op.XMULT, new Value.Const(2))))));
     }
 }

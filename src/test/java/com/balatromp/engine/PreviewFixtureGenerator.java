@@ -84,6 +84,21 @@ class PreviewFixtureGenerator {
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.SPADES)),
                 List.of(), "j_rough_gem");
 
+        // 10. Cavendish flat x3 mult
+        scenario("cavendish", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), "j_cavendish");
+
+        // 11. Triboulet x2 per scored King/Queen
+        scenario("triboulet", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.QUEEN, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), "j_triboulet");
+
+        // 12. Joker Stencil: xMult scales with empty joker slots (deck-stat path)
+        scenario("stencil", play(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)),
+                List.of(), "j_joker_stencil");
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }

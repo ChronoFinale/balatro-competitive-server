@@ -67,6 +67,18 @@ class ScoringEngineTest {
     }
 
     @Test
+    void cavendishTriplesMult() { // pair of Kings: 30 x (2 x3) = 180
+        assertThat(score(jokers("j_cavendish"), List.of(c(KING, HEARTS), c(KING, SPADES))).score())
+                .isEqualTo(180.0);
+    }
+
+    @Test
+    void tribouletDoublesPerKingOrQueen() { // 30 x (2 x2 x2) = 240
+        assertThat(score(jokers("j_triboulet"), List.of(c(KING, HEARTS), c(KING, SPADES))).score())
+                .isEqualTo(240.0);
+    }
+
+    @Test
     void roughGemCreditsMoneyOnScoreButNotOnPreview() {
         RunState run = new RunState();
         run.money = 10;
