@@ -23,28 +23,15 @@ export interface JokerView {
   edition?: string;
 }
 
+/** A mixed shop slot — kind is JOKER | TAROT | PLANET (how to label it, which buy path it takes). */
 export interface ShopItem {
+  kind: "JOKER" | "TAROT" | "PLANET";
   key: string;
   name: string;
   cost: number;
   description?: string;
   rarity?: string;
   edition?: string;
-}
-
-export interface ShopPlanet {
-  key: string;
-  name: string;
-  cost: number;
-  description?: string;
-}
-
-export interface ShopConsumable {
-  key: string;
-  name: string;
-  cost: number;
-  description?: string;
-  maxTargets?: number;
 }
 
 export interface HeldConsumable {
@@ -77,8 +64,6 @@ export interface ClientView {
   rerollCost: number;
   boss: string | null;
   bossEffect: string | null;
-  shopPlanets: ShopPlanet[] | null;
-  shopConsumables: ShopConsumable[] | null;
   consumables: HeldConsumable[];
   handLevels: Record<string, number>;
   deckStats: { size?: number; remaining?: number };

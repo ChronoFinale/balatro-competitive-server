@@ -9,6 +9,11 @@ const RANK: Record<string, string> = {
 };
 const SUIT: Record<string, string> = { SPADES: "♠", HEARTS: "♥", CLUBS: "♣", DIAMONDS: "♦" };
 const RED = new Set(["HEARTS", "DIAMONDS"]);
+const RID: Record<string, number> = {
+  TWO: 2, THREE: 3, FOUR: 4, FIVE: 5, SIX: 6, SEVEN: 7, EIGHT: 8,
+  NINE: 9, TEN: 10, JACK: 11, QUEEN: 12, KING: 13, ACE: 14,
+};
+const SUIT_ORDER: Record<string, number> = { SPADES: 0, HEARTS: 1, CLUBS: 2, DIAMONDS: 3 };
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100));
 
 export default function App() {
@@ -56,6 +61,7 @@ function Game() {
   const [sel, setSel] = useState<Set<number>>(new Set());
   const [targeting, setTargeting] = useState<number | null>(null);
   const [targets, setTargets] = useState<Set<number>>(new Set());
+  const [sort, setSort] = useState<"deal" | "rank" | "suit">("deal");
 
   // Reset transient selection whenever a fresh view arrives for a new phase/hand.
   useEffect(() => {
@@ -158,26 +164,47 @@ function Game() {
         )}
       </div>
 
-      {inBlind && (
-        <div className="panel">
-          <div className="stat">Hand</div>
-          <div className="hand">
-            {v.hand.map((c, i) => {
-              const picked = targeting !== null ? targets.has(i) : sel.has(i);
-              return <Card key={c.uid} c={c} picked={picked} onClick={() => toggleCard(i)} />;
-            })}
+      {inBlind && (() => {
+        // Display order is client-side only; selection/play always use the original hand index.
+        const order = v.hand.map((_, i) => i);
+        if (sort === "rank") order.sort((a, b) => RID[v.hand[b].rank] - RID[v.hand[a].rank]
+          || SUIT_ORDER[v.hand[a].suit] - SUIT_ORDER[v.hand[b].suit]);
+        else if (sort === "suit") order.sort((a, b) => SUIT_ORDER[v.hand[a].suit] - SUIT_ORDER[v.hand[b].suit]
+          || RID[v.hand[b].rank] - RID[v.hand[a].rank]);
+        const selecting = targeting !== null ? targets : sel;
+        return (
+          <div className="panel">
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <span className="stat">Hand · {selecting.size} selected</span>
+              <span className="row">
+                <button className={"alt tiny" + (sort === "rank" ? " on" : "")} onClick={() => setSort("rank")}>Rank</button>
+                <button className={"alt tiny" + (sort === "suit" ? " on" : "")} onClick={() => setSort("suit")}>Suit</button>
+                <button className={"alt tiny" + (sort === "deal" ? " on" : "")} onClick={() => setSort("deal")}>Dealt</button>
+                <button className="alt tiny" disabled={!selecting.size}
+                  onClick={() => { if (targeting !== null) setTargets(new Set()); else { setSel(new Set()); previewCards([]); } }}>
+                  Clear
+                </button>
+              </span>
+            </div>
+            <div className="hand">
+              {order.map((i) => {
+                const c = v.hand[i];
+                const picked = targeting !== null ? targets.has(i) : sel.has(i);
+                return <Card key={c.uid} c={c} picked={picked} onClick={() => toggleCard(i)} />;
+              })}
+            </div>
+            <div className="preview">
+              {preview && sel.size > 0 ? `${fmt(preview.chips)} × ${fmt(preview.mult)} = ${fmt(preview.score)}` : ""}
+            </div>
+            <div className="row" style={{ marginTop: 12 }}>
+              <button disabled={!(sel.size >= 1 && sel.size <= 5)} onClick={play}>Play Hand</button>
+              <button className="alt" disabled={!(sel.size >= 1 && v.discardsLeft > 0)} onClick={discard}>Discard</button>
+              <div className="spacer" />
+              <button className="alt" onClick={() => newRun()}>New Run</button>
+            </div>
           </div>
-          <div className="preview">
-            {preview && sel.size > 0 ? `${fmt(preview.chips)} × ${fmt(preview.mult)} = ${fmt(preview.score)}` : ""}
-          </div>
-          <div className="row" style={{ marginTop: 12 }}>
-            <button disabled={!(sel.size >= 1 && sel.size <= 5)} onClick={play}>Play Hand</button>
-            <button className="alt" disabled={!(sel.size >= 1 && v.discardsLeft > 0)} onClick={discard}>Discard</button>
-            <div className="spacer" />
-            <button className="alt" onClick={() => newRun()}>New Run</button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {inShop && <Shop />}
       {banner && <div className="panel banner">{banner}</div>}
@@ -207,22 +234,17 @@ function Shop() {
       <button disabled={v.money < cost} onClick={onBuy}>{label}</button>
     </div>
   );
+  const icon: Record<string, string> = { JOKER: "🃏", TAROT: "🎴", PLANET: "🪐" };
   return (
     <div className="panel">
-      <div className="stat">Shop</div>
+      <div className="stat">Shop · {v.shop?.length ?? 0} slots</div>
       <div className="row">
+        {/* Mixed main slots: each is a joker, tarot, or planet from the master queue. */}
         {(v.shop ?? []).map((it, i) => (
-          <Offer key={"j" + i} name={(it.edition && it.edition !== "NONE" ? `✦ ` : "") + it.name}
-            desc={`${it.description ?? ""} ${it.rarity ?? ""}`} cost={it.cost} label="Buy"
-            onBuy={() => send({ type: "buyJoker", index: i })} />
-        ))}
-        {(v.shopPlanets ?? []).map((it, i) => (
-          <Offer key={"p" + i} name={"🪐 " + it.name} desc={it.description} cost={it.cost} label="Buy"
-            onBuy={() => send({ type: "buyPlanet", index: i })} />
-        ))}
-        {(v.shopConsumables ?? []).map((it, i) => (
-          <Offer key={"c" + i} name={"🎴 " + it.name} desc={it.description} cost={it.cost} label="Buy"
-            onBuy={() => send({ type: "buyConsumable", index: i })} />
+          <Offer key={"s" + i}
+            name={(it.edition && it.edition !== "NONE" ? "✦ " : "") + (icon[it.kind] ?? "") + " " + it.name}
+            desc={`${it.description ?? ""} ${it.rarity ?? ""}`.trim()} cost={it.cost} label="Buy"
+            onBuy={() => send({ type: "buyShopItem", index: i })} />
         ))}
         {v.shopVoucher && (
           <Offer accent name={"🎟 " + v.shopVoucher.name} desc={v.shopVoucher.description}
