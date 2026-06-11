@@ -1,0 +1,30 @@
+{
+  "name": "balatro-competitive-client",
+  "version": "0.0.0",
+  "description": "Electron reference client for the server-authoritative Balatro server. Renders ClientView, sends intents over raw TCP. Server is the single source of truth.",
+  "main": "./out/main/index.js",
+  "author": "ChronoFinale",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@tanstack/react-store": "^0.7",
+    "@tanstack/store": "^0.7",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "^4",
+    "electron": "^33",
+    "electron-vite": "^2",
+    "typescript": "^5",
+    "vite": "^5"
+  }
+}
