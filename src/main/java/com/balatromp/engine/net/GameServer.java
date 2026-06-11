@@ -36,7 +36,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -68,12 +72,23 @@ public final class GameServer implements AutoCloseable {
     private final ProviderRegistry providers = new ProviderRegistry();
     private final ObjectMapper json = new ObjectMapper();
 
-    private final Map<String, String> players = new ConcurrentHashMap<>();   // sessionId -> playerId
-    private final Map<String, Connection> conns = new ConcurrentHashMap<>(); // sessionId -> connection (for push)
-    private final Map<String, Run> runs = new ConcurrentHashMap<>();         // sessionId -> solo run
+    private final Map<String, String> players = new ConcurrentHashMap<>();      // sessionId -> playerId
+    private final Map<String, Connection> conns = new ConcurrentHashMap<>();    // sessionId -> connection
+    private final Map<String, Connection> connByPlayer = new ConcurrentHashMap<>(); // playerId -> current connection
+    private final Map<String, Run> runs = new ConcurrentHashMap<>();            // playerId -> solo run (survives disconnect)
+    private final Map<String, ScheduledFuture<?>> graceTasks = new ConcurrentHashMap<>(); // playerId -> pending forfeit
     private final Map<String, Match> matchBySession = new ConcurrentHashMap<>();
     private final Map<String, Match> pendingByCode = new ConcurrentHashMap<>();
     private final Set<String> activeCodes = ConcurrentHashMap.newKeySet();
+    private final ScheduledExecutorService scheduler =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "session-grace");
+                t.setDaemon(true);
+                return t;
+            });
+
+    /** How long a disconnected player's game is preserved before cleanup (crash/reconnect window). */
+    private volatile int graceSeconds = 180;
 
     private volatile ServerSocket tcpServer; // raw-TCP listener (null until startTcp)
 
@@ -281,6 +296,7 @@ public final class GameServer implements AutoCloseable {
     @Override
     public void close() {
         app.stop();
+        scheduler.shutdownNow();
         ServerSocket ss = tcpServer;
         if (ss != null) {
             try {
@@ -354,9 +370,9 @@ public final class GameServer implements AutoCloseable {
         while (ss != null && !ss.isClosed()) {
             try {
                 Socket socket = ss.accept();
-                Thread t = new Thread(() -> serveTcp(socket), "tcp-conn");
-                t.setDaemon(true);
-                t.start();
+                // One virtual thread per connection (Java 21+): cheap to have thousands
+                // blocked on socket reads, so the simple blocking read loop scales.
+                Thread.ofVirtual().name("tcp-conn").start(() -> serveTcp(socket));
             } catch (IOException e) {
                 return; // server closed
             }
@@ -366,7 +382,8 @@ public final class GameServer implements AutoCloseable {
     private void serveTcp(Socket socket) {
         TcpConnection conn;
         try {
-            socket.setTcpNoDelay(true);
+            socket.setTcpNoDelay(true);          // send small intents immediately (no Nagle delay)
+            socket.setSoTimeout(45_000);          // ~3 missed 15s heartbeats -> treat as dead
             conn = new TcpConnection(socket.getOutputStream());
         } catch (IOException e) {
             return;
@@ -389,11 +406,38 @@ public final class GameServer implements AutoCloseable {
         }
     }
 
+    /**
+     * A connection went away. The game state is owned by the player identity, not the
+     * socket, so we DON'T destroy it here — we detach the connection and start a grace
+     * timer; if the player re-auths within {@link #graceSeconds} the run is resumed,
+     * otherwise it's cleaned up. (Match reconnect is a follow-up; matches still detach.)
+     */
     private void dropSession(String sessionId) {
-        players.remove(sessionId);
+        String playerId = players.remove(sessionId);
         conns.remove(sessionId);
-        runs.remove(sessionId);
         matchBySession.remove(sessionId);
+        if (playerId == null) return;
+        Connection current = connByPlayer.get(playerId);
+        if (current != null && current.sessionId().equals(sessionId)) {
+            connByPlayer.remove(playerId); // this was their live connection
+            scheduleGrace(playerId);
+        }
+    }
+
+    /** Preserve a disconnected player's run for the grace window, then drop it if still gone. */
+    private void scheduleGrace(String playerId) {
+        ScheduledFuture<?> prev = graceTasks.remove(playerId);
+        if (prev != null) prev.cancel(false);
+        ScheduledFuture<?> f = scheduler.schedule(() -> {
+            graceTasks.remove(playerId);
+            if (!connByPlayer.containsKey(playerId)) runs.remove(playerId); // never came back
+        }, graceSeconds, TimeUnit.SECONDS);
+        graceTasks.put(playerId, f);
+    }
+
+    /** Test/config hook: shorten the reconnect grace window. */
+    public void setGraceSeconds(int seconds) {
+        this.graceSeconds = seconds;
     }
 
     /** Dispatch one client message (same logic for every transport). */
@@ -411,7 +455,22 @@ public final class GameServer implements AutoCloseable {
                 }
                 players.put(conn.sessionId(), playerId);
                 conns.put(conn.sessionId(), conn);
+                connByPlayer.put(playerId, conn);
+                // Reconnected within the grace window: cancel the pending cleanup.
+                ScheduledFuture<?> grace = graceTasks.remove(playerId);
+                if (grace != null) grace.cancel(false);
                 conn.send(Map.of("type", "authed", "seq", seq, "playerId", playerId));
+                // Resume: if a solo run is still alive for this identity, resend its view so the
+                // reconnected client re-renders the exact authoritative state.
+                Run existing = runs.get(playerId);
+                if (existing != null) {
+                    conn.send(new WsResponse("update", seq, true, null, existing.view(), List.of()));
+                }
+                return;
+            }
+
+            if (type.equals("ping")) { // heartbeat: keep-alive + liveness probe
+                conn.send(Map.of("type", "pong", "seq", seq));
                 return;
             }
 
@@ -423,7 +482,7 @@ public final class GameServer implements AutoCloseable {
             switch (type) {
                 case "newRun" -> {
                     Run run = new Run(ruleset, msg.path("seed").asText("SEED"));
-                    runs.put(conn.sessionId(), run);
+                    runs.put(players.get(conn.sessionId()), run); // keyed by identity, survives reconnect
                     conn.send(ok(seq, run));
                 }
                 case "createLobby" -> createLobby(conn, seq);
@@ -513,10 +572,10 @@ public final class GameServer implements AutoCloseable {
         return m;
     }
 
-    /** The player's authoritative Run: their match's run if in a match, else solo. */
+    /** The player's authoritative Run: their match's run if in a match, else their solo run. */
     private Run runFor(String sessionId) {
         Match m = matchBySession.get(sessionId);
-        return (m != null) ? m.runOf(sessionId) : runs.get(sessionId);
+        return (m != null) ? m.runOf(sessionId) : runs.get(players.get(sessionId));
     }
 
     /** After applying an action, let the match push opponent state + decide the match. */
