@@ -106,9 +106,10 @@ class RunModTest {
         Run run = new Run(std, "DC", stoneDeck(400), jokers("j_diet_cola"));
         assertThat(run.sellJoker(0)).isNull();          // sell -> free Double Tag
         assertThat(run.state.tags).contains("tag_double");
-        int money = run.state.money;
-        assertThat(run.skipBlind()).isNull();           // skip -> $15 tag, doubled by the Double Tag
-        assertThat(run.state.money).isEqualTo(money + 30);
+        run.state.offeredTag = "tag_investment";        // force a known (held) tag to be offered on skip
+        assertThat(run.skipBlind()).isNull();           // skip -> claim it, doubled by the Double Tag
+        // Double Tag duplicated the claimed tag: two Investment tags now held.
+        assertThat(run.state.tags.stream().filter(t -> t.equals("tag_investment")).count()).isEqualTo(2);
         assertThat(run.state.tags).doesNotContain("tag_double"); // consumed
     }
 

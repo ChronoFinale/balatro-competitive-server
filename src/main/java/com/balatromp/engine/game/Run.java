@@ -159,6 +159,17 @@ public final class Run {
         for (int i = composition.size() - deckBefore; i > 0; i--) {
             GameEvents.raise(Trigger.CARD_ADDED, state, rng, null);
         }
+        // Offer a skip tag for skippable blinds (Small/Big, non-PvP), from the game-long tag queue
+        // resolved against this ante's offerable pool (Ante-1 lockouts + MP bans).
+        boolean skippable = blind != BlindType.BOSS && !pvpBoss;
+        if (skippable) {
+            List<String> pool = TagCatalog.offerable(ante, "multiplayer".equals(ruleset.jokerVariant()));
+            state.offeredTag = pool.isEmpty() ? null
+                    : pool.get((int) (roll("tags") * pool.size()) % pool.size());
+        } else {
+            state.offeredTag = null;
+        }
+        applyBlindTags(); // NEXT_BLIND tags (Juggle: +3 hand size) before the hand is dealt
         dealNewDeck(); // full deck reshuffled fresh each blind
         state.hand.clear();
         state.deck.drawTo(state.hand, state.handSize);
@@ -519,6 +530,7 @@ public final class Run {
         state.cardsSoldSinceLastPvp = 0; // Taxes counts sells between PvP blinds
         int interest = roundInterest();
         state.money += NEMESIS.reward() + interest;
+        applyBossDefeatTags(); // Investment Tag pays out after the PvP (Boss) blind too
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind
         applyGiftCard();
         applyPennyPincher();
@@ -535,6 +547,7 @@ public final class Run {
         state.money += reward + interest;
         state.lastBlindReward = reward; // cash-out breakdown for the end-of-round screen
         state.lastInterest = interest;
+        if (boss != null) applyBossDefeatTags(); // Investment Tag pays out after a boss
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
         applyGiftCard();
@@ -1035,6 +1048,11 @@ public final class Run {
         // Cash-out breakdown (the end-of-round screen reads these when entering the shop).
         counters.put("cashOutReward", state.lastBlindReward);
         counters.put("cashOutInterest", state.lastInterest);
+        // The tag offered for skipping this blind (shown on the Select/Skip screen).
+        counters.put("offeredTag", state.offeredTag == null ? "" : state.offeredTag);
+        counters.put("offeredTagName", state.offeredTag == null ? ""
+                : (TagCatalog.get(state.offeredTag) != null ? TagCatalog.get(state.offeredTag).name() : state.offeredTag));
+        counters.put("heldTags", new ArrayList<>(state.tags));
         counters.put("OPP_LIVES_BEHIND", Math.max(0, state.oppLives - state.myLives));
         counters.put("OPP_HANDS_LEFT", state.oppHandsLeft);
         counters.put("OPP_CARDS_SOLD", state.oppCardsSold);
@@ -1108,15 +1126,57 @@ public final class Run {
 
     /** Grant a tag, honoring a held Double Tag (which duplicates the next tag gained). */
     private void grantTag(String key) {
+        if (key == null) return;
         int copies = state.tags.remove("tag_double") ? 2 : 1; // Double Tag duplicates the next tag
         for (int i = 0; i < copies; i++) applyTag(key);
     }
 
-    /** Apply a tag's effect (immediate ones resolve now; others are held in the inventory). */
+    /** Apply a tag: IMMEDIATE effects resolve now; the rest are held for their trigger
+     *  (ON_SHOP / ON_BOSS_DEFEAT / NEXT_BLIND), resolved at those moments. */
     private void applyTag(String key) {
+        if (TagCatalog.timing(key) == TagCatalog.Timing.IMMEDIATE) {
+            applyImmediateTag(key);
+        } else {
+            state.tags.add(key);
+        }
+    }
+
+    private void applyImmediateTag(String key) {
         switch (key) {
-            case "tag_investment" -> state.money += 15; // skip reward: a cash bonus
-            default -> state.tags.add(key);             // held (e.g. tag_double) for later
+            case "tag_economy" -> state.money += Math.min(state.money, 40);   // double money, max +$40
+            case "tag_speed" -> state.money += 5 * state.blindsSkipped;        // $5 per blind skipped
+            case "tag_handy" -> state.money += state.handsPlayedTotal;         // $1 per hand played
+            case "tag_garbage" -> state.money += state.cardsDiscardedTotal;    // ~$1 per discard this run
+            case "tag_orbital" -> {
+                HandType best = HandType.HIGH_CARD;
+                int most = -1;
+                for (var e : state.handTypePlays.entrySet()) {
+                    if (e.getValue() > most) { most = e.getValue(); best = e.getKey(); }
+                }
+                for (int i = 0; i < 3; i++) state.levelUpHand(best);           // +3 levels to most-played
+            }
+            case "tag_top_up" -> {                                            // up to 2 Common Jokers
+                List<String> commons = JokerLibrary.keysByRarity("Common");
+                var q = state.queues.queue("tag:topup", r -> commons.get(r.nextInt(commons.size())));
+                for (int i = 0; i < 2 && state.jokers().size() < state.jokerSlots && !commons.isEmpty(); i++) {
+                    state.addJoker(JokerLibrary.create(q.next(), ruleset.jokerVariant()));
+                }
+            }
+            default -> { /* not an immediate tag */ }
+        }
+    }
+
+    /** NEXT_BLIND tags, applied at blind start (before the hand is dealt). */
+    private void applyBlindTags() {
+        if (state.tags.remove("tag_juggle")) state.handSize += 3; // Juggle: +3 hand size this round
+    }
+
+    /** ON_BOSS_DEFEAT tags: each held Investment Tag pays $25 after a boss is beaten. */
+    private void applyBossDefeatTags() {
+        long inv = state.tags.stream().filter(t -> t.equals("tag_investment")).count();
+        if (inv > 0) {
+            state.tags.removeIf(t -> t.equals("tag_investment"));
+            state.money += (int) (25 * inv);
         }
     }
 
@@ -1229,7 +1289,7 @@ public final class Run {
         if (blind == BlindType.BOSS || pvpActive) return "cannot skip this blind";
         state.blindsSkipped++;
         GameEvents.raise(Trigger.SKIP_BLIND, state, rng, null); // Throwback / skip-tag jokers
-        grantTag("tag_investment"); // skipping a blind awards a tag (honors a held Double Tag)
+        grantTag(state.offeredTag != null ? state.offeredTag : "tag_investment"); // claim the offered tag
         blind = (blind == BlindType.SMALL) ? BlindType.BIG : BlindType.BOSS;
         startBlind();
         return null;

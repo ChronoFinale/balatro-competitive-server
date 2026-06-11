@@ -63,6 +63,7 @@ public final class RunState {
     public int pizzaDiscardBonus = 0;     // temporary +discards from Pizza
     public int pizzaBlindsLeft = 0;       // blinds the Pizza discard bonus still applies for
     public final java.util.List<String> tags = new java.util.ArrayList<>(); // held tags (skip rewards, Diet Cola)
+    public String offeredTag = null; // the tag offered for skipping the current (Small/Big) blind, else null
 
     // Probability numerator (raised by "Oops! All 6s" etc.); odds are num/denom.
     public int probabilityNumerator = 1;
