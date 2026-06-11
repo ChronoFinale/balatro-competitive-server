@@ -71,6 +71,7 @@ function Game() {
   }, [v?.phase, v?.handsLeft, v?.discardsLeft]);
 
   if (!v) return <div className="panel">Loading…</div>;
+  const inSelect = v.phase === "BLIND_SELECT";
   const inBlind = v.phase === "BLIND_ACTIVE";
   const inShop = v.phase === "SHOP";
 
@@ -206,6 +207,20 @@ function Game() {
         );
       })()}
 
+      {inSelect && (
+        <div className="panel">
+          <div className="stat">Ante {v.ante} — {v.blind}{v.boss ? ` ⚠ ${v.boss}: ${v.bossEffect}` : ""}</div>
+          <div className="big" style={{ margin: "6px 0" }}>Requirement: {v.requirement}</div>
+          <div className="row" style={{ marginTop: 8 }}>
+            <button onClick={() => send({ type: "selectBlind" })}>Select (Play)</button>
+            {!v.blind.includes("Boss") && (
+              <button className="alt" onClick={() => send({ type: "skipBlind" })}>Skip for Tag</button>
+            )}
+            <div className="spacer" />
+            <button className="alt" onClick={() => newRun()}>New Run</button>
+          </div>
+        </div>
+      )}
       {inShop && <Shop />}
       {v.openPack && <PackOpening />}
       {banner && <div className="panel banner">{banner}</div>}
@@ -263,8 +278,15 @@ function Shop() {
     </div>
   );
   const icon: Record<string, string> = { JOKER: "🃏", TAROT: "🎴", PLANET: "🪐" };
+  const reward = Number(v.counters?.cashOutReward ?? 0);
+  const interest = Number(v.counters?.cashOutInterest ?? 0);
   return (
     <div className="panel">
+      {reward + interest > 0 && (
+        <div className="stat" style={{ color: "var(--gold)" }}>
+          💰 Cash out: blind ${reward} + interest ${interest} = ${reward + interest}
+        </div>
+      )}
       <div className="stat">Shop · {v.shop?.length ?? 0} slots</div>
       <div className="row">
         {/* Mixed main slots: each is a joker, tarot, or planet from the master queue. */}
