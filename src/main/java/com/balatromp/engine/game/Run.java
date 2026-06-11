@@ -757,6 +757,23 @@ public final class Run {
 
     /** Sigil (all cards to one random suit) / Ouija (all to one random rank, -1 hand size). */
     private void applyConvertHand(Consumable c, Consumable.ConvertHand ch) {
+        // MP Ouija rework: destroy 3 random cards first, convert the rest to one rank, and DON'T
+        // reduce hand size (vanilla Ouija converts the whole hand and loses 1 hand size).
+        boolean mpOuija = "c_ouija".equals(c.key()) && "multiplayer".equals(ruleset.jokerVariant());
+        if (mpOuija) {
+            for (int i = 0; i < 3; i++) {
+                List<Card> live = state.hand.stream().filter(x -> !x.destroyed).toList();
+                if (live.isEmpty()) break;
+                int pick = (int) (roll("consumable:" + c.key() + ":destroy:" + i) * live.size()) % live.size();
+                live.get(pick).destroyed = true;
+            }
+            composition.removeIf(x -> x.destroyed);
+            state.hand.removeIf(x -> x.destroyed);
+            Rank[] ranks = Rank.values();
+            Rank r = ranks[(int) (roll("consumable:" + c.key() + ":rank") * ranks.length) % ranks.length];
+            for (Card card : state.hand) card.rank = r;
+            return; // no hand-size reduction in MP
+        }
         if (ch.toRandomSuit()) {
             Suit[] suits = Suit.values();
             Suit s = suits[(int) (roll("consumable:" + c.key() + ":suit") * suits.length) % suits.length];
