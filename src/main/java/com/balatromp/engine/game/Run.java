@@ -610,7 +610,11 @@ public final class Run {
         if (sold.key().equals("j_invisible")
                 && ((Number) state.jokerState(sold).getOrDefault("rounds", 0)).intValue() >= 2
                 && !state.jokers().isEmpty() && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
-            int pick = (int) (roll("invisible:dup") * state.jokers().size()) % state.jokers().size();
+            // MP: copy the rightmost remaining joker (deterministic + comparable between players);
+            // single-player keeps the vanilla random copy.
+            int pick = "multiplayer".equals(ruleset.jokerVariant())
+                    ? state.jokers().size() - 1
+                    : (int) (roll("invisible:dup") * state.jokers().size()) % state.jokers().size();
             state.addJoker(JokerLibrary.create(state.jokers().get(pick).key()));
         }
         // Diet Cola: sold, creates a free Double Tag (duplicates the next tag you gain).
