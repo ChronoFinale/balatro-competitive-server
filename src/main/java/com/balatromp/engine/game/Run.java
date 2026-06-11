@@ -114,6 +114,7 @@ public final class Run {
     }
 
     private void startBlind() {
+        state.ante = ante; // keep RunState's ante in sync (ante-based conditions + PvP queue keys read it)
         state.roundScore = 0;
         state.discardsUsedThisRound = 0;
         state.handsPlayedThisRound = 0;
@@ -389,6 +390,11 @@ public final class Run {
     public IntentResult play(Intent intent) {
         if (phase != Phase.BLIND_ACTIVE) {
             return IntentResult.rejected("not in an active blind");
+        }
+        // PvP blind: each hand replays this ante's PvP queues from the start, so equal hands
+        // proc Lucky/Glass/Bloodstone/etc. equally regardless of how many hands are left.
+        if (intent instanceof Intent.PlayHand && state.inPvpBlind && state.queues != null) {
+            state.queues.reset("pvp:" + state.ante + ":");
         }
         IntentResult result = intents.handle(state, rng, intent);
         if (!result.ok()) return result;

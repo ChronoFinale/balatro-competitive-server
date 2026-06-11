@@ -39,4 +39,15 @@ public final class QueueSet {
             return new GameQueue<T>(() -> drawOne.apply(stream));
         });
     }
+
+    /**
+     * Rewind every queue whose key starts with {@code prefix}. Used to reset the
+     * PvP queues ("pvp:&lt;ante&gt;:…") at the start of each hand in a PvP blind, so
+     * two equal hands score the same procs regardless of hands-left.
+     */
+    public void reset(String prefix) {
+        queues.forEach((k, q) -> {
+            if (k.startsWith(prefix)) q.reset();
+        });
+    }
 }

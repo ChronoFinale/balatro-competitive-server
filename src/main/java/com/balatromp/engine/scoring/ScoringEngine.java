@@ -317,12 +317,12 @@ public final class ScoringEngine {
             // Two independent game-long hit/miss queues: 1-in-5 for +20 Mult,
             // 1-in-15 for +$20. Each Lucky trigger pops the next roll; the
             // threshold honors probabilityNumerator (Oops! All 6s).
-            if (lucky(queues, "lucky_mult") < run.probabilityNumerator / 5.0) {
+            if (lucky(queues, scoreKey(run, "lucky_mult")) < run.probabilityNumerator / 5.0) {
                 acc.mult = acc.mult.add(BigNum.of(20));
                 log(acc, card.toString(), "mult", "Lucky! +20 Mult");
                 if (!preview) run.luckyTriggersTotal++; // Lucky Cat counts triggers
             }
-            if (lucky(queues, "lucky_money") < run.probabilityNumerator / 15.0) {
+            if (lucky(queues, scoreKey(run, "lucky_money")) < run.probabilityNumerator / 15.0) {
                 if (!preview) {
                     run.money += 20;
                     run.luckyTriggersTotal++;
@@ -334,7 +334,7 @@ public final class ScoringEngine {
             double glassMult = run.multiplayer ? 1.5 : 2.0; // multiplayer nerfs Glass to x1.5
             acc.mult = acc.mult.multiply(glassMult);
             log(acc, card.toString(), "xmult", "x" + fmt(glassMult) + " Mult");
-            if (!preview && lucky(queues, "glass") < 0.25) { // game-long break queue (1-in-4)
+            if (!preview && lucky(queues, scoreKey(run, "glass")) < 0.25) { // break queue (1-in-4)
                 card.destroyed = true;
                 acc.destroyed.add(card);
             }
@@ -418,6 +418,12 @@ public final class ScoringEngine {
     private static double lucky(QueueSet queues, String key) {
         GameQueue<Double> q = queues.queue(key, com.balatromp.engine.rng.Rng::nextDouble);
         return q.next();
+    }
+
+    /** In a PvP blind, scoring queues are per-ante and reset each hand (the Run rewinds them);
+     *  outside PvP they are the game-long queues. Keeps equal PvP hands proc-for-proc fair. */
+    private static String scoreKey(RunState run, String base) {
+        return run.inPvpBlind ? "pvp:" + run.ante + ":" + base : base;
     }
 
     /** Union the global hand modifiers granted by the player's data-driven jokers. */

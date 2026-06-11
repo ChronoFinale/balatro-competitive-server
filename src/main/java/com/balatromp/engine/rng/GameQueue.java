@@ -81,4 +81,13 @@ public final class GameQueue<T> {
     public int cursor() {
         return cursor;
     }
+
+    /**
+     * Rewind the cursor to the start (cached items are kept, so the same sequence
+     * replays). Used by PvP queues, which reset each hand so equal hands get equal
+     * procs regardless of how many hands are left.
+     */
+    public void reset() {
+        cursor = 0;
+    }
 }

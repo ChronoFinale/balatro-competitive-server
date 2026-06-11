@@ -63,7 +63,13 @@ public final class EvaluationContext {
         } else {
             qs = new QueueSet(rng != null ? rng : new RandomStreams("prob"));
         }
-        return qs.queue("prob:" + seedKey, Rng::nextDouble).next();
+        // In a PvP blind, probabilistic jokers (Bloodstone, Business Card, …) draw from a
+        // per-ante PvP queue that the Run resets each hand — so equal hands proc equally
+        // regardless of hands-left. Outside PvP they use the game-long queue.
+        String key = (run != null && run.inPvpBlind)
+                ? "pvp:" + run.ante + ":prob:" + seedKey
+                : "prob:" + seedKey;
+        return qs.queue(key, Rng::nextDouble).next();
     }
 
     /** Persistent, server-only per-joker state (e.g. Ride the Bus streak). */
