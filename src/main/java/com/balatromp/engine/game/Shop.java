@@ -82,17 +82,18 @@ public final class Shop {
 
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman) {
-        return generate(queues, slots, pool, owned, showman, 1.0, 1.0);
+        return generate(queues, slots, pool, owned, showman, 1.0, 1.0, null);
     }
 
     /**
-     * Fill {@code slots} mixed main slots + one voucher. Each slot's type comes from
-     * the master "shop_slot" queue (jokers most common, then tarots, then planets);
-     * the chosen type's sub-queue supplies the item. {@code editionMult}/{@code polyMult}
-     * are the Hone/Glow-Up edition odds.
+     * Fill {@code slots} mixed main slots. Each slot's type comes from the master
+     * "shop_slot" queue (jokers most common, then tarots, then planets); the chosen
+     * type's sub-queue supplies the item. {@code editionMult}/{@code polyMult} are the
+     * Hone/Glow-Up edition odds. {@code voucher} is the run's per-ante voucher (decided
+     * once per ante by {@link Run}, not re-rolled each shop), or null if none/bought.
      */
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
-            Set<String> owned, boolean showman, double editionMult, double polyMult) {
+            Set<String> owned, boolean showman, double editionMult, double polyMult, String voucher) {
         List<String> jokerKeys = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
         GameQueue<String> jokerQ = queues.queue("jokers", r -> jokerKeys.get(r.nextInt(jokerKeys.size())));
         GameQueue<Edition> editionQ = queues.queue("joker_edition",
@@ -134,14 +135,6 @@ public final class Shop {
             }
         }
 
-        // One voucher offering, skipping any already owned (none acceptable -> no voucher).
-        List<String> voucherKeys = VoucherCatalog.keys();
-        String voucher = null;
-        if (voucherKeys.stream().anyMatch(k -> !owned.contains(k))) {
-            GameQueue<String> vQ = queues.queue("vouchers", r -> voucherKeys.get(r.nextInt(voucherKeys.size())));
-            voucher = vQ.nextWhere(k -> !owned.contains(k));
-        }
-
-        return new Shop(items, voucher);
+        return new Shop(items, voucher); // voucher decided per-ante by the Run, passed in
     }
 }

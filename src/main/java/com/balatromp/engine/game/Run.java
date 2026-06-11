@@ -72,6 +72,8 @@ public final class Run {
     private boolean pvpActive = false;
     private boolean freeRerollUsed = false; // Chaos the Clown: one free reroll per shop visit
     private boolean boosterAvailable = false; // one booster pack offered per shop visit
+    private String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
+    private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
     private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
     private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
@@ -239,8 +241,24 @@ public final class Run {
         double editionMult = 1.0, polyMult = 1.0;
         if (state.vouchers.contains("v_glow_up")) { editionMult = 4.0; polyMult = 7.0; }
         else if (state.vouchers.contains("v_hone")) { editionMult = 2.0; polyMult = 3.0; }
+        rollAnteVoucherIfNeeded(owned);
         return Shop.generate(state.queues, slots, ruleset.jokerPool(), owned,
-                hasJoker("j_showman"), editionMult, polyMult);
+                hasJoker("j_showman"), editionMult, polyMult, anteVoucher);
+    }
+
+    /**
+     * Decide the ante's single voucher once per ante. The voucher queue advances on
+     * ante change (not per shop/reroll), so the same voucher persists across this
+     * ante's Small/Big/Boss shops until bought; a new ante draws the next one.
+     */
+    private void rollAnteVoucherIfNeeded(java.util.Set<String> owned) {
+        if (anteVoucherAnte == ante) return; // already decided for this ante
+        anteVoucherAnte = ante;
+        java.util.List<String> keys = VoucherCatalog.keys();
+        anteVoucher = keys.stream().anyMatch(k -> !owned.contains(k))
+                ? state.queues.queue("vouchers", r -> keys.get(r.nextInt(keys.size())))
+                        .nextWhere(k -> !owned.contains(k))
+                : null;
     }
 
     /** Penny Pincher (Nemesis): on entering the shop, gain $1 per $3 your Nemesis spent last ante. */
@@ -493,6 +511,7 @@ public final class Run {
             default -> { /* applied elsewhere (per blind / shop) */ }
         }
         shop.clearVoucher();
+        anteVoucher = null; // bought — don't re-offer it in this ante's later shops
         return null;
     }
 

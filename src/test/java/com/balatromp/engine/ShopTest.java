@@ -149,6 +149,20 @@ class ShopTest {
     }
 
     @Test
+    void voucherIsPerAnteNotPerBlind() {
+        var all = new Intent.PlayHand(List.of(0, 1, 2, 3, 4));
+        Run run = new Run(std, "VOUCH", heartsKings(200), jokers("j_joker", "j_joker", "j_joker"));
+        run.play(all); // clear ante-1 Small -> shop
+        assertThat(run.phase).isEqualTo(Run.Phase.SHOP);
+        String v1 = run.shop.voucher();
+        assertThat(v1).isNotNull();
+        run.proceed();  // -> Big blind
+        run.play(all);  // clear Big -> shop
+        assertThat(run.phase).isEqualTo(Run.Phase.SHOP);
+        assertThat(run.shop.voucher()).isEqualTo(v1); // same ante -> same voucher (NOT re-rolled per blind)
+    }
+
+    @Test
     void pennyPincherPaysFromNemesisShopSpend() {
         var all = new Intent.PlayHand(List.of(0, 1, 2, 3, 4));
         Run base = new Run(std, "PP", heartsKings(200), jokers("j_joker", "j_joker", "j_joker"));
