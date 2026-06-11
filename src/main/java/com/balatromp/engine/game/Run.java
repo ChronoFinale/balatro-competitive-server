@@ -79,6 +79,7 @@ public final class Run {
     private record RevealedItem(String type, String key, Card card) {}
     private String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
     private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
+    private String lastVoucherShown = null;   // last resolved voucher (for the queue's dup-skip rule)
     private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
     private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
@@ -238,7 +239,8 @@ public final class Run {
         java.util.Set<String> owned = new java.util.HashSet<>();
         for (Joker j : state.jokers()) owned.add(j.key());
         owned.addAll(state.vouchers); // skip vouchers you already own too (distinct v_ namespace)
-        int slots = state.vouchers.contains("v_overstock") ? 3 : 2; // Overstock: +1 shop slot
+        int slots = state.vouchers.contains("v_overstock_plus") ? 4
+                : state.vouchers.contains("v_overstock") ? 3 : 2; // Overstock (+1) / Overstock Plus (+2)
         // Hone (Foil/Holo 2×, Poly 3×) and its upgrade Glow Up (4× / 7×) raise edition odds.
         double editionMult = 1.0, polyMult = 1.0;
         if (state.vouchers.contains("v_glow_up")) { editionMult = 4.0; polyMult = 7.0; }
@@ -257,18 +259,34 @@ public final class Run {
     }
 
     /**
-     * Decide the ante's single voucher once per ante. The voucher queue advances on
-     * ante change (not per shop/reroll), so the same voucher persists across this
-     * ante's Small/Big/Boss shops until bought; a new ante draws the next one.
+     * Decide the ante's single voucher once per ante, from the game-long voucher queue
+     * over the 16 base vouchers. Resolution per drawn position: show Tier 1 until bought,
+     * then Tier 2, then skip the position once both tiers are owned. Two consecutive
+     * positions resolving to the same voucher skip the second (dup-skip). The queue
+     * advances per ante (not per shop), so the voucher is stable within an ante.
      */
-    private void rollAnteVoucherIfNeeded(java.util.Set<String> owned) {
-        if (anteVoucherAnte == ante) return; // already decided for this ante
+    private void rollAnteVoucherIfNeeded(java.util.Set<String> ownedUnused) {
+        if (anteVoucherAnte == ante) return;
         anteVoucherAnte = ante;
-        java.util.List<String> keys = VoucherCatalog.keys();
-        anteVoucher = keys.stream().anyMatch(k -> !owned.contains(k))
-                ? state.queues.queue("vouchers", r -> keys.get(r.nextInt(keys.size())))
-                        .nextWhere(k -> !owned.contains(k))
-                : null;
+        boolean mp = "multiplayer".equals(ruleset.jokerVariant());
+        java.util.List<String> bases = VoucherCatalog.baseKeys(mp);
+        var q = state.queues.queue("vouchers", r -> bases.get(r.nextInt(bases.size())));
+        anteVoucher = null;
+        for (int attempt = 0; attempt < 64; attempt++) {
+            String base = q.next();
+            String show;
+            if (!state.vouchers.contains(base)) {
+                show = base;                                   // Tier 1 not yet bought
+            } else {
+                String up = VoucherCatalog.upgradeKey(base);
+                show = (up != null && !state.vouchers.contains(up)) ? up : null; // Tier 2, or both owned -> skip
+            }
+            if (show == null) continue;                        // both tiers owned: skip this position
+            if (show.equals(lastVoucherShown)) continue;       // dup-skip consecutive identical
+            lastVoucherShown = show;
+            anteVoucher = show;
+            return;
+        }
     }
 
     /** Penny Pincher (Nemesis): on entering the shop, gain $1 per $3 your Nemesis spent last ante. */
@@ -329,9 +347,13 @@ public final class Run {
             int acq = ((Number) state.jokerState(j).getOrDefault("acqRounds", 0)).intValue();
             state.handSize += Math.max(0, 5 - (state.roundsPlayedTotal - acq));
         }
-        // Vouchers: permanent per-blind hand/discard upgrades.
+        // Vouchers: permanent per-blind hand / discard / hand-size upgrades (base + Tier 2).
         if (state.vouchers.contains("v_grabber")) state.handsLeft += 1;
+        if (state.vouchers.contains("v_nacho_tong")) state.handsLeft += 1;
         if (state.vouchers.contains("v_wasteful")) state.discardsLeft += 1;
+        if (state.vouchers.contains("v_recyclomancy")) state.discardsLeft += 1;
+        if (state.vouchers.contains("v_paint_brush")) state.handSize += 1;
+        if (state.vouchers.contains("v_palette")) state.handSize += 1;
         // Deck variant: per-blind hand/discard deltas (Red/Blue/Black).
         DeckCatalog.DeckType deck = DeckCatalog.get(ruleset.deckType());
         state.handsLeft += deck.handsDelta();
@@ -516,19 +538,22 @@ public final class Run {
         if (!canAfford(price(v.cost()))) return "not enough money";
         spend(price(v.cost()));
         state.vouchers.add(v.key());
-        // Immediate-effect vouchers resolve now; per-blind ones (Grabber/Wasteful) apply each blind.
+        // Immediate-effect vouchers resolve now; per-blind/shop ones apply where they're read.
         switch (v.key()) {
-            case "v_crystal_ball" -> state.consumableSlots += 1;
+            case "v_crystal_ball", "v_omen_globe" -> state.consumableSlots += 1;
             case "v_seed_money" -> state.interestCap = 10;
-            default -> { /* applied elsewhere (per blind / shop) */ }
+            case "v_money_tree" -> state.interestCap = 20;
+            case "v_antimatter" -> state.jokerSlots += 1;
+            default -> { /* passive — read in generateShop / startBlind / price / reroll */ }
         }
         shop.clearVoucher();
         anteVoucher = null; // bought — don't re-offer it in this ante's later shops
         return null;
     }
 
-    /** Apply the Clearance Sale discount (25% off, rounded down) to a shop price. */
+    /** Apply the Clearance Sale (25% off) / Liquidation (50% off) shop discount, rounded down. */
     private int price(int cost) {
+        if (state.vouchers.contains("v_liquidation")) return (int) (cost * 0.50);
         return state.vouchers.contains("v_clearance_sale") ? (int) (cost * 0.75) : cost;
     }
 
@@ -565,12 +590,20 @@ public final class Run {
         return null;
     }
 
+    /** Current reroll cost: base $5, reduced $2 by Reroll Surplus and a further $2 by Reroll Glut (floor $0). */
+    private int rerollCost() {
+        int cost = Shop.REROLL_COST;
+        if (state.vouchers.contains("v_reroll_surplus")) cost -= 2;
+        if (state.vouchers.contains("v_reroll_glut")) cost -= 2;
+        return Math.max(0, cost);
+    }
+
     /** Reroll the shop offerings. Returns null on success, else a reason. */
     public String reroll() {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         // Chaos the Clown: the first reroll each shop visit is free.
         boolean free = hasJoker("j_chaos") && !freeRerollUsed;
-        int cost = free ? 0 : Shop.REROLL_COST;
+        int cost = free ? 0 : rerollCost();
         if (!canAfford(cost)) return "not enough money";
         spend(cost);
         if (free) freeRerollUsed = true;
@@ -874,7 +907,7 @@ public final class Run {
                 m.put("edition", it.edition().name());
                 shopView.add(m);
             }
-            rerollCost = Shop.REROLL_COST;
+            rerollCost = rerollCost();
         }
 
         List<Map<String, Object>> consumables = new ArrayList<>();
