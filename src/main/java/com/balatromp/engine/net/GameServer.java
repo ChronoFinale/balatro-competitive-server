@@ -19,23 +19,42 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.websocket.WsContext;
-import io.javalin.websocket.WsMessageContext;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 
 /**
- * Transport adapter: WebSocket (Javalin/Jetty) + JSON (Jackson) + JWT auth,
- * wrapped around the authoritative engine. No game logic lives here — it
- * authenticates the connection, parses an {@link Intent}, runs it through that
- * player's {@link Run}, and serializes the {@link ServerUpdate}.
+ * Transport adapter wrapped around the authoritative engine. No game logic lives
+ * here — it authenticates a connection, parses an {@link Intent}, runs it through
+ * that player's {@link Run}, and serializes the {@link ServerUpdate}.
  *
- * Flow: HTTP POST /login -> token. WS /game: first message must be
- * {@code {"type":"auth","token":...}}; only then are game intents accepted.
- * There is no message type that carries a client-supplied score.
+ * <p>The intent-routing core is transport-neutral ({@link #handle}, keyed on a
+ * {@link Connection}); two adapters feed it the same JSON protocol:
+ * <ul>
+ *   <li><b>Raw TCP</b> (newline-delimited JSON) — what the Balatro Lua mod and the
+ *       Electron reference client speak. Started via {@link #startTcp(int)}.
+ *   <li><b>WebSocket</b> (Javalin/Jetty) — for browser clients/tooling.
+ * </ul>
+ *
+ * <p>Flow: HTTP POST /login -> token. A connection's first message must be
+ * {@code {"type":"auth","token":...}}; only then are game intents accepted. There
+ * is no message type that carries a client-supplied score.
  */
 public final class GameServer implements AutoCloseable {
 
@@ -50,11 +69,13 @@ public final class GameServer implements AutoCloseable {
     private final ObjectMapper json = new ObjectMapper();
 
     private final Map<String, String> players = new ConcurrentHashMap<>();   // sessionId -> playerId
-    private final Map<String, WsContext> ctxs = new ConcurrentHashMap<>();   // sessionId -> socket (for push)
+    private final Map<String, Connection> conns = new ConcurrentHashMap<>(); // sessionId -> connection (for push)
     private final Map<String, Run> runs = new ConcurrentHashMap<>();         // sessionId -> solo run
     private final Map<String, Match> matchBySession = new ConcurrentHashMap<>();
     private final Map<String, Match> pendingByCode = new ConcurrentHashMap<>();
     private final Set<String> activeCodes = ConcurrentHashMap.newKeySet();
+
+    private volatile ServerSocket tcpServer; // raw-TCP listener (null until startTcp)
 
     public GameServer(Ruleset ruleset) {
         this(ruleset,
@@ -216,15 +237,10 @@ public final class GameServer implements AutoCloseable {
                 ctx.json(Map.of("token", auth.issue(username), "playerId", username));
             });
 
-            // Game socket.
+            // Game socket (WebSocket transport).
             cfg.routes.ws("/game", ws -> {
-                ws.onMessage(this::onMessage);
-                ws.onClose(ctx -> {
-                    players.remove(ctx.sessionId());
-                    ctxs.remove(ctx.sessionId());
-                    runs.remove(ctx.sessionId());
-                    matchBySession.remove(ctx.sessionId());
-                });
+                ws.onMessage(ctx -> handle(new WsConnection(ctx), ctx.message()));
+                ws.onClose(ctx -> dropSession(ctx.sessionId()));
             });
         });
     }
@@ -238,101 +254,239 @@ public final class GameServer implements AutoCloseable {
         return app.port();
     }
 
+    /**
+     * Start the raw-TCP transport (newline-delimited JSON) on {@code tcpPort}
+     * (0 = ephemeral). This is the wire protocol the Balatro Lua mod and the
+     * Electron reference client speak. Returns {@code this}.
+     */
+    public GameServer startTcp(int tcpPort) {
+        try {
+            ServerSocket ss = new ServerSocket();
+            ss.bind(new InetSocketAddress("127.0.0.1", tcpPort));
+            this.tcpServer = ss;
+        } catch (IOException e) {
+            throw new RuntimeException("TCP bind failed: " + e.getMessage(), e);
+        }
+        Thread accept = new Thread(this::acceptLoop, "tcp-accept");
+        accept.setDaemon(true);
+        accept.start();
+        return this;
+    }
+
+    /** The bound raw-TCP port (-1 if not started). */
+    public int tcpPort() {
+        return tcpServer != null ? tcpServer.getLocalPort() : -1;
+    }
+
     @Override
     public void close() {
         app.stop();
+        ServerSocket ss = tcpServer;
+        if (ss != null) {
+            try {
+                ss.close();
+            } catch (IOException ignored) {
+                // shutting down
+            }
+        }
     }
 
-    private void onMessage(WsMessageContext ctx) {
+    // ---- transport-neutral core --------------------------------------------
+
+    /** A client connection, independent of transport: how the core replies to one client. */
+    public interface Connection {
+        String sessionId();
+
+        void send(Object payload);
+    }
+
+    /** WebSocket-backed connection. */
+    private final class WsConnection implements Connection {
+        private final WsContext ctx;
+
+        WsConnection(WsContext ctx) {
+            this.ctx = ctx;
+        }
+
+        @Override
+        public String sessionId() {
+            return ctx.sessionId();
+        }
+
+        @Override
+        public void send(Object payload) {
+            try {
+                ctx.send(json.writeValueAsString(payload));
+            } catch (Exception ignored) {
+                // connection went away; authoritative state is untouched
+            }
+        }
+    }
+
+    /** Raw-TCP-backed connection (one newline-delimited JSON message per line). */
+    private final class TcpConnection implements Connection {
+        private final String sessionId = UUID.randomUUID().toString();
+        private final Writer out;
+
+        TcpConnection(OutputStream os) {
+            this.out = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public String sessionId() {
+            return sessionId;
+        }
+
+        @Override
+        public synchronized void send(Object payload) {
+            try {
+                out.write(json.writeValueAsString(payload));
+                out.write('\n');
+                out.flush();
+            } catch (Exception ignored) {
+                // connection went away; authoritative state is untouched
+            }
+        }
+    }
+
+    private void acceptLoop() {
+        ServerSocket ss = tcpServer;
+        while (ss != null && !ss.isClosed()) {
+            try {
+                Socket socket = ss.accept();
+                Thread t = new Thread(() -> serveTcp(socket), "tcp-conn");
+                t.setDaemon(true);
+                t.start();
+            } catch (IOException e) {
+                return; // server closed
+            }
+        }
+    }
+
+    private void serveTcp(Socket socket) {
+        TcpConnection conn;
         try {
-            JsonNode msg = json.readTree(ctx.message());
+            socket.setTcpNoDelay(true);
+            conn = new TcpConnection(socket.getOutputStream());
+        } catch (IOException e) {
+            return;
+        }
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.isBlank()) handle(conn, line);
+            }
+        } catch (IOException ignored) {
+            // client dropped
+        } finally {
+            dropSession(conn.sessionId());
+            try {
+                socket.close();
+            } catch (IOException ignored) {
+                // closing
+            }
+        }
+    }
+
+    private void dropSession(String sessionId) {
+        players.remove(sessionId);
+        conns.remove(sessionId);
+        runs.remove(sessionId);
+        matchBySession.remove(sessionId);
+    }
+
+    /** Dispatch one client message (same logic for every transport). */
+    private void handle(Connection conn, String message) {
+        try {
+            JsonNode msg = json.readTree(message);
             String type = msg.path("type").asText();
             long seq = msg.path("seq").asLong();
 
             if (type.equals("auth")) {
                 String playerId = auth.verify(msg.path("token").asText());
                 if (playerId == null) {
-                    respond(ctx, error(seq, "invalid token"));
+                    conn.send(error(seq, "invalid token"));
                     return;
                 }
-                players.put(ctx.sessionId(), playerId);
-                ctxs.put(ctx.sessionId(), ctx);
-                respond(ctx, Map.of("type", "authed", "seq", seq, "playerId", playerId));
+                players.put(conn.sessionId(), playerId);
+                conns.put(conn.sessionId(), conn);
+                conn.send(Map.of("type", "authed", "seq", seq, "playerId", playerId));
                 return;
             }
 
-            if (!players.containsKey(ctx.sessionId())) {
-                respond(ctx, error(seq, "unauthenticated"));
+            if (!players.containsKey(conn.sessionId())) {
+                conn.send(error(seq, "unauthenticated"));
                 return;
             }
 
             switch (type) {
                 case "newRun" -> {
                     Run run = new Run(ruleset, msg.path("seed").asText("SEED"));
-                    runs.put(ctx.sessionId(), run);
-                    respond(ctx, ok(seq, run));
+                    runs.put(conn.sessionId(), run);
+                    conn.send(ok(seq, run));
                 }
-                case "createLobby" -> createLobby(ctx, seq);
-                case "joinLobby" -> joinLobby(ctx, seq, msg.path("code").asText());
+                case "createLobby" -> createLobby(conn, seq);
+                case "joinLobby" -> joinLobby(conn, seq, msg.path("code").asText());
                 case "proposeRuleset" -> {
-                    Match m = matchBySession.get(ctx.sessionId());
-                    if (m != null) m.propose(ctx.sessionId(), msg.path("name").asText());
-                    else respond(ctx, error(seq, "not in a match"));
+                    Match m = matchBySession.get(conn.sessionId());
+                    if (m != null) m.propose(conn.sessionId(), msg.path("name").asText());
+                    else conn.send(error(seq, "not in a match"));
                 }
                 case "respondRuleset" -> {
-                    Match m = matchBySession.get(ctx.sessionId());
-                    if (m != null) m.respond(ctx.sessionId(), msg.path("accept").asBoolean());
-                    else respond(ctx, error(seq, "not in a match"));
+                    Match m = matchBySession.get(conn.sessionId());
+                    if (m != null) m.respond(conn.sessionId(), msg.path("accept").asBoolean());
+                    else conn.send(error(seq, "not in a match"));
                 }
                 case "preview" -> {
-                    Run run = runFor(ctx.sessionId());
+                    Run run = runFor(conn.sessionId());
                     if (run == null) {
-                        respond(ctx, error(seq, "no active run"));
+                        conn.send(error(seq, "no active run"));
                         break;
                     }
                     var pre = run.previewScore(ints(msg.path("cards"))); // read-only, no state change
-                    respond(ctx, Map.of("type", "preview", "seq", seq,
+                    conn.send(Map.of("type", "preview", "seq", seq,
                             "chips", pre != null ? pre.chips() : 0L,
                             "mult", pre != null ? pre.mult() : 0.0,
                             "score", pre != null ? pre.score() : 0.0,
                             "replay", pre != null ? pre.replayLog() : List.of()));
                 }
-                case "playHand" -> route(ctx, seq, new Intent.PlayHand(ints(msg.path("cards"))));
-                case "discard" -> route(ctx, seq, new Intent.Discard(ints(msg.path("cards"))));
+                case "playHand" -> route(conn, seq, new Intent.PlayHand(ints(msg.path("cards"))));
+                case "discard" -> route(conn, seq, new Intent.Discard(ints(msg.path("cards"))));
                 case "buyJoker" -> {
                     int index = msg.path("index").asInt();
-                    soloAction(ctx, seq, run -> run.buyJoker(index));
+                    soloAction(conn, seq, run -> run.buyJoker(index));
                 }
-                case "reroll" -> soloAction(ctx, seq, Run::reroll);
-                case "skipBlind" -> soloAction(ctx, seq, Run::skipBlind);
-                case "buyVoucher" -> soloAction(ctx, seq, Run::buyVoucher);
-                case "openBooster" -> soloAction(ctx, seq, Run::openBooster);
-                case "skipBooster" -> soloAction(ctx, seq, Run::skipBooster);
+                case "reroll" -> soloAction(conn, seq, Run::reroll);
+                case "skipBlind" -> soloAction(conn, seq, Run::skipBlind);
+                case "buyVoucher" -> soloAction(conn, seq, Run::buyVoucher);
+                case "openBooster" -> soloAction(conn, seq, Run::openBooster);
+                case "skipBooster" -> soloAction(conn, seq, Run::skipBooster);
                 case "sellJoker" -> {
                     int index = msg.path("index").asInt();
-                    soloAction(ctx, seq, run -> run.sellJoker(index));
+                    soloAction(conn, seq, run -> run.sellJoker(index));
                 }
                 case "buyPlanet" -> {
                     int index = msg.path("index").asInt();
-                    soloAction(ctx, seq, run -> run.buyPlanet(index));
+                    soloAction(conn, seq, run -> run.buyPlanet(index));
                 }
                 case "buyConsumable" -> {
                     int index = msg.path("index").asInt();
-                    soloAction(ctx, seq, run -> run.buyConsumable(index));
+                    soloAction(conn, seq, run -> run.buyConsumable(index));
                 }
                 case "useConsumable" -> {
                     int index = msg.path("index").asInt();
                     long[] targets = longs(msg.path("targets")); // selected card ids (Tarots)
-                    soloAction(ctx, seq, run -> run.useConsumable(index, targets));
+                    soloAction(conn, seq, run -> run.useConsumable(index, targets));
                 }
-                case "proceed" -> soloAction(ctx, seq, run -> {
+                case "proceed" -> soloAction(conn, seq, run -> {
                     run.proceed();
                     return null;
                 });
-                default -> respond(ctx, error(seq, "unknown type: " + type));
+                default -> conn.send(error(seq, "unknown type: " + type));
             }
         } catch (Exception e) {
-            respond(ctx, error(0, "bad message: " + e.getMessage()));
+            conn.send(error(0, "bad message: " + e.getMessage()));
         }
     }
 
@@ -372,57 +526,53 @@ public final class GameServer implements AutoCloseable {
     }
 
     /** Apply a Run action (shop/planet/proceed) and reply with the new view. */
-    private void soloAction(WsMessageContext ctx, long seq, java.util.function.Function<Run, String> action) {
-        Run run = runFor(ctx.sessionId());
+    private void soloAction(Connection conn, long seq, Function<Run, String> action) {
+        Run run = runFor(conn.sessionId());
         if (run == null) {
-            respond(ctx, error(seq, "no active run"));
+            conn.send(error(seq, "no active run"));
             return;
         }
         String err = action.apply(run);
-        respond(ctx, new WsResponse("update", seq, err == null, err, run.view(), List.of()));
-        afterAction(ctx.sessionId());
+        conn.send(new WsResponse("update", seq, err == null, err, run.view(), List.of()));
+        afterAction(conn.sessionId());
     }
 
     /** Route a play/discard to the player's Run (match or solo). */
-    private void route(WsMessageContext ctx, long seq, Intent intent) {
-        Run run = runFor(ctx.sessionId());
+    private void route(Connection conn, long seq, Intent intent) {
+        Run run = runFor(conn.sessionId());
         if (run == null) {
-            respond(ctx, error(seq, "no active run"));
+            conn.send(error(seq, "no active run"));
             return;
         }
         ServerUpdate up = run.submit(intent);
-        respond(ctx, new WsResponse("update", seq, up.accepted(), up.rejection(), up.view(), up.replay()));
-        afterAction(ctx.sessionId());
+        conn.send(new WsResponse("update", seq, up.accepted(), up.rejection(), up.view(), up.replay()));
+        afterAction(conn.sessionId());
     }
 
-    private void createLobby(WsMessageContext ctx, long seq) {
+    private void createLobby(Connection conn, long seq) {
         String code = newCode();
         String seed = Long.toHexString(System.nanoTime()) + code;
         Match match = new Match(code, seed, ruleset, rulesetStore, this::deliver);
-        match.setHost(ctx.sessionId(), players.get(ctx.sessionId()));
+        match.setHost(conn.sessionId(), players.get(conn.sessionId()));
         pendingByCode.put(code, match);
-        matchBySession.put(ctx.sessionId(), match);
-        respond(ctx, Map.of("type", "lobbyCreated", "seq", seq, "code", code));
+        matchBySession.put(conn.sessionId(), match);
+        conn.send(Map.of("type", "lobbyCreated", "seq", seq, "code", code));
     }
 
-    private void joinLobby(WsMessageContext ctx, long seq, String code) {
+    private void joinLobby(Connection conn, long seq, String code) {
         Match match = pendingByCode.remove(code);
         if (match == null) {
-            respond(ctx, error(seq, "no such lobby: " + code));
+            conn.send(error(seq, "no such lobby: " + code));
             return;
         }
-        matchBySession.put(ctx.sessionId(), match);
-        match.setGuestAndStart(ctx.sessionId(), players.get(ctx.sessionId())); // pushes matchStart to both
+        matchBySession.put(conn.sessionId(), match);
+        match.setGuestAndStart(conn.sessionId(), players.get(conn.sessionId())); // pushes matchStart to both
     }
 
     /** Transport sink the Match uses to push to either player (incl. the opponent). */
     private void deliver(String sessionId, Object payload) {
-        WsContext c = ctxs.get(sessionId);
-        if (c == null) return;
-        try {
-            c.send(json.writeValueAsString(payload));
-        } catch (Exception ignored) {
-        }
+        Connection c = conns.get(sessionId);
+        if (c != null) c.send(payload);
     }
 
     private String newCode() {
@@ -444,14 +594,6 @@ public final class GameServer implements AutoCloseable {
 
     private WsResponse error(long seq, String message) {
         return new WsResponse("error", seq, false, message, null, List.of());
-    }
-
-    private void respond(WsContext ctx, Object payload) {
-        try {
-            ctx.send(json.writeValueAsString(payload));
-        } catch (Exception ignored) {
-            // connection went away; authoritative state is untouched
-        }
     }
 
     private static List<Integer> ints(JsonNode arr) {
