@@ -94,32 +94,21 @@ public final class Shop {
      */
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman, double editionMult, double polyMult, String voucher) {
-        List<String> jokerKeys = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
-        GameQueue<String> jokerQ = queues.queue("jokers", r -> jokerKeys.get(r.nextInt(jokerKeys.size())));
         GameQueue<Edition> editionQ = queues.queue("joker_edition",
                 r -> rollEdition(r.nextDouble(), editionMult, polyMult));
         List<String> planetKeys = PlanetCatalog.keys();
         GameQueue<String> planetQ = queues.queue("planets", r -> planetKeys.get(r.nextInt(planetKeys.size())));
         List<String> tarotKeys = TarotCatalog.tarotKeys();
         GameQueue<String> tarotQ = queues.queue("tarot", r -> tarotKeys.get(r.nextInt(tarotKeys.size())));
-        // Master queue: the TYPE of each main slot. Jokers dominate, with occasional
-        // tarots/planets — so a shop is a mix, not a fixed joker row + planet + tarot.
-        GameQueue<Kind> slotQ = queues.queue("shop_slot", r -> {
-            double x = r.nextDouble();
-            return x < 0.70 ? Kind.JOKER : (x < 0.86 ? Kind.TAROT : Kind.PLANET);
-        });
+        // Master queue: the TYPE of each main slot (vanilla weights Joker 20 / Tarot 4 / Planet 4).
+        GameQueue<Kind> slotQ = queues.queue("shop_slot", r -> rollSlotType(r.nextDouble()));
 
         List<Item> items = new ArrayList<>();
         Set<String> offeredJokers = new HashSet<>();
         for (int i = 0; i < slots; i++) {
             switch (slotQ.next()) {
                 case JOKER -> {
-                    boolean canSkip = !showman && jokerKeys.stream()
-                            .anyMatch(k -> !owned.contains(k) && !offeredJokers.contains(k));
-                    String key = canSkip
-                            ? jokerQ.nextWhere(k -> !owned.contains(k) && !offeredJokers.contains(k))
-                            : jokerQ.next();
-                    offeredJokers.add(key);
+                    String key = drawJoker(queues, pool, owned, offeredJokers, showman);
                     items.add(Item.joker(JokerLibrary.create(key).info(), editionQ.next()));
                 }
                 case TAROT -> {
@@ -136,5 +125,46 @@ public final class Shop {
         }
 
         return new Shop(items, voucher); // voucher decided per-ante by the Run, passed in
+    }
+
+    /** The type of a main shop slot, vanilla weights: Joker 20 / Tarot 4 / Planet 4 (of 28). */
+    public static Kind rollSlotType(double x) {
+        if (x < 20.0 / 28.0) return Kind.JOKER;
+        if (x < 24.0 / 28.0) return Kind.TAROT;
+        return Kind.PLANET;
+    }
+
+    /** A joker's rarity, vanilla shop weights: Common 70% / Uncommon 25% / Rare 5% (no Legendary). */
+    public static String rollRarity(double x) {
+        if (x < 0.70) return "Common";
+        if (x < 0.95) return "Uncommon";
+        return "Rare";
+    }
+
+    private static List<String> byRarity(List<String> pool, String rarity) {
+        return pool.stream().filter(k -> rarity.equals(JokerLibrary.create(k).info().rarity())).toList();
+    }
+
+    /**
+     * Draw the next shop joker: roll a rarity (Common/Uncommon/Rare) from the shared
+     * rarity queue, then pull from that rarity's own sub-queue, skipping owned/already-
+     * offered keys (unless Showman). Used by both the shop and Buffoon packs, so they
+     * share the rarity sub-queues exactly as BMP specifies. Falls back to the full pool
+     * when a custom pool lacks a rolled rarity.
+     */
+    public static String drawJoker(QueueSet queues, List<String> pool,
+            Set<String> owned, Set<String> offered, boolean showman) {
+        List<String> all = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
+        String rarity = queues.queue("joker_rarity", r -> rollRarity(r.nextDouble())).next();
+        List<String> byR = byRarity(all, rarity);
+        final List<String> draw = byR.isEmpty() ? all : byR; // custom pool may lack this rarity
+        GameQueue<String> q = queues.queue("joker_" + rarity.toLowerCase(),
+                r -> draw.get(r.nextInt(draw.size())));
+        boolean canSkip = !showman && draw.stream().anyMatch(k -> !owned.contains(k) && !offered.contains(k));
+        String key = canSkip
+                ? q.nextWhere(k -> !owned.contains(k) && !offered.contains(k))
+                : q.next();
+        offered.add(key);
+        return key;
     }
 }

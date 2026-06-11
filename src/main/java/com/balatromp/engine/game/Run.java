@@ -238,17 +238,22 @@ public final class Run {
         java.util.Set<String> owned = new java.util.HashSet<>();
         for (Joker j : state.jokers()) owned.add(j.key());
         owned.addAll(state.vouchers); // skip vouchers you already own too (distinct v_ namespace)
-        // In multiplayer, the boss-disabling jokers are banned — treat them as "already owned" so
-        // the shop queue skips over them.
-        if ("multiplayer".equals(ruleset.jokerVariant())) owned.addAll(MP_DISABLED);
         int slots = state.vouchers.contains("v_overstock") ? 3 : 2; // Overstock: +1 shop slot
         // Hone (Foil/Holo 2×, Poly 3×) and its upgrade Glow Up (4× / 7×) raise edition odds.
         double editionMult = 1.0, polyMult = 1.0;
         if (state.vouchers.contains("v_glow_up")) { editionMult = 4.0; polyMult = 7.0; }
         else if (state.vouchers.contains("v_hone")) { editionMult = 2.0; polyMult = 3.0; }
         rollAnteVoucherIfNeeded(owned);
-        return Shop.generate(state.queues, slots, ruleset.jokerPool(), owned,
+        return Shop.generate(state.queues, slots, jokerPoolForShop(), owned,
                 hasJoker("j_showman"), editionMult, polyMult, anteVoucher);
+    }
+
+    /** The joker pool the shop/packs draw from — in multiplayer the boss-interacting jokers
+     *  are excluded from the pool entirely (not merely skipped). */
+    private List<String> jokerPoolForShop() {
+        if (!"multiplayer".equals(ruleset.jokerVariant())) return ruleset.jokerPool();
+        List<String> base = ruleset.jokerPool().isEmpty() ? JokerLibrary.builtinKeys() : ruleset.jokerPool();
+        return base.stream().filter(k -> !MP_DISABLED.contains(k)).toList();
     }
 
     /**
@@ -1043,10 +1048,12 @@ public final class Run {
             case SPECTRAL -> fillConsumables(out, n, "pack:spectral", TarotCatalog.spectralKeys(), "c_the_soul");
             case CELESTIAL -> fillConsumables(out, n, "pack:planet", PlanetCatalog.keys(), "c_black_hole");
             case BUFFOON -> {
-                // Shares the shop joker queue (opening a Buffoon consumes those jokers from the shop).
-                List<String> pool = ruleset.jokerPool().isEmpty() ? JokerLibrary.builtinKeys() : ruleset.jokerPool();
-                var q = state.queues.queue("jokers", r -> pool.get(r.nextInt(pool.size())));
-                for (int i = 0; i < n; i++) out.add(new RevealedItem("JOKER", q.next(), null));
+                // Shares the shop joker rarity sub-queues (opening a Buffoon consumes those jokers).
+                java.util.Set<String> offered = new java.util.HashSet<>();
+                for (int i = 0; i < n; i++) {
+                    out.add(new RevealedItem("JOKER",
+                            Shop.drawJoker(state.queues, jokerPoolForShop(), java.util.Set.of(), offered, false), null));
+                }
             }
             case STANDARD -> {
                 Rank[] ranks = Rank.values();
