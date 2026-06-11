@@ -521,8 +521,15 @@ public final class GameServer implements AutoCloseable {
                 case "reroll" -> soloAction(conn, seq, Run::reroll);
                 case "skipBlind" -> soloAction(conn, seq, Run::skipBlind);
                 case "buyVoucher" -> soloAction(conn, seq, Run::buyVoucher);
-                case "openBooster" -> soloAction(conn, seq, Run::openBooster);
-                case "skipBooster" -> soloAction(conn, seq, Run::skipBooster);
+                case "openPack", "openBooster" -> { // openBooster = legacy alias for pack 0
+                    int index = msg.has("index") ? msg.path("index").asInt() : 0;
+                    soloAction(conn, seq, run -> run.openPack(index));
+                }
+                case "pickPackItem" -> {
+                    int index = msg.path("index").asInt();
+                    soloAction(conn, seq, run -> run.pickPackItem(index));
+                }
+                case "skipPack", "skipBooster" -> soloAction(conn, seq, Run::skipPack);
                 case "sellJoker" -> {
                     int index = msg.path("index").asInt();
                     soloAction(conn, seq, run -> run.sellJoker(index));

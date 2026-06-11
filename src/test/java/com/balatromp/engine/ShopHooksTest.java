@@ -76,20 +76,27 @@ class ShopHooksTest {
     @Test
     void redCardGainsMultWhenABoosterIsSkipped() {
         Run run = wonRun("j_red_card");
+        run.state.money = 50;
         var red = run.state.jokers().stream().filter(j -> j.key().equals("j_red_card")).findFirst().get();
-        assertThat(run.skipBooster()).isNull();
+        assertThat(run.openPack(0)).isNull(); // open a pack...
+        assertThat(run.skipPack()).isNull();  // ...then skip it -> SKIP_BOOSTER
         assertThat(((Number) run.state.jokerState(red).getOrDefault("mult", 0)).intValue()).isEqualTo(3);
     }
 
     @Test
-    void openingABoosterCostsAndYieldsAConsumable() {
+    void openingAndPickingFromAPackTakesOneCard() {
         Run run = wonRun();
-        run.state.money = 10;
-        int before = run.state.consumables.size();
-        assertThat(run.openBooster()).isNull();
-        assertThat(run.state.money).isEqualTo(6); // $10 - $4
-        assertThat(run.state.consumables.size()).isGreaterThanOrEqualTo(before + 1);
-        assertThat(run.openBooster()).isEqualTo("no booster available"); // one per shop
+        run.state.money = 50;
+        run.state.jokerSlots = 10;       // room for whatever the (random-kind) pack yields
+        run.state.consumableSlots = 10;
+        int money = run.state.money;
+        int owned = run.state.jokers().size() + run.state.consumables.size() + run.state.deckComposition.size();
+        assertThat(run.openPack(0)).isNull();
+        assertThat(run.state.money).isLessThan(money); // paid the pack's cost
+        assertThat(run.openPack(0)).isEqualTo("finish the open pack first"); // can't open another while one is open
+        assertThat(run.pickPackItem(0)).isNull();      // take the first revealed card
+        int ownedAfter = run.state.jokers().size() + run.state.consumables.size() + run.state.deckComposition.size();
+        assertThat(ownedAfter).isEqualTo(owned + 1);   // exactly one card entered inventory/deck
     }
 
     @Test

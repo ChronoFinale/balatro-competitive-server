@@ -71,7 +71,12 @@ public final class Run {
     public int pvpFromAnte = 0;  // Attrition: boss blinds at/after this ante are PvP (0 = never)
     private boolean pvpActive = false;
     private boolean freeRerollUsed = false; // Chaos the Clown: one free reroll per shop visit
-    private boolean boosterAvailable = false; // one booster pack offered per shop visit
+    private final java.util.List<PackCatalog.Pack> shopPacks = new ArrayList<>(); // 2 packs/shop, kept across rerolls
+    private java.util.List<RevealedItem> openPack = null; // the currently-open pack's revealed cards (null = none open)
+    private int packPicksLeft = 0;
+
+    /** A revealed pack card — enough to render it and to resolve a pick. type: CONSUMABLE | JOKER | CARD. */
+    private record RevealedItem(String type, String key, Card card) {}
     private String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
     private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
     private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
@@ -429,6 +434,8 @@ public final class Run {
         if (phase != Phase.BLIND_FAILED) return;
         pvpActive = false;
         shop = generateShop(); // no reward for a failed blind
+        shopPacks.clear(); // no packs after a failed blind
+        openPack = null;
         phase = Phase.SHOP;
     }
 
@@ -445,7 +452,7 @@ public final class Run {
         applyPennyPincher();
         shop = generateShop();
         freeRerollUsed = false;
-        boosterAvailable = true;
+        rollShopPacks();
         phase = Phase.SHOP;
     }
 
@@ -461,7 +468,7 @@ public final class Run {
         phase = Phase.SHOP;
         shop = generateShop();
         freeRerollUsed = false;
-        boosterAvailable = true;
+        rollShopPacks();
     }
 
     /**
@@ -927,11 +934,57 @@ public final class Run {
                     "cost", price(v.cost()));
         }
 
+        // The shop's two booster packs (kept across rerolls), and the currently-open pack if any.
+        List<Map<String, Object>> packsView = null;
+        if (phase == Phase.SHOP) {
+            packsView = new ArrayList<>();
+            for (PackCatalog.Pack p : shopPacks) {
+                packsView.add(Map.of("kind", p.kind().name(), "size", p.size().name(),
+                        "name", p.displayName(), "cost", price(p.cost()),
+                        "shown", p.shown(), "choose", p.choose()));
+            }
+        }
+        Map<String, Object> openPackView = null;
+        if (openPack != null) {
+            List<Map<String, Object>> items = new ArrayList<>();
+            for (RevealedItem it : openPack) items.add(revealedItemView(it));
+            openPackView = Map.of("picksLeft", packPicksLeft, "items", items);
+        }
+
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
                 boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
-                consumables, handLevels, deckStats, counters, shopVoucher);
+                consumables, handLevels, deckStats, counters, shopVoucher, packsView, openPackView);
+    }
+
+    /** View of one revealed pack card: a consumable/joker (key+name+desc) or a playing card. */
+    private Map<String, Object> revealedItemView(RevealedItem it) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("type", it.type());
+        switch (it.type()) {
+            case "JOKER" -> {
+                var info = JokerLibrary.create(it.key()).info();
+                m.put("key", it.key());
+                m.put("name", info.name());
+                m.put("description", info.description());
+            }
+            case "CARD" -> {
+                Card c = it.card();
+                m.put("name", c.rank.name() + " of " + c.suit.name());
+                m.put("rank", c.rank.name());
+                m.put("suit", c.suit.name());
+                m.put("enhancement", c.enhancement.name());
+            }
+            default -> { // CONSUMABLE
+                PlanetCatalog.Planet p = PlanetCatalog.get(it.key());
+                Consumable c = TarotCatalog.get(it.key());
+                m.put("key", it.key());
+                m.put("name", p != null ? p.name() : (c != null ? c.name() : it.key()));
+                m.put("description", p != null ? p.description() : (c != null ? c.description() : ""));
+            }
+        }
+        return m;
     }
 
     /** Perkeo: leaving the shop, create a (Negative) copy of a random held consumable. */
@@ -955,25 +1008,104 @@ public final class Run {
         }
     }
 
-    /** Open the shop's booster pack: pay, reveal a Tarot, raise OPEN_BOOSTER (Hallucination). */
-    public String openBooster() {
-        if (phase != Phase.SHOP || !boosterAvailable) return "no booster available";
-        if (!canAfford(4)) return "not enough money";
-        spend(4);
-        boosterAvailable = false;
-        GameEvents.raise(Trigger.OPEN_BOOSTER, state, rng, null); // Hallucination may add a Tarot
-        // The pack's pick (simplified to one Tarot, if there's a consumable slot).
-        com.balatromp.engine.consumable.Creation.apply(state,
-                new com.balatromp.engine.joker.def.CreateSpec(
-                        com.balatromp.engine.joker.def.CreateSpec.Kind.TAROT), state.queues);
+    /** Roll this shop's two booster packs from the game-long packs queue (kept across rerolls). */
+    private void rollShopPacks() {
+        shopPacks.clear();
+        openPack = null;
+        packPicksLeft = 0;
+        var q = state.queues.queue("packs", r -> PackCatalog.roll(r.nextDouble()));
+        shopPacks.add(q.next());
+        shopPacks.add(q.next());
+    }
+
+    /** Open a shop pack: pay, remove it, reveal its contents (from the Pack queues + Soul queue). */
+    public String openPack(int index) {
+        if (phase != Phase.SHOP) return "not in shop";
+        if (openPack != null) return "finish the open pack first";
+        if (index < 0 || index >= shopPacks.size()) return "no such pack";
+        PackCatalog.Pack pack = shopPacks.get(index);
+        if (!canAfford(price(pack.cost()))) return "not enough money";
+        spend(price(pack.cost()));
+        shopPacks.remove(index);
+        GameEvents.raise(Trigger.OPEN_BOOSTER, state, rng, null); // Hallucination etc. (Up-Top queue)
+        openPack = revealPack(pack);
+        packPicksLeft = pack.choose();
         return null;
     }
 
-    /** Skip the shop's booster pack (no cost), raising SKIP_BOOSTER (Red Card). */
-    public String skipBooster() {
-        if (phase != Phase.SHOP || !boosterAvailable) return "no booster available";
-        boosterAvailable = false;
-        GameEvents.raise(Trigger.SKIP_BOOSTER, state, rng, null); // Red Card gains +3 Mult
+    /** Reveal a pack's cards from its dedicated Pack queue (separate from the Up-Top creation queues),
+     *  rolling the Soul queue per consumable slot so The Soul / Black Hole can surface. */
+    private java.util.List<RevealedItem> revealPack(PackCatalog.Pack pack) {
+        java.util.List<RevealedItem> out = new ArrayList<>();
+        int n = pack.shown();
+        switch (pack.kind()) {
+            case ARCANA -> fillConsumables(out, n, "pack:tarot", TarotCatalog.tarotKeys(), "c_the_soul");
+            case SPECTRAL -> fillConsumables(out, n, "pack:spectral", TarotCatalog.spectralKeys(), "c_the_soul");
+            case CELESTIAL -> fillConsumables(out, n, "pack:planet", PlanetCatalog.keys(), "c_black_hole");
+            case BUFFOON -> {
+                // Shares the shop joker queue (opening a Buffoon consumes those jokers from the shop).
+                List<String> pool = ruleset.jokerPool().isEmpty() ? JokerLibrary.builtinKeys() : ruleset.jokerPool();
+                var q = state.queues.queue("jokers", r -> pool.get(r.nextInt(pool.size())));
+                for (int i = 0; i < n; i++) out.add(new RevealedItem("JOKER", q.next(), null));
+            }
+            case STANDARD -> {
+                Rank[] ranks = Rank.values();
+                Suit[] suits = Suit.values();
+                var q = state.queues.queue("pack:card",
+                        r -> new Card(ranks[r.nextInt(ranks.length)], suits[r.nextInt(suits.length)],
+                                Enhancement.NONE, Edition.NONE, Seal.NONE));
+                for (int i = 0; i < n; i++) out.add(new RevealedItem("CARD", null, q.next()));
+            }
+        }
+        return out;
+    }
+
+    /** Fill {@code n} consumable slots from the pack queue, rolling the Soul queue per slot;
+     *  on a Soul hit the content queue is NOT advanced (it's pushed back) and the Soul is inserted. */
+    private void fillConsumables(java.util.List<RevealedItem> out, int n, String queueKey,
+            List<String> pool, String soulKey) {
+        var q = state.queues.queue(queueKey, r -> pool.get(r.nextInt(pool.size())));
+        var soulQ = state.queues.queue("soul", r -> r.nextDouble() < 0.003); // ~0.3% per slot
+        for (int i = 0; i < n; i++) {
+            if (soulQ.next()) out.add(new RevealedItem("CONSUMABLE", soulKey, null));
+            else out.add(new RevealedItem("CONSUMABLE", q.next(), null));
+        }
+    }
+
+    /** Take one revealed card from the open pack into your inventory/deck. */
+    public String pickPackItem(int index) {
+        if (openPack == null) return "no open pack";
+        if (index < 0 || index >= openPack.size()) return "no such pack card";
+        if (packPicksLeft <= 0) return "no picks left";
+        RevealedItem it = openPack.get(index);
+        switch (it.type()) {
+            case "JOKER" -> {
+                if (state.jokers().size() >= state.jokerSlots) return "joker slots full";
+                state.addJoker(JokerLibrary.create(it.key(), ruleset.jokerVariant()));
+            }
+            case "CARD" -> {
+                Card c = it.card().copy();
+                composition.add(c);
+                state.hand.add(c);
+            }
+            default -> { // CONSUMABLE (Tarot/Planet/Spectral)
+                if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
+                state.consumables.add(it.key());
+            }
+        }
+        openPack.remove(index);
+        if (--packPicksLeft <= 0) { // all picks used -> pack closes
+            openPack = null;
+        }
+        return null;
+    }
+
+    /** Skip the rest of the open pack (counts as a skip for Red Card). */
+    public String skipPack() {
+        if (openPack == null) return "no open pack";
+        openPack = null;
+        packPicksLeft = 0;
+        GameEvents.raise(Trigger.SKIP_BOOSTER, state, rng, null); // Red Card gains +Mult
         return null;
     }
 
