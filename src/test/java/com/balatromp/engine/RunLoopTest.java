@@ -49,7 +49,7 @@ class RunLoopTest {
         Run win = new Run(std, "WIN", stoneDeck(200), jokers("j_joker", "j_joker", "j_joker"));
         assertThat(win.ante).isEqualTo(1);
         assertThat(win.blind).isEqualTo(SMALL);
-        assertThat(win.phase).isEqualTo(Run.Phase.BLIND_ACTIVE);
+        assertThat(win.phase).isEqualTo(Run.Phase.BLIND_SELECT);
 
         win.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
         assertThat(win.phase).isEqualTo(Run.Phase.SHOP);

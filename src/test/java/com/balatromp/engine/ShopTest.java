@@ -107,7 +107,7 @@ class ShopTest {
     void proceedLeavesShopForTheNextBlind() {
         Run run = winToShop();
         run.proceed();
-        assertThat(run.phase).isEqualTo(Run.Phase.BLIND_ACTIVE);
+        assertThat(run.phase).isEqualTo(Run.Phase.BLIND_SELECT);
         assertThat(run.blind).isEqualTo(BlindType.BIG);
     }
 

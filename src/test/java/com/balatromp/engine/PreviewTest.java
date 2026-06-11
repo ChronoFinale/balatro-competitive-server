@@ -80,7 +80,7 @@ class PreviewTest {
         int handSize = run.state.hand.size();
         ScoreResult pre = run.previewScore(List.of(0, 1, 2, 3, 4));
         assertThat(pre).isNotNull();
-        assertThat(run.phase).isEqualTo(Run.Phase.BLIND_ACTIVE); // not advanced
+        assertThat(run.phase).isEqualTo(Run.Phase.BLIND_SELECT); // not advanced
         assertThat(run.state.money).isEqualTo(money);
         assertThat(run.state.hand).hasSize(handSize);
         assertThat(run.state.roundScore).isEqualTo(0); // preview didn't score the round

@@ -519,6 +519,7 @@ public final class GameServer implements AutoCloseable {
                     soloAction(conn, seq, run -> run.buyShopItem(index));
                 }
                 case "reroll" -> soloAction(conn, seq, Run::reroll);
+                case "selectBlind" -> soloAction(conn, seq, Run::selectBlind);
                 case "skipBlind" -> soloAction(conn, seq, Run::skipBlind);
                 case "buyVoucher" -> soloAction(conn, seq, Run::buyVoucher);
                 case "openPack", "openBooster" -> { // openBooster = legacy alias for pack 0

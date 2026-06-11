@@ -35,7 +35,7 @@ class DeckPersistenceTest {
         assertThat(run.phase).isEqualTo(Run.Phase.SHOP);
 
         run.proceed(); // -> next blind: deck reconstituted from the SAME card objects, full hand redrawn
-        assertThat(run.phase).isEqualTo(Run.Phase.BLIND_ACTIVE);
+        assertThat(run.phase).isEqualTo(Run.Phase.BLIND_SELECT);
 
         long buffed = run.state.hand.stream().filter(c -> c.permaChips == 5).count();
         assertThat(buffed).isEqualTo(5); // exactly the 5 played in blind 1 kept their Hiker chips

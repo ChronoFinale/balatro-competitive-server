@@ -121,6 +121,10 @@ public final class RunState {
     /** Asteroids used this turn, awaiting the Match to delevel the opponent's highest hand. */
     public int nemesisDelevelPending = 0;
 
+    // Last blind's cash-out breakdown (shown on the end-of-round screen before the shop).
+    public int lastBlindReward = 0;
+    public int lastInterest = 0;
+
     public int handLevelChipBonus(HandType t) {
         return (handLevel(t) - 1) * t.lChips;
     }

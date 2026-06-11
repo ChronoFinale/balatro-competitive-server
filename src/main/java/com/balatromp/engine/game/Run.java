@@ -49,7 +49,7 @@ import java.util.Map;
  */
 public final class Run {
 
-    public enum Phase { BLIND_ACTIVE, SHOP, PVP_PENDING, BLIND_FAILED, RUN_WON, RUN_LOST }
+    public enum Phase { BLIND_SELECT, BLIND_ACTIVE, SHOP, PVP_PENDING, BLIND_FAILED, RUN_WON, RUN_LOST }
 
     /** Synthetic "boss" shown for an Attrition Nemesis blind (no debuff effect). */
     private static final BossBlind NEMESIS = new BossBlind("bl_pvp", "Nemesis Blind",
@@ -163,7 +163,16 @@ public final class Run {
         state.hand.clear();
         state.deck.drawTo(state.hand, state.handSize);
         refreshDebuffs();
+        // The blind is set up and dealt; the player now Selects it (play) or Skips it (Small/Big,
+        // for a tag). Boss/PvP blinds can't be skipped. play() auto-selects for convenience.
+        phase = Phase.BLIND_SELECT;
+    }
+
+    /** Commit to playing the offered blind (leave the Select screen). Null on success. */
+    public String selectBlind() {
+        if (phase != Phase.BLIND_SELECT) return "not selecting a blind";
         phase = Phase.BLIND_ACTIVE;
+        return null;
     }
 
     /** Jokers that consume another joker at blind select: Ceremonial Dagger (right neighbour ->
@@ -417,6 +426,7 @@ public final class Run {
 
     /** Process a client intent; advances win/lose state after a hand is played. */
     public IntentResult play(Intent intent) {
+        if (phase == Phase.BLIND_SELECT) selectBlind(); // playing the blind = selecting it
         if (phase != Phase.BLIND_ACTIVE) {
             return IntentResult.rejected("not in an active blind");
         }
@@ -523,6 +533,8 @@ public final class Run {
         int interest = roundInterest();
         int reward = (boss != null) ? boss.reward() : blind.reward;
         state.money += reward + interest;
+        state.lastBlindReward = reward; // cash-out breakdown for the end-of-round screen
+        state.lastInterest = interest;
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
         applyGiftCard();
@@ -600,7 +612,9 @@ public final class Run {
 
     /** Sell the joker at the given slot (shop or during a blind). Returns null on success. */
     public String sellJoker(int index) {
-        if (phase != Phase.SHOP && phase != Phase.BLIND_ACTIVE) return "cannot sell now";
+        if (phase != Phase.SHOP && phase != Phase.BLIND_ACTIVE && phase != Phase.BLIND_SELECT) {
+            return "cannot sell now";
+        }
         if (index < 0 || index >= state.jokers().size()) return "invalid joker";
         Joker sold = state.jokers().remove(index);
         state.cardsSoldSinceLastPvp++; // feeds the opponent's Taxes joker
@@ -1018,6 +1032,9 @@ public final class Run {
         counters.put("inPvpBlind", state.inPvpBlind);
         counters.put("bossHalveBase", state.bossHalveBase); // The Flint: preview halves base too
         counters.put("multiplayer", state.multiplayer);
+        // Cash-out breakdown (the end-of-round screen reads these when entering the shop).
+        counters.put("cashOutReward", state.lastBlindReward);
+        counters.put("cashOutInterest", state.lastInterest);
         counters.put("OPP_LIVES_BEHIND", Math.max(0, state.oppLives - state.myLives));
         counters.put("OPP_HANDS_LEFT", state.oppHandsLeft);
         counters.put("OPP_CARDS_SOLD", state.oppCardsSold);
@@ -1208,7 +1225,7 @@ public final class Run {
 
     /** Skip the current Small/Big blind (forfeit its reward, bypass the shop). Returns null on success. */
     public String skipBlind() {
-        if (phase != Phase.BLIND_ACTIVE) return "not in a blind";
+        if (phase != Phase.BLIND_SELECT && phase != Phase.BLIND_ACTIVE) return "not at a blind";
         if (blind == BlindType.BOSS || pvpActive) return "cannot skip this blind";
         state.blindsSkipped++;
         GameEvents.raise(Trigger.SKIP_BLIND, state, rng, null); // Throwback / skip-tag jokers
