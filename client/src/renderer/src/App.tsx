@@ -207,8 +207,36 @@ function Game() {
       })()}
 
       {inShop && <Shop />}
+      {v.openPack && <PackOpening />}
       {banner && <div className="panel banner">{banner}</div>}
     </>
+  );
+}
+
+function PackOpening() {
+  const v = useStore(store, (s) => s.view)!;
+  const op = v.openPack;
+  if (!op) return null;
+  return (
+    <div className="panel" style={{ outline: "2px solid var(--gold)" }}>
+      <div className="row" style={{ justifyContent: "space-between" }}>
+        <span className="stat">Booster pack — pick {op.picksLeft}</span>
+        <button className="alt tiny" onClick={() => send({ type: "skipPack" })}>Skip</button>
+      </div>
+      <div className="row">
+        {op.items.map((it, i) => (
+          <div key={i} className="offer">
+            <b>
+              {it.type === "CARD"
+                ? (RANK[it.rank ?? ""] ?? "?") + (SUIT[it.suit ?? ""] ?? "?")
+                : (it.type === "JOKER" ? "🃏 " : "🎴 ") + it.name}
+            </b>
+            {it.description && <span className="stat">{it.description}</span>}
+            <button onClick={() => send({ type: "pickPackItem", index: i })}>Pick</button>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -250,6 +278,13 @@ function Shop() {
           <Offer accent name={"🎟 " + v.shopVoucher.name} desc={v.shopVoucher.description}
             cost={v.shopVoucher.cost} label="Buy" onBuy={() => send({ type: "buyVoucher" })} />
         )}
+      </div>
+      {/* Two booster packs (kept across rerolls). */}
+      <div className="row" style={{ marginTop: 10 }}>
+        {(v.packs ?? []).map((p, i) => (
+          <Offer key={"pk" + i} name={"📦 " + p.name} desc={`pick ${p.choose} of ${p.shown}`} cost={p.cost}
+            label="Open" onBuy={() => send({ type: "openPack", index: i })} />
+        ))}
       </div>
       <div className="row" style={{ marginTop: 12 }}>
         <button className="alt" onClick={() => send({ type: "reroll" })}>Reroll (${v.rerollCost})</button>

@@ -48,6 +48,32 @@ export interface ShopVoucher {
   cost: number;
 }
 
+/** A booster pack offered in the shop. */
+export interface PackOffer {
+  kind: string;
+  size: string;
+  name: string;
+  cost: number;
+  shown: number;
+  choose: number;
+}
+
+/** A card revealed inside an opened pack. */
+export interface PackItem {
+  type: "JOKER" | "CARD" | "CONSUMABLE";
+  key?: string;
+  name: string;
+  description?: string;
+  rank?: string;
+  suit?: string;
+  enhancement?: string;
+}
+
+export interface OpenPack {
+  picksLeft: number;
+  items: PackItem[];
+}
+
 export interface ClientView {
   ante: number;
   blind: string;
@@ -69,6 +95,8 @@ export interface ClientView {
   deckStats: { size?: number; remaining?: number };
   counters: Record<string, unknown>;
   shopVoucher: ShopVoucher | null;
+  packs: PackOffer[] | null;
+  openPack: OpenPack | null;
 }
 
 export interface ServerMessage {
