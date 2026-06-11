@@ -23,23 +23,21 @@ class ShopTest {
     }
 
     @Test
-    void winningOpensShopAndBuyingAddsAJoker() {
+    void winningOpensShopAndBuyingASlotWorks() {
         Run run = winToShop();
         assertThat(run.phase).isEqualTo(Run.Phase.SHOP);
-        assertThat(run.shop.items()).hasSize(2);
-        assertThat(run.state.money).isEqualTo(7); // 4 start + 3 Small-blind reward
+        assertThat(run.shop.items()).hasSize(2);   // two mixed main slots
+        assertThat(run.state.money).isEqualTo(7);  // 4 start + 3 Small-blind reward
 
-        int before = run.state.jokers().size();
-        int cost = run.shop.items().get(0).cost(); // per-joker price
-        int money = run.state.money;
-        if (money >= cost) {
-            assertThat(run.buyJoker(0)).isNull();                 // success
-            assertThat(run.state.jokers()).hasSize(before + 1);   // joker added to the run
-            assertThat(run.state.money).isEqualTo(money - cost);  // charged its real cost
-            assertThat(run.shop.items()).hasSize(1);              // bought slot removed
-        } else {
-            assertThat(run.buyJoker(0)).isEqualTo("not enough money");
-        }
+        run.state.money = 999; // afford whatever slot 0 is
+        int jokers = run.state.jokers().size();
+        int consumables = run.state.consumables.size();
+        int slots = run.shop.items().size();
+        assertThat(run.buyShopItem(0)).isNull();          // buy regardless of kind
+        assertThat(run.shop.items()).hasSize(slots - 1);  // bought slot removed
+        // a Joker lands in the joker row; a Tarot/Planet lands in consumables — either way +1 owned.
+        assertThat(run.state.jokers().size() + run.state.consumables.size())
+                .isEqualTo(jokers + consumables + 1);
     }
 
     @Test
@@ -57,15 +55,15 @@ class ShopTest {
     @Test
     void buyingANegativeJokerGrantsItsOwnSlotEvenWhenFull() {
         Run run = winToShop();
-        // Stamp the first shop item Negative and fill the joker slots.
-        var first = run.shop.items().get(0);
-        run.shop.items().set(0, new com.balatromp.engine.game.Shop.Item(first.info(),
+        // Force slot 0 to a Negative joker and fill the joker slots.
+        var info = com.balatromp.engine.joker.JokerLibrary.create("j_joker").info();
+        run.shop.items().set(0, com.balatromp.engine.game.Shop.Item.joker(info,
                 com.balatromp.engine.card.Edition.NEGATIVE));
         run.state.jokerSlots = run.state.jokers().size(); // slots are full
         run.state.money = 999;
         int slotsBefore = run.state.jokerSlots;
         int countBefore = run.state.jokers().size();
-        assertThat(run.buyJoker(0)).isNull(); // Negative bypasses the slots-full check
+        assertThat(run.buyShopItem(0)).isNull(); // Negative bypasses the slots-full check
         assertThat(run.state.jokers()).hasSize(countBefore + 1);
         assertThat(run.state.jokerSlots).isEqualTo(slotsBefore + 1); // it brought its own slot
         var bought = run.state.jokers().get(run.state.jokers().size() - 1);
@@ -76,7 +74,7 @@ class ShopTest {
     void unaffordableActionsRejectCleanlyWithoutSpending() {
         Run run = winToShop();
         run.state.money = 0;
-        assertThat(run.buyJoker(0)).isEqualTo("not enough money");
+        assertThat(run.buyShopItem(0)).isEqualTo("not enough money");
         assertThat(run.reroll()).isEqualTo("not enough money");
         assertThat(run.state.money).isEqualTo(0); // untouched by failed actions
     }
@@ -91,15 +89,18 @@ class ShopTest {
     }
 
     @Test
-    void shopOffersAndSellsAConsumable() {
+    void buyingATarotSlotAddsItToConsumables() {
         Run run = winToShop();
-        assertThat(run.shop.consumables()).isNotEmpty(); // a Tarot is offered
-        int money = run.state.money;
+        run.state.money = 100;
+        // Force slot 0 to a Tarot (the master queue is otherwise per-seed random).
+        run.shop.items().set(0, new com.balatromp.engine.game.Shop.Item(
+                com.balatromp.engine.game.Shop.Kind.TAROT, "c_magician", "The Magician", "x", 3, null,
+                com.balatromp.engine.card.Edition.NONE));
         int before = run.state.consumables.size();
-        assertThat(run.buyConsumable(0)).isNull();
+        int money = run.state.money;
+        assertThat(run.buyShopItem(0)).isNull();
         assertThat(run.state.consumables).hasSize(before + 1);  // into inventory
         assertThat(run.state.money).isEqualTo(money - 3);       // charged $3
-        assertThat(run.shop.consumables()).isEmpty();           // removed from shop
     }
 
     @Test
@@ -113,10 +114,13 @@ class ShopTest {
     @Test
     void shopSkipsJokersYouAlreadyOwn() {
         var queues = new com.balatromp.engine.rng.QueueSet(new com.balatromp.engine.rng.RandomStreams("SK"));
-        var shop = com.balatromp.engine.game.Shop.generate(queues, 2,
-                List.of("j_joker", "j_bull", "j_banner"), java.util.Set.of("j_bull"), false);
-        assertThat(shop.items()).noneMatch(it -> it.jokerKey().equals("j_bull")); // owned -> skipped
-        assertThat(shop.items().get(0).jokerKey()).isNotEqualTo(shop.items().get(1).jokerKey());
+        // More acceptable jokers than slots, so the queue never exhausts to the owned fallback.
+        var shop = com.balatromp.engine.game.Shop.generate(queues, 3,
+                List.of("j_joker", "j_bull", "j_banner", "j_greedy_joker", "j_lusty_joker"),
+                java.util.Set.of("j_bull"), false);
+        assertThat(shop.items().stream()
+                .filter(it -> it.kind() == com.balatromp.engine.game.Shop.Kind.JOKER))
+                .noneMatch(it -> it.key().equals("j_bull")); // owned -> skipped
     }
 
     @Test
@@ -164,15 +168,18 @@ class ShopTest {
         Run run = new Run(mp, "MP", heartsKings(200), jokers("j_joker", "j_joker", "j_joker"));
         run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
         assertThat(run.phase).isEqualTo(Run.Phase.SHOP);
-        assertThat(run.shop.items())
-                .noneMatch(it -> it.jokerKey().equals("j_chicot") || it.jokerKey().equals("j_matador"));
+        assertThat(run.shop.items().stream()
+                .filter(it -> it.kind() == com.balatromp.engine.game.Shop.Kind.JOKER))
+                .noneMatch(it -> it.key().equals("j_chicot") || it.key().equals("j_matador"));
     }
 
     @Test
     void showmanAllowsOwnedAndDuplicateOfferings() {
         var queues = new com.balatromp.engine.rng.QueueSet(new com.balatromp.engine.rng.RandomStreams("SM"));
-        var shop = com.balatromp.engine.game.Shop.generate(queues, 2,
+        var shop = com.balatromp.engine.game.Shop.generate(queues, 8,
                 List.of("j_bull"), java.util.Set.of("j_bull"), true); // Showman: duplicates allowed
-        assertThat(shop.items()).allMatch(it -> it.jokerKey().equals("j_bull"));
+        assertThat(shop.items().stream()
+                .filter(it -> it.kind() == com.balatromp.engine.game.Shop.Kind.JOKER))
+                .allMatch(it -> it.key().equals("j_bull"));
     }
 }

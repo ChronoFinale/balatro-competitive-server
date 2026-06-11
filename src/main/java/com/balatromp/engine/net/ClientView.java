@@ -28,8 +28,6 @@ public record ClientView(
         int rerollCost,
         String boss,
         String bossEffect,
-        List<Map<String, Object>> shopPlanets,
-        List<Map<String, Object>> shopConsumables,
         List<Map<String, Object>> consumables,
         Map<String, Object> handLevels,
         Map<String, Object> deckStats,

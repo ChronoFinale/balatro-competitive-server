@@ -50,10 +50,13 @@ class PlanetTest {
                 jokers("j_joker", "j_joker", "j_joker"));
         run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // clear Small -> SHOP
         run.state.money = 10;
-        assertThat(run.shop.planets()).isNotEmpty();
+        // Force slot 0 to a Planet (the mixed master queue is otherwise per-seed random).
+        run.shop.items().set(0, new com.balatromp.engine.game.Shop.Item(
+                com.balatromp.engine.game.Shop.Kind.PLANET, "c_pluto", "Pluto", "x",
+                com.balatromp.engine.game.PlanetCatalog.COST, null, com.balatromp.engine.card.Edition.NONE));
 
         int before = run.state.consumables.size();
-        assertThat(run.buyPlanet(0)).isNull();
+        assertThat(run.buyShopItem(0)).isNull();
         assertThat(run.state.consumables).hasSize(before + 1);
     }
 }

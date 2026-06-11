@@ -446,20 +446,34 @@ public final class Run {
         boosterAvailable = true;
     }
 
-    /** Buy the joker at the given shop slot. Returns null on success, else a reason. */
-    public String buyJoker(int index) {
+    /**
+     * Buy the shop slot at {@code index}, whatever its type: a Joker is added to the
+     * joker row (carrying any rolled edition), a Tarot/Planet is added to your
+     * consumables. Returns null on success, else a reason.
+     */
+    public String buyShopItem(int index) {
         if (phase != Phase.SHOP || shop == null) return "not in shop";
         if (index < 0 || index >= shop.items().size()) return "invalid shop slot";
         Shop.Item item = shop.items().get(index);
-        if (!canAfford(price(item.cost()))) return "not enough money";
-        // A Negative joker grants its own slot, so it never fails the slots-full check.
-        boolean negative = item.edition() == com.balatromp.engine.card.Edition.NEGATIVE;
-        if (!negative && state.jokers().size() >= state.jokerSlots) return "joker slots full";
-        spend(price(item.cost()));
-        Joker bought = JokerLibrary.create(item.jokerKey(), ruleset.jokerVariant());
-        state.addJoker(bought);
-        if (item.edition() != com.balatromp.engine.card.Edition.NONE) {
-            state.setJokerEdition(bought, item.edition());
+        switch (item.kind()) {
+            case JOKER -> {
+                if (!canAfford(price(item.cost()))) return "not enough money";
+                // A Negative joker grants its own slot, so it never fails the slots-full check.
+                boolean negative = item.edition() == Edition.NEGATIVE;
+                if (!negative && state.jokers().size() >= state.jokerSlots) return "joker slots full";
+                spend(price(item.cost()));
+                Joker bought = JokerLibrary.create(item.key(), ruleset.jokerVariant());
+                state.addJoker(bought);
+                if (item.edition() != Edition.NONE) state.setJokerEdition(bought, item.edition());
+            }
+            case TAROT, PLANET -> {
+                if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
+                // Astronomer makes Planets free.
+                int cost = (item.kind() == Shop.Kind.PLANET && hasJoker("j_astronomer")) ? 0 : price(item.cost());
+                if (!canAfford(cost)) return "not enough money";
+                spend(cost);
+                state.consumables.add(item.key());
+            }
         }
         shop.items().remove(index);
         return null;
@@ -530,31 +544,6 @@ public final class Run {
         spend(cost);
         if (free) freeRerollUsed = true;
         shop = generateShop(); // advances the same game-long queue, skipping owned
-        return null;
-    }
-
-    /** Buy the planet at the given shop slot into your consumable inventory. */
-    public String buyPlanet(int index) {
-        if (phase != Phase.SHOP || shop == null) return "not in shop";
-        if (index < 0 || index >= shop.planets().size()) return "invalid planet slot";
-        if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
-        int cost = hasJoker("j_astronomer") ? 0 : price(PlanetCatalog.COST); // Astronomer: Planets free
-        if (!canAfford(cost)) return "not enough money";
-        spend(cost);
-        state.consumables.add(shop.planets().get(index).key());
-        shop.planets().remove(index);
-        return null;
-    }
-
-    /** Buy a Tarot/Spectral from the shop into your consumable inventory. */
-    public String buyConsumable(int index) {
-        if (phase != Phase.SHOP || shop == null) return "not in shop";
-        if (index < 0 || index >= shop.consumables().size()) return "invalid consumable slot";
-        if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
-        if (!canAfford(price(Shop.CONSUMABLE_COST))) return "not enough money";
-        spend(price(Shop.CONSUMABLE_COST));
-        state.consumables.add(shop.consumables().get(index).key());
-        shop.consumables().remove(index);
         return null;
     }
 
@@ -837,33 +826,24 @@ public final class Run {
             jokerView.add(jv);
         }
 
+        // The shop's mixed main slots — each a Joker, Tarot, or Planet (kind tells the client
+        // how to render/label it, and which buy path the server takes on buyShopItem).
         List<Map<String, Object>> shopView = null;
         int rerollCost = 0;
         if (phase == Phase.SHOP && shop != null) {
             shopView = new ArrayList<>();
             for (Shop.Item it : shop.items()) {
-                var info = it.info();
-                shopView.add(Map.of("key", info.key(), "name", info.name(), "cost", info.cost(),
-                        "description", info.description(), "rarity", info.rarity(),
-                        "x", info.atlasX(), "y", info.atlasY(), "edition", it.edition().name()));
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("kind", it.kind().name());
+                m.put("key", it.key());
+                m.put("name", it.name());
+                m.put("description", it.description());
+                m.put("cost", it.cost());
+                m.put("rarity", it.rarity());
+                m.put("edition", it.edition().name());
+                shopView.add(m);
             }
             rerollCost = Shop.REROLL_COST;
-        }
-
-        List<Map<String, Object>> shopPlanets = null;
-        List<Map<String, Object>> shopConsumables = null;
-        if (phase == Phase.SHOP && shop != null) {
-            shopPlanets = new ArrayList<>();
-            for (PlanetCatalog.Planet p : shop.planets()) {
-                shopPlanets.add(Map.of("key", p.key(), "name", p.name(), "hand", p.hand().display,
-                        "cost", PlanetCatalog.COST, "description", p.description()));
-            }
-            shopConsumables = new ArrayList<>();
-            for (Consumable c : shop.consumables()) {
-                shopConsumables.add(Map.of("key", c.key(), "name", c.name(),
-                        "cost", Shop.CONSUMABLE_COST, "description", c.description(),
-                        "maxTargets", c.maxTargets()));
-            }
         }
 
         List<Map<String, Object>> consumables = new ArrayList<>();
@@ -932,7 +912,7 @@ public final class Run {
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
                 boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
-                shopPlanets, shopConsumables, consumables, handLevels, deckStats, counters, shopVoucher);
+                consumables, handLevels, deckStats, counters, shopVoucher);
     }
 
     /** Perkeo: leaving the shop, create a (Negative) copy of a random held consumable. */

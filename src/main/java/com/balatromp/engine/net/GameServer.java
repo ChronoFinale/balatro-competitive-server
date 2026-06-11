@@ -512,9 +512,11 @@ public final class GameServer implements AutoCloseable {
                 }
                 case "playHand" -> route(conn, seq, new Intent.PlayHand(ints(msg.path("cards"))));
                 case "discard" -> route(conn, seq, new Intent.Discard(ints(msg.path("cards"))));
-                case "buyJoker" -> {
+                // Buy a mixed shop slot (joker/tarot/planet). buyJoker/buyPlanet/buyConsumable
+                // are kept as aliases for older clients — all dispatch on the slot's kind.
+                case "buyShopItem", "buyJoker", "buyPlanet", "buyConsumable" -> {
                     int index = msg.path("index").asInt();
-                    soloAction(conn, seq, run -> run.buyJoker(index));
+                    soloAction(conn, seq, run -> run.buyShopItem(index));
                 }
                 case "reroll" -> soloAction(conn, seq, Run::reroll);
                 case "skipBlind" -> soloAction(conn, seq, Run::skipBlind);
@@ -524,14 +526,6 @@ public final class GameServer implements AutoCloseable {
                 case "sellJoker" -> {
                     int index = msg.path("index").asInt();
                     soloAction(conn, seq, run -> run.sellJoker(index));
-                }
-                case "buyPlanet" -> {
-                    int index = msg.path("index").asInt();
-                    soloAction(conn, seq, run -> run.buyPlanet(index));
-                }
-                case "buyConsumable" -> {
-                    int index = msg.path("index").asInt();
-                    soloAction(conn, seq, run -> run.buyConsumable(index));
                 }
                 case "useConsumable" -> {
                     int index = msg.path("index").asInt();

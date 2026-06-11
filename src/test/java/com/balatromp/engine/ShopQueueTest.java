@@ -27,7 +27,7 @@ class ShopQueueTest {
     }
 
     private static List<String> keys(Shop shop) {
-        return shop.items().stream().map(Shop.Item::jokerKey).toList();
+        return shop.items().stream().map(Shop.Item::key).toList();
     }
 
     @Test

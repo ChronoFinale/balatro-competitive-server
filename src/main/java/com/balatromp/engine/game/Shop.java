@@ -13,15 +13,15 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A between-blinds shop. Offerings are drawn from the run's game-long
- * {@link QueueSet} (BMP-style determinism): one persistent joker queue and one
- * planet queue per run, advanced as the shop reveals/rerolls. Both players on the
- * same seed walk the same sequence, each at their own cursor — so a reroll just
- * reveals the next items, never a fresh independent roll. Offered content is
- * reproducible and never client-influenced.
+ * A between-blinds shop, modelled on Balatro's real shape: the main area is a set
+ * of <b>mixed</b> card slots — each independently a Joker, Tarot, or Planet drawn
+ * from the master queue — plus one Voucher. (Booster packs are a follow-up.)
  *
- * Iteration slots: rarity-split joker sub-queues, consumable/voucher/booster
- * slots, the main-queue-of-tags topology, scaling reroll cost.
+ * Offerings come from the run's game-long {@link QueueSet} (BMP-style determinism):
+ * a master "shop_slot" queue decides each slot's TYPE, then the next item of that
+ * type is pulled from its own sub-queue (jokers/tarot/planets, jokers skipping
+ * owned). Both players on a seed walk identical sequences; a reroll just reveals
+ * the next slots. Content is reproducible and never client-influenced.
  */
 public final class Shop {
 
@@ -29,12 +29,16 @@ public final class Shop {
     public static final int JOKER_SLOT_LIMIT = 5;
     public static final int CONSUMABLE_COST = 3;
 
-    /** A shop offering carries the joker's full display/shop metadata + any rolled edition. */
-    public record Item(JokerInfo info, Edition edition) {
-        public Item(JokerInfo info) { this(info, Edition.NONE); }
-        public String jokerKey() { return info.key(); }
-        public String name() { return info.name(); }
-        public int cost() { return info.cost(); }
+    /** What a shop slot offers. (Spectrals come from packs/Ghost Deck, not the main shop.) */
+    public enum Kind { JOKER, TAROT, PLANET }
+
+    /** A single shop slot — any {@link Kind}, with the display fields the client renders. */
+    public record Item(Kind kind, String key, String name, String description,
+                       int cost, String rarity, Edition edition) {
+        public static Item joker(JokerInfo info, Edition edition) {
+            return new Item(Kind.JOKER, info.key(), info.name(), info.description(),
+                    info.cost(), info.rarity(), edition);
+        }
     }
 
     /**
@@ -53,16 +57,15 @@ public final class Shop {
     }
 
     private final List<Item> items;
-    private final List<PlanetCatalog.Planet> planets;
-    private final List<Consumable> consumables;
     private String voucher; // the offered voucher key this shop, or null (one per shop)
 
-    private Shop(List<Item> items, List<PlanetCatalog.Planet> planets, List<Consumable> consumables,
-            String voucher) {
+    private Shop(List<Item> items, String voucher) {
         this.items = items;
-        this.planets = planets;
-        this.consumables = consumables;
         this.voucher = voucher;
+    }
+
+    public List<Item> items() {
+        return items;
     }
 
     public String voucher() {
@@ -73,75 +76,63 @@ public final class Shop {
         voucher = null;
     }
 
-    public List<Item> items() {
-        return items;
-    }
-
-    public List<PlanetCatalog.Planet> planets() {
-        return planets;
-    }
-
-    public List<Consumable> consumables() {
-        return consumables;
-    }
-
-    /**
-     * Reveal {@code slots} jokers + one planet by advancing the run's game-long
-     * queues. The joker queue draws from {@code pool} (the active ruleset's
-     * {@code jokerPool} — so a custom ruleset that names custom jokers offers
-     * exactly those); the planet queue draws from {@link PlanetCatalog}. Each
-     * call advances the cursors, so a new shop or a reroll simply continues the
-     * same sequence — matching BMP's shared-queue behavior.
-     */
     public static Shop generate(QueueSet queues, int slots, List<String> pool) {
         return generate(queues, slots, pool, Set.of(), false);
     }
 
-    /**
-     * As {@link #generate(QueueSet, int, List)}, but the joker queue skips any key in
-     * {@code owned} (and already offered this shop) — the BMP "you already have it, skip
-     * over it" rule — unless {@code showman} is set, which allows duplicate offerings.
-     */
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman) {
         return generate(queues, slots, pool, owned, showman, 1.0, 1.0);
     }
 
     /**
-     * As above, but with edition-appearance multipliers (Hone/Glow Up vouchers).
-     * {@code editionMult} scales Foil/Holo, {@code polyMult} scales Polychrome.
+     * Fill {@code slots} mixed main slots + one voucher. Each slot's type comes from
+     * the master "shop_slot" queue (jokers most common, then tarots, then planets);
+     * the chosen type's sub-queue supplies the item. {@code editionMult}/{@code polyMult}
+     * are the Hone/Glow-Up edition odds.
      */
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman, double editionMult, double polyMult) {
         List<String> jokerKeys = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
         GameQueue<String> jokerQ = queues.queue("jokers", r -> jokerKeys.get(r.nextInt(jokerKeys.size())));
-        // Each shop joker draws one edition roll from its own game-long queue (so both
-        // players on a seed see the same editions, and a reroll continues the sequence).
         GameQueue<Edition> editionQ = queues.queue("joker_edition",
                 r -> rollEdition(r.nextDouble(), editionMult, polyMult));
-        List<Item> items = new ArrayList<>();
-        Set<String> offered = new HashSet<>();
-        for (int i = 0; i < slots; i++) {
-            // Skip owned / already-offered keys, but only while an acceptable key remains
-            // (else nextWhere would loop forever). Showman disables skipping entirely.
-            boolean canSkip = !showman && jokerKeys.stream()
-                    .anyMatch(k -> !owned.contains(k) && !offered.contains(k));
-            String key = canSkip
-                    ? jokerQ.nextWhere(k -> !owned.contains(k) && !offered.contains(k))
-                    : jokerQ.next();
-            offered.add(key);
-            items.add(new Item(JokerLibrary.create(key).info(), editionQ.next()));
-        }
         List<String> planetKeys = PlanetCatalog.keys();
         GameQueue<String> planetQ = queues.queue("planets", r -> planetKeys.get(r.nextInt(planetKeys.size())));
-        List<PlanetCatalog.Planet> planets = new ArrayList<>();
-        planets.add(PlanetCatalog.get(planetQ.next()));
-
-        // One Tarot offering, from its own game-long queue.
         List<String> tarotKeys = TarotCatalog.tarotKeys();
         GameQueue<String> tarotQ = queues.queue("tarot", r -> tarotKeys.get(r.nextInt(tarotKeys.size())));
-        List<Consumable> consumables = new ArrayList<>();
-        consumables.add(TarotCatalog.get(tarotQ.next()));
+        // Master queue: the TYPE of each main slot. Jokers dominate, with occasional
+        // tarots/planets — so a shop is a mix, not a fixed joker row + planet + tarot.
+        GameQueue<Kind> slotQ = queues.queue("shop_slot", r -> {
+            double x = r.nextDouble();
+            return x < 0.70 ? Kind.JOKER : (x < 0.86 ? Kind.TAROT : Kind.PLANET);
+        });
+
+        List<Item> items = new ArrayList<>();
+        Set<String> offeredJokers = new HashSet<>();
+        for (int i = 0; i < slots; i++) {
+            switch (slotQ.next()) {
+                case JOKER -> {
+                    boolean canSkip = !showman && jokerKeys.stream()
+                            .anyMatch(k -> !owned.contains(k) && !offeredJokers.contains(k));
+                    String key = canSkip
+                            ? jokerQ.nextWhere(k -> !owned.contains(k) && !offeredJokers.contains(k))
+                            : jokerQ.next();
+                    offeredJokers.add(key);
+                    items.add(Item.joker(JokerLibrary.create(key).info(), editionQ.next()));
+                }
+                case TAROT -> {
+                    Consumable c = TarotCatalog.get(tarotQ.next());
+                    items.add(new Item(Kind.TAROT, c.key(), c.name(), c.description(),
+                            CONSUMABLE_COST, null, Edition.NONE));
+                }
+                case PLANET -> {
+                    PlanetCatalog.Planet p = PlanetCatalog.get(planetQ.next());
+                    items.add(new Item(Kind.PLANET, p.key(), p.name(), p.description(),
+                            PlanetCatalog.COST, null, Edition.NONE));
+                }
+            }
+        }
 
         // One voucher offering, skipping any already owned (none acceptable -> no voucher).
         List<String> voucherKeys = VoucherCatalog.keys();
@@ -151,6 +142,6 @@ public final class Shop {
             voucher = vQ.nextWhere(k -> !owned.contains(k));
         }
 
-        return new Shop(items, planets, consumables, voucher);
+        return new Shop(items, voucher);
     }
 }
