@@ -80,6 +80,8 @@ public final class Run {
     private String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
     private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
     private String lastVoucherShown = null;   // last resolved voucher (for the queue's dup-skip rule)
+    private boolean couponActive = false;     // Coupon Tag: this shop's initial cards/packs are free
+    private boolean d6Active = false;         // D6 Tag: rerolls start at $0 this shop
     private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
     private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
@@ -519,6 +521,7 @@ public final class Run {
         shop = generateShop(); // no reward for a failed blind
         shopPacks.clear(); // no packs after a failed blind
         openPack = null;
+        enterShopTags();
         phase = Phase.SHOP;
     }
 
@@ -537,7 +540,15 @@ public final class Run {
         shop = generateShop();
         freeRerollUsed = false;
         rollShopPacks();
+        enterShopTags();
         phase = Phase.SHOP;
+    }
+
+    /** Reset per-shop tag flags and resolve any held ON_SHOP tags as the shop opens. */
+    private void enterShopTags() {
+        couponActive = false;
+        d6Active = false;
+        applyShopTags();
     }
 
     private void winBlind() {
@@ -556,6 +567,7 @@ public final class Run {
         shop = generateShop();
         freeRerollUsed = false;
         rollShopPacks();
+        enterShopTags();
     }
 
     /**
@@ -611,8 +623,10 @@ public final class Run {
         return null;
     }
 
-    /** Apply the Clearance Sale (25% off) / Liquidation (50% off) shop discount, rounded down. */
+    /** Apply the Clearance Sale (25% off) / Liquidation (50% off) shop discount, rounded down.
+     *  Coupon Tag makes this shop's initial cards/packs free until the first reroll. */
     private int price(int cost) {
+        if (couponActive) return 0;
         if (state.vouchers.contains("v_liquidation")) return (int) (cost * 0.50);
         return state.vouchers.contains("v_clearance_sale") ? (int) (cost * 0.75) : cost;
     }
@@ -658,6 +672,7 @@ public final class Run {
 
     /** Current reroll cost: base $5, reduced $2 by Reroll Surplus and a further $2 by Reroll Glut (floor $0). */
     private int rerollCost() {
+        if (d6Active) return 0; // D6 Tag: first reroll is free this shop
         int cost = Shop.REROLL_COST;
         if (state.vouchers.contains("v_reroll_surplus")) cost -= 2;
         if (state.vouchers.contains("v_reroll_glut")) cost -= 2;
@@ -673,6 +688,8 @@ public final class Run {
         if (!canAfford(cost)) return "not enough money";
         spend(cost);
         if (free) freeRerollUsed = true;
+        couponActive = false; // the free "initial" cards are gone once you reroll
+        d6Active = false;     // the free reroll is consumed
         shop = generateShop(); // advances the same game-long queue, skipping owned
         return null;
     }
@@ -1169,6 +1186,49 @@ public final class Run {
     /** NEXT_BLIND tags, applied at blind start (before the hand is dealt). */
     private void applyBlindTags() {
         if (state.tags.remove("tag_juggle")) state.handSize += 3; // Juggle: +3 hand size this round
+    }
+
+    /** ON_SHOP tags: resolve held tags that act on the shop when it opens (free packs / free
+     *  jokers / editioned-and-free jokers / an extra voucher / Coupon / D6). Consumes each. */
+    private void applyShopTags() {
+        if (shop == null) return;
+        List<String> shopTags = state.tags.stream()
+                .filter(t -> TagCatalog.timing(t) == TagCatalog.Timing.ON_SHOP).toList();
+        for (String t : shopTags) {
+            state.tags.remove(t); // consume one instance
+            switch (t) {
+                case "tag_rare" -> addFreeJoker("Rare");
+                case "tag_uncommon" -> addFreeJoker("Uncommon");
+                case "tag_foil" -> addFreeEditionedJoker(Edition.FOIL);
+                case "tag_holo" -> addFreeEditionedJoker(Edition.HOLOGRAPHIC);
+                case "tag_polychrome" -> addFreeEditionedJoker(Edition.POLYCHROME);
+                case "tag_negative" -> addFreeEditionedJoker(Edition.NEGATIVE);
+                case "tag_charm" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.ARCANA, PackCatalog.Size.MEGA));
+                case "tag_meteor" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.CELESTIAL, PackCatalog.Size.MEGA));
+                case "tag_buffoon" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.BUFFOON, PackCatalog.Size.MEGA));
+                case "tag_standard" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.STANDARD, PackCatalog.Size.MEGA));
+                case "tag_ethereal" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.SPECTRAL, PackCatalog.Size.NORMAL));
+                case "tag_coupon" -> couponActive = true;
+                case "tag_d6" -> d6Active = true;
+                default -> { /* unmodelled ON_SHOP tag */ }
+            }
+        }
+    }
+
+    /** Add a free Joker of the given rarity to the shop, drawn from a tag-only off-shop queue. */
+    private void addFreeJoker(String rarity) {
+        List<String> pool = JokerLibrary.keysByRarity(rarity);
+        if (pool.isEmpty()) return;
+        String key = state.queues.queue("tag:joker:" + rarity, r -> pool.get(r.nextInt(pool.size()))).next();
+        var info = JokerLibrary.create(key).info();
+        shop.items().add(new Shop.Item(Shop.Kind.JOKER, key, info.name(), info.description(), 0, info.rarity(), Edition.NONE));
+    }
+
+    /** Add a free base Joker with a forced edition (Foil/Holo/Poly/Negative Tag). */
+    private void addFreeEditionedJoker(Edition ed) {
+        String key = Shop.drawJoker(state.queues, jokerPoolForShop(), java.util.Set.of(), new java.util.HashSet<>(), false);
+        var info = JokerLibrary.create(key).info();
+        shop.items().add(new Shop.Item(Shop.Kind.JOKER, key, info.name(), info.description(), 0, info.rarity(), ed));
     }
 
     /** ON_BOSS_DEFEAT tags: each held Investment Tag pays $25 after a boss is beaten. */

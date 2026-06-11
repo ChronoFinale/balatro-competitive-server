@@ -80,6 +80,39 @@ class TagSystemTest {
     }
 
     @Test
+    void rareTagAddsAFreeRareJokerToTheNextShop() {
+        Run run = run("RARE");
+        run.state.tags.add("tag_rare");
+        run.play(FIVE); // win Small -> shop opens, ON_SHOP tags resolve
+        var free = run.shop.items().stream()
+                .filter(it -> it.kind() == com.balatromp.engine.game.Shop.Kind.JOKER)
+                .filter(it -> it.cost() == 0 && "Rare".equals(it.rarity()))
+                .findFirst();
+        assertThat(free).as("a free Rare joker was added").isPresent();
+        assertThat(run.state.tags).doesNotContain("tag_rare"); // consumed
+    }
+
+    @Test
+    void charmTagAddsAFreeMegaArcanaPack() {
+        Run run = run("CHARM");
+        run.state.tags.add("tag_charm");
+        run.play(FIVE); // win Small -> shop
+        assertThat(run.view().packs()).hasSize(3); // 2 base packs + the free Arcana pack
+        assertThat(run.state.tags).doesNotContain("tag_charm");
+    }
+
+    @Test
+    void couponTagMakesShopCardsFree() {
+        Run run = run("COUP");
+        run.state.tags.add("tag_coupon");
+        run.play(FIVE); // win Small -> shop with Coupon active
+        run.state.money = 0;        // can't afford anything normally
+        run.state.jokerSlots = 10;  // room for whatever slot 0 is
+        run.state.consumableSlots = 10;
+        assertThat(run.buyShopItem(0)).isNull(); // but Coupon makes it free
+    }
+
+    @Test
     void multiplayerOmitsBossRerollTagFromOffers() {
         assertThat(TagCatalog.offerable(2, true)).doesNotContain("tag_boss");
         assertThat(TagCatalog.offerable(2, false)).contains("tag_boss");
