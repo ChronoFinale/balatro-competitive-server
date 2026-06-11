@@ -114,6 +114,11 @@ function Game() {
         <div className="pill">Discards <b>{v.discardsLeft}</b></div>
         <div className="pill">${v.money}</div>
         <div className="pill">Deck {v.deckStats?.remaining ?? "?"}/{v.deckStats?.size ?? "?"}</div>
+        {Array.isArray(v.counters?.heldTags) && (v.counters!.heldTags as string[]).length > 0 && (
+          <div className="pill" title={(v.counters!.heldTags as string[]).join(", ")}>
+            🏷 {(v.counters!.heldTags as string[]).length}
+          </div>
+        )}
       </div>
 
       <div className="panel">
@@ -211,10 +216,15 @@ function Game() {
         <div className="panel">
           <div className="stat">Ante {v.ante} — {v.blind}{v.boss ? ` ⚠ ${v.boss}: ${v.bossEffect}` : ""}</div>
           <div className="big" style={{ margin: "6px 0" }}>Requirement: {v.requirement}</div>
+          {String(v.counters?.offeredTagName ?? "") && (
+            <div className="stat">Skip reward: 🏷 {String(v.counters?.offeredTagName)}</div>
+          )}
           <div className="row" style={{ marginTop: 8 }}>
             <button onClick={() => send({ type: "selectBlind" })}>Select (Play)</button>
             {!v.blind.includes("Boss") && (
-              <button className="alt" onClick={() => send({ type: "skipBlind" })}>Skip for Tag</button>
+              <button className="alt" onClick={() => send({ type: "skipBlind" })}>
+                Skip → {String(v.counters?.offeredTagName ?? "Tag")}
+              </button>
             )}
             <div className="spacer" />
             <button className="alt" onClick={() => newRun()}>New Run</button>
