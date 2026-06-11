@@ -130,6 +130,11 @@ public final class TarotCatalog {
                 ConsumableType.SPECTRAL, 1, new Consumable.CopySelected(2)));
         put(new Consumable("c_ankh", "Ankh", "Copy a random Joker, destroy all other Jokers",
                 ConsumableType.SPECTRAL, 0, new Consumable.CopyRandomJoker(true)));
+
+        // MP-exclusive planet: delevels the nemesis's highest hand (PLANET type keeps it out of the
+        // single-player Tarot/Spectral pools; it's distributed only in multiplayer).
+        put(new Consumable("c_asteroid", "Asteroid", "Delevel your nemesis's highest-level poker hand",
+                ConsumableType.PLANET, 0, new Consumable.NemesisDelevel()));
     }
 
     private static void put(Consumable c) {

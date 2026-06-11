@@ -83,6 +83,13 @@ public final class Match {
 
         syncNemesis(); // refresh each Run's opponent view so Nemesis jokers read live state
 
+        // Asteroid (MP): a player who used it delevels the OPPONENT's highest-level hand.
+        if (me.run.state.nemesisDelevelPending > 0) {
+            for (int i = 0; i < me.run.state.nemesisDelevelPending; i++) delevelHighestHand(opp.run);
+            me.run.state.nemesisDelevelPending = 0;
+            pushView(opp); // the opponent's hand levels changed
+        }
+
         // Speedrun: reaching a PvP blind before your Nemesis creates a Spectral (once per arrival).
         if (me.run.inPvpBlind() && !me.wasInPvp && !opp.run.inPvpBlind() && me.run.ownsJoker("j_speedrun")) {
             me.run.grantSpectral();
@@ -156,6 +163,21 @@ public final class Match {
         if (host == null || guest == null || host.run == null || guest.run == null) return;
         applyOpponent(host, guest);
         applyOpponent(guest, host);
+    }
+
+    /** Delevel a run's highest-level poker hand; ties go to the higher-ranked hand
+     *  (Flush Five → … → High Card), and a hand can't drop below level 1 (Asteroid). */
+    private static void delevelHighestHand(Run run) {
+        com.balatromp.engine.hand.HandType[] hands = com.balatromp.engine.hand.HandType.values();
+        int max = 1;
+        for (com.balatromp.engine.hand.HandType h : hands) max = Math.max(max, run.state.handLevel(h));
+        if (max <= 1) return; // nothing leveled above base
+        for (int i = hands.length - 1; i >= 0; i--) { // from the best hand down
+            if (run.state.handLevel(hands[i]) == max) {
+                run.state.levelDownHand(hands[i]);
+                return;
+            }
+        }
     }
 
     /** Pizza (Nemesis): if {@code me} holds it, consume it for +1 discard and give opp +2, one ante. */

@@ -17,7 +17,8 @@ public record Consumable(String key, String name, String description, Consumable
 
     public sealed interface Effect
             permits Enhance, Destroy, Create, LevelAllHands, JokerEdition, Generate,
-                    ConvertHand, CopySelected, OverwriteSelected, CopyRandomJoker, CopyLastConsumable {}
+                    ConvertHand, CopySelected, OverwriteSelected, CopyRandomJoker, CopyLastConsumable,
+                    NemesisDelevel {}
 
     /** Apply a card mutation to each selected target (enhance/convert/seal/edition). */
     public record Enhance(CardMod mod) implements Effect {}
@@ -81,4 +82,7 @@ public record Consumable(String key, String name, String description, Consumable
 
     /** Create a copy of the last Tarot or Planet used this run (The Fool). */
     public record CopyLastConsumable() implements Effect {}
+
+    /** Asteroid (MP): delevel the nemesis's highest poker hand (resolved by the Match). */
+    public record NemesisDelevel() implements Effect {}
 }

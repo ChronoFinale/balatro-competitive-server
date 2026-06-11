@@ -113,6 +113,14 @@ public final class RunState {
         handLevels.put(t, handLevel(t) + 1);
     }
 
+    /** Level a poker hand down by one, floored at 1 (the Asteroid MP planet on the nemesis). */
+    public void levelDownHand(HandType t) {
+        handLevels.put(t, Math.max(1, handLevel(t) - 1));
+    }
+
+    /** Asteroids used this turn, awaiting the Match to delevel the opponent's highest hand. */
+    public int nemesisDelevelPending = 0;
+
     public int handLevelChipBonus(HandType t) {
         return (handLevel(t) - 1) * t.lChips;
     }

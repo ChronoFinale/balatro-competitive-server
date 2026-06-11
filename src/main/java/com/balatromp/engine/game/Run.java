@@ -752,6 +752,7 @@ public final class Run {
                     state.consumables.add(last);
                 }
             }
+            case Consumable.NemesisDelevel ignored -> state.nemesisDelevelPending++; // Match applies it to the opponent
         }
     }
 
