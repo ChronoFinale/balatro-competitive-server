@@ -317,13 +317,42 @@ public final class Run {
     /** Re-roll the per-round dynamic targets (The Idol's card, Ancient's suit). */
     private void rollRoundTargets() {
         com.balatromp.engine.card.Suit[] suits = com.balatromp.engine.card.Suit.values();
-        state.idolSuit = suits[(int) (roll("target:idol:suit") * suits.length) % suits.length];
-        state.idolRankId = 2 + (int) (roll("target:idol:rank") * 13) % 13;
+        if ("multiplayer".equals(ruleset.jokerVariant())) {
+            rollMpIdol(); // MP: deck-position roll (shared number, each player's own deck)
+        } else {
+            state.idolSuit = suits[(int) (roll("target:idol:suit") * suits.length) % suits.length];
+            state.idolRankId = 2 + (int) (roll("target:idol:rank") * 13) % 13;
+        }
         state.ancientSuit = suits[(int) (roll("target:ancient:suit") * suits.length) % suits.length];
         state.castleSuit = suits[(int) (roll("target:castle:suit") * suits.length) % suits.length];
         com.balatromp.engine.hand.HandType[] hands = com.balatromp.engine.hand.HandType.values();
         state.todoHandType = hands[(int) (roll("target:todo:hand") * hands.length) % hands.length];
         state.rebateRankId = 2 + (int) (roll("target:rebate:rank") * 13) % 13;
+    }
+
+    /**
+     * Multiplayer Idol: sort the deck from the cards you have the most duplicates of to the
+     * fewest (ties by suit, then rank with Ace low), roll 1–1000 (the same number for both
+     * players), and pick the card at that position. A better-stacked deck reliably lands the
+     * roll on your most-common card; both players share the roll, not the result.
+     */
+    private void rollMpIdol() {
+        List<Card> deck = state.deckComposition;
+        if (deck.isEmpty()) return;
+        java.util.Map<String, Integer> counts = new java.util.HashMap<>();
+        for (Card c : deck) counts.merge(c.rank + "|" + c.suit, 1, Integer::sum);
+        List<Card> sorted = new ArrayList<>(deck);
+        sorted.sort((a, b) -> {
+            int ca = counts.get(a.rank + "|" + a.suit), cb = counts.get(b.rank + "|" + b.suit);
+            if (ca != cb) return cb - ca;                       // most duplicates first
+            if (a.suit != b.suit) return a.suit.ordinal() - b.suit.ordinal();
+            int ra = (a.rank == Rank.ACE) ? 1 : a.rank.id, rb = (b.rank == Rank.ACE) ? 1 : b.rank.id;
+            return ra - rb;                                     // Ace low
+        });
+        int rollPos = 1 + (int) (roll("target:idol:pos") * 1000); // shared 1..1000
+        Card target = sorted.get((rollPos - 1) % sorted.size());
+        state.idolSuit = target.suit;
+        state.idolRankId = target.rank.id;
     }
 
     private double roll(String key) {
