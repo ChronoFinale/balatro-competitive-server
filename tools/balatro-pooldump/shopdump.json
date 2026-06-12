@@ -1,0 +1,11 @@
+{
+	"id": "shopdump",
+	"name": "ShopDump",
+	"display_name": "Shop Dump",
+	"author": ["balatro-competitive-server"],
+	"description": "Auto-starts a seeded run and dumps the real ante-1 shop the game generates, for the seeded-shop diff.",
+	"prefix": "shopdump",
+	"priority": 1000,
+	"main_file": "shopdump.lua",
+	"version": "1.0.0"
+}

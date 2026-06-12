@@ -1,0 +1,11 @@
+{
+	"id": "pooldump",
+	"name": "PoolDump",
+	"display_name": "Pool Dump",
+	"author": ["balatro-competitive-server"],
+	"description": "Dumps the real P_JOKER_RARITY_POOLS + P_CENTER_POOLS (registration order) to a JSON file, for bit-exact pool-order parity with our engine.",
+	"prefix": "pooldump",
+	"priority": 1000,
+	"main_file": "pooldump.lua",
+	"version": "1.0.0"
+}

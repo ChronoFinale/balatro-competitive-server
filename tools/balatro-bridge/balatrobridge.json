@@ -1,0 +1,11 @@
+{
+	"id": "balatrobridge",
+	"name": "BalatroBridge",
+	"display_name": "Balatro Bridge",
+	"author": ["balatro-competitive-server"],
+	"description": "Step 2 of the real-Balatro client: on launch, maps the server's ClientView hand to real Balatro card identities and dumps the proof; press F6 in a blind to render the server's hand on screen.",
+	"prefix": "bbridge",
+	"priority": 1000,
+	"main_file": "balatrobridge.lua",
+	"version": "0.1.0"
+}
