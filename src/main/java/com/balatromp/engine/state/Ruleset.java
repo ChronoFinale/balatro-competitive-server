@@ -66,4 +66,14 @@ public record Ruleset(
         return new Ruleset("Standard", 4, 4, 3, 8, 1.0, 8,
                 new int[]{300, 800, 2000, 5000, 11000, 20000, 35000, 50000});
     }
+
+    /**
+     * Whether "The Order" variance reduction is active (BMP's ranked default). When on, game-long
+     * RNG sources omit the ante from their key (one sequence per game) and composition sources order
+     * by card/joker identity rather than list position. A competitive server runs with it on; a future
+     * casual ruleset can override this to get vanilla per-ante, position-sensitive randomness.
+     */
+    public boolean order() {
+        return true;
+    }
 }

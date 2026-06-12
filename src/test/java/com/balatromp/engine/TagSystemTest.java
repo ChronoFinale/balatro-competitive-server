@@ -113,6 +113,30 @@ class TagSystemTest {
     }
 
     @Test
+    void voucherTagAddsASecondVoucherFromTheSameQueue() {
+        Run run = run("VOUCH");
+        run.state.tags.add("tag_voucher");
+        run.play(FIVE); // win Small -> shop opens, ON_SHOP tags resolve
+        assertThat(run.shop.vouchers()).as("per-ante voucher + the tag voucher").hasSize(2);
+        assertThat(run.shop.vouchers().get(0)).isNotEqualTo(run.shop.vouchers().get(1)); // distinct
+        assertThat(run.state.tags).doesNotContain("tag_voucher"); // consumed
+    }
+
+    @Test
+    void voucherTagVoucherSurvivesARerollAndIsBuyable() {
+        Run run = run("VOUCH2");
+        run.state.tags.add("tag_voucher");
+        run.play(FIVE); // win Small -> shop (2 vouchers)
+        run.state.money = 100; // afford reroll + the voucher
+        run.reroll();
+        assertThat(run.shop.vouchers()).as("tag voucher persists across reroll").hasSize(2);
+        String tagVoucher = run.shop.vouchers().get(1);
+        assertThat(run.buyVoucher(1)).isNull();               // buy the extra (tag) voucher
+        assertThat(run.state.vouchers).contains(tagVoucher);
+        assertThat(run.shop.vouchers()).hasSize(1);           // only the per-ante one remains
+    }
+
+    @Test
     void multiplayerOmitsBossRerollTagFromOffers() {
         assertThat(TagCatalog.offerable(2, true)).doesNotContain("tag_boss");
         assertThat(TagCatalog.offerable(2, false)).contains("tag_boss");

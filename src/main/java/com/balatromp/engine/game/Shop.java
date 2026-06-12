@@ -3,10 +3,12 @@ package com.balatromp.engine.game;
 import com.balatromp.engine.card.Edition;
 import com.balatromp.engine.consumable.Consumable;
 import com.balatromp.engine.consumable.TarotCatalog;
+import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.JokerInfo;
 import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.rng.GameQueue;
 import com.balatromp.engine.rng.QueueSet;
+import com.balatromp.engine.rng.RngSources;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -57,23 +59,37 @@ public final class Shop {
     }
 
     private final List<Item> items;
-    private String voucher; // the offered voucher key this shop, or null (one per shop)
+    // Offered vouchers this shop. Normally the single per-ante voucher; a Voucher Tag adds an
+    // extra slot (vanilla: card_limit + 1) drawn from the same voucher queue.
+    private final List<String> vouchers;
 
-    private Shop(List<Item> items, String voucher) {
+    private Shop(List<Item> items, List<String> vouchers) {
         this.items = items;
-        this.voucher = voucher;
+        this.vouchers = vouchers;
     }
 
     public List<Item> items() {
         return items;
     }
 
-    public String voucher() {
-        return voucher;
+    /** The vouchers offered this shop (0..n). */
+    public List<String> vouchers() {
+        return vouchers;
     }
 
-    public void clearVoucher() {
-        voucher = null;
+    /** Convenience for the common single-voucher case: the first offered voucher, or null. */
+    public String voucher() {
+        return vouchers.isEmpty() ? null : vouchers.get(0);
+    }
+
+    /** Add an extra offered voucher (Voucher Tag). */
+    public void addVoucher(String key) {
+        if (key != null && !vouchers.contains(key)) vouchers.add(key);
+    }
+
+    /** Remove a voucher (bought). */
+    public void removeVoucher(String key) {
+        vouchers.remove(key);
     }
 
     public static Shop generate(QueueSet queues, int slots, List<String> pool) {
@@ -82,7 +98,7 @@ public final class Shop {
 
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman) {
-        return generate(queues, slots, pool, owned, showman, 1.0, 1.0, null);
+        return generate(queues, slots, pool, owned, showman, 1.0, 1.0, null, null);
     }
 
     /**
@@ -93,15 +109,16 @@ public final class Shop {
      * once per ante by {@link Run}, not re-rolled each shop), or null if none/bought.
      */
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
-            Set<String> owned, boolean showman, double editionMult, double polyMult, String voucher) {
-        GameQueue<Edition> editionQ = queues.queue("joker_edition",
+            Set<String> owned, boolean showman, double editionMult, double polyMult, String voucher,
+            Set<HandType> playedHands) {
+        GameQueue<Edition> editionQ = queues.queue(RngSources.JOKER_EDITION,
                 r -> rollEdition(r.nextDouble(), editionMult, polyMult));
         List<String> planetKeys = PlanetCatalog.keys();
-        GameQueue<String> planetQ = queues.queue("planets", r -> planetKeys.get(r.nextInt(planetKeys.size())));
+        GameQueue<String> planetQ = queues.queue(RngSources.PLANETS, r -> planetKeys.get(r.nextInt(planetKeys.size())));
         List<String> tarotKeys = TarotCatalog.tarotKeys();
-        GameQueue<String> tarotQ = queues.queue("tarot", r -> tarotKeys.get(r.nextInt(tarotKeys.size())));
+        GameQueue<String> tarotQ = queues.queue(RngSources.TAROT, r -> tarotKeys.get(r.nextInt(tarotKeys.size())));
         // Master queue: the TYPE of each main slot (vanilla weights Joker 20 / Tarot 4 / Planet 4).
-        GameQueue<Kind> slotQ = queues.queue("shop_slot", r -> rollSlotType(r.nextDouble()));
+        GameQueue<Kind> slotQ = queues.queue(RngSources.SHOP_SLOT, r -> rollSlotType(r.nextDouble()));
 
         List<Item> items = new ArrayList<>();
         Set<String> offeredJokers = new HashSet<>();
@@ -117,14 +134,19 @@ public final class Shop {
                             CONSUMABLE_COST, null, Edition.NONE));
                 }
                 case PLANET -> {
-                    PlanetCatalog.Planet p = PlanetCatalog.get(planetQ.next());
+                    // Skip softlocked secret-hand planets (Planet X/Ceres/Eris) until their hand is played.
+                    String pk = (playedHands == null) ? planetQ.next()
+                            : planetQ.nextWhere(k -> PlanetCatalog.available(k, playedHands));
+                    PlanetCatalog.Planet p = PlanetCatalog.get(pk);
                     items.add(new Item(Kind.PLANET, p.key(), p.name(), p.description(),
                             PlanetCatalog.COST, null, Edition.NONE));
                 }
             }
         }
 
-        return new Shop(items, voucher); // voucher decided per-ante by the Run, passed in
+        List<String> vouchers = new ArrayList<>();
+        if (voucher != null) vouchers.add(voucher); // per-ante voucher; a Voucher Tag may add more
+        return new Shop(items, vouchers);
     }
 
     /** The type of a main shop slot, vanilla weights: Joker 20 / Tarot 4 / Planet 4 (of 28). */
@@ -155,15 +177,22 @@ public final class Shop {
     public static String drawJoker(QueueSet queues, List<String> pool,
             Set<String> owned, Set<String> offered, boolean showman) {
         List<String> all = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
-        String rarity = queues.queue("joker_rarity", r -> rollRarity(r.nextDouble())).next();
+        String rarity = queues.queue(RngSources.JOKER_RARITY, r -> rollRarity(r.nextDouble())).next();
         List<String> byR = byRarity(all, rarity);
         final List<String> draw = byR.isEmpty() ? all : byR; // custom pool may lack this rarity
-        GameQueue<String> q = queues.queue("joker_" + rarity.toLowerCase(),
+        GameQueue<String> q = queues.queue(RngSources.jokerPool(rarity),
                 r -> draw.get(r.nextInt(draw.size())));
-        boolean canSkip = !showman && draw.stream().anyMatch(k -> !owned.contains(k) && !offered.contains(k));
-        String key = canSkip
-                ? q.nextWhere(k -> !owned.contains(k) && !offered.contains(k))
-                : q.next();
+        boolean anyAcceptable = draw.stream().anyMatch(k -> !owned.contains(k) && !offered.contains(k));
+        // Showman allows duplicates; otherwise skip owned/offered. If the whole rarity is exhausted,
+        // BMP's culled pool is empty and falls back to j_joker (get_current_pool, common_events.lua:2044).
+        String key;
+        if (showman) {
+            key = q.next();
+        } else if (anyAcceptable) {
+            key = q.nextWhere(k -> !owned.contains(k) && !offered.contains(k));
+        } else {
+            key = "j_joker";
+        }
         offered.add(key);
         return key;
     }

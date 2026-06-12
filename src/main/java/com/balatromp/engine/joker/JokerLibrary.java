@@ -57,6 +57,14 @@ public final class JokerLibrary {
         return BUILTIN_KEYS;
     }
 
+    /**
+     * Jokers banned in Standard Ranked multiplayer (boss-blind interactions: Mr. Bones, Luchador,
+     * Matador, Chicot). Excluded from every pool the shop, packs, AND creation effects draw from — not
+     * merely skipped — so they can't be acquired at all in an MP run. The single source of truth.
+     */
+    public static final java.util.Set<String> MP_BANNED =
+            java.util.Set.of("j_chicot", "j_matador", "j_mr_bones", "j_luchador");
+
     /** Built-in joker keys of a given rarity (e.g. "Common") — Riff Raff's creation pool. */
     public static java.util.List<String> keysByRarity(String rarity) {
         return BUILTIN_KEYS.stream()

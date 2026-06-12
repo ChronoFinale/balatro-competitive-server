@@ -521,7 +521,10 @@ public final class GameServer implements AutoCloseable {
                 case "reroll" -> soloAction(conn, seq, Run::reroll);
                 case "selectBlind" -> soloAction(conn, seq, Run::selectBlind);
                 case "skipBlind" -> soloAction(conn, seq, Run::skipBlind);
-                case "buyVoucher" -> soloAction(conn, seq, Run::buyVoucher);
+                case "buyVoucher" -> { // optional index: the shop can offer several when a Voucher Tag added one
+                    int index = msg.has("index") ? msg.path("index").asInt() : 0;
+                    soloAction(conn, seq, run -> run.buyVoucher(index));
+                }
                 case "openPack", "openBooster" -> { // openBooster = legacy alias for pack 0
                     int index = msg.has("index") ? msg.path("index").asInt() : 0;
                     soloAction(conn, seq, run -> run.openPack(index));
@@ -612,7 +615,7 @@ public final class GameServer implements AutoCloseable {
 
     private void createLobby(Connection conn, long seq) {
         String code = newCode();
-        String seed = Long.toHexString(System.nanoTime()) + code;
+        String seed = com.balatromp.engine.rng.Seeds.random(); // a valid, reproducible Balatro seed
         Match match = new Match(code, seed, ruleset, rulesetStore, this::deliver);
         match.setHost(conn.sessionId(), players.get(conn.sessionId()));
         pendingByCode.put(code, match);

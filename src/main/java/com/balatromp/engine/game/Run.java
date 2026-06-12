@@ -24,6 +24,9 @@ import com.balatromp.engine.net.CardView;
 import com.balatromp.engine.net.ClientView;
 import com.balatromp.engine.net.ServerUpdate;
 import com.balatromp.engine.rng.RandomStreams;
+import com.balatromp.engine.rng.RngContext;
+import com.balatromp.engine.rng.RngSource;
+import com.balatromp.engine.rng.RngSources;
 import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.scoring.ReplayEntry;
@@ -80,10 +83,16 @@ public final class Run {
     private String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
     private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
     private String lastVoucherShown = null;   // last resolved voucher (for the queue's dup-skip rule)
+    private final List<String> tagVouchers = new ArrayList<>(); // extra vouchers a Voucher Tag added this shop visit
     private boolean couponActive = false;     // Coupon Tag: this shop's initial cards/packs are free
     private boolean d6Active = false;         // D6 Tag: rerolls start at $0 this shop
     private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
     private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
+
+    // Identity tiebreaks for composition picks. Same-key jokers/consumables are interchangeable for a
+    // "random" pick, so the comparator is neutral; the grouping (by key) is what makes the choice
+    // depend on the set held rather than its left-to-right order.
+    private static final java.util.Comparator<Joker> JOKER_QUALITY = (a, b) -> 0;
 
     public Run(Ruleset ruleset, String seed) {
         this(ruleset, seed, Deck.standard(), List.of());
@@ -97,6 +106,7 @@ public final class Run {
         state.money = ruleset.startingMoney() + deckType.startMoneyDelta();
         state.jokerSlots = 5 + deckType.jokerSlotsDelta();
         state.rng = rng;
+        state.order = ruleset.order();
         state.queues = new com.balatromp.engine.rng.QueueSet(rng);
         for (Joker j : jokers) state.addJoker(j);
         for (Card c : deck.cards()) composition.add(c.copy()); // capture deck composition
@@ -112,11 +122,12 @@ public final class Run {
      */
     private void dealNewDeck() {
         state.deck = Deck.of(new ArrayList<>(composition));
-        state.deck.shuffle(rng, "deal:" + ante + ":" + blind);
+        state.deck.shuffle(state.queues, rngCtx());
     }
 
     private void startBlind() {
         state.ante = ante; // keep RunState's ante in sync (ante-based conditions + PvP queue keys read it)
+        tagVouchers.clear(); // Voucher-Tag vouchers belong to one shop visit, not across blinds
         state.roundScore = 0;
         state.discardsUsedThisRound = 0;
         state.handsPlayedThisRound = 0;
@@ -167,7 +178,7 @@ public final class Run {
         if (skippable) {
             List<String> pool = TagCatalog.offerable(ante, "multiplayer".equals(ruleset.jokerVariant()));
             state.offeredTag = pool.isEmpty() ? null
-                    : pool.get((int) (roll("tags") * pool.size()) % pool.size());
+                    : pool.get((int) (roll(RngSources.TAGS) * pool.size()) % pool.size());
         } else {
             state.offeredTag = null;
         }
@@ -204,12 +215,14 @@ public final class Run {
             if (!js.get(i).key().equals("j_madness")) continue;
             var st = state.jokerState(js.get(i));
             st.put("xm", ((Number) st.getOrDefault("xm", 0.0)).doubleValue() + 0.5);
-            List<Integer> others = new ArrayList<>();
-            for (int k = 0; k < js.size(); k++) if (k != i) others.add(k);
+            List<Joker> others = new ArrayList<>();
+            for (int k = 0; k < js.size(); k++) if (k != i) others.add(js.get(k));
             if (others.isEmpty()) continue;
-            int victim = others.get((int) (roll("madness:destroy") * others.size()) % others.size());
-            js.remove(victim);
-            if (victim < i) i--; // a joker before us was removed; stay aligned
+            // Identity-based pick: which joker is destroyed depends on the set held, not its order.
+            Joker victim = state.queues.pick(others, RngSources.MADNESS_DESTROY, rngCtx(), Joker::key, JOKER_QUALITY);
+            int vidx = js.indexOf(victim);
+            js.remove(vidx);
+            if (vidx < i) i--; // a joker before us was removed; stay aligned
         }
     }
 
@@ -254,9 +267,8 @@ public final class Run {
     }
 
     /** Generate a shop that skips jokers you already own (unless Showman allows duplicates). */
-    /** Jokers banned in Standard Ranked multiplayer (boss-blind interactions). */
-    private static final java.util.Set<String> MP_DISABLED =
-            java.util.Set.of("j_chicot", "j_matador", "j_mr_bones", "j_luchador");
+    /** Jokers banned in Standard Ranked multiplayer (boss-blind interactions) — see {@link JokerLibrary#MP_BANNED}. */
+    private static final java.util.Set<String> MP_DISABLED = JokerLibrary.MP_BANNED;
 
     private Shop generateShop() {
         java.util.Set<String> owned = new java.util.HashSet<>();
@@ -269,8 +281,22 @@ public final class Run {
         if (state.vouchers.contains("v_glow_up")) { editionMult = 4.0; polyMult = 7.0; }
         else if (state.vouchers.contains("v_hone")) { editionMult = 2.0; polyMult = 3.0; }
         rollAnteVoucherIfNeeded(owned);
-        return Shop.generate(state.queues, slots, jokerPoolForShop(), owned,
-                hasJoker("j_showman"), editionMult, polyMult, anteVoucher);
+        Shop s = Shop.generate(state.queues, slots, jokerPoolForShop(), owned,
+                hasJoker("j_showman"), editionMult, polyMult, anteVoucher, playedHands());
+        // Re-add any Voucher-Tag vouchers so they persist across rerolls within this shop visit.
+        for (String tv : tagVouchers) {
+            if (!state.vouchers.contains(tv)) s.addVoucher(tv);
+        }
+        return s;
+    }
+
+    /** Hand types played at least once this run — gates the softlocked secret-hand planets. */
+    private java.util.Set<HandType> playedHands() {
+        java.util.Set<HandType> s = java.util.EnumSet.noneOf(HandType.class);
+        for (var e : state.handTypePlays.entrySet()) {
+            if (e.getValue() != null && e.getValue() > 0) s.add(e.getKey());
+        }
+        return s;
     }
 
     /** The joker pool the shop/packs draw from — in multiplayer the boss-interacting jokers
@@ -291,10 +317,20 @@ public final class Run {
     private void rollAnteVoucherIfNeeded(java.util.Set<String> ownedUnused) {
         if (anteVoucherAnte == ante) return;
         anteVoucherAnte = ante;
+        anteVoucher = nextShowableVoucher();
+    }
+
+    /**
+     * Draw the next showable voucher from the game-long voucher queue, advancing it. Resolution per
+     * drawn position: Tier 1 until bought, then Tier 2, then skip the position once both tiers are
+     * owned; a position resolving to the same voucher as the last shown is skipped (dup-skip). Shared
+     * by the per-ante voucher and the Voucher Tag — the BMP {@code get_next_voucher_key(_from_tag)}
+     * model, where a tag draws the next voucher from the very same queue. Returns null if exhausted.
+     */
+    private String nextShowableVoucher() {
         boolean mp = "multiplayer".equals(ruleset.jokerVariant());
         java.util.List<String> bases = VoucherCatalog.baseKeys(mp);
-        var q = state.queues.queue("vouchers", r -> bases.get(r.nextInt(bases.size())));
-        anteVoucher = null;
+        var q = state.queues.queue(RngSources.VOUCHERS, r -> bases.get(r.nextInt(bases.size())));
         for (int attempt = 0; attempt < 64; attempt++) {
             String base = q.next();
             String show;
@@ -307,9 +343,9 @@ public final class Run {
             if (show == null) continue;                        // both tiers owned: skip this position
             if (show.equals(lastVoucherShown)) continue;       // dup-skip consecutive identical
             lastVoucherShown = show;
-            anteVoucher = show;
-            return;
+            return show;
         }
+        return null;
     }
 
     /** Penny Pincher (Nemesis): on entering the shop, gain $1 per $3 your Nemesis spent last ante. */
@@ -342,14 +378,14 @@ public final class Run {
         if ("multiplayer".equals(ruleset.jokerVariant())) {
             rollMpIdol(); // MP: deck-position roll (shared number, each player's own deck)
         } else {
-            state.idolSuit = suits[(int) (roll("target:idol:suit") * suits.length) % suits.length];
-            state.idolRankId = 2 + (int) (roll("target:idol:rank") * 13) % 13;
+            state.idolSuit = suits[(int) (roll(RngSources.TARGET.sub("idol:suit")) * suits.length) % suits.length];
+            state.idolRankId = 2 + (int) (roll(RngSources.TARGET.sub("idol:rank")) * 13) % 13;
         }
-        state.ancientSuit = suits[(int) (roll("target:ancient:suit") * suits.length) % suits.length];
-        state.castleSuit = suits[(int) (roll("target:castle:suit") * suits.length) % suits.length];
+        state.ancientSuit = suits[(int) (roll(RngSources.TARGET.sub("ancient:suit")) * suits.length) % suits.length];
+        state.castleSuit = suits[(int) (roll(RngSources.TARGET.sub("castle:suit")) * suits.length) % suits.length];
         com.balatromp.engine.hand.HandType[] hands = com.balatromp.engine.hand.HandType.values();
-        state.todoHandType = hands[(int) (roll("target:todo:hand") * hands.length) % hands.length];
-        state.rebateRankId = 2 + (int) (roll("target:rebate:rank") * 13) % 13;
+        state.todoHandType = hands[(int) (roll(RngSources.TARGET.sub("todo:hand")) * hands.length) % hands.length];
+        state.rebateRankId = 2 + (int) (roll(RngSources.TARGET.sub("rebate:rank")) * 13) % 13;
     }
 
     /**
@@ -371,14 +407,20 @@ public final class Run {
             int ra = (a.rank == Rank.ACE) ? 1 : a.rank.id, rb = (b.rank == Rank.ACE) ? 1 : b.rank.id;
             return ra - rb;                                     // Ace low
         });
-        int rollPos = 1 + (int) (roll("target:idol:pos") * 1000); // shared 1..1000
+        int rollPos = 1 + (int) (roll(RngSources.TARGET.sub("idol:pos")) * 1000); // shared 1..1000
         Card target = sorted.get((rollPos - 1) % sorted.size());
         state.idolSuit = target.suit;
         state.idolRankId = target.rank.id;
     }
 
-    private double roll(String key) {
-        return state.queues.queue(key, com.balatromp.engine.rng.Rng::nextDouble).next();
+    /** The RNG resolution context for this run right now (ante, blind, PvP state, order flag). */
+    public RngContext rngCtx() {
+        return new RngContext(ante, blind.name(), state.inPvpBlind, state.order);
+    }
+
+    /** A roll in [0,1) from a declared source, resolved against the current context. */
+    private double roll(RngSource src) {
+        return state.queues.roll(src, rngCtx());
     }
 
     /** Sum and apply passive run modifiers from owned data jokers (Juggler, Burglar, ...). */
@@ -603,10 +645,19 @@ public final class Run {
         return null;
     }
 
-    /** Buy the shop's offered voucher. Returns null on success, else a reason. */
+    /** Buy the first offered voucher (the per-ante one). Returns null on success, else a reason. */
     public String buyVoucher() {
-        if (phase != Phase.SHOP || shop == null || shop.voucher() == null) return "no voucher offered";
-        var v = VoucherCatalog.get(shop.voucher());
+        return buyVoucher(0);
+    }
+
+    /** Buy the offered voucher at {@code index} (the shop can hold several when a Voucher Tag added
+     *  one). Returns null on success, else a reason. */
+    public String buyVoucher(int index) {
+        if (phase != Phase.SHOP || shop == null) return "no voucher offered";
+        java.util.List<String> offered = shop.vouchers();
+        if (index < 0 || index >= offered.size()) return "no voucher offered";
+        String key = offered.get(index);
+        var v = VoucherCatalog.get(key);
         if (!canAfford(price(v.cost()))) return "not enough money";
         spend(price(v.cost()));
         state.vouchers.add(v.key());
@@ -618,8 +669,9 @@ public final class Run {
             case "v_antimatter" -> state.jokerSlots += 1;
             default -> { /* passive — read in generateShop / startBlind / price / reroll */ }
         }
-        shop.clearVoucher();
-        anteVoucher = null; // bought — don't re-offer it in this ante's later shops
+        shop.removeVoucher(key);
+        tagVouchers.remove(key);
+        if (key.equals(anteVoucher)) anteVoucher = null; // bought — don't re-offer in this ante's later shops
         return null;
     }
 
@@ -652,11 +704,11 @@ public final class Run {
                 && ((Number) state.jokerState(sold).getOrDefault("rounds", 0)).intValue() >= 2
                 && !state.jokers().isEmpty() && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
             // MP: copy the rightmost remaining joker (deterministic + comparable between players);
-            // single-player keeps the vanilla random copy.
-            int pick = "multiplayer".equals(ruleset.jokerVariant())
-                    ? state.jokers().size() - 1
-                    : (int) (roll("invisible:dup") * state.jokers().size()) % state.jokers().size();
-            state.addJoker(JokerLibrary.create(state.jokers().get(pick).key()));
+            // single-player picks a random remaining joker by identity (order-independent).
+            Joker source = "multiplayer".equals(ruleset.jokerVariant())
+                    ? state.jokers().get(state.jokers().size() - 1)
+                    : state.queues.pick(state.jokers(), RngSources.INVISIBLE_DUP, rngCtx(), Joker::key, JOKER_QUALITY);
+            state.addJoker(JokerLibrary.create(source.key()));
         }
         // Diet Cola: sold, creates a free Double Tag (duplicates the next tag you gain).
         if (sold.key().equals("j_diet_cola")) state.tags.add("tag_double");
@@ -809,24 +861,25 @@ public final class Run {
             for (int i = 0; i < 3; i++) {
                 List<Card> live = state.hand.stream().filter(x -> !x.destroyed).toList();
                 if (live.isEmpty()) break;
-                int pick = (int) (roll("consumable:" + c.key() + ":destroy:" + i) * live.size()) % live.size();
-                live.get(pick).destroyed = true;
+                Card victim = state.queues.pick(live, RngSources.consumable(c.key()).sub("destroy:" + i).composition(),
+                        rngCtx(), Deck.CARD_GROUP, Deck.CARD_QUALITY);
+                victim.destroyed = true;
             }
             composition.removeIf(x -> x.destroyed);
             state.hand.removeIf(x -> x.destroyed);
             Rank[] ranks = Rank.values();
-            Rank r = ranks[(int) (roll("consumable:" + c.key() + ":rank") * ranks.length) % ranks.length];
+            Rank r = ranks[(int) (roll(RngSources.consumable(c.key()).sub("rank")) * ranks.length) % ranks.length];
             for (Card card : state.hand) card.rank = r;
             return; // no hand-size reduction in MP
         }
         if (ch.toRandomSuit()) {
             Suit[] suits = Suit.values();
-            Suit s = suits[(int) (roll("consumable:" + c.key() + ":suit") * suits.length) % suits.length];
+            Suit s = suits[(int) (roll(RngSources.consumable(c.key()).sub("suit")) * suits.length) % suits.length];
             for (Card card : state.hand) card.suit = s;
         }
         if (ch.toRandomRank()) {
             Rank[] ranks = Rank.values();
-            Rank r = ranks[(int) (roll("consumable:" + c.key() + ":rank") * ranks.length) % ranks.length];
+            Rank r = ranks[(int) (roll(RngSources.consumable(c.key()).sub("rank")) * ranks.length) % ranks.length];
             for (Card card : state.hand) card.rank = r;
         }
         if (ch.handSizeDelta() != 0) state.handSize = Math.max(1, state.handSize + ch.handSizeDelta());
@@ -835,9 +888,8 @@ public final class Run {
     /** Ankh: copy a random owned joker (edition-free) and, if set, destroy all other jokers. */
     private void applyCopyRandomJoker(Consumable c, Consumable.CopyRandomJoker cj) {
         if (state.jokers().isEmpty()) return;
-        int pick = (int) (roll("consumable:" + c.key() + ":joker") * state.jokers().size())
-                % state.jokers().size();
-        Joker chosen = state.jokers().get(pick);
+        Joker chosen = state.queues.pick(state.jokers(), RngSources.consumable(c.key()).sub("joker").composition(),
+                rngCtx(), Joker::key, JOKER_QUALITY);
         if (cj.destroyOthers()) state.jokers().removeIf(j -> j != chosen);
         if (state.jokers().size() < state.jokerSlots) {
             state.addJoker(JokerLibrary.create(chosen.key(), ruleset.jokerVariant())); // copy has no edition
@@ -859,8 +911,9 @@ public final class Run {
         for (int i = 0; i < g.destroyRandomInHand(); i++) {
             List<Card> live = state.hand.stream().filter(x -> !x.destroyed).toList();
             if (live.isEmpty()) break;
-            int pick = (int) (roll("consumable:" + c.key() + ":destroy:" + i) * live.size()) % live.size();
-            live.get(pick).destroyed = true;
+            Card victim = state.queues.pick(live, RngSources.consumable(c.key()).sub("destroy:" + i).composition(),
+                    rngCtx(), Deck.CARD_GROUP, Deck.CARD_QUALITY);
+            victim.destroyed = true;
         }
         if (g.destroyRandomInHand() > 0) {
             composition.removeIf(x -> x.destroyed);
@@ -883,10 +936,10 @@ public final class Run {
         };
         Suit[] suits = Suit.values();
         for (int i = 0; i < add.count(); i++) {
-            Rank r = pool[(int) (roll("consumable:" + c.key() + ":rank:" + i) * pool.length) % pool.length];
-            Suit s = suits[(int) (roll("consumable:" + c.key() + ":suit:" + i) * suits.length) % suits.length];
+            Rank r = pool[(int) (roll(RngSources.consumable(c.key()).sub("rank:" + i)) * pool.length) % pool.length];
+            Suit s = suits[(int) (roll(RngSources.consumable(c.key()).sub("suit:" + i)) * suits.length) % suits.length];
             Enhancement e = add.enhancement() != null ? add.enhancement()
-                    : RANDOM_ENHANCEMENTS[(int) (roll("consumable:" + c.key() + ":enh:" + i)
+                    : RANDOM_ENHANCEMENTS[(int) (roll(RngSources.consumable(c.key()).sub("enh:" + i))
                             * RANDOM_ENHANCEMENTS.length) % RANDOM_ENHANCEMENTS.length];
             Card made = new Card(r, s, e, Edition.NONE, Seal.NONE);
             composition.add(made); // persistent deck (drawn next blind)
@@ -917,15 +970,16 @@ public final class Run {
      */
     private void applyJokerEdition(Consumable c, Consumable.JokerEdition je) {
         if (state.jokers().isEmpty()) return;
-        if (je.chanceDenominator() > 1 && roll("consumable:" + c.key() + ":gate") >= 1.0 / je.chanceDenominator()) {
+        if (je.chanceDenominator() > 1
+                && roll(RngSources.consumable(c.key()).sub("gate")) >= 1.0 / je.chanceDenominator()) {
             return; // the roll missed (Wheel of Fortune's 3-in-4 nothing-happens)
         }
-        int pick = (int) (roll("consumable:" + c.key() + ":joker") * state.jokers().size()) % state.jokers().size();
-        Joker target = state.jokers().get(pick);
+        Joker target = state.queues.pick(state.jokers(), RngSources.consumable(c.key()).sub("joker").composition(),
+                rngCtx(), Joker::key, JOKER_QUALITY);
         Edition ed = je.edition();
         if (ed == Edition.NONE) {
             Edition[] pool = {Edition.FOIL, Edition.HOLOGRAPHIC, Edition.POLYCHROME};
-            ed = pool[(int) (roll("consumable:" + c.key() + ":ed") * pool.length) % pool.length];
+            ed = pool[(int) (roll(RngSources.consumable(c.key()).sub("ed")) * pool.length) % pool.length];
         }
         if (je.destroyOtherJokers()) { // Hex: keep only the chosen joker
             state.jokers().removeIf(j -> j != target);
@@ -1074,11 +1128,14 @@ public final class Run {
         counters.put("OPP_HANDS_LEFT", state.oppHandsLeft);
         counters.put("OPP_CARDS_SOLD", state.oppCardsSold);
 
-        Map<String, Object> shopVoucher = null;
-        if (phase == Phase.SHOP && shop != null && shop.voucher() != null) {
-            var v = VoucherCatalog.get(shop.voucher());
-            shopVoucher = Map.of("key", v.key(), "name", v.name(), "description", v.description(),
-                    "cost", price(v.cost()));
+        List<Map<String, Object>> shopVouchers = null;
+        if (phase == Phase.SHOP && shop != null && !shop.vouchers().isEmpty()) {
+            shopVouchers = new ArrayList<>();
+            for (String vk : shop.vouchers()) {
+                var v = VoucherCatalog.get(vk);
+                shopVouchers.add(Map.of("key", v.key(), "name", v.name(), "description", v.description(),
+                        "cost", price(v.cost())));
+            }
         }
 
         // The shop's two booster packs (kept across rerolls), and the currently-open pack if any.
@@ -1102,7 +1159,7 @@ public final class Run {
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
                 boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
-                consumables, handLevels, deckStats, counters, shopVoucher, packsView, openPackView);
+                consumables, handLevels, deckStats, counters, shopVouchers, packsView, openPackView);
     }
 
     /** View of one revealed pack card: a consumable/joker (key+name+desc) or a playing card. */
@@ -1137,8 +1194,8 @@ public final class Run {
     /** Perkeo: leaving the shop, create a (Negative) copy of a random held consumable. */
     private void applyShopExit() {
         if (!hasJoker("j_perkeo") || state.consumables.isEmpty()) return;
-        int idx = (int) (roll("perkeo:dup") * state.consumables.size()) % state.consumables.size();
-        state.consumables.add(state.consumables.get(idx)); // Negative copy ignores the slot cap
+        String dup = state.queues.pick(state.consumables, RngSources.PERKEO_DUP, rngCtx(), s -> s, (a, b) -> 0);
+        state.consumables.add(dup); // Negative copy ignores the slot cap
     }
 
     /** Grant a tag, honoring a held Double Tag (which duplicates the next tag gained). */
@@ -1174,7 +1231,7 @@ public final class Run {
             }
             case "tag_top_up" -> {                                            // up to 2 Common Jokers
                 List<String> commons = JokerLibrary.keysByRarity("Common");
-                var q = state.queues.queue("tag:topup", r -> commons.get(r.nextInt(commons.size())));
+                var q = state.queues.queue(RngSources.TAG_TOPUP, r -> commons.get(r.nextInt(commons.size())));
                 for (int i = 0; i < 2 && state.jokers().size() < state.jokerSlots && !commons.isEmpty(); i++) {
                     state.addJoker(JokerLibrary.create(q.next(), ruleset.jokerVariant()));
                 }
@@ -1208,6 +1265,7 @@ public final class Run {
                 case "tag_buffoon" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.BUFFOON, PackCatalog.Size.MEGA));
                 case "tag_standard" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.STANDARD, PackCatalog.Size.MEGA));
                 case "tag_ethereal" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.SPECTRAL, PackCatalog.Size.NORMAL));
+                case "tag_voucher" -> addTagVoucher();
                 case "tag_coupon" -> couponActive = true;
                 case "tag_d6" -> d6Active = true;
                 default -> { /* unmodelled ON_SHOP tag */ }
@@ -1215,11 +1273,20 @@ public final class Run {
         }
     }
 
+    /** Voucher Tag: draw the next voucher from the same game-long voucher queue and add it as an extra
+     *  shop slot (BMP: get_next_voucher_key(true) + card_limit + 1). Persists across rerolls this visit. */
+    private void addTagVoucher() {
+        String key = nextShowableVoucher();
+        if (key == null) return;
+        tagVouchers.add(key);
+        shop.addVoucher(key);
+    }
+
     /** Add a free Joker of the given rarity to the shop, drawn from a tag-only off-shop queue. */
     private void addFreeJoker(String rarity) {
         List<String> pool = JokerLibrary.keysByRarity(rarity);
         if (pool.isEmpty()) return;
-        String key = state.queues.queue("tag:joker:" + rarity, r -> pool.get(r.nextInt(pool.size()))).next();
+        String key = state.queues.queue(RngSources.tagJoker(rarity), r -> pool.get(r.nextInt(pool.size()))).next();
         var info = JokerLibrary.create(key).info();
         shop.items().add(new Shop.Item(Shop.Kind.JOKER, key, info.name(), info.description(), 0, info.rarity(), Edition.NONE));
     }
@@ -1245,7 +1312,7 @@ public final class Run {
         shopPacks.clear();
         openPack = null;
         packPicksLeft = 0;
-        var q = state.queues.queue("packs", r -> PackCatalog.roll(r.nextDouble()));
+        var q = state.queues.queue(RngSources.PACKS, r -> PackCatalog.roll(r.nextDouble()));
         shopPacks.add(q.next());
         shopPacks.add(q.next());
     }
@@ -1271,9 +1338,12 @@ public final class Run {
         java.util.List<RevealedItem> out = new ArrayList<>();
         int n = pack.shown();
         switch (pack.kind()) {
-            case ARCANA -> fillConsumables(out, n, "pack:tarot", TarotCatalog.tarotKeys(), "c_the_soul");
-            case SPECTRAL -> fillConsumables(out, n, "pack:spectral", TarotCatalog.spectralKeys(), "c_the_soul");
-            case CELESTIAL -> fillConsumables(out, n, "pack:planet", PlanetCatalog.keys(), "c_black_hole");
+            case ARCANA -> fillConsumables(out, n, RngSources.packContent("pack:tarot"),
+                    TarotCatalog.tarotKeys(), "c_the_soul", "Tarot", k -> true);
+            case SPECTRAL -> fillConsumables(out, n, RngSources.packContent("pack:spectral"),
+                    TarotCatalog.spectralKeys(), "c_the_soul", "Spectral", k -> true);
+            case CELESTIAL -> fillConsumables(out, n, RngSources.packContent("pack:planet"),
+                    PlanetCatalog.keys(), "c_black_hole", "Planet", k -> PlanetCatalog.available(k, playedHands()));
             case BUFFOON -> {
                 // Shares the shop joker rarity sub-queues (opening a Buffoon consumes those jokers).
                 java.util.Set<String> offered = new java.util.HashSet<>();
@@ -1285,7 +1355,7 @@ public final class Run {
             case STANDARD -> {
                 Rank[] ranks = Rank.values();
                 Suit[] suits = Suit.values();
-                var q = state.queues.queue("pack:card",
+                var q = state.queues.queue(RngSources.PACK_CARD,
                         r -> new Card(ranks[r.nextInt(ranks.length)], suits[r.nextInt(suits.length)],
                                 Enhancement.NONE, Edition.NONE, Seal.NONE));
                 for (int i = 0; i < n; i++) out.add(new RevealedItem("CARD", null, q.next()));
@@ -1296,13 +1366,14 @@ public final class Run {
 
     /** Fill {@code n} consumable slots from the pack queue, rolling the Soul queue per slot;
      *  on a Soul hit the content queue is NOT advanced (it's pushed back) and the Soul is inserted. */
-    private void fillConsumables(java.util.List<RevealedItem> out, int n, String queueKey,
-            List<String> pool, String soulKey) {
-        var q = state.queues.queue(queueKey, r -> pool.get(r.nextInt(pool.size())));
-        var soulQ = state.queues.queue("soul", r -> r.nextDouble() < 0.003); // ~0.3% per slot
+    private void fillConsumables(java.util.List<RevealedItem> out, int n, RngSource contentSrc,
+            List<String> pool, String soulKey, String soulType, java.util.function.Predicate<String> available) {
+        var q = state.queues.queue(contentSrc, r -> pool.get(r.nextInt(pool.size())));
+        // Per-content-type soul stream (BMP keys it 'soul_'..type), checked per slot at ~0.3%.
+        var soulQ = state.queues.queue(RngSources.SOUL.sub(soulType), r -> r.nextDouble() < 0.003);
         for (int i = 0; i < n; i++) {
             if (soulQ.next()) out.add(new RevealedItem("CONSUMABLE", soulKey, null));
-            else out.add(new RevealedItem("CONSUMABLE", q.next(), null));
+            else out.add(new RevealedItem("CONSUMABLE", q.nextWhere(available), null)); // skip softlocked planets
         }
     }
 

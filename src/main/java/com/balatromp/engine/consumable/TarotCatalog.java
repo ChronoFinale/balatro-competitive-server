@@ -153,10 +153,15 @@ public final class TarotCatalog {
                 .toList();
     }
 
-    /** Spectral keys (from packs / Spectral-creating jokers). */
+    /**
+     * Spectral keys eligible for a normal draw (packs / Spectral-creating jokers). The Soul and Black
+     * Hole are EXCLUDED — exactly as BMP's get_current_pool does (common_events.lua:2022-2024) — because
+     * they only surface via the dedicated soul roll, never as ordinary pool content.
+     */
     public static java.util.List<String> spectralKeys() {
         return BY_KEY.values().stream()
                 .filter(c -> c.type() == ConsumableType.SPECTRAL)
+                .filter(c -> !c.key().equals("c_the_soul") && !c.key().equals("c_black_hole"))
                 .map(Consumable::key)
                 .toList();
     }

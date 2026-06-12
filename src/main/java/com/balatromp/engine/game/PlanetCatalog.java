@@ -51,4 +51,25 @@ public final class PlanetCatalog {
     public static List<String> keys() {
         return new ArrayList<>(BY_KEY.keySet());
     }
+
+    /**
+     * The "secret" planets (Planet X / Ceres / Eris) for the hidden hands. BMP gates these behind having
+     * played their hand at least once — they are UNAVAILABLE in pools until then (get_current_pool
+     * softlock, common_events.lua:2008-2011). The other nine planets are always available.
+     */
+    private static final java.util.Set<String> SOFTLOCKED =
+            java.util.Set.of("c_planet_x", "c_ceres", "c_eris");
+
+    public static boolean isSoftlocked(String key) {
+        return SOFTLOCKED.contains(key);
+    }
+
+    /** Whether {@code key} may currently appear: always, unless it's softlocked and its hand is unplayed. */
+    public static boolean available(String key, java.util.Set<HandType> playedHands) {
+        Planet p = BY_KEY.get(key);
+        if (p == null) {
+            return false;
+        }
+        return !SOFTLOCKED.contains(key) || (playedHands != null && playedHands.contains(p.hand()));
+    }
 }

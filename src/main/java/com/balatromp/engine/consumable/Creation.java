@@ -8,10 +8,14 @@ import com.balatromp.engine.card.Seal;
 import com.balatromp.engine.card.Suit;
 import com.balatromp.engine.game.PlanetCatalog;
 import com.balatromp.engine.game.Shop;
+import com.balatromp.engine.joker.Joker;
 import com.balatromp.engine.joker.JokerLibrary;
 import com.balatromp.engine.joker.def.CreateSpec;
+import com.balatromp.engine.rng.GameQueue;
 import com.balatromp.engine.rng.QueueSet;
 import com.balatromp.engine.rng.Rng;
+import com.balatromp.engine.rng.RngSource;
+import com.balatromp.engine.rng.RngSources;
 import com.balatromp.engine.state.RunState;
 import java.util.List;
 
@@ -44,17 +48,39 @@ public final class Creation {
         if (pool.isEmpty()) return;
         for (int i = 0; i < spec.count(); i++) {
             if (run.consumables.size() >= run.consumableSlots) return;
-            run.consumables.add(pick(pool, queues, "create:" + spec.kind()));
+            run.consumables.add(pick(pool, queues, RngSource.of("create:" + spec.kind())));
         }
     }
 
     private static void addJokers(RunState run, CreateSpec spec, QueueSet queues) {
-        List<String> pool = (spec.rarity() != null)
+        // The Wraith (Rare) / The Soul (Legendary) draw from the FIXED rarity pool and skip jokers
+        // you already hold — BMP's get_current_pool marks owned keys UNAVAILABLE (unless Showman) and
+        // the draw advances past them. Mirrors Shop.drawJoker; same fixed-modulus + nextWhere shape.
+        List<String> base = (spec.rarity() != null)
                 ? JokerLibrary.keysByRarity(spec.rarity()) : JokerLibrary.builtinKeys();
+        // In multiplayer the boss-interacting jokers are banned from every pool, creation included
+        // (so The Soul can't hand you a banned Legendary like Chicot).
+        List<String> pool = run.multiplayer
+                ? base.stream().filter(k -> !JokerLibrary.MP_BANNED.contains(k)).toList() : base;
         if (pool.isEmpty()) return;
+        boolean showman = run.jokers().stream().anyMatch(j -> j.key().equals("j_showman"));
+        java.util.Set<String> used = new java.util.HashSet<>();
+        for (Joker j : run.jokers()) used.add(j.key());
+        GameQueue<String> q = queues.queue(RngSources.createJoker(spec.rarity()),
+                r -> pool.get(r.nextInt(pool.size())));
         for (int i = 0; i < spec.count(); i++) {
             if (run.jokers().size() >= run.jokerSlots) return;
-            run.addJoker(JokerLibrary.create(pick(pool, queues, "create:joker:" + spec.rarity())));
+            boolean anyAcceptable = pool.stream().anyMatch(k -> !used.contains(k));
+            String key;
+            if (showman) {
+                key = q.next();
+            } else if (anyAcceptable) {
+                key = q.nextWhere(k -> !used.contains(k));
+            } else {
+                key = "j_joker"; // rarity fully owned -> BMP empty-pool fallback
+            }
+            run.addJoker(JokerLibrary.create(key));
+            used.add(key); // a multi-create won't dupe within itself (each created card is "used")
         }
     }
 
@@ -65,11 +91,11 @@ public final class Creation {
         Rank[] ranks = Rank.values();
         Suit[] suits = Suit.values();
         for (int i = 0; i < spec.count(); i++) {
-            Rank r = ranks[idx(roll(queues, "create:card:rank"), ranks.length)];
-            Suit s = suits[idx(roll(queues, "create:card:suit"), suits.length)];
+            Rank r = ranks[idx(roll(queues, RngSources.CREATE_CARD.sub("rank")), ranks.length)];
+            Suit s = suits[idx(roll(queues, RngSources.CREATE_CARD.sub("suit")), suits.length)];
             Enhancement enh = spec.enhancement() != null ? spec.enhancement() : Enhancement.NONE;
             Seal seal = spec.randomSeal()
-                    ? RANDOM_SEALS[idx(roll(queues, "create:card:seal"), RANDOM_SEALS.length)]
+                    ? RANDOM_SEALS[idx(roll(queues, RngSources.CREATE_CARD.sub("seal")), RANDOM_SEALS.length)]
                     : (spec.seal() != null ? spec.seal() : Seal.NONE);
             run.deckComposition.add(new Card(r, s, enh, Edition.NONE, seal));
         }
@@ -79,12 +105,12 @@ public final class Creation {
         return Math.min((int) Math.floor(roll * size), size - 1);
     }
 
-    private static String pick(List<String> pool, QueueSet queues, String key) {
-        int idx = (int) Math.floor(roll(queues, key) * pool.size());
+    private static String pick(List<String> pool, QueueSet queues, RngSource src) {
+        int idx = (int) Math.floor(roll(queues, src) * pool.size());
         return pool.get(Math.min(idx, pool.size() - 1));
     }
 
-    private static double roll(QueueSet queues, String key) {
-        return queues.queue(key, Rng::nextDouble).next();
+    private static double roll(QueueSet queues, RngSource src) {
+        return queues.queue(src, Rng::nextDouble).next();
     }
 }

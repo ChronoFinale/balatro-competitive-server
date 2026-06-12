@@ -4,7 +4,8 @@ import com.balatromp.engine.card.Card;
 import com.balatromp.engine.hand.HandType;
 import com.balatromp.engine.rng.QueueSet;
 import com.balatromp.engine.rng.RandomStreams;
-import com.balatromp.engine.rng.Rng;
+import com.balatromp.engine.rng.RngContext;
+import com.balatromp.engine.rng.RngSources;
 import com.balatromp.engine.state.RunState;
 import java.util.List;
 import java.util.Map;
@@ -56,20 +57,21 @@ public final class EvaluationContext {
      */
     public double nextProb(String seedKey) {
         QueueSet qs;
+        RngContext ctx;
         if (preview) {
             qs = new QueueSet(new RandomStreams("preview")); // throwaway: never touch real queues
+            ctx = RngContext.of(0, false, true);
         } else if (run != null && run.queues != null) {
             qs = run.queues;
+            ctx = run.rngContext();
         } else {
             qs = new QueueSet(rng != null ? rng : new RandomStreams("prob"));
+            ctx = RngContext.of(0, false, true);
         }
-        // In a PvP blind, probabilistic jokers (Bloodstone, Business Card, …) draw from a
-        // per-ante PvP queue that the Run resets each hand — so equal hands proc equally
-        // regardless of hands-left. Outside PvP they use the game-long queue.
-        String key = (run != null && run.inPvpBlind)
-                ? "pvp:" + run.ante + ":prob:" + seedKey
-                : "prob:" + seedKey;
-        return qs.queue(key, Rng::nextDouble).next();
+        // Every Chance joker (Bloodstone, Business Card, …) is one PROB source: game-long normally,
+        // but a per-hand PvP variant inside a Nemesis blind (the Run rewinds it each hand) so equal
+        // hands proc equally regardless of hands-left. The routing lives in QueueSet.resolve.
+        return qs.roll(RngSources.PROB.sub(seedKey), ctx);
     }
 
     /** Persistent, server-only per-joker state (e.g. Ride the Bus streak). */

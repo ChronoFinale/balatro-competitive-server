@@ -80,9 +80,20 @@ public final class RunState {
     public RandomStreams rng;
     /** Game-long deterministic queues (shop, planets, …) — see {@link QueueSet}. */
     public QueueSet queues;
+    /** Whether "The Order" variance reduction is active (from the ruleset; set by Run). */
+    public boolean order = true;
 
     public RandomStreams rng() {
         return rng;
+    }
+
+    /**
+     * The RNG resolution context for scoring/probability sources, which are all game-long (the blind
+     * name is only needed by the per-blind deck deal, built in Run). Carries ante, PvP state and the
+     * order flag so {@link QueueSet#resolve} can route PvP-per-hand sources correctly.
+     */
+    public com.balatromp.engine.rng.RngContext rngContext() {
+        return com.balatromp.engine.rng.RngContext.of(ante, inPvpBlind, order);
     }
 
     private final List<Joker> jokers = new ArrayList<>();

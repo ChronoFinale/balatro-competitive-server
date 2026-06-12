@@ -80,6 +80,49 @@ class ConsumableTest {
     }
 
     @Test
+    void theWraithSkipsRareJokersYouAlreadyOwn() {
+        // Own every Rare but one; the Wraith must create the missing one, never a duplicate
+        // (BMP marks owned jokers UNAVAILABLE in the pool and the draw advances past them).
+        java.util.List<String> rares = com.balatromp.engine.joker.JokerLibrary.keysByRarity("Rare");
+        org.junit.jupiter.api.Assumptions.assumeTrue(rares.size() >= 2);
+        String missing = rares.get(rares.size() - 1);
+        java.util.List<com.balatromp.engine.joker.Joker> owned = new java.util.ArrayList<>();
+        for (int i = 0; i < rares.size() - 1; i++) owned.add(com.balatromp.engine.joker.JokerLibrary.create(rares.get(i)));
+        Run run = new Run(Ruleset.standard(), "WRAITH", com.balatromp.engine.TestSupport.heartsKings(50), owned);
+        run.state.jokerSlots = 50; // room for the create
+        run.state.consumables.add("c_wraith");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.jokers()).extracting(com.balatromp.engine.joker.Joker::key)
+                .as("created the only un-owned Rare, not a duplicate").contains(missing);
+        assertThat(run.state.jokers()).hasSize(rares.size()); // exactly one new joker
+    }
+
+    @Test
+    void multiplayerSoulNeverCreatesABannedLegendary() {
+        Ruleset mp = new Ruleset("MP", 4, 4, 3, 8, 1.0, 8,
+                new int[]{300, 800, 2000, 5000, 11000, 20000, 35000, 50000}, null, "multiplayer");
+        java.util.List<String> legends = com.balatromp.engine.joker.JokerLibrary.keysByRarity("Legendary")
+                .stream().filter(k -> !com.balatromp.engine.joker.JokerLibrary.MP_BANNED.contains(k)).toList();
+        org.junit.jupiter.api.Assumptions.assumeTrue(legends.size() >= 2);
+        String missing = legends.get(legends.size() - 1);
+        java.util.List<com.balatromp.engine.joker.Joker> owned = new java.util.ArrayList<>();
+        for (int i = 0; i < legends.size() - 1; i++) owned.add(com.balatromp.engine.joker.JokerLibrary.create(legends.get(i)));
+        Run run = new Run(mp, "SOULMP", com.balatromp.engine.TestSupport.heartsKings(50), owned);
+        run.state.jokerSlots = 50;
+        run.state.consumables.add("c_the_soul");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.jokers()).extracting(com.balatromp.engine.joker.Joker::key)
+                .contains(missing)            // created the only un-owned legal Legendary (skip-owned)
+                .doesNotContain("j_chicot");  // never the MP-banned one (pool filter)
+    }
+
+    @Test
+    void spectralPoolExcludesTheSoulAndBlackHole() {
+        assertThat(com.balatromp.engine.consumable.TarotCatalog.spectralKeys())
+                .doesNotContain("c_the_soul", "c_black_hole");
+    }
+
+    @Test
     void hexAddsPolychromeAndDestroysOtherJokers() {
         Run run = new Run(Ruleset.standard(), "HEX",
                 com.balatromp.engine.TestSupport.heartsKings(50),

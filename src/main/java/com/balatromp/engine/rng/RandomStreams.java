@@ -33,6 +33,18 @@ public final class RandomStreams {
         return streams.computeIfAbsent(key, k -> new Rng(mix(masterSeed, k)));
     }
 
+    /**
+     * A <b>fresh, uncached</b> stream for {@code key} — a new {@link Rng} seeded
+     * deterministically from the master seed each call, never stored. Used for
+     * composition shuffle values, which must be <i>idempotent</i>: recomputing the
+     * shuffle for the same key must yield the same values, so the draw must not
+     * advance (or be advanced by) any persistent stream state. The BMP equivalent
+     * marks these {@code G._MP_UNSAVED_PRNG} and purges them after use.
+     */
+    public Rng freshStream(String key) {
+        return new Rng(mix(masterSeed, key));
+    }
+
     /** Fisher–Yates shuffle of {@code list} using the named stream. */
     public <T> void shuffle(List<T> list, String key) {
         Rng r = stream(key);

@@ -22,6 +22,19 @@ import org.junit.jupiter.api.Test;
 class PlanetTest {
 
     @Test
+    void secretHandPlanetsAreSoftlockedUntilTheirHandIsPlayed() {
+        var none = java.util.EnumSet.noneOf(HandType.class);
+        // Base planets are always available...
+        assertThat(com.balatromp.engine.game.PlanetCatalog.available("c_pluto", none)).isTrue();
+        // ...the three secret-hand planets are not, until you've played the hand.
+        assertThat(com.balatromp.engine.game.PlanetCatalog.available("c_planet_x", none)).isFalse();
+        assertThat(com.balatromp.engine.game.PlanetCatalog.available("c_ceres", none)).isFalse();
+        assertThat(com.balatromp.engine.game.PlanetCatalog.available("c_eris", none)).isFalse();
+        assertThat(com.balatromp.engine.game.PlanetCatalog.available(
+                "c_planet_x", java.util.EnumSet.of(HandType.FIVE_OF_A_KIND))).isTrue();
+    }
+
+    @Test
     void levelingAHandRaisesItsScore() {
         RunState run = new RunState();
         List<Card> pair = List.of(c(KING, HEARTS), c(KING, SPADES));

@@ -3,9 +3,13 @@ package com.balatromp.engine.state;
 import com.balatromp.engine.card.Card;
 import com.balatromp.engine.card.Rank;
 import com.balatromp.engine.card.Suit;
-import com.balatromp.engine.rng.RandomStreams;
+import com.balatromp.engine.rng.QueueSet;
+import com.balatromp.engine.rng.RngContext;
+import com.balatromp.engine.rng.RngSources;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * The draw pile. Authoritative and server-only: the client never sees the deck
@@ -37,13 +41,35 @@ public final class Deck {
         drawPile.add(c);
     }
 
-    public void shuffle(RandomStreams rng) {
-        rng.shuffle(drawPile, "shuffle");
-    }
+    /**
+     * A card's <b>identity group</b> for composition shuffling: its suit+rank (Stone cards, which
+     * have no rank/suit, share one group). Cards in the same group are interchangeable for draw
+     * order, so two players holding the same composition shuffle identically regardless of the order
+     * in which they acquired the cards.
+     */
+    public static final Function<Card, String> CARD_GROUP =
+            c -> c.isStone() ? "Stone" : c.suit + "_" + c.rank.id;
 
-    /** Shuffle with a specific keyed stream (deterministic per blind). */
-    public void shuffle(RandomStreams rng, String key) {
-        rng.shuffle(drawPile, key);
+    /**
+     * Tiebreak between same-group cards (highest "quality" first), so duplicates that differ only by
+     * enhancement/edition/seal/permanent-bonus get a stable cross-player order. Uses only shared,
+     * deterministic attributes — never the per-instance uid or list position.
+     */
+    public static final Comparator<Card> CARD_QUALITY = Comparator
+            .comparingInt((Card c) -> c.enhancement.ordinal())
+            .thenComparingInt(c -> c.edition.ordinal())
+            .thenComparingInt(c -> c.seal.ordinal())
+            .thenComparingInt(c -> c.permaChips)
+            .thenComparingDouble(c -> c.permaMult)
+            .reversed();
+
+    /**
+     * Shuffle the draw pile for a blind via the composition-ordered {@link RngSources#DEAL} source:
+     * each card's order is derived from its identity and the seed, not its position — so adding or
+     * removing one card perturbs only that card's slot, keeping variance low between similar boards.
+     */
+    public void shuffle(QueueSet queues, RngContext ctx) {
+        queues.shuffle(drawPile, RngSources.DEAL, ctx, CARD_GROUP, CARD_QUALITY);
     }
 
     /** The current cards (used to capture a run's deck composition). */
