@@ -1,0 +1,74 @@
+# CLAUDE.md
+
+Guidance for working in this repo. Read alongside `README.md`.
+
+## What this is
+
+A **server-authoritative**, cheat-proof competitive Balatro engine, clean-room reimplemented in
+**Java 25** (Gradle). The server simulates the entire game — state, RNG, scoring — and the client
+only sends **intents** and renders authoritative results. `ClientView` is the info-hiding boundary:
+it structurally carries no deck order, seed, or future shop. AGPL-3.0; ships no game assets or code.
+
+**Core invariant:** the client is never trusted. Never move RNG, scoring, or outcome decisions to the
+client. If a feature seems to need the client to compute an outcome, it's wrong — the client sends an
+intent, the server computes, the `ClientView` reflects the result.
+
+## Build / test / run
+
+```bash
+./gradlew build            # compile + full test suite
+./gradlew test             # JUnit 5 + AssertJ + jqwik (property tests)
+./gradlew test --tests 'com.balatromp.engine.HandTypeScoringTest'   # one class
+./gradlew run              # start the server: HTTP 8788 (login/REST), TCP+WS 8789
+./gradlew play             # ClientCli (terminal client)
+```
+Java toolchain 25 is auto-provisioned by Gradle. On Windows use `gradlew.bat` (or the Bash tool).
+Wire protocol is newline-delimited JSON; see `TcpNetworkTest` for the definitive message set
+(`auth` → `newRun` → `selectBlind` → `playHand`/`discard`/`buyShopItem`/…; server replies `update`
+with `accepted`, `view` (ClientView), `replay`).
+
+## Layout
+
+- `src/main/java/com/balatromp/engine/`
+  - `net/` — `ServerMain`, `GameServer` (routing + serialization), `ClientView` (the hiding boundary),
+    `IntentHandler`, `ServerUpdate`/`ReplayEntry`.
+  - `game/` — `Run` (the run loop), `Shop`, `Match` (PvP/Attrition), catalogs.
+  - `scoring/` — `ScoringEngine`, `ScoreResult`, `ReplayEntry` (the animation stream the client renders).
+  - `rng/` — the **composable RngSource model** (see below) + `rng/vanilla/` bit-exact Balatro PRNG.
+  - `consumable/`, `joker/`, `state/`.
+- `src/test/` — JUnit suites + golden fixtures in `src/test/resources/` (real-game pool/shop/PRNG vectors).
+- `client/` — Electron/React renderer (`client/src/renderer`). Mirrors scoring previews; see invariant below.
+- `tools/` — dev/integration: see "Real-Balatro thin client" below.
+
+## RNG model (read before touching randomness)
+
+Randomness goes through the **`RngSource`** model (`rng/RngSource.java`, `RngSources.java`,
+`RngContext.java`, `QueueSet.resolve`): a source declares Scope (GAME_LONG/PER_ANTE/PER_BLIND),
+PvpMode (NONE/PER_HAND), and Selection (SEQUENTIAL/COMPOSITION/WEIGHTED_COUNT), composed via
+`.perBlind()/.pvpPerHand()/.composition()/.sub()`. This is for **variance reduction** ("The Order")
+and PvP fairness — don't call PRNGs ad hoc; add/extend an `RngSource`. `rng/vanilla/` holds the
+bit-exact vanilla PRNG (`BalatroPrng` pseudohash/pseudoseed, `LuaJitRandom` TW223) used to diff against
+the real game; `round13` must stay round-half-EVEN (BigDecimal), matching C `printf %.13f`.
+
+## Conventions
+
+- **Clean-room, no guessing.** Validate mechanics against the real game / the authoritative mechanics
+  doc, not memory. When in doubt, read the actual Balatro source at `D:\BalatroMod\Balatro` or run it.
+- **Preview-mirror invariant:** data-driven jokers are interpreted by both the server scorer AND the
+  client `preview.js`. Any new Condition/Value/Op must be mirrored in `preview.js` + a fixture added.
+- **Tests are the spec.** Scoring/economy/RNG changes need a test (often a golden fixture diffed against
+  the real game). Baseline sanity: pair of Kings = 60 = `(10 + 20) × 2`.
+- Don't commit `build/` (gitignored — that's where the bridge wire logs land), `*.log`, or `web-assets/`.
+
+## Real-Balatro thin client (`tools/balatro-bridge/`)
+
+An in-progress effort to make the REAL Balatro game a thin renderer of this server (smods/lovely mod).
+**Stage 1 works:** real Balatro plays a server-authoritative blind with native animations. Technique =
+**identity-override**: let Balatro draw/discard from its own deck (animations + bookkeeping intact) and
+only set what each drawn card IS, tracked by the server's stable card `uid`. Hooks: `select_blind`
+(open run), `draw_from_deck_to_hand` (prime deck-end card identities before the draw),
+`discard_cards_from_highlighted`, `evaluate_play` (server scores). Logs raw wire traffic to
+`build/balatro-bridge-wire.txt`. Do NOT rebuild `G.hand` wholesale and do NOT stage onto `G.deck` — both
+break Balatro's animations/deck. Next: server-driven blind/round (Stage 2), shop/economy (Stage 3),
+jokers/editions (Stage 4 — where local scoring diverges and the server `replay` must drive the count-up).
+`tools/balatro-pooldump/` dumps real-game pools/shops for the golden fixtures.
