@@ -60,6 +60,35 @@ What's implemented:
 - **`intent/`** — `Intent` (PlayHand/Discard) + validating `IntentHandler`. There
   is **no protocol path to submit a score** — the server computes it.
 
+## Getting started
+
+**Prerequisites:** a **JDK 25** to bootstrap (the Gradle wrapper provisions the
+build toolchain). For the optional desktop client you also need **Node 18+**; for
+the experimental real-Balatro client you need an install of **Balatro** plus
+[lovely](https://github.com/ektipl/lovely-injector) + [Steamodded](https://github.com/Steamodded/smods).
+No game assets are shipped — you bring your own.
+
+**60-second quickstart (browser, zero setup):**
+
+```bash
+git clone https://github.com/ChronoFinale/balatro-competitive-server.git
+cd balatro-competitive-server
+./gradlew run            # Windows: gradlew.bat run
+# then open http://127.0.0.1:8788 , enter a name → Connect → Solo Run
+```
+
+The server listens on **8788** (HTTP login + WebSocket + the built-in browser
+client) and **8789** (raw TCP, used by the desktop and Lua clients). First run
+downloads the JDK 25 toolchain + dependencies, so give it a minute.
+
+**Three ways to play** — all driven by the same authoritative server:
+
+| client | how | notes |
+|---|---|---|
+| **Browser** (built in) | `./gradlew run` → `http://127.0.0.1:8788` | zero setup; CSS-drawn cards |
+| **Desktop** (Electron) | see *Desktop client* below | reference thin client over raw TCP |
+| **Real Balatro** (experimental) | see *Playing in real Balatro* below | the actual game as a renderer |
+
 ## Build & run
 
 Requires JDK 25 (Gradle wrapper handles the rest).
@@ -119,6 +148,47 @@ sourced from the game data). Requires owning Balatro.
 `buy 0`, `reroll`, `proceed`, `quit`. Example turn:
 `new ABC` → deals a hand; `play 0 1 2 3 4` → the server scores it and shows
 `scored: 58 x 2.0` and your new total. A real, authoritative game over WebSocket.
+
+### Desktop client (Electron)
+
+`client/` is a **thin** reference client: it renders the server's `ClientView` and
+sends intents over the **raw-TCP** protocol on port 8789 (the same wire the Balatro
+mod speaks) — it computes nothing that affects the game. With the server running
+(`./gradlew run`):
+
+```bash
+cd client
+npm install
+npm run dev        # electron-vite dev; connects to 127.0.0.1:8789
+```
+
+The main process owns the socket (newline-JSON framing, 15s heartbeat, auto-reconnect
+that re-auths within the server's grace window); the renderer is React + TanStack
+Store. See `client/README.md` for details.
+
+### Playing in real Balatro (experimental thin client)
+
+`tools/balatro-bridge/` is a [lovely](https://github.com/ektipl/lovely-injector) +
+[Steamodded](https://github.com/Steamodded/smods) mod that turns the **real Balatro
+game** into a renderer of this server. **Stage 1 works:** you play a fully
+server-authoritative blind with the game's *native* animations — the server owns the
+deck, the cards, and the score; Balatro just renders.
+
+Setup (requires owning Balatro, with lovely + Steamodded installed):
+
+1. Copy `tools/balatro-bridge/` into your Balatro `Mods/` folder
+   (e.g. `%APPDATA%/Balatro/Mods/BalatroBridge/`).
+2. Start the server: `./gradlew run`.
+3. Launch Balatro, start a run, and **select a blind** — the mod auto-connects, the
+   server deals the hand, and it scores your plays/discards. If the server isn't
+   running it silently falls back to vanilla Balatro.
+
+Raw wire traffic is logged to `build/balatro-bridge-wire.txt` (and the lovely
+console) for debugging. **How it works:** rather than rebuilding the hand, it hooks
+Balatro's own draw/discard/score and overrides each drawn card's *identity* (tracked
+by the server's stable card `uid`), so the game's animations and deck bookkeeping stay
+intact. Blind/round progression, shop/economy, jokers, and PvP are still in progress
+(see `CLAUDE.md` → "Real-Balatro thin client" for the staged plan).
 
 ### Wire protocol (JSON over WebSocket)
 1. `POST /login {"username":"alice"}` → `{"token":"…","playerId":"alice"}`
