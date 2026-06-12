@@ -306,10 +306,10 @@ function Shop() {
             desc={`${it.description ?? ""} ${it.rarity ?? ""}`.trim()} cost={it.cost} label="Buy"
             onBuy={() => send({ type: "buyShopItem", index: i })} />
         ))}
-        {v.shopVoucher && (
-          <Offer accent name={"🎟 " + v.shopVoucher.name} desc={v.shopVoucher.description}
-            cost={v.shopVoucher.cost} label="Buy" onBuy={() => send({ type: "buyVoucher" })} />
-        )}
+        {(v.shopVouchers ?? []).map((vo, i) => (
+          <Offer accent key={"voucher-" + i} name={"🎟 " + vo.name} desc={vo.description}
+            cost={vo.cost} label="Buy" onBuy={() => send({ type: "buyVoucher", index: i })} />
+        ))}
       </div>
       {/* Two booster packs (kept across rerolls). */}
       <div className="row" style={{ marginTop: 10 }}>

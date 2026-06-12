@@ -94,7 +94,7 @@ export interface ClientView {
   handLevels: Record<string, number>;
   deckStats: { size?: number; remaining?: number };
   counters: Record<string, unknown>;
-  shopVoucher: ShopVoucher | null;
+  shopVouchers: ShopVoucher[] | null;
   packs: PackOffer[] | null;
   openPack: OpenPack | null;
 }
