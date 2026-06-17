@@ -170,9 +170,8 @@ Store. See `client/README.md` for details.
 
 `tools/balatro-bridge/` is a [lovely](https://github.com/ektipl/lovely-injector) +
 [Steamodded](https://github.com/Steamodded/smods) mod that turns the **real Balatro
-game** into a renderer of this server. **Stage 1 works:** you play a fully
-server-authoritative blind with the game's *native* animations — the server owns the
-deck, the cards, and the score; Balatro just renders.
+game** into a renderer of this server: the server owns the deck, RNG, scoring, shop,
+and economy; Balatro just renders, with its own native animations.
 
 Setup (requires owning Balatro, with lovely + Steamodded installed):
 
@@ -183,14 +182,19 @@ Setup (requires owning Balatro, with lovely + Steamodded installed):
    server deals the hand, and it scores your plays/discards. If the server isn't
    running it silently falls back to vanilla Balatro.
 
-Raw wire traffic is logged to `build/balatro-bridge-wire.txt` (and the lovely
-console) for debugging. **How it works:** rather than rebuilding the hand, it hooks
-Balatro's own draw/discard/score and overrides each drawn card's *identity* (tracked
-by the server's stable card `uid`), so the game's animations and deck bookkeeping stay
-intact. Blind/round progression, shop/economy, jokers, and PvP are still in progress
-(see `CLAUDE.md` → "Real-Balatro thin client" for the staged plan).
+**Status: in active development, not yet verified end-to-end.** The full
+between-blinds loop is wired server-side — deal, play/discard, scoring, win/lose,
+cash-out, shop (jokers, tarots, planets, vouchers, booster packs), buy/sell/reroll,
+boss blinds, plus deck + stake selection — but it's still being shaken out in real
+play and has rough edges. **How it works:** rather than fighting Balatro, it hooks the
+game's own draw/score/shop/economy seams and feeds them the server's data — cards
+keyed by a stable `uid`, the round score eased to the server's value, money and shop
+rendered from the server — so the native animations stay intact. PvP through the real
+client is the next milestone. Raw wire traffic is logged to
+`build/balatro-bridge-wire.txt` (and the lovely console). See `CLAUDE.md` →
+"Real-Balatro thin client" for the staged plan.
 
-### Wire protocol (JSON over WebSocket)
+### Wire protocol (newline-delimited JSON — WebSocket *or* raw TCP)
 1. `POST /login {"username":"alice"}` → `{"token":"…","playerId":"alice"}`
    (dev: any username; intended to validate a Steam ticket later).
 2. Connect `ws://…/game`, then authenticate (first message):
@@ -249,8 +253,10 @@ is horizontal (more instances + matchmaker).
 - `queue-model.md` — the game-long queue determinism model (our take on BMP's
   shared-sequence fairness), what's migrated, and the mapping for systems still to
   build queue-shaped (vouchers, packs, Soul, Bloodstone, rarity-split jokers).
-- `spike/FINDINGS.md` — feasibility spikes (headless Lua, headless LÖVE) that led
-  to the native-reimplementation decision.
+- `docs/design/` — the detailed per-system design notes (scoring pipeline, RNG/queues,
+  economy, PvP/Attrition, networking protocol, jokers/tarots/planets/decks/etc.).
+- `docs/RNG-SECURITY.md` — the anti-cheat RNG threat model (keyed-PRF competitive path
+  vs the vanilla bit-exact oracle, commit-reveal).
 
 ## Roadmap
 
