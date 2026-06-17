@@ -50,6 +50,7 @@ public final class RunState {
     public boolean multiplayer = false; // Standard Ranked MP rules (Glass x1.5, etc.)
     public boolean inPvpBlind = false; // currently in a PvP boss blind (Pacifist, Conjoined)
     public boolean bossHalveBase = false; // The Flint: base chips AND mult are halved this blind
+    public boolean balanceChipsMult = false; // Plasma Deck: floor((chips+mult)/2) into each before x
     public String lastTarotPlanetUsed = null; // The Fool copies whatever this was (excludes The Fool itself)
     public int myLives = 0;            // your Attrition lives
     public int oppLives = 0;           // nemesis lives (Defensive Joker)

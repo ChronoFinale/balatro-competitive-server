@@ -44,6 +44,7 @@ public final class RngSources {
 
     // --- Plain game-long sequential -------------------------------------------
     public static final RngSource JOKER_EDITION = RngSource.of("joker_edition");
+    public static final RngSource JOKER_STICKER = RngSource.of("joker_sticker"); // eternal/perishable/rental (stakes)
     public static final RngSource JOKER_RARITY = RngSource.of("joker_rarity");
     public static final RngSource SHOP_SLOT = RngSource.of("shop_slot");
     public static final RngSource PLANETS = RngSource.of("planets");

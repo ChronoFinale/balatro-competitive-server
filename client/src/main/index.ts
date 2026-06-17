@@ -4,8 +4,8 @@ import net from "net";
 
 // The Java server (single source of truth). HTTP for /login, raw TCP for gameplay.
 const HOST = process.env.BALATRO_HOST ?? "127.0.0.1";
-const HTTP_PORT = Number(process.env.BALATRO_HTTP_PORT ?? 8788);
-const TCP_PORT = Number(process.env.BALATRO_TCP_PORT ?? 8789);
+const HTTP_PORT = Number(process.env.BALATRO_HTTP_PORT ?? 28788);
+const TCP_PORT = Number(process.env.BALATRO_TCP_PORT ?? 28789);
 const HEARTBEAT_MS = 15_000;
 
 let win: BrowserWindow | null = null;

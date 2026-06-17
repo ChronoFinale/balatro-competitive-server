@@ -12,7 +12,11 @@
 
 local OUT = "D:/NewServer/build/balatro-bridge.txt"
 local WIRE = "D:/NewServer/build/balatro-bridge-wire.txt"
-local socket = require("socket")
+-- Load luasocket DEFENSIVELY: this is the only thing that runs unguarded at mod-load time, so if it ever
+-- fails (load order / first cold boot) a raw `require` would crash Balatro on launch. On failure we just
+-- run with socket=nil -> the mod degrades to vanilla (every networking call guards on socket below).
+local ok_socket, socket = pcall(require, "socket")
+if not ok_socket then socket = nil end
 
 local RANK = { TWO = "2", THREE = "3", FOUR = "4", FIVE = "5", SIX = "6", SEVEN = "7", EIGHT = "8",
 	NINE = "9", TEN = "T", JACK = "J", QUEEN = "Q", KING = "K", ACE = "A" }
@@ -23,6 +27,9 @@ local SEQ = 2            -- last seq used; first play is seq 3 (auth0, newRun1, 
 local SERVER_HAND = {}   -- the server's current authoritative hand (list of {uid,rank,suit})
 local DRAW_QUEUE = {}    -- server cards waiting to be assigned to Balatro's next deck draws
 local ENGAGED = false    -- true when a server run is driving this blind
+local VIEW = nil         -- latest authoritative ClientView scalars (phase/requirement/roundScore/...)
+local RUN_LIVE = false   -- a server run is mid-progression: continue it across blinds (don't newRun)
+local SHOP_DONE = false  -- this shop visit has been reconciled to the server's items (once per visit)
 
 local lines = {}
 local function logln(s)
@@ -49,10 +56,11 @@ local function wire(tag, s)
 end
 
 local function http_login(username)
+	if not socket then return nil end -- luasocket unavailable -> stay vanilla
 	local s = socket.tcp(); s:settimeout(2)
-	if not s:connect("127.0.0.1", 8788) then return nil end
+	if not s:connect("127.0.0.1", 28788) then return nil end
 	local body = '{"username":"' .. username .. '"}'
-	s:send("POST /login HTTP/1.1\r\nHost: 127.0.0.1:8788\r\nContent-Type: application/json\r\nContent-Length: "
+	s:send("POST /login HTTP/1.1\r\nHost: 127.0.0.1:28788\r\nContent-Type: application/json\r\nContent-Length: "
 		.. #body .. "\r\nConnection: close\r\n\r\n" .. body)
 	local clen
 	while true do
@@ -72,6 +80,90 @@ local function parse_hand(view)
 		hand[#hand + 1] = { uid = tonumber(uid), rank = rank, suit = suit }
 	end
 	return hand
+end
+
+-- Parse a JSON array field "field":[{...},...] into a list of {kind,key,name,cost}. Balanced-brace scan
+-- (%b{}) yields each object even when jokers nest def/state; the FIRST "key" in each object is the
+-- top-level one (the server emits it before any nested def). nil/null/absent field -> {}.
+local function parse_objs(resp, field)
+	local out = {}
+	if not resp then return out end
+	local arr = resp:match('"' .. field .. '":(%b[])')
+	if not arr then return out end
+	for obj in arr:gmatch("%b{}") do
+		out[#out + 1] = {
+			kind    = obj:match('"kind":"([^"]+)"'),
+			size    = obj:match('"size":"([^"]+)"'),    -- packs only
+			key     = obj:match('"key":"([^"]+)"'),
+			name    = obj:match('"name":"([^"]+)"'),
+			cost    = tonumber(obj:match('"cost":(%-?%d+)')),
+			edition = obj:match('"edition":"([^"]+)"'), -- shop items: NONE/FOIL/HOLOGRAPHIC/POLYCHROME/NEGATIVE
+		}
+	end
+	return out
+end
+
+-- Server edition name -> Balatro Card:set_edition table (nil = base, no edition).
+local function edition_table(ed)
+	if ed == "FOIL" then return { foil = true }
+	elseif ed == "HOLOGRAPHIC" then return { holo = true }
+	elseif ed == "POLYCHROME" then return { polychrome = true }
+	elseif ed == "NEGATIVE" then return { negative = true } end
+	return nil
+end
+
+-- Parse the open booster pack: "openPack":{"picksLeft":N,"items":[{type,key,rank,suit},...]} or null.
+local function parse_open_pack(resp)
+	if not resp then return nil end
+	local obj = resp:match('"openPack":(%b{})')
+	if not obj then return nil end
+	local items = {}
+	local arr = obj:match('"items":(%b[])')
+	if arr then
+		for it in arr:gmatch("%b{}") do
+			items[#items + 1] = {
+				type = it:match('"type":"([^"]+)"'), -- JOKER | CONSUMABLE | CARD
+				key  = it:match('"key":"([^"]+)"'),
+				rank = it:match('"rank":"([^"]+)"'),
+				suit = it:match('"suit":"([^"]+)"'),
+			}
+		end
+	end
+	return { picksLeft = tonumber(obj:match('"picksLeft":(%-?%d+)')), items = items }
+end
+
+-- Map a server pack (kind+size) to a Balatro booster center key: p_<kind>_<size>_1. The trailing variant
+-- only changes the sprite, so _1 is always valid for a given kind+size (game.lua:665+).
+local function pack_center_key(it)
+	if not (it and it.kind and it.size) then return nil end
+	return "p_" .. it.kind:lower() .. "_" .. it.size:lower() .. "_1"
+end
+
+-- Pull the authoritative ClientView scalars we need to render a whole blind out of a response line.
+-- These are flat top-level fields of `view` (unique names), so a focused match is enough for Stage 2;
+-- a full JSON decode arrives when Stage 3/4 need the nested jokers/shop/replay arrays.
+local function parse_view(resp)
+	if not resp then return nil end
+	return {
+		phase        = resp:match('"phase":"([^"]+)"'),
+		bossKey      = resp:match('"bossKey":"([^"]+)"'), -- bl_xxx (native key format) when a boss is set
+		requirement  = tonumber(resp:match('"requirement":(%-?%d+)')),
+		roundScore   = tonumber(resp:match('"roundScore":(%-?%d+)')),
+		handsLeft    = tonumber(resp:match('"handsLeft":(%-?%d+)')),
+		discardsLeft = tonumber(resp:match('"discardsLeft":(%-?%d+)')),
+		money        = tonumber(resp:match('"money":(%-?%d+)')),
+		cashReward   = tonumber(resp:match('"cashOutReward":(%-?%d+)')),   -- diag: blind reward credited
+		cashInterest = tonumber(resp:match('"cashOutInterest":(%-?%d+)')), -- diag: interest credited
+		remaining    = tonumber(resp:match('"remaining":(%-?%d+)')), -- deckStats.remaining (deck-pile count)
+		rerollCost   = tonumber(resp:match('"rerollCost":(%-?%d+)')),
+		hand         = parse_hand(resp),
+		shop         = parse_objs(resp, "shop"),         -- main slots; empty unless phase==SHOP
+		vouchers     = parse_objs(resp, "shopVouchers"), -- offered vouchers (key/name/cost)
+		consumables  = parse_objs(resp, "consumables"),  -- held consumables (key/name) -> index for use
+		jokers       = parse_objs(resp, "jokers"),       -- owned jokers (key/name) -> divergence check
+		packs        = parse_objs(resp, "packs"),        -- shop booster packs (kind/size/cost)
+		openPack     = parse_open_pack(resp),            -- the currently-open pack (nil if none)
+	}
 end
 
 local function recv_until(s, pred)
@@ -97,19 +189,39 @@ local function by_seq(n) return function(l) return l:match('"seq":' .. n .. '[,}
 -- Open a fresh run + select the blind, keeping the socket. Returns (socket, hand) | (nil, err).
 local function open_run()
 	local token = http_login("balatro")
-	if not token then return nil, "login failed (server :8788?)" end
+	if not token then return nil, "login failed (server :28788?)" end
 	local s = socket.tcp(); s:settimeout(2)
-	if not s:connect("127.0.0.1", 8789) then return nil, "tcp :8789 failed" end
+	if not s:connect("127.0.0.1", 28789) then return nil, "tcp :28789 failed" end
 	wire(">>", '{"type":"auth","seq":0,"token":"<redacted ' .. #token .. ' chars>"}')
 	s:send('{"type":"auth","seq":0,"token":"' .. token .. '"}\n')
 	if not recv_until(s, function(l) return l:match('"type":"authed"') ~= nil end) then s:close(); return nil, "no authed" end
-	wsend(s, '{"type":"newRun","seq":1,"seed":"BRIDGE001"}')
+	-- Forward the player's New Run choice: native deck key b_xxx -> our d_xxx; stake is an integer 1..8.
+	-- BUG FIX: G.GAME.selected_back_key is the CENTER OBJECT (get_deck_from_name returns the center, not a
+	-- string -- game.lua:2038/2044), so reading it directly gave a table that failed the string check ->
+	-- NO deck was ever forwarded (server used its default deck = faces present even on Abandoned). Pull the
+	-- string key off the center (.key) / the Back's center, handling either a string or table form.
+	local extra = ""
+	pcall(function()
+		if G and G.GAME then
+			local sbk = G.GAME.selected_back_key
+			local key = (type(sbk) == "string" and sbk)
+				or (type(sbk) == "table" and sbk.key)
+				or (G.GAME.selected_back and G.GAME.selected_back.effect
+					and G.GAME.selected_back.effect.center and G.GAME.selected_back.effect.center.key)
+			if type(key) == "string" then extra = extra .. ',"deck":"' .. key:gsub("^b_", "d_") .. '"' end
+			if type(G.GAME.stake) == "number" then extra = extra .. ',"stake":"' .. G.GAME.stake .. '"' end
+		end
+	end)
+	logln("newRun forwarding: " .. (extra == "" and "(none -> server default deck/stake)" or extra))
+	-- No seed: the SERVER generates a fresh random seed each run (anti-cheat + so every run differs,
+	-- instead of the old hardcoded seed that made every run/blind identical). We only forward deck + stake.
+	wsend(s, '{"type":"newRun","seq":1' .. extra .. "}")
 	if not recv_until(s, by_seq(1)) then s:close(); return nil, "no newRun reply" end
 	wsend(s, '{"type":"selectBlind","seq":2}')
 	local view = recv_until(s, by_seq(2))
 	if not view then s:close(); return nil, "no selectBlind reply" end
 	SEQ = 2
-	return s, parse_hand(view)
+	return s, parse_hand(view), parse_view(view)
 end
 
 local function card_key(c)
@@ -141,6 +253,36 @@ local function prime_deck_for_draw()
 	end
 end
 
+-- After a native draw settles, GUARANTEE the hand matches the server hand: every hand card must carry a
+-- server uid, and each server card appears exactly once. This catches any card the prime missed (the old
+-- "escaped card" divergence) without us ever touching the deck. State-based, not prediction-based.
+local function reconcile_hand_to_server()
+	if not (ENGAGED and G.hand and G.hand.cards and SERVER_HAND and #SERVER_HAND > 0) then return end
+	local server_by_uid = {}
+	for _, sc in ipairs(SERVER_HAND) do server_by_uid[sc.uid] = sc end
+	-- Keep hand cards that already map to a still-unclaimed server card; clear the rest for reassignment.
+	local claimed = {}
+	for _, c in ipairs(G.hand.cards) do
+		if c.bbridge_uid and server_by_uid[c.bbridge_uid] and not claimed[c.bbridge_uid] then
+			claimed[c.bbridge_uid] = true
+		else
+			c.bbridge_uid = nil
+		end
+	end
+	-- Server cards not yet represented in the hand, in server order.
+	local pool = {}
+	for _, sc in ipairs(SERVER_HAND) do if not claimed[sc.uid] then pool[#pool + 1] = sc end end
+	-- Assign each unmapped hand card the next unclaimed server card (corrects any escaped card).
+	local pi, fixed = 1, 0
+	for _, c in ipairs(G.hand.cards) do
+		if not c.bbridge_uid and pi <= #pool then
+			set_card_identity(c, pool[pi]); pi = pi + 1; fixed = fixed + 1
+		end
+	end
+	if fixed > 0 then logln("hand reconcile: corrected " .. fixed .. " card(s) the prime missed") end
+	if pi <= #pool then logln("!! hand reconcile: " .. (#pool - pi + 1) .. " server card(s) unplaced (hand-size mismatch?)") end
+end
+
 -- 0-based index of a server uid in the current server hand (nil if gone).
 local function uid_to_index(uid)
 	for i, sc in ipairs(SERVER_HAND) do if sc.uid == uid then return i - 1 end end
@@ -162,6 +304,49 @@ local function recompute_draw_queue(removing)
 	end
 end
 
+-- Make Balatro's blind-DECISION inputs equal the server's, so its NATIVE state machine renders the
+-- server's outcome with zero round-end code ported. The whole win/lose hinge is two state updaters
+-- reading three values (real source):
+--   game.lua:3197  if G.GAME.chips - G.GAME.blind.chips >= 0 or hands_left < 1 then end the round
+--   game.lua:3254  end_round(): chips - blind.chips >= 0 ? win (ROUND_EVAL) : lose (GAME_OVER)
+-- We OWN blind.chips, hands_left, discards_left here. We do NOT yet force G.GAME.chips: for a vanilla
+-- deck Balatro's native count-up already lands on the server's roundScore, so the native decision
+-- matches the server. The deferred read-only check below proves that each hand and flags exactly where
+-- Stage 4's replay-driven count-up (forcing G.GAME.chips) becomes necessary. It mutates nothing and
+-- cannot soft-lock the game.
+local function reconcile(view)
+	if not (ENGAGED and view and G and G.GAME) then return end
+	VIEW = view
+	pcall(function()
+		if view.requirement and G.GAME.blind then G.GAME.blind.chips = view.requirement end
+		if G.GAME.current_round then
+			if view.handsLeft then G.GAME.current_round.hands_left = view.handsLeft end
+			if view.discardsLeft then G.GAME.current_round.discards_left = view.discardsLeft end
+		end
+		-- Render MONEY from the server's store (like the hand and score), but ONLY during active play.
+		-- The blind reward + interest are added when the player clicks Cash Out, NOT at the win -- yet the
+		-- server adds them in winBlind, so view.money already includes them the instant the blind is beaten.
+		-- Setting dollars to that here would show the post-reward total on the round-eval screen before
+		-- cash-out (premature). So skip the win/loss transition; the shop snap sets the post-cash-out total
+		-- at the right time. Mid-blind, view.money is the pre-reward value (gold cards etc.) -> safe.
+		if view.money and view.phase == "BLIND_ACTIVE" then G.GAME.dollars = view.money end
+	end)
+	pcall(function()
+		if not (G.E_MANAGER and Event) then return end
+		G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.6, blocking = false, func = function()
+			local native = G.GAME and G.GAME.chips
+			logln(string.format("reconcile: native chips=%s | server roundScore=%s requirement=%s handsLeft=%s phase=%s",
+				tostring(native), tostring(view.roundScore), tostring(view.requirement), tostring(view.handsLeft), tostring(view.phase)))
+			if native ~= nil and view.roundScore ~= nil and math.abs(native - view.roundScore) > 0.5 then
+				logln("note: native count-up diverged from server roundScore (server value enforced at round-end)")
+			end
+			if view.phase == "SHOP" then logln("server: BLIND WON (phase=SHOP) -> native ROUND_EVAL renders it")
+			elseif view.phase == "RUN_LOST" then logln("server: BLIND LOST (phase=RUN_LOST) -> native GAME_OVER renders it") end
+			return true
+		end }))
+	end)
+end
+
 -- Send a card-index intent (playHand/discard) and return the raw response line, matched by seq.
 local function send_intent(typ, indices)
 	if not CONN then return nil end
@@ -169,6 +354,198 @@ local function send_intent(typ, indices)
 	local mySeq = SEQ
 	wsend(CONN, '{"type":"' .. typ .. '","seq":' .. mySeq .. ',"cards":[' .. table.concat(indices, ",") .. ']}')
 	return recv_until(CONN, by_seq(mySeq))
+end
+
+-- Send a no/simple-arg intent (selectBlind/proceed/reroll/buyShopItem). `extra` is an optional JSON
+-- fragment like ',"index":2'. Returns {accepted, rejection, view, hand} | nil.
+local function send_action(typ, extra)
+	if not CONN then return nil end
+	SEQ = SEQ + 1
+	local mySeq = SEQ
+	wsend(CONN, '{"type":"' .. typ .. '","seq":' .. mySeq .. (extra or "") .. "}")
+	local resp = recv_until(CONN, by_seq(mySeq))
+	if not resp then return nil end
+	return {
+		accepted = resp:match('"accepted":(%a+)') == "true", -- an error reply has no accepted field => false
+		rejection = resp:match('"rejection":"([^"]+)"'),
+		view = parse_view(resp),
+		hand = parse_hand(resp),
+	}
+end
+
+-- Give a Balatro shop card the identity of a server shop item: swap its center (joker/consumable) and
+-- price, and tag it with the server shop index for the buy intent. set_ability is the joker/consumable
+-- analog of set_base (verified card.lua). Returns true on success.
+local function set_shop_card_identity(card, item, index)
+	if not (card and item and item.key and G.P_CENTERS and G.P_CENTERS[item.key] and card.set_ability) then
+		return false
+	end
+	pcall(function() card:set_ability(G.P_CENTERS[item.key], true) end)
+	card.bbridge_shop_index = index
+	if item.cost then card.cost = item.cost end
+	-- Render the server's rolled edition (Foil/Holo/Poly/Negative); the bought joker inherits this card,
+	-- so its edition carries into G.jokers for free. NONE/nil clears to base.
+	if card.set_edition then pcall(function() card:set_edition(edition_table(item.edition), true, true) end) end
+	return true
+end
+
+-- Snap the HUD money to the server's truth (the native cash-out animated to its OWN figure). Set the value
+-- DIRECTLY (the HUD DynaText is bound to G.GAME.dollars, so it refreshes next frame) rather than easing a
+-- relative delta: ease_dollars(server-native) read mid-cash-out-animation could compound a second ease and
+-- leave money off. Logs the breakdown so any server-vs-native economy gap is visible in the bridge log.
+local function snap_money()
+	pcall(function()
+		if not (VIEW and VIEW.money and G and G.GAME) then return end
+		local native = G.GAME.dollars or 0
+		if native ~= VIEW.money then
+			logln(string.format("money snap: native=$%s -> server=$%s (delta %s) [cashout reward=%s interest=%s]",
+				tostring(native), tostring(VIEW.money), tostring(VIEW.money - native),
+				tostring(VIEW.cashReward), tostring(VIEW.cashInterest)))
+		end
+		G.GAME.dollars = VIEW.money
+	end)
+end
+
+-- Reconcile Balatro's native shop to the server's shop (same move as the deal): let the native shop
+-- build, then swap each main-slot card to the server's item (center + price + index), drop any extras,
+-- and snap money. Re-run after a buy to re-index the remaining (shifted) slots.
+local function reconcile_shop_to_server()
+	if not (ENGAGED and VIEW and VIEW.shop and G.shop_jokers and G.shop_jokers.cards) then return end
+	local items, cards = VIEW.shop, G.shop_jokers.cards
+	local n = math.min(#cards, #items)
+	for i = 1, n do
+		set_shop_card_identity(cards[i], items[i], i - 1) -- server index is 0-based
+		-- Disable native Buy&Use (we don't drive the immediate-use path yet): buy then use separately.
+		pcall(function()
+			local c = cards[i]
+			if c.children and c.children.buy_and_use_button then
+				c.children.buy_and_use_button:remove(); c.children.buy_and_use_button = nil
+			end
+		end)
+	end
+	for i = #cards, #items + 1, -1 do -- native offered more slots than the server: remove the extras
+		local c = cards[i]
+		pcall(function() G.shop_jokers:remove_card(c); if c.remove then c:remove() end end)
+	end
+	logln("shop reconcile: showing " .. n .. " server item(s) of " .. #items .. " offered")
+
+	-- Vouchers: swap each native voucher card to the server's offered voucher (key + cost + index), and
+	-- remove any native voucher the server doesn't offer (untagged -> would redeem natively = desync).
+	if G.shop_vouchers and G.shop_vouchers.cards then
+		local vc, vitems = G.shop_vouchers.cards, (VIEW.vouchers or {})
+		local vn = math.min(#vc, #vitems)
+		for i = 1, vn do
+			local it = vitems[i]
+			if it and it.key and G.P_CENTERS and G.P_CENTERS[it.key] and vc[i].set_ability then
+				pcall(function() vc[i]:set_ability(G.P_CENTERS[it.key], true) end)
+				vc[i].bbridge_voucher_index = i - 1
+				if it.cost then vc[i].cost = it.cost end
+			end
+		end
+		for i = #vc, #vitems + 1, -1 do
+			local c = vc[i]
+			pcall(function() G.shop_vouchers:remove_card(c); if c.remove then c:remove() end end)
+		end
+	end
+
+	-- Booster packs: swap each native booster to the server's pack (center + cost + index); remove extras.
+	if G.shop_booster and G.shop_booster.cards then
+		local bc, bitems = G.shop_booster.cards, (VIEW.packs or {})
+		local bn = math.min(#bc, #bitems)
+		for i = 1, bn do
+			local ckey = pack_center_key(bitems[i])
+			if ckey and G.P_CENTERS and G.P_CENTERS[ckey] and bc[i].set_ability then
+				local pos = bc[i].ability and bc[i].ability.booster_pos -- preserve native bookkeeping field
+				pcall(function() bc[i]:set_ability(G.P_CENTERS[ckey], true) end)
+				if pos and bc[i].ability then bc[i].ability.booster_pos = pos end
+				bc[i].bbridge_pack_index = i - 1
+				if bitems[i].cost then bc[i].cost = bitems[i].cost end
+			end
+		end
+		for i = #bc, #bitems + 1, -1 do
+			local c = bc[i]
+			pcall(function() G.shop_booster:remove_card(c); if c.remove then c:remove() end end)
+		end
+	end
+
+	-- Divergence tripwire: the joker row should match the server's owned jokers (it does when every
+	-- joker arrived via a native buy). Logs server-granted jokers we don't yet render (a follow-up).
+	if G.jokers and G.jokers.cards and VIEW.jokers then
+		if #G.jokers.cards ~= #VIEW.jokers then
+			logln("!! joker divergence: native row=" .. #G.jokers.cards .. " server=" .. #VIEW.jokers ..
+				" (server-granted jokers not yet rendered)")
+		end
+	end
+	-- Reroll-button cost = the server's (native increments its own on reroll, which can drift).
+	pcall(function()
+		if VIEW.rerollCost and G.GAME and G.GAME.current_round then
+			G.GAME.current_round.reroll_cost = VIEW.rerollCost
+		end
+	end)
+	snap_money()
+end
+
+-- Reconcile only AFTER the native shop has actually settled to the server's slot count, since native
+-- populates inside a slide-in-gated deferred chain and reroll clears-then-repopulates at the SAME count.
+-- A fixed delay races both. Poll until #shop_jokers == #VIEW.shop with NO card still flagged stale
+-- (reroll marks the outgoing cards), then swap. Times out after ~4s and reconciles whatever is there.
+local function schedule_shop_reconcile()
+	if not (ENGAGED and VIEW and VIEW.shop and G and G.E_MANAGER and Event) then return end
+	local target = #VIEW.shop
+	local tries = 0
+	G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.1, blocking = false, func = function()
+		tries = tries + 1
+		if not (G.STATES and G.STATE == G.STATES.SHOP) then return true end -- left the shop -> abort
+		local cards = G.shop_jokers and G.shop_jokers.cards
+		local have = cards and #cards or 0
+		local stale = false
+		if cards then for _, c in ipairs(cards) do if c.bbridge_stale then stale = true break end end end
+		if (have == target and not stale) or tries > 240 then
+			pcall(reconcile_shop_to_server)
+			return true
+		end
+		return false -- keep polling each frame until the shop settles
+	end }))
+end
+
+-- Swap the native pack choices (G.pack_cards) to the server's revealed items: set_base for playing cards,
+-- set_ability for jokers/consumables, and tag each with its server pack-item index for the pick.
+local function reconcile_pack_contents()
+	if not (ENGAGED and VIEW and VIEW.openPack and G.pack_cards and G.pack_cards.cards) then return end
+	local items, cards = VIEW.openPack.items, G.pack_cards.cards
+	local n = math.min(#cards, #items)
+	for i = 1, n do
+		local it, card = items[i], cards[i]
+		if it.type == "CARD" then
+			local key = card_key({ rank = it.rank, suit = it.suit })
+			if key and G.P_CARDS and G.P_CARDS[key] and card.set_base then
+				pcall(function() card:set_base(G.P_CARDS[key]) end)
+			end
+		elseif it.key and G.P_CENTERS and G.P_CENTERS[it.key] and card.set_ability then
+			pcall(function() card:set_ability(G.P_CENTERS[it.key], true) end)
+		end
+		card.bbridge_pack_item_index = i - 1
+	end
+	logln("pack reconcile: " .. n .. " of " .. #items .. " revealed item(s) shown")
+end
+
+-- The pack choices materialize ~2-3s after open (and one is removed per pick). Poll until G.pack_cards
+-- matches the server's revealed count, then reconcile identities + re-index. Aborts if the pack closed.
+local function schedule_pack_reconcile()
+	if not (ENGAGED and VIEW and VIEW.openPack and G.E_MANAGER and Event) then return end
+	local target = #VIEW.openPack.items
+	local tries = 0
+	G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.2, blocking = false, func = function()
+		tries = tries + 1
+		if not (VIEW and VIEW.openPack) then return true end -- pack closed -> nothing to do
+		local cards = G.pack_cards and G.pack_cards.cards
+		local have = cards and #cards or 0
+		if (have == target and target > 0) or tries > 400 then
+			pcall(reconcile_pack_contents)
+			return true
+		end
+		return false
+	end }))
 end
 
 -- Send the played indices to the server; return {score, chips, mult, accepted, rejection, handsLeft, hand}.
@@ -185,6 +562,7 @@ local function server_play(indices)
 		rejection = resp:match('"rejection":"([^"]+)"'),
 		handsLeft = tonumber(resp:match('"handsLeft":(%d+)')),
 		hand = parse_hand(resp),
+		view = parse_view(resp),
 	}
 end
 
@@ -201,30 +579,66 @@ end
 local function install_hooks()
 	if not (G and G.FUNCS) then return false end
 
-	-- 1) select_blind: open the authoritative run, and queue the initial hand for the first deal.
+	-- 1) select_blind: drive the SAME server run across blinds. If a run is live and we just proceed()ed
+	-- out of the shop (server phase BLIND_SELECT), CONTINUE it (selectBlind) so jokers/economy persist.
+	-- Otherwise (no run / run over / fresh Balatro run) open a new authoritative run. Either way, queue
+	-- the dealt hand for the deal.
 	local _sel = G.FUNCS.select_blind
 	G.FUNCS.select_blind = function(e)
 		pcall(function()
-			if CONN then pcall(function() CONN:close() end) end
-			CONN, SERVER_HAND, DRAW_QUEUE, ENGAGED = nil, {}, {}, false
-			local s, hand = open_run()
-			if s then
-				CONN, SERVER_HAND, ENGAGED = s, hand, true
-				for _, sc in ipairs(hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end -- whole hand for the initial deal
-				logln("ENGAGED: server run open, " .. #hand .. "-card hand queued.")
-			else
-				logln("select_blind: server offline (" .. tostring(hand) .. ") -> vanilla Balatro.")
+			local continued = false
+			-- Continue the SAME run only when one is live AND the server is between blinds (post-proceed).
+			if RUN_LIVE and CONN and VIEW and VIEW.phase == "BLIND_SELECT" then
+				local r = send_action("selectBlind")
+				if r and r.accepted and r.hand then
+					SERVER_HAND, VIEW, DRAW_QUEUE, ENGAGED = r.hand, r.view, {}, true
+					for _, sc in ipairs(r.hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end
+					-- Boss blind: face the SERVER's boss. select_blind faces e.config.ref_table (the UI's
+					-- baked blind), so swap it to the server's boss center here (key is already bl_xxx). On a
+					-- non-boss blind / missing key this is a no-op -> native's own blind (current behavior).
+					if r.view and r.view.bossKey and G.P_BLINDS and G.P_BLINDS[r.view.bossKey]
+						and e and e.config then
+						e.config.ref_table = G.P_BLINDS[r.view.bossKey]
+						logln("boss blind -> facing server boss " .. r.view.bossKey)
+					end
+					logln("CONTINUE: next blind, " .. #r.hand .. "-card hand queued (same run).")
+					continued = true
+				else
+					-- Stale RUN_LIVE (e.g. quit-to-menu at blind-select, server dropped the run): DON'T strand
+					-- the new run unbridged -- fall through to open a fresh one.
+					logln("selectBlind continue failed -> " .. tostring(r and r.rejection) .. " — opening a fresh run")
+				end
+			end
+			if not continued then
+				if CONN then pcall(function() CONN:close() end) end
+				CONN, SERVER_HAND, DRAW_QUEUE, ENGAGED, VIEW, RUN_LIVE = nil, {}, {}, false, nil, false
+				local s, hand, iview = open_run()
+				if s then
+					CONN, SERVER_HAND, ENGAGED, VIEW, RUN_LIVE = s, hand, true, iview, true
+					for _, sc in ipairs(hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end -- whole hand for the initial deal
+					logln("ENGAGED: server run open, " .. #hand .. "-card hand queued.")
+				else
+					logln("select_blind: server offline (" .. tostring(hand) .. ") -> vanilla Balatro.")
+				end
 			end
 		end)
 		return _sel(e)
 	end
 
-	-- 2) draw_from_deck_to_hand: let Balatro draw its OWN cards (full animation + deck bookkeeping), but
-	-- first set the identities of the cards it's about to draw to the queued server cards.
+	-- 2) draw_from_deck_to_hand: let Balatro draw from its OWN deck (perfect count, native animation, no
+	-- deck-fighting), but (a) PRIME the about-to-be-drawn deck cards to the server's faces so they fly in
+	-- correct (smooth), and (b) after the draw settles, RECONCILE the hand to the server to guarantee
+	-- correctness — catching anything the prime missed. We never manipulate the deck pile, so its count is
+	-- always Balatro's own and stays correct during and after the blind.
 	local _draw = G.FUNCS.draw_from_deck_to_hand
 	G.FUNCS.draw_from_deck_to_hand = function(e)
 		if ENGAGED then pcall(prime_deck_for_draw) end
-		return _draw(e)
+		local r = _draw(e) -- Balatro draws its own deck cards: count decrements natively, animation native
+		if ENGAGED and G.E_MANAGER and Event then
+			G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.5, blocking = false,
+				func = function() pcall(reconcile_hand_to_server); return true end }))
+		end
+		return r
 	end
 
 	-- 2b) discard: map the highlighted cards (by uid) to server indices, tell the server, queue the new draws.
@@ -245,7 +659,7 @@ local function install_hooks()
 				if resp and resp:match('"accepted":(%a+)') == "true" then
 					SERVER_HAND = parse_hand(resp)
 					recompute_draw_queue(removing) -- the new server cards fill the discarded slots
-					logln("discard -> server applied (" .. #idx .. " cards), " .. #DRAW_QUEUE .. " new queued")
+					logln("discard -> server applied (" .. #idx .. " cards), " .. #DRAW_QUEUE .. " new queued"); reconcile(parse_view(resp))
 				elseif resp then
 					logln("discard REJECTED: " .. tostring(resp:match('"rejection":"([^"]+)"')))
 					popup("DISCARD REJECTED: " .. tostring(resp:match('"rejection":"([^"]+)"')), G.C.RED)
@@ -253,6 +667,309 @@ local function install_hooks()
 			end)
 		end
 		return _disc(e, hook)
+	end
+
+	-- 4) update_hand_played: drive the win/lose decision from the SERVER by giving NATIVE the server's
+	-- numbers, then delegating. Native decides NEW_ROUND (chips>=blind.chips OR hands_left<1) vs
+	-- DRAW_TO_HAND from exactly those three values (game.lua:3196), then runs end_round -> ROUND_EVAL ->
+	-- cash_out -> SHOP (win) or GAME_OVER (loss) -- so we get the native cash-out + shop FOR FREE instead
+	-- of porting them. We force G.GAME.chips because the local count-up diverges once jokers are server-
+	-- owned. Pure value-forcing + native delegate => no soft-lock surface of our own.
+	local _uhp = Game.update_hand_played
+	function Game:update_hand_played(dt)
+		if not (ENGAGED and VIEW and G and G.GAME) then return _uhp(self, dt) end
+		-- Force the server's numbers ONLY at the decision frame, not every frame. During the score count-up
+		-- STATE_COMPLETE is true (set in play_cards_from_highlighted, cleared only AFTER evaluate_play); the
+		-- native count-up EASES G.GAME.chips up over ~0.5s (state_events.lua:1044). Forcing chips every frame
+		-- overwrote that ease's target, snapping the round score to final before the hand animated (the
+		-- early-jump bug). Gating on `not STATE_COMPLETE` lets the native ease play, then corrects any
+		-- divergence + sets the blind/hands so native's win/lose decision matches the server.
+		if not G.STATE_COMPLETE then
+			local v = VIEW
+			pcall(function()
+				-- Do NOT force G.GAME.chips here. The ease-retarget (hook 7) already drives the NATIVE
+				-- count-up animation to the server's roundScore, and native reads the eased chips for its
+				-- win/lose decision. Forcing it here fired BEFORE the count-up ran (Balatro queues the
+				-- score eases after this state-complete event), snapping the round score to final the instant
+				-- the hand was played -- the jump the user saw. Just set the blind/hands for the decision.
+				if v.requirement and G.GAME.blind then G.GAME.blind.chips = v.requirement end
+				if G.GAME.current_round and v.handsLeft then G.GAME.current_round.hands_left = v.handsLeft end
+			end)
+			if v.phase == "SHOP" then SHOP_DONE = false end -- a shop visit is coming -> reconcile it once
+			if v.phase == "RUN_LOST" or v.phase == "RUN_WON" then RUN_LIVE = false end -- run over -> next fresh
+			logln("round decision (server): phase=" .. tostring(v.phase) .. " chips=" .. tostring(v.roundScore) ..
+				" req=" .. tostring(v.requirement) .. " handsLeft=" .. tostring(v.handsLeft))
+		end
+		return _uhp(self, dt)
+	end
+
+	-- 5) update_shop: native builds + populates the shop; we then reconcile it to the server's items.
+	-- Set joker_max first so native emplaces the right number of slots, then defer the swap until the
+	-- native cards have materialized.
+	local _ushop = Game.update_shop
+	function Game:update_shop(dt)
+		if ENGAGED and VIEW and VIEW.shop and #VIEW.shop > 0 and G.GAME and G.GAME.shop and not SHOP_DONE then
+			-- Match native's main-slot count to the server's exactly, so the poll settles fast.
+			pcall(function() G.GAME.shop.joker_max = #VIEW.shop end)
+		end
+		local r = _ushop(self, dt)
+		if ENGAGED and VIEW and VIEW.phase == "SHOP" and #VIEW.shop > 0 and not SHOP_DONE then
+			SHOP_DONE = true -- reconcile exactly once per visit (the poll waits for the cards to settle)
+			schedule_shop_reconcile()
+		end
+		return r
+	end
+
+	-- 5b) buy_from_shop: the bought card (e.config.ref_table) carries its server shop index. Tell the
+	-- server first; on accept let native fly it into G.jokers/G.consumeables, then re-reconcile (re-index
+	-- the shifted slots) and snap money. On reject, popup and block the native buy.
+	local _buy = G.FUNCS.buy_from_shop
+	G.FUNCS.buy_from_shop = function(e)
+		if ENGAGED and CONN and e and e.config and e.config.ref_table and e.config.ref_table.bbridge_shop_index ~= nil then
+			local idx = e.config.ref_table.bbridge_shop_index
+			local r = send_action("buyShopItem", ',"index":' .. idx)
+			if not (r and r.accepted) then
+				logln("buy REJECTED slot " .. idx .. ": " .. tostring(r and r.rejection))
+				popup("CAN'T BUY: " .. tostring((r and r.rejection) or "server error"), G.C.RED)
+				return -- block native buy: the server said no
+			end
+			VIEW = r.view or VIEW
+			logln("buy -> server bought slot " .. idx .. " (money=" .. tostring(r.view and r.view.money) .. ")")
+			local res = _buy(e) -- native: card flies to jokers/consumeables, money eases
+			schedule_shop_reconcile() -- waits for native to remove the bought card, then re-indexes the rest
+			return res
+		end
+		return _buy(e)
+	end
+
+	-- 5c) reroll_shop: tell the server, let native clear+repopulate, then re-reconcile to the new items.
+	local _reroll = G.FUNCS.reroll_shop
+	G.FUNCS.reroll_shop = function(e)
+		if ENGAGED and CONN then
+			local r = send_action("reroll")
+			if not (r and r.accepted) then
+				logln("reroll REJECTED: " .. tostring(r and r.rejection))
+				popup("CAN'T REROLL: " .. tostring((r and r.rejection) or "server error"), G.C.RED)
+				return
+			end
+			VIEW = r.view or VIEW
+			-- Mark the outgoing cards stale so the poll waits for native to clear+repopulate before swapping
+			-- (reroll keeps the same slot count, so a count-only check would fire on the stale cards).
+			pcall(function()
+				if G.shop_jokers and G.shop_jokers.cards then
+					for _, c in ipairs(G.shop_jokers.cards) do c.bbridge_stale = true end
+				end
+			end)
+			local res = _reroll(e)
+			schedule_shop_reconcile()
+			return res
+		end
+		return _reroll(e)
+	end
+
+	-- 5d) toggle_shop (the "Next Round" button): leave the shop on the server (proceed -> next blind),
+	-- so the run advances server-side; native then goes to BLIND_SELECT and select_blind continues it.
+	local _toggle = G.FUNCS.toggle_shop
+	G.FUNCS.toggle_shop = function(e)
+		if ENGAGED and CONN then
+			local r = send_action("proceed")
+			if r then
+				VIEW = r.view or VIEW
+				logln("next round -> server proceed (phase=" .. tostring(r.view and r.view.phase) .. ")")
+			end
+		end
+		return _toggle(e)
+	end
+
+	-- 5e) Card:redeem (voucher): the shop voucher carries bbridge_voucher_index. Tell the server, then let
+	-- native apply the voucher (rendering) + snap money. Hook the METHOD (the FUNCS button is engine-injected).
+	local _redeem = Card.redeem
+	function Card:redeem()
+		if ENGAGED and CONN and self.bbridge_voucher_index ~= nil then
+			local r = send_action("buyVoucher", ',"index":' .. self.bbridge_voucher_index)
+			if not (r and r.accepted) then
+				logln("voucher REJECTED: " .. tostring(r and r.rejection))
+				popup("CAN'T BUY VOUCHER: " .. tostring((r and r.rejection) or "?"), G.C.RED)
+				return -- block native redeem: the server said no
+			end
+			VIEW = r.view or VIEW
+			self.bbridge_voucher_index = nil
+			logln("voucher -> server redeemed (money=" .. tostring(r.view and r.view.money) .. ")")
+			local res = _redeem(self)
+			if G.E_MANAGER and Event then
+				G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.3, blocking = false,
+					func = function() snap_money(); return true end }))
+			end
+			return res
+		end
+		return _redeem(self)
+	end
+
+	-- 5f) sell_card: map the sold JOKER to its server row index (orders stay aligned: jokers appended on
+	-- buy, both sides remove the same index on sell). Consumable sells aren't routed yet -> blocked.
+	local _sell = G.FUNCS.sell_card
+	G.FUNCS.sell_card = function(e)
+		if ENGAGED and CONN and e and e.config and e.config.ref_table then
+			local card = e.config.ref_table
+			if card.area == G.consumeables then
+				popup("SELL CONSUMABLES: not supported yet", G.C.RED)
+				return -- block (would desync: server has no sell-consumable intent)
+			end
+			if card.area == G.jokers and card.ability and card.ability.set == "Joker" then
+				local idx
+				for i, c in ipairs(G.jokers.cards) do if c == card then idx = i - 1; break end end
+				if idx ~= nil then
+					local r = send_action("sellJoker", ',"index":' .. idx)
+					if not (r and r.accepted) then
+						logln("sell REJECTED idx " .. idx .. ": " .. tostring(r and r.rejection))
+						popup("CAN'T SELL: " .. tostring((r and r.rejection) or "?"), G.C.RED)
+						return -- block native sell (e.g. eternal)
+					end
+					VIEW = r.view or VIEW
+					logln("sell -> server sold joker " .. idx)
+					local res = _sell(e)
+					if G.E_MANAGER and Event then
+						G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.3, blocking = false,
+							func = function() snap_money(); return true end }))
+					end
+					return res
+				end
+			end
+		end
+		return _sell(e)
+	end
+
+	-- 5g) skip_blind: keep the server in lockstep (skipBlind advances the blind + deals next hand, leaving
+	-- phase BLIND_SELECT). Native then shows the next blind; select_blind continues it.
+	local _skip = G.FUNCS.skip_blind
+	G.FUNCS.skip_blind = function(e)
+		if ENGAGED and CONN then
+			local r = send_action("skipBlind")
+			if r and r.accepted then
+				VIEW = r.view or VIEW
+				logln("skip -> server skipBlind (phase=" .. tostring(r.view and r.view.phase) .. ")")
+			else
+				logln("skip REJECTED: " .. tostring(r and r.rejection) .. " (boss/pvp can't skip)")
+			end
+		end
+		return _skip(e)
+	end
+
+	-- 5h) use_card (consumable): a held consumable (G.consumeables) -> useConsumable(index, targets). Index
+	-- by center key against VIEW.consumables; targets = highlighted hand cards' server uids (Tarots; planets
+	-- ignore them). Server applies the effect; the next draw reconcile re-stamps any card identities it changed.
+	local _use = G.FUNCS.use_card
+	G.FUNCS.use_card = function(e, mute, nosave)
+		if ENGAGED and CONN and e and e.config and e.config.ref_table then
+			local card = e.config.ref_table
+			-- 5i) pack pick: a card chosen from an open booster (use_card is the universal pick path for
+			-- jokers/playing cards/consumables). Server pickPackItem STORES the item; native USES consumables
+			-- immediately, so for a consumable we chain useConsumable to match. Targets = highlighted hand uids.
+			if card.area == G.pack_cards and card.bbridge_pack_item_index ~= nil then
+				local idx = card.bbridge_pack_item_index
+				local consumable = card.ability and card.ability.consumeable
+				local targets = {}
+				if G.hand and G.hand.highlighted then
+					for _, hc in ipairs(G.hand.highlighted) do
+						if hc.bbridge_uid then targets[#targets + 1] = hc.bbridge_uid end
+					end
+				end
+				local r = send_action("pickPackItem", ',"index":' .. idx)
+				if not (r and r.accepted) then
+					logln("pickPackItem REJECTED idx " .. idx .. ": " .. tostring(r and r.rejection))
+					popup("CAN'T PICK: " .. tostring((r and r.rejection) or "?"), G.C.RED)
+					return -- block native pick
+				end
+				VIEW = r.view or VIEW
+				if consumable and VIEW.consumables and #VIEW.consumables > 0 then
+					local cidx = #VIEW.consumables - 1 -- the just-stored consumable (appended last)
+					local r2 = send_action("useConsumable",
+						',"index":' .. cidx .. ',"targets":[' .. table.concat(targets, ",") .. "]")
+					if r2 and r2.view then VIEW = r2.view end
+					logln("pack pick(consumable) -> picked+used idx " .. idx .. " targets=" .. #targets)
+				else
+					logln("pack pick -> picked idx " .. idx)
+				end
+				schedule_pack_reconcile() -- re-index remaining choices (multi-pick) once native removes one
+				return _use(e, mute, nosave)
+			end
+			if card.area == G.consumeables and card.ability and card.ability.consumeable then
+				local key = card.config and card.config.center_key
+				local idx
+				if key and VIEW and VIEW.consumables then
+					for i, it in ipairs(VIEW.consumables) do if it.key == key then idx = i - 1; break end end
+				end
+				if idx ~= nil then
+					local targets = {}
+					if G.hand and G.hand.highlighted then
+						for _, hc in ipairs(G.hand.highlighted) do
+							if hc.bbridge_uid then targets[#targets + 1] = hc.bbridge_uid end
+						end
+					end
+					local r = send_action("useConsumable",
+						',"index":' .. idx .. ',"targets":[' .. table.concat(targets, ",") .. "]")
+					if not (r and r.accepted) then
+						logln("useConsumable REJECTED idx " .. idx .. ": " .. tostring(r and r.rejection))
+						popup("CAN'T USE: " .. tostring((r and r.rejection) or "?"), G.C.RED)
+						return -- block native use
+					end
+					VIEW = r.view or VIEW
+					logln("use -> server consumable " .. idx .. " targets=" .. #targets)
+				end
+			end
+		end
+		return _use(e, mute, nosave)
+	end
+
+	-- 5j) Card:open (booster): the shop pack carries bbridge_pack_index. Tell the server, let native open
+	-- (creates the pack UI + choices), then reconcile the choices to the server's revealed items. Hook the
+	-- METHOD (the open_booster FUNCS button is engine-injected).
+	local _open = Card.open
+	function Card:open()
+		if ENGAGED and CONN and self.bbridge_pack_index ~= nil then
+			local r = send_action("openPack", ',"index":' .. self.bbridge_pack_index)
+			if not (r and r.accepted) then
+				logln("openPack REJECTED: " .. tostring(r and r.rejection))
+				popup("CAN'T OPEN: " .. tostring((r and r.rejection) or "?"), G.C.RED)
+				return -- block native open
+			end
+			VIEW = r.view or VIEW
+			self.bbridge_pack_index = nil
+			logln("openPack -> server (items=" .. tostring(VIEW.openPack and #VIEW.openPack.items) .. ")")
+			local res = _open(self)
+			schedule_pack_reconcile()
+			if G.E_MANAGER and Event then
+				G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.3, blocking = false,
+					func = function() snap_money(); return true end }))
+			end
+			return res
+		end
+		return _open(self)
+	end
+
+	-- 5k) skip_booster (skip the rest of an open pack): close it on the server too.
+	local _skipb = G.FUNCS.skip_booster
+	G.FUNCS.skip_booster = function(e)
+		if ENGAGED and CONN and VIEW and VIEW.openPack then
+			local r = send_action("skipPack")
+			if r then VIEW = r.view or VIEW; logln("skip pack -> server skipPack") end
+		end
+		return _skipb(e)
+	end
+
+	-- 5l) cash_out: drive the round cash-out amount from the SERVER (reward + interest), since money is
+	-- added when the player clicks Cash Out. Set G.GAME.current_round.dollars before native eases it; with
+	-- mid-blind money already rendering the server's pre-reward value, the ease lands on view.money. The
+	-- shop snap is the exact backstop for any native end_round joker-$ remainder (none on a base run).
+	if G.FUNCS.cash_out then
+		local _cashout = G.FUNCS.cash_out
+		G.FUNCS.cash_out = function(e)
+			if ENGAGED and VIEW and G.GAME and G.GAME.current_round and (VIEW.cashReward or VIEW.cashInterest) then
+				G.GAME.current_round.dollars = (VIEW.cashReward or 0) + (VIEW.cashInterest or 0)
+				logln("cash_out -> server total $" .. tostring(G.GAME.current_round.dollars))
+			end
+			return _cashout(e)
+		end
 	end
 
 	-- 3) evaluate_play: map played cards (by uid) to server indices, the server scores them, queue new draws.
@@ -266,7 +983,13 @@ local function install_hooks()
 					if ix then idx[#idx + 1] = ix end
 				end
 				if #idx == 0 then return end
-				local res = server_play(idx)
+				if #idx ~= #G.play.cards then
+						logln("!! IDENTITY GAP: Balatro played " .. #G.play.cards .. " cards, only " .. #idx .. " mapped to server (unmapped cards keep Balatro's own face -> score divergence)")
+						for _, gc in ipairs(G.play.cards) do
+							if not gc.bbridge_uid then logln("   unmapped played card: " .. tostring(gc.base and gc.base.value) .. " of " .. tostring(gc.base and gc.base.suit)) end
+						end
+					end
+					local res = server_play(idx)
 				if not res then logln("play: no server response"); return end
 				if res.accepted then
 					SERVER_HAND = (res.handsLeft and res.handsLeft > 0) and res.hand or {}
@@ -279,7 +1002,7 @@ local function install_hooks()
 					-- chip-ease to the server value instead).
 					logln(string.format("play -> SERVER %s x %s = %g [round %s] handsLeft=%s new=%d",
 						tostring(res.chips), tostring(res.mult), hs, tostring(res.score), tostring(res.handsLeft), #DRAW_QUEUE))
-					if res.handsLeft == 0 then logln("server: blind hands exhausted (round-end is Stage 2)") end
+					reconcile(res.view); if res.handsLeft == 0 then logln("server: blind hands exhausted -> server decides win/lose, native renders it") end
 				else
 					logln("play REJECTED: " .. tostring(res.rejection))
 					popup("REJECTED: " .. tostring(res.rejection), G.C.RED)
@@ -289,25 +1012,66 @@ local function install_hooks()
 		return _eval(e) -- Balatro animates locally (matches the server for the base game); Stage 1b drives it from the replay
 	end
 
+	-- 6) Tag:apply_to_run -- NEUTER native tag EFFECTS while engaged (the #1 systemic divergence). Native
+	-- runs its OWN tag system in parallel: Top-up spawns jokers, Skip/Garbage/Handy ease dollars, Boss/
+	-- Orbital reroll the boss -- all autonomous grants the SERVER owns authoritatively (tag.lua:115+).
+	-- No-op makes native tags inert (icons still show); every caller reads the return only as
+	-- `if apply_to_run() then break end`, so a nil return simply doesn't break and no flow depends on it.
+	-- HIGHEST-RISK hook -> kill-switch: set `BBRIDGE_NEUTER_TAGS=false` in the console to restore native
+	-- tags if blind-select/shop ever misbehaves. (Server-granted tag effects still apply server-side.)
+	if Tag and Tag.apply_to_run then
+		local _apply = Tag.apply_to_run
+		function Tag:apply_to_run(ctx)
+			if ENGAGED and rawget(_G, "BBRIDGE_NEUTER_TAGS") ~= false then return nil end
+			return _apply(self, ctx)
+		end
+	end
+
+	-- 7) RETARGET the round-score count-up to the SERVER's value. Native eases G.GAME.chips toward a
+	-- target it computed LOCALLY (state_events.lua:1044); when local scoring diverges (jokers, or the
+	-- first hand before identities settle) that target is wrong, and our after-the-fact snap then made
+	-- it jump. Instead, intercept the ease as it's queued and rewrite its end value to the server's
+	-- roundScore (already stored in VIEW by the play hook). The native animation then COUNTS UP to the
+	-- server's number at native pace — no jump, correct for every hand. (User's idea: compute early,
+	-- store it, let the game render it later.)
+	if EventManager and EventManager.add_event then
+		local _add = EventManager.add_event
+		function EventManager:add_event(event, queue, front)
+			if ENGAGED and VIEW and VIEW.roundScore and event and event.trigger == "ease" and event.ease
+				and event.ease.ref_table == G.GAME and event.ease.ref_value == "chips" then
+				logln("chips ease retargeted: native end_val=" .. tostring(event.ease.end_val) ..
+					" -> server roundScore=" .. tostring(VIEW.roundScore))
+				event.ease.end_val = VIEW.roundScore
+			end
+			return _add(self, event, queue, front)
+		end
+	end
+
 	return true
 end
 
--- launch-time proof: dump the ClientView->Balatro card mapping (throwaway run), then install hooks.
+-- launch-time connectivity check. Deliberately a LOGIN-ONLY probe: the old version opened a throwaway
+-- run (newRun) just to dump the card mapping, which orphaned a server-side Run every launch and did a
+-- full handshake at startup. The real engage + card mapping happen on select_blind, so a light probe is
+-- enough here.
 local function prove_translation()
-	logln("== BalatroBridge Stage 1 thin client ==")
-	local s, hand = open_run()
-	if not s then logln("server check FAILED: " .. tostring(hand)); return end
-	pcall(function() s:close() end)
-	logln(#hand .. "-card server hand maps to Balatro identities:")
-	local all_valid = true
-	for i, c in ipairs(hand) do
-		local key = card_key(c)
-		local valid = key and G.P_CARDS and G.P_CARDS[key] ~= nil
-		if not valid then all_valid = false end
-		logln(string.format("  %d  %-6s %-9s -> %s  valid=%s", i, c.rank, c.suit, tostring(key), tostring(valid)))
+	logln("== BalatroBridge ==")
+	local token = http_login("balatro")
+	if token then
+		logln("server reachable (login OK, " .. #token .. "-char token). Select a blind to engage.")
+	else
+		logln("server check FAILED: login (server :28788 up?) -> vanilla Balatro until it is reachable.")
 	end
-	logln(all_valid and "ALL valid." or "SOME invalid.")
-	logln("Select a blind to engage: the server deals the hand and scores your plays.")
+end
+
+-- Test seam: expose the pure parsers to the standalone luajit spec (test/parsers_spec.lua). Guarded by a
+-- global that is NEVER set in-game, so this has ZERO effect when Balatro loads the mod.
+if rawget(_G, "BBRIDGE_EXPOSE") then
+	_G.BBRIDGE = {
+		parse_hand = parse_hand, parse_objs = parse_objs, parse_open_pack = parse_open_pack,
+		parse_view = parse_view, pack_center_key = pack_center_key, edition_table = edition_table,
+		card_key = card_key,
+	}
 end
 
 local frames, done = 0, false

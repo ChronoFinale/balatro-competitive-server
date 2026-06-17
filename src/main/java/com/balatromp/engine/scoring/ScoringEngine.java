@@ -101,6 +101,7 @@ public final class ScoringEngine {
 
         // (3) BEFORE pass.
         for (int i = 0; i < jokers.size(); i++) {
+            if (perished(run, jokers.get(i))) continue; // Perishable sticker expired -> joker disabled
             ctx.phase = Trigger.BEFORE;
             ctx.selfIndex = i;
             ctx.blueprintDepth = 0;
@@ -118,6 +119,7 @@ public final class ScoringEngine {
             for (int r = 0; r < reps; r++) {
                 applyCardScored(acc, card, run, queues, preview);
                 for (int i = 0; i < jokers.size(); i++) {
+                    if (perished(run, jokers.get(i))) continue;
                     ctx.phase = Trigger.ON_SCORED;
                     ctx.selfIndex = i;
                     ctx.blueprintDepth = 0;
@@ -164,6 +166,7 @@ public final class ScoringEngine {
         // (6) main joker pass + joker-on-joker.
         for (int i = 0; i < jokers.size(); i++) {
             Joker current = jokers.get(i);
+            if (perished(run, current)) continue; // disabled by an expired Perishable sticker
             ctx.phase = Trigger.JOKER_MAIN;
             ctx.selfIndex = i;
             ctx.blueprintDepth = 0;
@@ -182,6 +185,7 @@ public final class ScoringEngine {
             }
 
             for (int j = 0; j < jokers.size(); j++) {
+                if (perished(run, jokers.get(j))) continue;
                 ctx.phase = Trigger.ON_OTHER_JOKER;
                 ctx.selfIndex = j;
                 ctx.blueprintDepth = 0;
@@ -199,10 +203,23 @@ public final class ScoringEngine {
             run.money = Math.max(0, run.money + acc.dollars);
         }
 
+        // Plasma Deck: balance chips and mult — each becomes floor((chips+mult)/2) — before the multiply.
+        if (run.balanceChipsMult) {
+            BigNum half = acc.chips.add(acc.mult).multiply(0.5).floor();
+            acc.chips = half;
+            acc.mult = half;
+            log(acc, "Plasma Deck", "info", "Balanced chips & mult");
+        }
+
         // (7) final score (big-number; chips × mult).
         BigNum score = acc.chips.multiply(acc.mult);
         return new ScoreResult(hr.type(), Math.round(acc.chips.doubleValue()), acc.mult.doubleValue(),
                 score.doubleValue(), acc.log, acc.destroyed, score);
+    }
+
+    /** A joker whose Perishable sticker has expired is debuffed — it contributes nothing to scoring. */
+    private static boolean perished(RunState run, Joker j) {
+        return Boolean.TRUE.equals(run.jokerState(j).get("debuffed"));
     }
 
     /** Apply any card mutations carried by an effect (and its extra-chain) to the scored card. */

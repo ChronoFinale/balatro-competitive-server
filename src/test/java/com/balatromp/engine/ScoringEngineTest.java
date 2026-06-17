@@ -38,6 +38,14 @@ class ScoringEngineTest {
     }
 
     @Test
+    void plasmaDeckBalancesChipsAndMult() { // pair of Kings 30x2; Plasma floors (30+2)/2=16 into each -> 256
+        RunState run = new RunState();
+        run.balanceChipsMult = true;
+        assertThat(new ScoringEngine().score(List.of(c(KING, HEARTS), c(KING, SPADES)), List.of(), run,
+                new RandomStreams("P")).score()).isEqualTo(256.0);
+    }
+
+    @Test
     void jokerEditions() { // Foil +50 chips, Holo +10 mult (both before the joker scores), Poly x1.5 after
         var played = List.of(c(KING, HEARTS), c(KING, SPADES)); // pair + j_joker baseline: 30 x 6 = 180
         assertThat(editionScore(com.balatromp.engine.card.Edition.FOIL, played).score()).isEqualTo(80.0 * 6); // (30+50) x 6

@@ -34,5 +34,8 @@ public record ClientView(
         Map<String, Object> counters,
         List<Map<String, Object>> shopVouchers,
         List<Map<String, Object>> packs,
-        Map<String, Object> openPack) {
+        Map<String, Object> openPack,
+        String stake,
+        String deck,
+        String bossKey) {
 }

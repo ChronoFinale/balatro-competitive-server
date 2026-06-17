@@ -36,10 +36,24 @@ public final class Shop {
 
     /** A single shop slot — any {@link Kind}, with the display fields the client renders. */
     public record Item(Kind kind, String key, String name, String description,
-                       int cost, String rarity, Edition edition) {
+                       int cost, String rarity, Edition edition,
+                       boolean eternal, boolean perishable, boolean rental) {
+
+        /** Backward-compatible: an item with no stake stickers. */
+        public Item(Kind kind, String key, String name, String description,
+                    int cost, String rarity, Edition edition) {
+            this(kind, key, name, description, cost, rarity, edition, false, false, false);
+        }
+
         public static Item joker(JokerInfo info, Edition edition) {
             return new Item(Kind.JOKER, info.key(), info.name(), info.description(),
                     info.cost(), info.rarity(), edition);
+        }
+
+        /** Copy this item with stake stickers applied (rental jokers cost $1). */
+        public Item withStickers(boolean eternal, boolean perishable, boolean rental) {
+            return new Item(kind, key, name, description, rental ? 1 : cost, rarity, edition,
+                    eternal, perishable, rental);
         }
     }
 

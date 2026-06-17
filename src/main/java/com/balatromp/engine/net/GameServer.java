@@ -481,7 +481,19 @@ public final class GameServer implements AutoCloseable {
 
             switch (type) {
                 case "newRun" -> {
-                    Run run = new Run(ruleset, msg.path("seed").asText("SEED"));
+                    // Optional difficulty stake (White..Gold / 1..8) and deck (e.g. "d_blue"); both
+                    // default sensibly (White; the ruleset's deck) if absent.
+                    com.balatromp.engine.state.Stake stake =
+                            com.balatromp.engine.state.Stake.parse(msg.path("stake").asText(null));
+                    com.balatromp.engine.game.DeckCatalog.DeckType deck =
+                            com.balatromp.engine.game.DeckCatalog.get(
+                                    msg.path("deck").asText(ruleset.deckType()));
+                    // SERVER generates the seed (anti-cheat: the client must not pick a favorable one). A
+                    // seed is honored only if explicitly supplied (dev/testing/reproducible wire tests);
+                    // otherwise every run is fresh-random (PvP matches share one seed via createLobby).
+                    String seedArg = msg.path("seed").asText("");
+                    String seed = seedArg.isEmpty() ? com.balatromp.engine.rng.Seeds.random() : seedArg;
+                    Run run = new Run(ruleset, seed, stake, deck);
                     runs.put(players.get(conn.sessionId()), run); // keyed by identity, survives reconnect
                     conn.send(ok(seq, run));
                 }

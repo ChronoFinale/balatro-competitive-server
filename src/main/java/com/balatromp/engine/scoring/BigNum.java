@@ -131,6 +131,14 @@ public final class BigNum implements Comparable<BigNum> {
         return (int) a[0] * mag;
     }
 
+    /**
+     * Largest integer {@code <=} this. Exact for double-backed values; a no-op for big-form values
+     * (>=10^300), which already exceed integer precision and are integral at their scale.
+     */
+    public BigNum floor() {
+        return big ? this : small(Math.floor(d));
+    }
+
     /** Best-effort double (may be {@code Infinity} for values beyond ~1.8e308). */
     public double doubleValue() {
         return big ? sign * mant * Math.pow(10, exp) : d;

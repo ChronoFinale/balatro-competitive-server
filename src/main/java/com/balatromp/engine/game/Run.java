@@ -34,6 +34,7 @@ import com.balatromp.engine.scoring.ScoreResult;
 import com.balatromp.engine.state.Deck;
 import com.balatromp.engine.state.Ruleset;
 import com.balatromp.engine.state.RunState;
+import com.balatromp.engine.state.Stake;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,6 +60,8 @@ public final class Run {
             "Head-to-head — higher score wins; lower loses a life", 2, false, 1.0, 5, -1, -1, 0, null, false);
 
     public final Ruleset ruleset;
+    public final Stake stake;
+    public final DeckCatalog.DeckType deckType;
     public final RunState state = new RunState();
     public final RandomStreams rng;
 
@@ -95,14 +98,34 @@ public final class Run {
     private static final java.util.Comparator<Joker> JOKER_QUALITY = (a, b) -> 0;
 
     public Run(Ruleset ruleset, String seed) {
-        this(ruleset, seed, Deck.standard(), List.of());
+        this(ruleset, seed, Deck.standard(), List.of(), Stake.WHITE);
+    }
+
+    public Run(Ruleset ruleset, String seed, Stake stake) {
+        this(ruleset, seed, Deck.standard(), List.of(), stake);
+    }
+
+    /** Pick a deck and a stake at run creation (standard composition, no starting jokers). */
+    public Run(Ruleset ruleset, String seed, Stake stake, DeckCatalog.DeckType deckType) {
+        this(ruleset, seed, Deck.standard(), List.of(), stake, deckType);
     }
 
     public Run(Ruleset ruleset, String seed, Deck deck, List<Joker> jokers) {
+        this(ruleset, seed, deck, jokers, Stake.WHITE);
+    }
+
+    public Run(Ruleset ruleset, String seed, Deck deck, List<Joker> jokers, Stake stake) {
+        this(ruleset, seed, deck, jokers, stake, DeckCatalog.get(ruleset.deckType()));
+    }
+
+    public Run(Ruleset ruleset, String seed, Deck deck, List<Joker> jokers, Stake stake,
+               DeckCatalog.DeckType deckType) {
         this.ruleset = ruleset;
+        this.stake = stake;
+        this.deckType = deckType;
         this.rng = new RandomStreams(seed);
-        DeckCatalog.DeckType deckType = DeckCatalog.get(ruleset.deckType());
         state.multiplayer = "multiplayer".equals(ruleset.jokerVariant()); // MP rules (Glass x1.5, ...)
+        state.balanceChipsMult = "d_plasma".equals(deckType.key()); // Plasma Deck balances chips & mult
         state.money = ruleset.startingMoney() + deckType.startMoneyDelta();
         state.jokerSlots = 5 + deckType.jokerSlotsDelta();
         state.rng = rng;
@@ -110,7 +133,39 @@ public final class Run {
         state.queues = new com.balatromp.engine.rng.QueueSet(rng);
         for (Joker j : jokers) state.addJoker(j);
         for (Card c : deck.cards()) composition.add(c.copy()); // capture deck composition
+        applyDeckComposition(); // Abandoned/Checkered/Erratic reshape the starting deck
+        applyDeckStartingItems(); // Magic/Nebula/Zodiac grant vouchers/consumables before the first blind
         startBlind();
+    }
+
+    /** Grant a deck's starting vouchers/consumables + consumable-slot delta (game.lua:633-638). */
+    private void applyDeckStartingItems() {
+        state.consumableSlots += deckType.consumableSlotDelta();
+        for (String v : deckType.startingVouchers()) grantVoucher(v);
+        state.consumables.addAll(deckType.startingConsumables());
+    }
+
+    /** Reshape the starting composition for decks that change it (game.lua:636-642). */
+    private void applyDeckComposition() {
+        switch (deckType.composition()) {
+            case NO_FACES -> composition.removeIf(c -> c.rank.isFace()); // Abandoned: drop J/Q/K
+            case CHECKERED -> { // Clubs -> Spades, Diamonds -> Hearts (26 Spades + 26 Hearts)
+                for (Card c : composition) {
+                    if (c.suit == Suit.CLUBS) c.suit = Suit.SPADES;
+                    else if (c.suit == Suit.DIAMONDS) c.suit = Suit.HEARTS;
+                }
+            }
+            case ERRATIC -> { // each card: a random rank AND suit, from the 'erratic' stream
+                var r = rng.stream("erratic");
+                Rank[] ranks = Rank.values();
+                Suit[] suits = Suit.values();
+                for (Card c : composition) {
+                    c.rank = ranks[r.nextInt(ranks.length)];
+                    c.suit = suits[r.nextInt(suits.length)];
+                }
+            }
+            case STANDARD -> { /* the plain 52 */ }
+        }
     }
 
     /**
@@ -137,29 +192,36 @@ public final class Run {
         state.bossHalveBase = false; // re-armed below only for The Flint
         boolean pvpBoss = blind == BlindType.BOSS && pvpFromAnte > 0 && ante >= pvpFromAnte;
         state.inPvpBlind = pvpBoss; // Nemesis jokers (Pacifist, Conjoined) read this
+        // Blue stake (+) starts every round with one fewer discard (game.lua:2056). The stake reduces
+        // the per-round baseline; a boss discard-override still replaces it outright.
+        int baseDiscards = Math.max(0, ruleset.discards() + stake.discardDelta());
+        int baseHandSize = ruleset.handSize() + deckType.handSizeDelta(); // Painted: +2 hand size
         if (pvpBoss) {
             // Attrition Nemesis blind: no clear-requirement; play all hands, compare to opponent.
             pvpActive = true;
             boss = NEMESIS;
             state.handsLeft = ruleset.hands();
-            state.discardsLeft = ruleset.discards();
-            state.handSize = ruleset.handSize();
+            state.discardsLeft = baseDiscards;
+            state.handSize = baseHandSize;
             requirement = 0; // outcome is decided by the head-to-head comparison
         } else if (blind == BlindType.BOSS) {
             boss = (forcedBoss != null) ? forcedBoss : BossCatalog.pick(ante, rng);
             boolean disabled = bossDisabled(); // Chicot: ignore the boss's hand/discard/size ability
             state.handsLeft = (!disabled && boss.handsOverride() >= 0) ? boss.handsOverride() : ruleset.hands();
-            state.discardsLeft = (!disabled && boss.discardsOverride() >= 0) ? boss.discardsOverride() : ruleset.discards();
-            state.handSize = Math.max(1, ruleset.handSize() + (disabled ? 0 : boss.handSizeDelta()));
+            state.discardsLeft = (!disabled && boss.discardsOverride() >= 0) ? boss.discardsOverride() : baseDiscards;
+            state.handSize = Math.max(1, baseHandSize + (disabled ? 0 : boss.handSizeDelta()));
             state.bossHalveBase = !disabled && boss.halveBase(); // The Flint
-            requirement = Math.round(Blinds.getBlindAmount(ante, ruleset) * boss.reqMult() * ruleset.anteScaling());
+            requirement = Math.round(Blinds.getBlindAmount(ante, ruleset, stake.scaling()) * boss.reqMult() * ruleset.anteScaling());
         } else {
             boss = null;
             state.handsLeft = ruleset.hands();
-            state.discardsLeft = ruleset.discards();
-            state.handSize = ruleset.handSize();
-            requirement = Blinds.requirement(ante, blind, ruleset);
+            state.discardsLeft = baseDiscards;
+            state.handSize = baseHandSize;
+            requirement = Blinds.requirement(ante, blind, ruleset, stake.scaling());
         }
+        // Plasma Deck (ante_scaling=2): blinds are 2x larger. Our tables are even, so doubling the
+        // rounded requirement equals doubling inside get_blind_amount.
+        if ("d_plasma".equals(deckType.key())) requirement *= 2;
         applyJokerRunMods(); // passive hand/discard/hand-size deltas from owned jokers
         applyJokerDestroyers(); // Ceremonial Dagger / Madness eat a joker at blind select
         // Oops! All 6s doubles every listed probability (numerator) per copy owned.
@@ -205,6 +267,7 @@ public final class Run {
         List<Joker> js = state.jokers();
         for (int i = 0; i < js.size(); i++) {
             if (!js.get(i).key().equals("j_ceremonial") || i + 1 >= js.size()) continue;
+            if (Boolean.TRUE.equals(state.jokerState(js.get(i + 1)).get("eternal"))) continue; // eternal can't be eaten
             Joker victim = js.remove(i + 1);
             int gain = 2 * Math.max(1, victim.info().cost() / 2);
             var st = state.jokerState(js.get(i));
@@ -216,7 +279,9 @@ public final class Run {
             var st = state.jokerState(js.get(i));
             st.put("xm", ((Number) st.getOrDefault("xm", 0.0)).doubleValue() + 0.5);
             List<Joker> others = new ArrayList<>();
-            for (int k = 0; k < js.size(); k++) if (k != i) others.add(js.get(k));
+            for (int k = 0; k < js.size(); k++) { // eternal jokers can't be destroyed -> excluded as targets
+                if (k != i && !Boolean.TRUE.equals(state.jokerState(js.get(k)).get("eternal"))) others.add(js.get(k));
+            }
             if (others.isEmpty()) continue;
             // Identity-based pick: which joker is destroyed depends on the set held, not its order.
             Joker victim = state.queues.pick(others, RngSources.MADNESS_DESTROY, rngCtx(), Joker::key, JOKER_QUALITY);
@@ -251,7 +316,7 @@ public final class Run {
 
     /** End-of-round interest: Green Deck pays per remaining hand/discard instead of $-interest. */
     private int roundInterest() {
-        DeckCatalog.DeckType deck = DeckCatalog.get(ruleset.deckType());
+        DeckCatalog.DeckType deck = deckType; // per-run deck (chosen at newRun; defaults to the ruleset's)
         if (deck.greenEconomy()) return 2 * state.handsLeft + state.discardsLeft;
         return Math.min(state.interestCap, state.money / 5) + extraInterest();
     }
@@ -287,7 +352,52 @@ public final class Run {
         for (String tv : tagVouchers) {
             if (!state.vouchers.contains(tv)) s.addVoucher(tv);
         }
+        applyShopStickers(s);
         return s;
+    }
+
+    /** Roll stake stickers (eternal/perishable/rental, 30% each) onto this shop's joker slots. */
+    private void applyShopStickers(Shop s) {
+        if (!(stake.eternalsInShop() || stake.perishablesInShop() || stake.rentalsInShop())) return;
+        var q = state.queues.queue(RngSources.JOKER_STICKER, r -> new boolean[]{
+                r.nextDouble() < Stake.STICKER_CHANCE,   // eternal roll
+                r.nextDouble() < Stake.STICKER_CHANCE,   // perishable roll (gated: not if eternal)
+                r.nextDouble() < Stake.STICKER_CHANCE}); // rental roll
+        var items = s.items();
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).kind() != Shop.Kind.JOKER) continue;
+            boolean[] roll = q.next();
+            boolean eternal = stake.eternalsInShop() && roll[0];
+            boolean perishable = !eternal && stake.perishablesInShop() && roll[1];
+            boolean rental = stake.rentalsInShop() && roll[2];
+            if (eternal || perishable || rental) {
+                items.set(i, items.get(i).withStickers(eternal, perishable, rental));
+            }
+        }
+    }
+
+    /** Stamp a bought/created joker with its stake stickers (server-only state read by sell/score/economy). */
+    private void applyStickersToJoker(Joker j, boolean eternal, boolean perishable, boolean rental) {
+        var st = state.jokerState(j);
+        if (eternal) st.put("eternal", true);
+        if (perishable) {
+            st.put("perishable", true);
+            st.put("perishTally", Stake.PERISHABLE_ROUNDS);
+        }
+        if (rental) st.put("rental", true);
+    }
+
+    /** End-of-round sticker upkeep: perishable countdown (debuff at 0) and rental rent ($3/joker). */
+    private void applyJokerStickerEffects() {
+        for (Joker j : state.jokers()) {
+            var st = state.jokerState(j);
+            if (Boolean.TRUE.equals(st.get("perishable")) && !Boolean.TRUE.equals(st.get("debuffed"))) {
+                int tally = ((Number) st.getOrDefault("perishTally", Stake.PERISHABLE_ROUNDS)).intValue() - 1;
+                st.put("perishTally", tally);
+                if (tally <= 0) st.put("debuffed", true); // perished — the scorer now skips it
+            }
+            if (Boolean.TRUE.equals(st.get("rental"))) state.money -= Stake.RENTAL_RATE;
+        }
     }
 
     /** Hand types played at least once this run — gates the softlocked secret-hand planets. */
@@ -449,7 +559,7 @@ public final class Run {
         if (state.vouchers.contains("v_paint_brush")) state.handSize += 1;
         if (state.vouchers.contains("v_palette")) state.handSize += 1;
         // Deck variant: per-blind hand/discard deltas (Red/Blue/Black).
-        DeckCatalog.DeckType deck = DeckCatalog.get(ruleset.deckType());
+        DeckCatalog.DeckType deck = deckType; // per-run deck (chosen at newRun; defaults to the ruleset's)
         state.handsLeft += deck.handsDelta();
         state.discardsLeft += deck.discardsDelta();
         // Skip-Off (Nemesis): +1 hand and +1 discard per extra blind skipped vs your Nemesis.
@@ -597,12 +707,15 @@ public final class Run {
         // Economy: blind reward + interest ($1 per $5 held, capped at $5) + joker/gold payouts.
         int interest = roundInterest();
         int reward = (boss != null) ? boss.reward() : blind.reward;
+        // Red stake (+): the Small Blind pays no reward (game.lua:2050, blind.lua:84).
+        if (boss == null && blind == BlindType.SMALL && stake.smallBlindNoReward()) reward = 0;
         state.money += reward + interest;
         state.lastBlindReward = reward; // cash-out breakdown for the end-of-round screen
         state.lastInterest = interest;
         if (boss != null) applyBossDefeatTags(); // Investment Tag pays out after a boss
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
+        applyJokerStickerEffects(); // perishable countdown + rental rent (stakes)
         applyGiftCard();
         applyPennyPincher();
         phase = Phase.SHOP;
@@ -631,6 +744,7 @@ public final class Run {
                 Joker bought = JokerLibrary.create(item.key(), ruleset.jokerVariant());
                 state.addJoker(bought);
                 if (item.edition() != Edition.NONE) state.setJokerEdition(bought, item.edition());
+                applyStickersToJoker(bought, item.eternal(), item.perishable(), item.rental());
             }
             case TAROT, PLANET -> {
                 if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
@@ -660,19 +774,23 @@ public final class Run {
         var v = VoucherCatalog.get(key);
         if (!canAfford(price(v.cost()))) return "not enough money";
         spend(price(v.cost()));
-        state.vouchers.add(v.key());
-        // Immediate-effect vouchers resolve now; per-blind/shop ones apply where they're read.
-        switch (v.key()) {
+        grantVoucher(v.key());
+        shop.removeVoucher(key);
+        tagVouchers.remove(key);
+        if (key.equals(anteVoucher)) anteVoucher = null; // bought — don't re-offer in this ante's later shops
+        return null;
+    }
+
+    /** Add a voucher to the owned set and apply its immediate effect (passive ones are read reactively). */
+    private void grantVoucher(String key) {
+        state.vouchers.add(key);
+        switch (key) {
             case "v_crystal_ball", "v_omen_globe" -> state.consumableSlots += 1;
             case "v_seed_money" -> state.interestCap = 10;
             case "v_money_tree" -> state.interestCap = 20;
             case "v_antimatter" -> state.jokerSlots += 1;
             default -> { /* passive — read in generateShop / startBlind / price / reroll */ }
         }
-        shop.removeVoucher(key);
-        tagVouchers.remove(key);
-        if (key.equals(anteVoucher)) anteVoucher = null; // bought — don't re-offer in this ante's later shops
-        return null;
     }
 
     /** Apply the Clearance Sale (25% off) / Liquidation (50% off) shop discount, rounded down.
@@ -695,6 +813,9 @@ public final class Run {
             return "cannot sell now";
         }
         if (index < 0 || index >= state.jokers().size()) return "invalid joker";
+        if (Boolean.TRUE.equals(state.jokerState(state.jokers().get(index)).get("eternal"))) {
+            return "eternal jokers cannot be sold";
+        }
         Joker sold = state.jokers().remove(index);
         state.cardsSoldSinceLastPvp++; // feeds the opponent's Taxes joker
         int bonus = ((Number) state.jokerState(sold).getOrDefault("sellBonus", 0)).intValue();
@@ -1060,6 +1181,9 @@ public final class Run {
                 m.put("cost", it.cost());
                 m.put("rarity", it.rarity());
                 m.put("edition", it.edition().name());
+                if (it.eternal()) m.put("eternal", true);
+                if (it.perishable()) m.put("perishable", true);
+                if (it.rental()) m.put("rental", true);
                 shopView.add(m);
             }
             rerollCost = rerollCost();
@@ -1159,7 +1283,8 @@ public final class Run {
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
                 boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
-                consumables, handLevels, deckStats, counters, shopVouchers, packsView, openPackView);
+                consumables, handLevels, deckStats, counters, shopVouchers, packsView, openPackView,
+                stake.display, deckType.name(), boss != null ? boss.key() : null);
     }
 
     /** View of one revealed pack card: a consumable/joker (key+name+desc) or a playing card. */
@@ -1305,6 +1430,8 @@ public final class Run {
             state.tags.removeIf(t -> t.equals("tag_investment"));
             state.money += (int) (25 * inv);
         }
+        // Anaglyph Deck: gain a Double Tag after defeating each Boss Blind (back.lua:111-120).
+        if ("d_anaglyph".equals(deckType.key())) state.tags.add("tag_double");
     }
 
     /** Roll this shop's two booster packs from the game-long packs queue (kept across rerolls). */

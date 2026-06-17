@@ -19,7 +19,7 @@ intent, the server computes, the `ClientView` reflects the result.
 ./gradlew build            # compile + full test suite
 ./gradlew test             # JUnit 5 + AssertJ + jqwik (property tests)
 ./gradlew test --tests 'com.balatromp.engine.HandTypeScoringTest'   # one class
-./gradlew run              # start the server: HTTP 8788 (login/REST), TCP+WS 8789
+./gradlew run              # start the server: HTTP 28788 (login/REST), TCP+WS 28789 (non-standard, avoids BMP's 8788)
 ./gradlew play             # ClientCli (terminal client)
 ```
 Java toolchain 25 is auto-provisioned by Gradle. On Windows use `gradlew.bat` (or the Bash tool).

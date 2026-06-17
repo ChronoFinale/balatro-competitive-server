@@ -12,8 +12,8 @@ and scoring is server-authoritative — this client computes nothing that affect
 
 ## Run it
 
-1. Start the Java server (from the repo root) — it listens on **8788** (HTTP login / WebSocket)
-   and **8789** (raw TCP, what this client uses):
+1. Start the Java server (from the repo root) — it listens on **28788** (HTTP login / WebSocket)
+   and **28789** (raw TCP, what this client uses):
 
    ```
    ./gradlew run            # or run com.balatromp.engine.net.ServerMain
@@ -24,7 +24,7 @@ and scoring is server-authoritative — this client computes nothing that affect
    ```
    cd client
    npm install
-   npm run dev              # opens the Electron window, connects to 127.0.0.1:8789
+   npm run dev              # opens the Electron window, connects to 127.0.0.1:28789
    ```
 
 Override the target with `BALATRO_HOST`, `BALATRO_HTTP_PORT`, `BALATRO_TCP_PORT` env vars.

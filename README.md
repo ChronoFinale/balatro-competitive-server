@@ -74,18 +74,18 @@ No game assets are shipped — you bring your own.
 git clone https://github.com/ChronoFinale/balatro-competitive-server.git
 cd balatro-competitive-server
 ./gradlew run            # Windows: gradlew.bat run
-# then open http://127.0.0.1:8788 , enter a name → Connect → Solo Run
+# then open http://127.0.0.1:28788 , enter a name → Connect → Solo Run
 ```
 
-The server listens on **8788** (HTTP login + WebSocket + the built-in browser
-client) and **8789** (raw TCP, used by the desktop and Lua clients). First run
+The server listens on **28788** (HTTP login + WebSocket + the built-in browser
+client) and **28789** (raw TCP, used by the desktop and Lua clients). First run
 downloads the JDK 25 toolchain + dependencies, so give it a minute.
 
 **Three ways to play** — all driven by the same authoritative server:
 
 | client | how | notes |
 |---|---|---|
-| **Browser** (built in) | `./gradlew run` → `http://127.0.0.1:8788` | zero setup; CSS-drawn cards |
+| **Browser** (built in) | `./gradlew run` → `http://127.0.0.1:28788` | zero setup; CSS-drawn cards |
 | **Desktop** (Electron) | see *Desktop client* below | reference thin client over raw TCP |
 | **Real Balatro** (experimental) | see *Playing in real Balatro* below | the actual game as a renderer |
 
@@ -94,7 +94,7 @@ downloads the JDK 25 toolchain + dependencies, so give it a minute.
 Requires JDK 25 (Gradle wrapper handles the rest).
 
 ```bash
-./gradlew run                       # start the server, then open http://127.0.0.1:8788 to PLAY in the browser
+./gradlew run                       # start the server, then open http://127.0.0.1:28788 to PLAY in the browser
 ./gradlew test                      # full JUnit 5 + AssertJ suite (engine + WebSocket e2e + auth)
 ./gradlew play --console=plain -q   # play a solo run in the terminal (embeds the server)
 ./gradlew loadTest -Pargs="200 10"  # load harness: <connections> <hands-per-conn>
@@ -104,7 +104,7 @@ Requires JDK 25 (Gradle wrapper handles the rest).
 Tests: JUnit 5 + AssertJ (example-based) **and jqwik** (property-based — fuzzes
 engine invariants like RNG/scoring determinism across thousands of inputs).
 
-**Play in the browser:** `./gradlew run`, open `http://127.0.0.1:8788`, enter a
+**Play in the browser:** `./gradlew run`, open `http://127.0.0.1:28788`, enter a
 name → Connect, then pick **Solo Run** or multiplayer. Click cards to select,
 Play Hand / Discard, clear the blind, then Buy jokers / planets / Reroll / Next
 Blind. It's a tiny vanilla-JS client over the same WebSocket protocol, CSS-drawn
@@ -119,7 +119,7 @@ dying to any blind — failing a normal blind, or losing a **Nemesis blind** (ev
 Boss from ante 2: a race where running out of hands while behind costs a life).
 0 lives and you're out. The opponent panel shows live progress + lives.
 
-**Joker builder:** open `http://127.0.0.1:8788/builder.html` (or the link in the
+**Joker builder:** open `http://127.0.0.1:28788/builder.html` (or the link in the
 client header). Jokers are pure data — metadata + scoring rules (`trigger →
 condition → effect`) + state mutations for scaling — interpreted server-side, so
 a built joker is exactly as authoritative/cheat-proof as a hand-coded one. The
@@ -129,7 +129,7 @@ takes optional 1×/2× PNG art. Saved defs persist under
 `web-assets/custom-jokers/` (git-ignored) and reload at startup, registered
 through the same authoritative path as built-ins.
 
-**Ruleset builder:** open `http://127.0.0.1:8788/ruleset-builder.html`. A ruleset
+**Ruleset builder:** open `http://127.0.0.1:28788/ruleset-builder.html`. A ruleset
 **plus the jokers it names fully dictates a match** — starting params, blind
 curve, win ante, and the exact **joker pool** the shop may offer. Pick the pool
 from all available jokers (curated built-ins + your custom ones), save, and it
@@ -152,14 +152,14 @@ sourced from the game data). Requires owning Balatro.
 ### Desktop client (Electron)
 
 `client/` is a **thin** reference client: it renders the server's `ClientView` and
-sends intents over the **raw-TCP** protocol on port 8789 (the same wire the Balatro
+sends intents over the **raw-TCP** protocol on port 28789 (the same wire the Balatro
 mod speaks) — it computes nothing that affects the game. With the server running
 (`./gradlew run`):
 
 ```bash
 cd client
 npm install
-npm run dev        # electron-vite dev; connects to 127.0.0.1:8789
+npm run dev        # electron-vite dev; connects to 127.0.0.1:28789
 ```
 
 The main process owns the socket (newline-JSON framing, 15s heartbeat, auto-reconnect
@@ -226,9 +226,9 @@ and you lose a life (if both run out, the lower score loses; ties cost nothing).
 
 ### Poking it manually
 ```bash
-TOKEN=$(curl -s -XPOST localhost:8788/login -H 'content-type: application/json' \
+TOKEN=$(curl -s -XPOST localhost:28788/login -H 'content-type: application/json' \
   -d '{"username":"alice"}' | jq -r .token)
-websocat ws://127.0.0.1:8788/game
+websocat ws://127.0.0.1:28788/game
 > {"type":"auth","token":"<paste TOKEN>"}
 > {"type":"newRun","seed":"ABC"}
 > {"type":"playHand","cards":[0,1,2,3,4]}

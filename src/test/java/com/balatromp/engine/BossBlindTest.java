@@ -85,6 +85,23 @@ class BossBlindTest {
     }
 
     @Test
+    void anaglyphDeckGrantsADoubleTagAfterBeatingABoss() {
+        Run run = new Run(Ruleset.standard(), "AN", stoneDeck(300),
+                jokers("j_joker", "j_joker", "j_joker"), com.balatromp.engine.state.Stake.WHITE,
+                com.balatromp.engine.game.DeckCatalog.get("d_anaglyph"));
+        run.forcedBoss = new BossBlind("bl_test", "Test Boss", "none",
+                1, false, 2.0, 5, -1, -1, 0, null, false);
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // clear Small
+        run.proceed();
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // clear Big
+        run.proceed();
+        assertThat(run.blind).isEqualTo(BlindType.BOSS);
+        assertThat(run.state.tags).doesNotContain("tag_double"); // boss not yet beaten
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // beat the boss
+        assertThat(run.state.tags).contains("tag_double");      // Anaglyph: Double Tag after the boss
+    }
+
+    @Test
     void runAppliesBossOverridesAtBossBlind() {
         Run run = new Run(Ruleset.standard(), "B", stoneDeck(300),
                 jokers("j_joker", "j_joker", "j_joker"));
@@ -102,6 +119,26 @@ class BossBlindTest {
         assertThat(run.state.handsLeft).isEqualTo(2);        // handsOverride
         assertThat(run.state.handSize).isEqualTo(7);         // 8 - 1
         assertThat(run.requirement).isEqualTo(900);          // getBlindAmount(1)=300 * 3
+    }
+
+    @Test
+    void viewExposesBossKeyForTheClientAtTheBossBlind() {
+        // The real-Balatro bridge faces G.P_BLINDS[view.bossKey] so the player meets the SERVER's boss;
+        // bossKey must be the native bl_ key, and null while no boss is active (Small/Big).
+        Run run = new Run(Ruleset.standard(), "BK", stoneDeck(300),
+                jokers("j_joker", "j_joker", "j_joker"));
+        run.forcedBoss = new BossBlind("bl_wall", "The Wall", "x3, 2 hands, -1 size",
+                1, false, 3.0, 7, 2, -1, -1, null, false);
+        assertThat(run.view().bossKey()).isNull(); // Small blind: no boss yet
+
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // clear Small
+        run.proceed();
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // clear Big
+        run.proceed();
+
+        assertThat(run.blind).isEqualTo(BlindType.BOSS);
+        assertThat(run.view().bossKey()).isEqualTo("bl_wall");
+        assertThat(run.view().boss()).isEqualTo("The Wall");
     }
 
     @Test
