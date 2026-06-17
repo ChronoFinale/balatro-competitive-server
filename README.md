@@ -31,12 +31,17 @@ Cheat model, and how each class is closed:
 
 ## Status
 
-Java 25, Gradle. A single-player run is playable end-to-end **over a real
-WebSocket**, server-authoritative. **Full JUnit 5 + AssertJ suite green**
-(engine + network).
+Java 25, Gradle. A single-player run is playable end-to-end in the built-in
+**browser client** (WebSocket), server-authoritative. **Full JUnit 5 + AssertJ
+suite green** (engine + network). The **real-Balatro client**
+(`tools/balatro-bridge/`) is experimental and **not yet verified end-to-end** — see
+*Playing in real Balatro* below.
+
+The checklist below is **engine + browser-client** scope (each ✅ is backed by tests);
+the real-Balatro renderer is a separate, in-progress effort.
 
 ```
-engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer: Attrition ✅  web UI ✅
+engine ✅  RNG ✅  triggers ✅  run loop ✅  boss blinds ✅  shop ✅  planet/hand levels ✅  auth ✅  multiplayer: Attrition ✅ (engine + web)  web UI ✅
 data jokers ✅  joker builder ✅  custom rulesets + pools ✅  lobby agreement ✅
 game-long queues ✅ (shop + lucky/glass; BMP determinism shape)
 focus → Attrition done well.  next → more queue-shaped systems (vouchers/packs/soul) → ranked queue/MMR → custom jokers in ranked (curation)
