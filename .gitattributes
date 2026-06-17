@@ -1,0 +1,14 @@
+# Normalize line endings: store text as LF in the repo on every OS.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Binary files: never normalize or diff
+*.jar  binary
+*.webp binary
+*.png  binary
+*.jpg  binary
+*.ogg  binary
+*.gz   binary
