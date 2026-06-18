@@ -18,6 +18,7 @@ import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.Trigger;
 import com.balatro.engine.joker.JokerDisplay;
 import com.balatro.engine.joker.def.DataJoker;
+import com.balatro.engine.joker.def.Value;
 import com.balatro.engine.joker.def.JokerDef;
 import com.balatro.engine.joker.def.RunMod;
 import com.balatro.engine.joker.def.JokerDefLibrary;
@@ -609,22 +610,22 @@ public final class Run {
      */
     private int computeHandSize() {
         List<Modify> mods = new ArrayList<>();
-        mods.add(Modify.add(Aspect.HAND_SIZE, deckType.handSizeDelta()));         // Painted Deck: +2
+        mods.add(Modify.add(Value.Var.HAND_SIZE, deckType.handSizeDelta()));         // Painted Deck: +2
         if (boss != null && !bossDisabled()) {
-            mods.add(Modify.add(Aspect.HAND_SIZE, boss.handSizeDelta()));         // Manacle: -1
+            mods.add(Modify.add(Value.Var.HAND_SIZE, boss.handSizeDelta()));         // Manacle: -1
         }
         for (Joker j : state.jokers()) {
             if (!(j instanceof DataJoker dj)) continue;
             RunMod m = dj.def().runMod();
-            if (m.handSizeDelta() != 0) mods.add(Modify.add(Aspect.HAND_SIZE, m.handSizeDelta())); // Juggler: +1
+            if (m.handSizeDelta() != 0) mods.add(Modify.add(Value.Var.HAND_SIZE, m.handSizeDelta())); // Juggler: +1
             if (m.handSizeDecayStart() > 0) {                                     // Turtle Bean: +N decaying
                 int acq = state.jokerInt(j, "acqRounds", 0);
-                mods.add(Modify.add(Aspect.HAND_SIZE, Math.max(0, m.handSizeDecayStart() - (state.roundsPlayedTotal - acq))));
+                mods.add(Modify.add(Value.Var.HAND_SIZE, Math.max(0, m.handSizeDecayStart() - (state.roundsPlayedTotal - acq))));
             }
         }
-        if (state.vouchers.contains("v_paint_brush")) mods.add(Modify.add(Aspect.HAND_SIZE, 1));
-        if (state.vouchers.contains("v_palette")) mods.add(Modify.add(Aspect.HAND_SIZE, 1));
-        return Math.max(1, (int) Modify.fold(ruleset.handSize(), Aspect.HAND_SIZE, mods));
+        if (state.vouchers.contains("v_paint_brush")) mods.add(Modify.add(Value.Var.HAND_SIZE, 1));
+        if (state.vouchers.contains("v_palette")) mods.add(Modify.add(Value.Var.HAND_SIZE, 1));
+        return Math.max(1, (int) Modify.fold(ruleset.handSize(), Value.Var.HAND_SIZE, mods));
     }
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */
