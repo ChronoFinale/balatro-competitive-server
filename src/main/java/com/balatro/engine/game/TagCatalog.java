@@ -66,6 +66,11 @@ public final class TagCatalog {
         return BY_KEY.get(key);
     }
 
+    /** Every tag key in the catalog — the surface the coverage net enumerates. */
+    public static Set<String> keys() {
+        return java.util.Collections.unmodifiableSet(BY_KEY.keySet());
+    }
+
     public static Timing timing(String key) {
         Tag t = BY_KEY.get(key);
         return t != null ? t.timing() : Timing.HELD;

@@ -237,6 +237,10 @@ public final class Run {
             requirement = 0; // outcome is decided by the head-to-head comparison
         } else if (blind == BlindType.BOSS) {
             boss = (forcedBoss != null) ? forcedBoss : BossCatalog.pick(ante, rng);
+            // Boss Tag (held): free one-shot reroll of the boss on arrival, consumed in the process.
+            if (forcedBoss == null && state.tags.remove("tag_boss")) {
+                boss = BossCatalog.pick(ante, rng, 1);
+            }
             boolean disabled = bossDisabled(); // Chicot: ignore the boss's hand/discard/size ability
             state.bossHalveBase = !disabled && boss.halveBase(); // The Flint
             requirement = Math.round(Blinds.getBlindAmount(ante, ruleset, stake.scaling()) * boss.reqMult() * ruleset.anteScaling());
