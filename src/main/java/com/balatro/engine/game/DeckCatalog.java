@@ -31,7 +31,7 @@ public final class DeckCatalog {
                            // per-blind resource changes as data: Blue = add(HANDS_LEFT,1), Painted =
                            // add(HAND_SIZE,2), Black = add(HANDS_LEFT,-1) — folded by Run with everyone else.
                            List<Modify> resourceMods,
-                           int jokerSlotsDelta, int startMoneyDelta, boolean greenEconomy,
+                           int jokerSlotsDelta, boolean greenEconomy,
                            Composition composition, int consumableSlotDelta,
                            List<String> startingVouchers, List<String> startingConsumables,
                            // special-behaviour data (de-hardcoded from Run/ScoringEngine):

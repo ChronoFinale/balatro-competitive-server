@@ -130,7 +130,7 @@ public final class Run {
         this.rng = new RandomStreams(seed);
         state.capabilities = ruleset.capabilities(); // the mode's knobs (Glass mult, idol/dup/ouija/pools)
         state.balanceChipsMult = deckType.balanceChipsMult(); // Plasma Deck balances chips & mult
-        state.money = ruleset.startingMoney() + deckType.startMoneyDelta();
+        state.money = (int) Modify.fold(ruleset.startingMoney(), Value.Var.MONEY, deckType.mods()); // Yellow Deck: +$10
         state.jokerSlots = 5 + deckType.jokerSlotsDelta();
         // (deck/voucher/joker economy is RESOLVED at end of round from the owned sources — see endOfRoundMoney)
         state.rng = rng;
