@@ -132,7 +132,6 @@ public final class Run {
         state.capabilities = ruleset.capabilities(); // the mode's knobs (Glass mult, idol/dup/ouija/pools)
         state.balanceChipsMult = deckType.balanceChipsMult(); // Plasma Deck balances chips & mult
         state.money = (int) Modify.fold(ruleset.startingMoney(), Value.Var.MONEY, deckType.mods()); // Yellow Deck: +$10
-        state.jokerSlots = 5 + deckType.jokerSlotsDelta();
         // (deck/voucher/joker economy is RESOLVED at end of round from the owned sources — see endOfRoundMoney)
         state.rng = rng;
         state.order = ruleset.order();
@@ -148,10 +147,11 @@ public final class Run {
     private void applyDeckStartingItems() {
         for (String v : deckType.startingVouchers()) grantVoucher(v);
         state.consumables.addAll(deckType.startingConsumables());
-        recomputeConsumableSlots();
+        recomputeSlots();
     }
 
     private static final int BASE_CONSUMABLE_SLOTS = 2; // before deck/voucher CONSUMABLE_SLOTS Modifys
+    private static final int BASE_JOKER_SLOTS = 5;       // before deck/voucher JOKER_SLOTS Modifys
 
     /** Fold {@code var} from every owned voucher's Modifys over {@code base} — the derived-from-ownership
      *  pattern for voucher-driven variables (win ante, boss rerolls, held-planet mult, ...). */
@@ -168,15 +168,17 @@ public final class Run {
         return (int) voucherFoldD(var, base);
     }
 
-    /** Consumable slots = base + every CONSUMABLE_SLOTS Modify owned (deck + Crystal Ball/Omen Globe),
-     *  folded fresh — a pure function of what you own, recomputed whenever that changes. */
-    private void recomputeConsumableSlots() {
+    /** Slot counts = base + every CONSUMABLE_SLOTS / JOKER_SLOTS Modify owned (deck + Crystal Ball/Omen
+     *  Globe / Antimatter / Black/Painted decks), folded fresh — a pure function of what you own,
+     *  recomputed whenever ownership changes. */
+    private void recomputeSlots() {
         List<Modify> mods = new ArrayList<>(deckType.mods());
         for (String v : state.vouchers) {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) mods.addAll(def.mods());
         }
         state.consumableSlots = (int) Modify.fold(BASE_CONSUMABLE_SLOTS, Value.Var.CONSUMABLE_SLOTS, mods);
+        state.jokerSlots = (int) Modify.fold(BASE_JOKER_SLOTS, Value.Var.JOKER_SLOTS, mods);
     }
 
     /** Reshape the starting composition for decks that change it (game.lua:636-642). */
@@ -1087,12 +1089,11 @@ public final class Run {
         return null;
     }
 
-    /** Add a voucher to the owned set and apply its immediate effect (passive ones are read reactively). */
+    /** Add a voucher to the owned set; passive effects (slots, interest cap, rates) are read reactively
+     *  by folding the owned vouchers' Modifys — nothing imperative to apply here. */
     private void grantVoucher(String key) {
         state.vouchers.add(key);
-        recomputeConsumableSlots(); // Crystal Ball / Omen Globe: +1 consumable slot, derived from ownership
-        // v_seed_money / v_money_tree raise the interest cap — derived in EconomyConfig.
-        if (key.equals("v_antimatter")) state.jokerSlots += 1; // joker slots are still incrementally mutated
+        recomputeSlots(); // Crystal Ball/Omen Globe (consumable) + Antimatter (joker), folded from ownership
     }
 
     /** Apply the Clearance Sale (25% off) / Liquidation (50% off) shop discount, rounded down.

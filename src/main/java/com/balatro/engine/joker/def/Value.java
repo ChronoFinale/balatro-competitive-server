@@ -130,7 +130,7 @@ public sealed interface Value {
     /** Which live run-state quantity a {@link RunVar} reads. */
     enum Var {
         // --- readable run-state quantities (a condition can read these) ---
-        MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, CONSUMABLE_SLOTS, ANTE, DISCARDS_USED,
+        MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, CONSUMABLE_SLOTS, JOKER_SLOTS, ANTE, DISCARDS_USED,
         HANDS_PLAYED, HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS,
         UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD,
         // --- derived economy/shop policy variables: written by Modifys (folded in EconomyConfig /
@@ -149,6 +149,7 @@ public sealed interface Value {
             case DISCARDS_LEFT -> ctx.run.discardsLeft;
             case HAND_SIZE -> ctx.run.handSize;
             case CONSUMABLE_SLOTS -> ctx.run.consumableSlots;
+            case JOKER_SLOTS -> ctx.run.jokerSlots;
             case ANTE -> ctx.run.ante;
             case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
             case HANDS_PLAYED -> ctx.run.handsPlayedThisRound;

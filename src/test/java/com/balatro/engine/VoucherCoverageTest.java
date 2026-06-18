@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 class VoucherCoverageTest {
 
     /** No Modify data, but a real effect wired in code. */
-    private static final Set<String> HANDLED_IN_CODE = Set.of("v_antimatter"); // +1 joker slot (grantVoucher)
+    private static final Set<String> HANDLED_IN_CODE = Set.of(); // empty: every voucher now carries Modify data
 
     /** Deliberately does nothing. */
     private static final Set<String> NO_OP = Set.of("v_blank");

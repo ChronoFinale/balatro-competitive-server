@@ -29,9 +29,9 @@ public final class DeckCatalog {
 
     public record DeckType(String key, String name, String description,
                            // per-blind resource changes as data: Blue = add(HANDS_LEFT,1), Painted =
-                           // add(HAND_SIZE,2), Black = add(HANDS_LEFT,-1) — folded by Run with everyone else.
+                           // add(HAND_SIZE,2), Black = add(JOKER_SLOTS,1)+add(HANDS_LEFT,-1) — folded by Run.
                            List<Modify> resourceMods,
-                           int jokerSlotsDelta, boolean greenEconomy,
+                           boolean greenEconomy,
                            Composition composition,
                            List<String> startingVouchers, List<String> startingConsumables,
                            // special-behaviour data (de-hardcoded from Run/ScoringEngine):
@@ -56,7 +56,7 @@ public final class DeckCatalog {
 
         /** Does this deck change anything vs the plain 52-card base? (Base Deck is the one legit no-op.) */
         public boolean hasEffect() {
-            return !resourceMods.isEmpty() || jokerSlotsDelta != 0 || greenEconomy
+            return !resourceMods.isEmpty() || greenEconomy
                     || composition != Composition.STANDARD || !startingVouchers.isEmpty()
                     || !startingConsumables.isEmpty() || spectralRate != 0 || balanceChipsMult
                     || blindSizeMult != 1 || !onBossDefeatTags.isEmpty();

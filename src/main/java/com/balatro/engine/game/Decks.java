@@ -22,7 +22,6 @@ public final class Decks {
     private final String name;
     private String desc = "";
     private final List<Modify> resourceMods = new ArrayList<>();
-    private int jokerSlotsDelta = 0;
     private boolean greenEconomy = false;
     private Composition composition = Composition.STANDARD;
     private final List<String> vouchers = new ArrayList<>();
@@ -45,7 +44,7 @@ public final class Decks {
 
     public Decks discards(int n) { resourceMods.add(Modify.add(Value.Var.DISCARDS_LEFT, n)); return this; }
 
-    public Decks jokerSlots(int n) { this.jokerSlotsDelta = n; return this; }
+    public Decks jokerSlots(int n) { resourceMods.add(Modify.add(Value.Var.JOKER_SLOTS, n)); return this; }
 
     public Decks money(int n) { resourceMods.add(Modify.add(Value.Var.MONEY, n)); return this; }
 
@@ -83,7 +82,7 @@ public final class Decks {
     public Decks tagAfterBoss(String... tags) { this.onBossDefeatTags.addAll(List.of(tags)); return this; }
 
     public DeckType build() {
-        return new DeckType(key, name, desc, List.copyOf(resourceMods), jokerSlotsDelta,
+        return new DeckType(key, name, desc, List.copyOf(resourceMods),
                 greenEconomy, composition,
                 List.copyOf(vouchers), List.copyOf(consumables),
                 spectralRate, balanceChipsMult, blindSizeMult, List.copyOf(onBossDefeatTags));
