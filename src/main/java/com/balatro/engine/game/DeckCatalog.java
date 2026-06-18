@@ -53,6 +53,14 @@ public final class DeckCatalog {
         public List<Modify> mods() {
             return resourceMods;
         }
+
+        /** Does this deck change anything vs the plain 52-card base? (Base Deck is the one legit no-op.) */
+        public boolean hasEffect() {
+            return !resourceMods.isEmpty() || jokerSlotsDelta != 0 || greenEconomy
+                    || composition != Composition.STANDARD || !startingVouchers.isEmpty()
+                    || !startingConsumables.isEmpty() || spectralRate != 0 || balanceChipsMult
+                    || blindSizeMult != 1 || !onBossDefeatTags.isEmpty();
+        }
     }
 
     private static final Map<String, DeckType> BY_KEY = new LinkedHashMap<>();
@@ -90,5 +98,10 @@ public final class DeckCatalog {
     public static DeckType get(String key) {
         DeckType d = BY_KEY.get(key);
         return d != null ? d : BY_KEY.get("d_base");
+    }
+
+    /** Every deck key in the catalog — the surface the coverage net enumerates. */
+    public static java.util.Set<String> keys() {
+        return java.util.Collections.unmodifiableSet(BY_KEY.keySet());
     }
 }

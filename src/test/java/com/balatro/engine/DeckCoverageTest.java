@@ -4,10 +4,40 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.game.DeckCatalog;
 import com.balatro.engine.game.Shop;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /** The previously-hardcoded / missing decks are now pure data: Ghost, Plasma, Anaglyph. */
 class DeckCoverageTest {
+
+    /** The only deck that legitimately has no effect (the plain 52-card baseline). */
+    private static final Set<String> BASELINE = Set.of("d_base");
+
+    /**
+     * The safety net (sibling of voucher/joker/tag/consumable/boss coverage): every deck but the Base
+     * Deck must change the run — a deck that declares only {@code .desc(...)} and forgets its effect is
+     * a silent Base Deck clone, the Boss Tag no-op trap.
+     */
+    @Test
+    void everyDeckExceptBaseChangesTheRun() {
+        List<String> inert = new ArrayList<>();
+        for (String key : DeckCatalog.keys()) {
+            if (BASELINE.contains(key)) continue;
+            if (!DeckCatalog.get(key).hasEffect()) inert.add(key);
+        }
+        assertThat(inert)
+                .as("decks that do nothing but aren't the Base Deck — wire their declared effect")
+                .isEmpty();
+    }
+
+    @Test
+    void theBaselineIsTrulyInert() {
+        // Keeps BASELINE honest: if Base Deck ever gains an effect, drop it from the allow-list.
+        assertThat(DeckCatalog.get("d_base").hasEffect())
+                .as("d_base now has an effect — remove it from BASELINE").isFalse();
+    }
 
     @Test
     void ghostDeckHasASpectralShopRateAndStartsWithHex() {
