@@ -43,7 +43,7 @@ public final class GameEvents {
             ctx.phase = trigger;
             ctx.selfIndex = i;
             ctx.blueprintDepth = 0;
-            applyEconomy(jokers.get(i).calculate(ctx), run, log, jokers.get(i).name());
+            applyEconomy(jokers.get(i).calculate(ctx), run, log, jokers.get(i).name(), ctx);
         }
         return log;
     }
@@ -82,12 +82,17 @@ public final class GameEvents {
         return raise(Trigger.USE_CONSUMABLE, run, rng, ctx -> ctx.consumableType = category);
     }
 
-    private static void applyEconomy(JokerEffect e, RunState run, List<ReplayEntry> log, String source) {
+    private static void applyEconomy(JokerEffect e, RunState run, List<ReplayEntry> log, String source,
+                                     EvaluationContext ctx) {
         for (JokerEffect cur = e; cur != null; cur = cur.extra) {
             if (cur.dollars != 0) {
                 run.money += cur.dollars;
                 String text = cur.message != null ? cur.message : "+$" + cur.dollars;
                 log.add(new ReplayEntry(source, "dollars", text, 0, 0));
+            }
+            if (cur.destroyEventCards && ctx.eventCards != null) { // Trading Card: destroy the discarded set
+                for (Card c : ctx.eventCards) c.destroyed = true;  // Run.play purges destroyed from the deck
+                log.add(new ReplayEntry(source, "destroy", "Destroyed discarded card", 0, 0));
             }
             if (cur.create != null && run.queues != null) {
                 int before = run.consumables.size();

@@ -24,8 +24,7 @@ class JokerCoverageTest {
             "j_showman", "j_astronomer",              // ShopConfig (shop rules); Chaos is now a FREE_REROLLS RunMod
             "j_to_the_moon",                          // EconomyConfig (interest formula; Credit Card is a MIN_MONEY mod)
             "j_penny_pincher",                        // Run (Nemesis shop-entry economy)
-            "j_pizza", "j_speedrun",                  // Match (Nemesis/PvP)
-            "j_trading");                             // IntentHandler (Trading Card: destroy first discard for $3)
+            "j_pizza", "j_speedrun");                 // Match (Nemesis/PvP)
 
     @Test
     void everyDataJokerHasAWiredEffect() {

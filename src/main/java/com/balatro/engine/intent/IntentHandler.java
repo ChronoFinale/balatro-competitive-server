@@ -91,20 +91,13 @@ public final class IntentHandler {
             return IntentResult.rejected("must discard 1-5 cards");
         }
 
-        // Trading Card: the first discard of the round, if it's a single card, is destroyed for $3.
-        boolean tradingCard = run.discardsUsedThisRound == 0 && toDiscard.size() == 1
-                && run.jokers().stream().anyMatch(j -> j.key().equals("j_trading"));
-
-        // Raise PRE_DISCARD so jokers (e.g. Faceless) can react before resolution.
+        // Raise PRE_DISCARD so jokers react before resolution: Faceless ($5 on 3+ faces), Trading Card
+        // (first single-card discard → destroy it + $3, all expressed as data on the discarded set).
         GameEvents.preDiscard(run, rng, toDiscard);
 
         run.discardsLeft--;
         run.discardsUsedThisRound++;
         run.cardsDiscardedTotal += toDiscard.size();
-        if (tradingCard) {
-            toDiscard.get(0).destroyed = true; // Run.play purges destroyed cards from the deck
-            run.money += 3;
-        }
         run.hand.removeAll(toDiscard);
         refill(run);
 

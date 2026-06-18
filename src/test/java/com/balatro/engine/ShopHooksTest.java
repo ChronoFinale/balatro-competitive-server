@@ -91,6 +91,24 @@ class ShopHooksTest {
     }
 
     @Test
+    void tradingCardConditionGatesOnFirstDiscardAndSingleCard() {
+        // The condition is pure data: DISCARDS_USED == 0 AND exactly 1 card discarded. A 2-card discard
+        // doesn't fire; neither does the SECOND discard (even if single) — same as the old hand-coded check.
+        Run multi = new Run(std, "TC2", stoneDeck(400), jokers("j_trading"));
+        int m0 = multi.state.money, d0 = multi.state.deckComposition.size();
+        multi.play(new Intent.Discard(List.of(0, 1))); // two cards -> no trigger
+        assertThat(multi.state.money).isEqualTo(m0);
+        assertThat(multi.state.deckComposition).hasSize(d0);
+
+        Run second = new Run(std, "TC3", stoneDeck(400), jokers("j_trading"));
+        second.play(new Intent.Discard(List.of(0))); // first single -> fires (+$3, -1)
+        int m1 = second.state.money, d1 = second.state.deckComposition.size();
+        second.play(new Intent.Discard(List.of(0))); // second single -> no trigger
+        assertThat(second.state.money).isEqualTo(m1);
+        assertThat(second.state.deckComposition).hasSize(d1);
+    }
+
+    @Test
     void redCardGainsMultWhenABoosterIsSkipped() {
         Run run = wonRun("j_red_card");
         run.state.money = 50;

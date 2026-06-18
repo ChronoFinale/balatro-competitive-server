@@ -646,10 +646,15 @@ public final class BuiltinJokerDefs {
                         .desc("x4 Mult every 6 hands played")
                         .whenHand(Cond.runVarModulo(Value.Var.HANDS_PLAYED_TOTAL, 6, 5)).multiply(MULT, 4).build(),
 
-                // --- batch 34: Trading Card (discard-destroy for money) ---
+                // --- batch 34: Trading Card — first single-card discard of the round: destroy it, +$3.
+                //     Pure data: PRE_DISCARD, condition (first discard AND one card discarded), then a
+                //     compound effect (+$3 and destroy the discarded set). No behaviorInCode. ---
                 Jokers.uncommon("j_trading", "Trading Card").cost(6).atlas(4, 16)
                         .desc("If the first discard of a round is a single card, destroy it and earn $3")
-                        .behaviorInCode().build(),
+                        .whenDiscarding(Cond.all(runVar(Value.Var.DISCARDS_USED).exactly(0),
+                                value(Val.count(Value.Source.EVENT, always(), 0, 1)).exactly(1)))
+                        .effect(EffectTemplate.of(Op.DOLLARS, 3).andThen(EffectTemplate.destroyDiscarded()))
+                        .build(),
 
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
                 Jokers.legendary("j_perkeo", "Perkeo").cost(20).atlas(1, 16)

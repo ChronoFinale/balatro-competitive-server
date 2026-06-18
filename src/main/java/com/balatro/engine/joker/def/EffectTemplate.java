@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod, CreateSpec create) {
 
     public enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT, MUTATE_CARD,
-        CREATE, DESTROY_SCORED, LEVEL_UP_HAND, COPY_SCORED }
+        CREATE, DESTROY_SCORED, DESTROY_DISCARDED, LEVEL_UP_HAND, COPY_SCORED }
 
     /** Add a permanent copy of the scoring card to the deck (DNA). */
     public static EffectTemplate copyScored() {
@@ -32,6 +32,11 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
     /** A pure destroy effect (destroys the scoring card; no numeric contribution). */
     public static EffectTemplate destroyScored() {
         return new EffectTemplate(Op.DESTROY_SCORED, null, null, null, null);
+    }
+
+    /** Destroy the discarded cards (the PRE_DISCARD event set) — Trading Card. */
+    public static EffectTemplate destroyDiscarded() {
+        return new EffectTemplate(Op.DESTROY_DISCARDED, null, null, null, null);
     }
 
     // Explicit canonical creator so the convenience constructors don't confuse Jackson.
@@ -97,7 +102,7 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
      */
     public JokerEffect apply(EvaluationContext ctx) {
         boolean nonNumeric = op == Op.MUTATE_CARD || op == Op.CREATE || op == Op.DESTROY_SCORED
-                || op == Op.LEVEL_UP_HAND || op == Op.COPY_SCORED;
+                || op == Op.DESTROY_DISCARDED || op == Op.LEVEL_UP_HAND || op == Op.COPY_SCORED;
         JokerEffect head = nonNumeric ? null : build(value.resolve(ctx));
         if (cardMod != null) {
             if (head == null) head = new JokerEffect();
@@ -110,6 +115,10 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
         if (op == Op.DESTROY_SCORED) {
             if (head == null) head = new JokerEffect();
             head.destroyScored = true;
+        }
+        if (op == Op.DESTROY_DISCARDED) {
+            if (head == null) head = new JokerEffect();
+            head.destroyEventCards = true;
         }
         if (op == Op.LEVEL_UP_HAND && ctx.handType != null) {
             if (head == null) head = new JokerEffect();
@@ -153,7 +162,7 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
                 e.hMult = v;
                 yield e.msg("+" + fmt(v) + " Mult");
             }
-            case MUTATE_CARD, CREATE, DESTROY_SCORED, LEVEL_UP_HAND, COPY_SCORED -> null; // in apply()
+            case MUTATE_CARD, CREATE, DESTROY_SCORED, DESTROY_DISCARDED, LEVEL_UP_HAND, COPY_SCORED -> null; // in apply()
         };
     }
 

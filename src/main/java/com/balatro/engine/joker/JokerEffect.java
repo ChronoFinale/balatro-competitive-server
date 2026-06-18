@@ -28,6 +28,8 @@ public final class JokerEffect {
     public com.balatro.engine.joker.def.CreateSpec create;
     /** Destroy the currently-scoring card after it scores (Sixth Sense); real play only. */
     public boolean destroyScored;
+    /** Destroy the event cards (the discarded set) — Trading Card; applied in the PRE_DISCARD handler. */
+    public boolean destroyEventCards;
     /** Level up this poker hand (Space/Burnt); applied server-side, affects future hands. */
     public com.balatro.engine.hand.HandType levelUpHand;
     public int levelUpAmount;
