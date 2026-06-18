@@ -2,6 +2,8 @@ package com.balatro.engine.game;
 
 import com.balatro.engine.game.DeckCatalog.Composition;
 import com.balatro.engine.game.DeckCatalog.DeckType;
+import com.balatro.engine.joker.def.Modify;
+import com.balatro.engine.joker.def.Value;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,11 +21,9 @@ public final class Decks {
     private final String key;
     private final String name;
     private String desc = "";
-    private int handsDelta = 0;
-    private int discardsDelta = 0;
+    private final List<Modify> resourceMods = new ArrayList<>();
     private int jokerSlotsDelta = 0;
     private int startMoneyDelta = 0;
-    private int handSizeDelta = 0;
     private boolean greenEconomy = false;
     private Composition composition = Composition.STANDARD;
     private int consumableSlotDelta = 0;
@@ -43,15 +43,15 @@ public final class Decks {
 
     public Decks desc(String d) { this.desc = d; return this; }
 
-    public Decks hands(int n) { this.handsDelta = n; return this; }
+    public Decks hands(int n) { resourceMods.add(Modify.add(Value.Var.HANDS_LEFT, n)); return this; }
 
-    public Decks discards(int n) { this.discardsDelta = n; return this; }
+    public Decks discards(int n) { resourceMods.add(Modify.add(Value.Var.DISCARDS_LEFT, n)); return this; }
 
     public Decks jokerSlots(int n) { this.jokerSlotsDelta = n; return this; }
 
     public Decks money(int n) { this.startMoneyDelta = n; return this; }
 
-    public Decks handSize(int n) { this.handSizeDelta = n; return this; }
+    public Decks handSize(int n) { resourceMods.add(Modify.add(Value.Var.HAND_SIZE, n)); return this; }
 
     public Decks consumableSlots(int n) { this.consumableSlotDelta = n; return this; }
 
@@ -81,8 +81,8 @@ public final class Decks {
     public Decks tagAfterBoss(String... tags) { this.onBossDefeatTags.addAll(List.of(tags)); return this; }
 
     public DeckType build() {
-        return new DeckType(key, name, desc, handsDelta, discardsDelta, jokerSlotsDelta, startMoneyDelta,
-                handSizeDelta, greenEconomy, composition, consumableSlotDelta,
+        return new DeckType(key, name, desc, List.copyOf(resourceMods), jokerSlotsDelta, startMoneyDelta,
+                greenEconomy, composition, consumableSlotDelta,
                 List.copyOf(vouchers), List.copyOf(consumables),
                 spectralRate, balanceChipsMult, blindSizeMult, List.copyOf(onBossDefeatTags));
     }

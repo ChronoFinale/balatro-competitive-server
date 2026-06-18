@@ -522,20 +522,22 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 6: passive run modifiers (applied at blind start) ---
                 runModJoker("j_juggler", "Juggler", "+1 hand size", "Common", 4, 0, 9,
-                        new RunMod(0, 0, 1, false)),
+                        RunMod.stats(Modify.add(Value.Var.HAND_SIZE, 1))),
                 runModJoker("j_drunkard", "Drunkard", "+1 discard each round", "Common", 4, 1, 10,
-                        new RunMod(0, 1, 0, false)),
+                        RunMod.stats(Modify.add(Value.Var.DISCARDS_LEFT, 1))),
                 runModJoker("j_troubadour", "Troubadour", "+2 hand size, -1 hand each round",
-                        "Uncommon", 6, 2, 10, new RunMod(-1, 0, 2, false)),
+                        "Uncommon", 6, 2, 10,
+                        RunMod.stats(Modify.add(Value.Var.HANDS_LEFT, -1), Modify.add(Value.Var.HAND_SIZE, 2))),
                 runModJoker("j_merry_andy", "Merry Andy", "+1 discard, -1 hand size",
-                        "Uncommon", 7, 3, 10, new RunMod(0, 1, -1, false)),
+                        "Uncommon", 7, 3, 10,
+                        RunMod.stats(Modify.add(Value.Var.DISCARDS_LEFT, 1), Modify.add(Value.Var.HAND_SIZE, -1))),
                 runModJoker("j_burglar", "Burglar", "+3 hands this round, but no discards",
-                        "Uncommon", 6, 4, 10, new RunMod(3, 0, 0, true)),
+                        "Uncommon", 6, 4, 10, RunMod.stats(true, Modify.add(Value.Var.HANDS_LEFT, 3))),
                 new JokerDef("j_stuntman", "Stuntman", "+250 Chips, -2 hand size",
                         "Rare", 7, 5, 10, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                                 new EffectTemplate(Op.CHIPS, new Value.Const(250)))),
-                        List.of(), new RunMod(0, 0, -2, false)),
+                        List.of(), RunMod.stats(Modify.add(Value.Var.HAND_SIZE, -2))),
 
                 // --- batch 7: held-card extreme value ---
                 new JokerDef("j_raised_fist", "Raised Fist",

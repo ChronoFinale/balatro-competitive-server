@@ -1,24 +1,26 @@
 package com.balatro.engine.joker.def;
 
+import java.util.List;
+
 /**
  * The static, non-scoring capabilities a joker has — its "while owned" / "when sold" behaviour, as
- * data. Most are per-blind stat deltas applied when a blind starts (Juggler +1 hand size, Drunkard
- * +1 discard, Burglar +3 hands / no discards). The rest are capabilities the run checks at the right
- * moment: {@code disablesBoss} (Chicot), {@code survivesLostBlindFraction} (Mr Bones),
- * {@code blindSelectConsume} (Madness / Ceremonial), {@code doublesProbability} (Oops! All 6s),
- * {@code handSizeDecayStart} (Turtle Bean), {@code duplicatesConsumableOnShopExit} (Perkeo),
- * {@code pvpShopSpendDenominator} (Penny Pincher), {@code pvpSkipBonus} (Skip Off), and the
- * {@link OnSell} group (Luchador / Diet Cola / Invisible). None affect the per-hand score, so none
- * are part of the client preview.
+ * data. The common case is per-blind stat changes, now stored as {@code statMods} (Juggler =
+ * add(HAND_SIZE,1), Burglar = add(HANDS_LEFT,3)) so the joker contributes through the same
+ * {@link Modify} vocabulary as decks/bosses/vouchers. The rest are capabilities the run checks at the
+ * right moment: {@code noDiscards} (Burglar), {@code disablesBoss} (Chicot),
+ * {@code survivesLostBlindFraction} (Mr Bones), {@code blindSelectConsume} (Madness / Ceremonial),
+ * {@code doublesProbability} (Oops! All 6s), {@code handSizeDecayStart} (Turtle Bean),
+ * {@code duplicatesConsumableOnShopExit} (Perkeo), {@code pvpShopSpendDenominator} (Penny Pincher),
+ * {@code pvpSkipBonus} (Skip Off), and the {@link OnSell} group. None affect the per-hand score.
  */
-public record RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boolean noDiscards,
+public record RunMod(List<Modify> statMods, boolean noDiscards,
                      boolean disablesBoss, double survivesLostBlindFraction,
                      BlindSelectConsume blindSelectConsume, OnSell onSell,
                      boolean doublesProbability, int handSizeDecayStart,
                      boolean duplicatesConsumableOnShopExit, int pvpShopSpendDenominator,
                      boolean pvpSkipBonus) {
 
-    public static final RunMod NONE = new RunMod(0, 0, 0, false, false, 0,
+    public static final RunMod NONE = new RunMod(List.of(), false, false, 0,
             BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
 
     /** On selecting a blind, this joker eats a Joker — a random other one (Madness, Small/Big only)
@@ -35,16 +37,14 @@ public record RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boole
         }
     }
 
-    /** Canonical constructor: null-safes the {@link OnSell} / {@link BlindSelectConsume} groups. */
-    public RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boolean noDiscards,
+    /** Canonical constructor: null-safes the list / sub-records. */
+    public RunMod(List<Modify> statMods, boolean noDiscards,
                   boolean disablesBoss, double survivesLostBlindFraction,
                   BlindSelectConsume blindSelectConsume, OnSell onSell,
                   boolean doublesProbability, int handSizeDecayStart,
                   boolean duplicatesConsumableOnShopExit, int pvpShopSpendDenominator,
                   boolean pvpSkipBonus) {
-        this.handsDelta = handsDelta;
-        this.discardsDelta = discardsDelta;
-        this.handSizeDelta = handSizeDelta;
+        this.statMods = statMods == null ? List.of() : List.copyOf(statMods);
         this.noDiscards = noDiscards;
         this.disablesBoss = disablesBoss;
         this.survivesLostBlindFraction = survivesLostBlindFraction;
@@ -57,17 +57,20 @@ public record RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boole
         this.pvpSkipBonus = pvpSkipBonus;
     }
 
-    /** A pure stat modifier (the common case) — no special capability. */
-    public RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boolean noDiscards) {
-        this(handsDelta, discardsDelta, handSizeDelta, noDiscards, false, 0,
-                BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
+    /** Per-blind stat changes as Modifys — Juggler {@code stats(add(HAND_SIZE,1))}, Troubadour two of them. */
+    public static RunMod stats(Modify... mods) {
+        return new RunMod(List.of(mods), false, false, 0, BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
     }
 
-    /** A capability joker (no stat deltas) — set exactly one of the capability fields via a factory. */
+    /** Burglar: stat Modifys plus the "no discards this round" final override. */
+    public static RunMod stats(boolean noDiscards, Modify... mods) {
+        return new RunMod(List.of(mods), noDiscards, false, 0, BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
+    }
+
     private static RunMod capability(boolean disablesBoss, double survivesFraction, BlindSelectConsume consume,
             OnSell sell, boolean doublesProbability, int handSizeDecayStart,
             boolean dupConsumableOnShopExit, int pvpShopSpendDenominator, boolean pvpSkipBonus) {
-        return new RunMod(0, 0, 0, false, disablesBoss, survivesFraction, consume, sell, doublesProbability,
+        return new RunMod(List.of(), false, disablesBoss, survivesFraction, consume, sell, doublesProbability,
                 handSizeDecayStart, dupConsumableOnShopExit, pvpShopSpendDenominator, pvpSkipBonus);
     }
 
@@ -136,20 +139,14 @@ public record RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boole
         return onSell(new OnSell(false, -1, tag));
     }
 
-    /** This joker's per-blind stat deltas as {@link Modify}s — folded by Run with the deck/boss/voucher
-     *  modifiers (Juggler = add(HAND_SIZE,1), Burglar = add(HANDS_LEFT,3)). "No discards" is a separate
-     *  final-override capability, not a Modify (a SET-to-0 that beats later adds). */
-    public java.util.List<Modify> mods() {
-        java.util.List<Modify> m = new java.util.ArrayList<>();
-        if (handsDelta != 0) m.add(Modify.add(Value.Var.HANDS_LEFT, handsDelta));
-        if (discardsDelta != 0) m.add(Modify.add(Value.Var.DISCARDS_LEFT, discardsDelta));
-        if (handSizeDelta != 0) m.add(Modify.add(Value.Var.HAND_SIZE, handSizeDelta));
-        return m;
+    /** This joker's per-blind stat changes — folded by Run with the deck/boss/voucher modifiers. */
+    public List<Modify> mods() {
+        return statMods;
     }
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isNone() {
-        return handsDelta == 0 && discardsDelta == 0 && handSizeDelta == 0 && !noDiscards
+        return statMods.isEmpty() && !noDiscards
                 && !disablesBoss && survivesLostBlindFraction == 0
                 && blindSelectConsume == BlindSelectConsume.NONE && onSell.isNone()
                 && !doublesProbability && handSizeDecayStart == 0

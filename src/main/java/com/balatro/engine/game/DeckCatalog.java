@@ -28,8 +28,10 @@ public final class DeckCatalog {
     }
 
     public record DeckType(String key, String name, String description,
-                           int handsDelta, int discardsDelta, int jokerSlotsDelta,
-                           int startMoneyDelta, int handSizeDelta, boolean greenEconomy,
+                           // per-blind resource changes as data: Blue = add(HANDS_LEFT,1), Painted =
+                           // add(HAND_SIZE,2), Black = add(HANDS_LEFT,-1) — folded by Run with everyone else.
+                           List<Modify> resourceMods,
+                           int jokerSlotsDelta, int startMoneyDelta, boolean greenEconomy,
                            Composition composition, int consumableSlotDelta,
                            List<String> startingVouchers, List<String> startingConsumables,
                            // special-behaviour data (de-hardcoded from Run/ScoringEngine):
@@ -39,6 +41,7 @@ public final class DeckCatalog {
                            List<String> onBossDefeatTags) { // Anaglyph: tags granted after each Boss defeat
 
         public DeckType {
+            resourceMods = resourceMods == null ? List.of() : List.copyOf(resourceMods);
             startingVouchers = startingVouchers == null ? List.of() : List.copyOf(startingVouchers);
             startingConsumables = startingConsumables == null ? List.of() : List.copyOf(startingConsumables);
             onBossDefeatTags = onBossDefeatTags == null ? List.of() : List.copyOf(onBossDefeatTags);
@@ -48,11 +51,7 @@ public final class DeckCatalog {
 
         /** This deck's per-blind resource changes as {@link Modify}s — folded by Run with everyone else's. */
         public List<Modify> mods() {
-            List<Modify> m = new java.util.ArrayList<>();
-            if (handsDelta != 0) m.add(Modify.add(Value.Var.HANDS_LEFT, handsDelta));        // Blue: +1
-            if (discardsDelta != 0) m.add(Modify.add(Value.Var.DISCARDS_LEFT, discardsDelta)); // Red: +1
-            if (handSizeDelta != 0) m.add(Modify.add(Value.Var.HAND_SIZE, handSizeDelta));    // Painted: +2
-            return m;
+            return resourceMods;
         }
     }
 
