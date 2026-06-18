@@ -198,34 +198,33 @@ public final class Run {
         // Blue stake (+) starts every round with one fewer discard (game.lua:2056). The stake reduces
         // the per-round baseline; a boss discard-override still replaces it outright.
         int baseDiscards = Math.max(0, ruleset.discards() + stake.discardDelta());
-        int baseHandSize = ruleset.handSize() + deckType.handSizeDelta(); // Painted: +2 hand size
+        // Hand size is no longer set per-branch: every contributor (deck/boss/joker/voucher) is a
+        // Modify(HAND_SIZE, ...) folded together in computeHandSize() below — one aspect, one applier.
         if (pvpBoss) {
             // Attrition Nemesis blind: no clear-requirement; play all hands, compare to opponent.
             pvpActive = true;
             boss = NEMESIS;
             state.handsLeft = ruleset.hands();
             state.discardsLeft = baseDiscards;
-            state.handSize = baseHandSize;
             requirement = 0; // outcome is decided by the head-to-head comparison
         } else if (blind == BlindType.BOSS) {
             boss = (forcedBoss != null) ? forcedBoss : BossCatalog.pick(ante, rng);
             boolean disabled = bossDisabled(); // Chicot: ignore the boss's hand/discard/size ability
             state.handsLeft = (!disabled && boss.handsOverride() >= 0) ? boss.handsOverride() : ruleset.hands();
             state.discardsLeft = (!disabled && boss.discardsOverride() >= 0) ? boss.discardsOverride() : baseDiscards;
-            state.handSize = Math.max(1, baseHandSize + (disabled ? 0 : boss.handSizeDelta()));
             state.bossHalveBase = !disabled && boss.halveBase(); // The Flint
             requirement = Math.round(Blinds.getBlindAmount(ante, ruleset, stake.scaling()) * boss.reqMult() * ruleset.anteScaling());
         } else {
             boss = null;
             state.handsLeft = ruleset.hands();
             state.discardsLeft = baseDiscards;
-            state.handSize = baseHandSize;
             requirement = Blinds.requirement(ante, blind, ruleset, stake.scaling());
         }
         // Plasma Deck (ante_scaling=2): blinds are 2x larger. Our tables are even, so doubling the
         // rounded requirement equals doubling inside get_blind_amount.
         requirement *= deckType.blindSizeMult();
-        applyJokerRunMods(); // passive hand/discard/hand-size deltas from owned jokers
+        applyJokerRunMods(); // passive hand/discard deltas from owned jokers
+        state.handSize = computeHandSize(); // fold every HAND_SIZE Modify (deck/boss/joker/voucher) at once
         applyJokerDestroyers(); // Ceremonial Dagger / Madness eat a joker at blind select
         // Oops! All 6s doubles every listed probability (numerator) per copy owned (a data capability).
         long oops = state.jokers().stream()
@@ -576,23 +575,13 @@ public final class Run {
             if (m.isNone()) continue;
             state.handsLeft += m.handsDelta();
             state.discardsLeft += m.discardsDelta();
-            state.handSize += m.handSizeDelta();
             if (m.noDiscards()) noDiscards = true;
         }
-        // Turtle Bean: +5 hand size, decaying by 1 each round since it was acquired (floors at 0).
-        for (Joker j : state.jokers()) {
-            if (!(j instanceof DataJoker dj) || dj.def().runMod().handSizeDecayStart() <= 0) continue;
-            int start = dj.def().runMod().handSizeDecayStart();
-            int acq = state.jokerInt(j, "acqRounds", 0);
-            state.handSize += Math.max(0, start - (state.roundsPlayedTotal - acq));
-        }
-        // Vouchers: permanent per-blind hand / discard / hand-size upgrades (base + Tier 2).
+        // Vouchers: permanent per-blind hand / discard upgrades (base + Tier 2).
         if (state.vouchers.contains("v_grabber")) state.handsLeft += 1;
         if (state.vouchers.contains("v_nacho_tong")) state.handsLeft += 1;
         if (state.vouchers.contains("v_wasteful")) state.discardsLeft += 1;
         if (state.vouchers.contains("v_recyclomancy")) state.discardsLeft += 1;
-        if (state.vouchers.contains("v_paint_brush")) state.handSize += 1;
-        if (state.vouchers.contains("v_palette")) state.handSize += 1;
         // Deck variant: per-blind hand/discard deltas (Red/Blue/Black).
         DeckCatalog.DeckType deck = deckType; // per-run deck (chosen at newRun; defaults to the ruleset's)
         state.handsLeft += deck.handsDelta();
@@ -611,7 +600,31 @@ public final class Run {
         if (noDiscards) state.discardsLeft = 0;
         state.handsLeft = Math.max(1, state.handsLeft);
         state.discardsLeft = Math.max(0, state.discardsLeft);
-        state.handSize = Math.max(1, state.handSize);
+    }
+
+    /**
+     * Resolve hand size as one fold over every {@link Modify#HAND_SIZE} contributor — the deck, the
+     * boss, each owned joker (flat deltas + Turtle Bean's decaying bonus), and the hand-size vouchers.
+     * Four different card types, one aspect, one applier: exactly the {@code HandMod} shape generalised.
+     */
+    private int computeHandSize() {
+        List<Modify> mods = new ArrayList<>();
+        mods.add(Modify.add(Aspect.HAND_SIZE, deckType.handSizeDelta()));         // Painted Deck: +2
+        if (boss != null && !bossDisabled()) {
+            mods.add(Modify.add(Aspect.HAND_SIZE, boss.handSizeDelta()));         // Manacle: -1
+        }
+        for (Joker j : state.jokers()) {
+            if (!(j instanceof DataJoker dj)) continue;
+            RunMod m = dj.def().runMod();
+            if (m.handSizeDelta() != 0) mods.add(Modify.add(Aspect.HAND_SIZE, m.handSizeDelta())); // Juggler: +1
+            if (m.handSizeDecayStart() > 0) {                                     // Turtle Bean: +N decaying
+                int acq = state.jokerInt(j, "acqRounds", 0);
+                mods.add(Modify.add(Aspect.HAND_SIZE, Math.max(0, m.handSizeDecayStart() - (state.roundsPlayedTotal - acq))));
+            }
+        }
+        if (state.vouchers.contains("v_paint_brush")) mods.add(Modify.add(Aspect.HAND_SIZE, 1));
+        if (state.vouchers.contains("v_palette")) mods.add(Modify.add(Aspect.HAND_SIZE, 1));
+        return Math.max(1, (int) Modify.fold(ruleset.handSize(), Aspect.HAND_SIZE, mods));
     }
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */
