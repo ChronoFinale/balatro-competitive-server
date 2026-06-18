@@ -145,6 +145,11 @@ public final class TarotCatalog {
         return BY_KEY.get(key);
     }
 
+    /** Every Tarot/Spectral key in the catalog — the surface the coverage net enumerates. */
+    public static java.util.Set<String> keys() {
+        return java.util.Collections.unmodifiableSet(BY_KEY.keySet());
+    }
+
     /** Tarot keys eligible to appear in the main shop (Spectrals come from packs). */
     public static java.util.List<String> tarotKeys() {
         return BY_KEY.values().stream()
