@@ -24,7 +24,6 @@ class VoucherCoverageTest {
 
     /** Catalog-only — effect not yet implemented (tracked so it can't be forgotten). */
     private static final Set<String> UNIMPLEMENTED = Set.of(
-            "v_telescope",                      // Celestial pack contains your most-played Planet
             "v_magic_trick", "v_illusion");     // buy playing cards in the shop
 
     @Test

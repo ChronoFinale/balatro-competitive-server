@@ -114,6 +114,8 @@ public final class VoucherCatalog {
         addMods("v_retcon", Modify.max(Value.Var.BOSS_REROLLS_PER_ANTE, 9999));
         // Observatory: a held Planet gives x1.5 Mult when you play its hand (read by the scorer).
         addMods("v_observatory", Modify.max(Value.Var.HELD_PLANET_MULT, 1.5));
+        // Telescope: a Celestial Pack always contains your most-played hand's Planet (flag = 1).
+        addMods("v_telescope", Modify.max(Value.Var.CELESTIAL_MOST_PLAYED, 1));
     }
 
     private static void addMods(String key, Modify... mods) {

@@ -890,6 +890,17 @@ public final class Run {
                 .map(java.util.Map.Entry::getKey).orElse(null);
     }
 
+    /** The Planet card key for your most-played hand (Telescope), or null if nothing's been played. */
+    private String mostPlayedPlanetKey() {
+        com.balatro.engine.hand.HandType mp = mostPlayedHand();
+        if (mp == null) return null;
+        for (String k : PlanetCatalog.keys()) {
+            PlanetCatalog.Planet p = PlanetCatalog.get(k);
+            if (p != null && p.hand() == mp) return k;
+        }
+        return null;
+    }
+
     /** True while this run is in a Nemesis (PvP) blind, whether still playing or locked. */
     public boolean inPvpBlind() {
         return pvpActive;
@@ -1775,8 +1786,16 @@ public final class Run {
                     TarotCatalog.tarotKeys(), "c_the_soul", "Tarot", k -> true);
             case SPECTRAL -> fillConsumables(out, n, RngSources.packContent("pack:spectral"),
                     TarotCatalog.spectralKeys(), "c_the_soul", "Spectral", k -> true);
-            case CELESTIAL -> fillConsumables(out, n, RngSources.packContent("pack:planet"),
-                    PlanetCatalog.keys(), "c_black_hole", "Planet", k -> PlanetCatalog.available(k, playedHands()));
+            case CELESTIAL -> {
+                int fill = n;
+                // Telescope: guarantee your most-played hand's Planet is in the pack.
+                if (voucherFold(Value.Var.CELESTIAL_MOST_PLAYED, 0) >= 1) {
+                    String mp = mostPlayedPlanetKey();
+                    if (mp != null) { out.add(new RevealedItem("Planet", mp, null)); fill--; }
+                }
+                fillConsumables(out, fill, RngSources.packContent("pack:planet"),
+                        PlanetCatalog.keys(), "c_black_hole", "Planet", k -> PlanetCatalog.available(k, playedHands()));
+            }
             case BUFFOON -> {
                 // Shares the shop joker rarity sub-queues (opening a Buffoon consumes those jokers).
                 java.util.Set<String> offered = new java.util.HashSet<>();
