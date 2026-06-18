@@ -365,6 +365,13 @@ public sealed interface Condition {
         }
     }
 
+    /** A non-disabled Boss Blind ability is currently in play (Matador's $8). */
+    record BossAbilityActive() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.run != null && ctx.run.bossHasActiveAbility;
+        }
+    }
+
     /** The consumable in play is of this category ("Tarot" | "Planet" | "Spectral"). */
     record ConsumableType(String consumable) implements Condition {
         public boolean test(EvaluationContext ctx) {

@@ -32,6 +32,9 @@ public final class Cond {
     /** The blind just selected is a Boss blind (use {@code not(bossBlind())} for "Small/Big only"). */
     public static Condition bossBlind() { return new Condition.BossBlindSelected(); }
 
+    /** A non-disabled Boss Blind ability is in play right now (Matador). */
+    public static Condition bossAbilityActive() { return new Condition.BossAbilityActive(); }
+
     /** The single current card (which card depends on the moment: scored / held / discarded). */
     public static CardC card() { return CardC.I; }
 

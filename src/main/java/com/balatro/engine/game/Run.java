@@ -617,6 +617,8 @@ public final class Run {
         for (Card c : state.hand) {
             c.debuffed = !disabled && debuff != null && testCardDebuff(debuff, c);
         }
+        // Keep Matador's trigger condition current (recomputed when the boss is disabled mid-blind too).
+        state.bossHasActiveAbility = boss != null && !disabled && bossHasAbility();
     }
 
     /** Evaluate a boss debuff condition for one card (reuses the shared {@link com.balatro.engine.joker.def.Condition}
@@ -727,8 +729,7 @@ public final class Run {
             state.handsPlayedThisRound++; // after scoring, so DNA's "first hand" check saw 0
             state.handsPlayedTotal++;
             applyBossOnHandPlayed(ph, result.score()); // Tooth / Ox / Arm per-hand boss effects
-            // Matador: $8 when you play a hand against an active boss ability.
-            if (hasJoker("j_matador") && !bossDisabled() && bossHasAbility()) state.money += 8;
+            // (Matador's $8 vs an active boss ability is now a data Rule: DOLLARS gated on bossAbilityActive.)
             if (pvpActive) {
                 // PvP blind: play all hands, then await the head-to-head comparison.
                 if (state.handsLeft <= 0) phase = Phase.PVP_PENDING;

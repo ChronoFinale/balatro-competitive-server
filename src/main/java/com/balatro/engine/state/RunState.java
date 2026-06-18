@@ -29,6 +29,7 @@ public final class RunState {
     public int discardsUsedThisRound = 0; // reset at blind start (Delayed Gratification)
     public int handsPlayedThisRound = 0;  // reset at blind start (DNA's "first hand")
     public int drawCountOverride = -1;    // The Serpent: draw exactly N on refill (-1 = fill to hand size)
+    public boolean bossHasActiveAbility = false; // a non-disabled Boss ability is in play (Matador's $8)
     // Run-long counters (decay jokers); shipped to the client so they preview exactly.
     public int handsPlayedTotal = 0;      // Ice Cream
     public int roundsPlayedTotal = 0;     // Popcorn
