@@ -50,6 +50,9 @@ public final class RunState {
     public boolean inPvpBlind = false; // currently in a PvP boss blind (Pacifist, Conjoined)
     public boolean bossHalveBase = false; // The Flint: base chips AND mult are halved this blind
     public boolean balanceChipsMult = false; // Plasma Deck: floor((chips+mult)/2) into each before x
+    // Observatory voucher: a held Planet gives heldPlanetMult to its hand (resolved by Run, read by the scorer).
+    public double heldPlanetMult = 1.0;
+    public final java.util.Set<HandType> heldPlanetHands = java.util.EnumSet.noneOf(HandType.class);
     public String lastTarotPlanetUsed = null; // The Fool copies whatever this was (excludes The Fool itself)
     public int myLives = 0;            // your Attrition lives
     public int oppLives = 0;           // nemesis lives (Defensive Joker)

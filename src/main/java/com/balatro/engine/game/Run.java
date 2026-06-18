@@ -153,14 +153,18 @@ public final class Run {
     private static final int BASE_CONSUMABLE_SLOTS = 2; // before deck/voucher CONSUMABLE_SLOTS Modifys
 
     /** Fold {@code var} from every owned voucher's Modifys over {@code base} — the derived-from-ownership
-     *  pattern for voucher-driven variables (win ante, boss rerolls, ...). */
-    private int voucherFold(Value.Var var, int base) {
+     *  pattern for voucher-driven variables (win ante, boss rerolls, held-planet mult, ...). */
+    private double voucherFoldD(Value.Var var, double base) {
         List<Modify> mods = new ArrayList<>();
         for (String v : state.vouchers) {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) mods.addAll(def.mods());
         }
-        return (int) Modify.fold(base, var, mods);
+        return Modify.fold(base, var, mods);
+    }
+
+    private int voucherFold(Value.Var var, int base) {
+        return (int) voucherFoldD(var, base);
     }
 
     /** Consumable slots = base + every CONSUMABLE_SLOTS Modify owned (deck + Crystal Ball/Omen Globe),
@@ -748,7 +752,7 @@ public final class Run {
             }
         }
         // Crimson Heart: disable one random Joker for this hand, before it scores.
-        if (intent instanceof Intent.PlayHand) applyBossPreScore();
+        if (intent instanceof Intent.PlayHand) { applyBossPreScore(); resolveObservatory(); }
         // Snapshot the hand so we can tell which cards the upcoming refill freshly drew (boss face-down).
         java.util.Set<java.util.UUID> handBefore = new java.util.HashSet<>();
         for (Card c : state.hand) handBefore.add(c.uid);
@@ -857,6 +861,18 @@ public final class Run {
 
     /** Crimson Heart: before a hand scores, switch off one random Joker for that hand (clearing any
      *  prior pick). The scorer skips a Joker flagged {@code bossDisabled}, so it contributes nothing. */
+    /** Observatory: resolve the held-Planet mult and which hand types you currently hold a Planet for,
+     *  so the scorer can apply x1.5 to a played hand whose Planet you hold. */
+    private void resolveObservatory() {
+        state.heldPlanetMult = voucherFoldD(Value.Var.HELD_PLANET_MULT, 1.0);
+        state.heldPlanetHands.clear();
+        if (state.heldPlanetMult <= 1.0) return;
+        for (String c : state.consumables) {
+            PlanetCatalog.Planet p = PlanetCatalog.get(c);
+            if (p != null) state.heldPlanetHands.add(p.hand());
+        }
+    }
+
     private void applyBossPreScore() {
         if (boss == null || bossDisabled() || !boss.disableRandomJokerPerHand()) return;
         java.util.List<Joker> js = state.jokers();

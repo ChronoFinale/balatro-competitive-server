@@ -197,6 +197,12 @@ public final class ScoringEngine {
         // (6b) FINAL_SCORING_STEP — effect seam after the main joker pass.
         effectPass(Trigger.FINAL_SCORING_STEP, acc, ctx, jokers);
 
+        // Observatory voucher: a held Planet gives xMult to its own hand (resolved on RunState by Run).
+        if (run.heldPlanetMult > 1.0 && run.heldPlanetHands.contains(hr.type())) {
+            acc.mult = acc.mult.multiply(run.heldPlanetMult);
+            log(acc, "Observatory", "xmult", "x" + run.heldPlanetMult + " Mult (held Planet)");
+        }
+
         // (6c) credit money earned during scoring (Rough Gem, Business Card, Bootstraps,
         // Gold/Lucky seals already credited inline). Never in preview — it's a dry-run.
         if (!preview && acc.dollars != 0) {

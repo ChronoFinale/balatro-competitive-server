@@ -112,6 +112,8 @@ public final class VoucherCatalog {
         // Director's Cut / Retcon: reroll the Boss Blind — once per ante, then unlimited.
         addMods("v_directors_cut", Modify.max(Value.Var.BOSS_REROLLS_PER_ANTE, 1));
         addMods("v_retcon", Modify.max(Value.Var.BOSS_REROLLS_PER_ANTE, 9999));
+        // Observatory: a held Planet gives x1.5 Mult when you play its hand (read by the scorer).
+        addMods("v_observatory", Modify.max(Value.Var.HELD_PLANET_MULT, 1.5));
     }
 
     private static void addMods(String key, Modify... mods) {
