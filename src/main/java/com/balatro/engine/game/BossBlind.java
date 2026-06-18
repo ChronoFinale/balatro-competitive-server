@@ -52,6 +52,22 @@ public record BossBlind(
         // --- Cerulean Bell: one held card is force-selected — every played hand must include it. ---
         boolean forcesCardSelection) {
 
+    /** The baseline boss score requirement (×blind amount); every boss is at least this big. */
+    public static final double BASELINE_REQ_MULT = 2.0;
+
+    /**
+     * Does this boss carry any ability beyond being a baseline (×2) blind? A boss whose only
+     * "effect" is the default requirement and no debuff/resource/per-hand/legality/face-down/joker
+     * rule is a pure description no-op — the coverage net rejects that (see BossCoverageTest).
+     */
+    public boolean hasAbility() {
+        return reqMult != BASELINE_REQ_MULT || !mods.isEmpty() || debuff != null || halveBase
+                || dollarsPerCardPlayed != 0 || zeroMoneyOnMostPlayed || delevelPlayedHand
+                || requires != null || faceDown != null || drawOnRefill != -1 || discardAfterPlay != 0
+                || disableOnJokerSell || disableRandomJokerPerHand || flipAndShuffleJokers
+                || forcesCardSelection;
+    }
+
     /** When the {@link FaceDownRule} fires, relative to which deal put the card in hand. */
     public enum When {
         INITIAL_DEAL, // The House: only the hand dealt at blind start

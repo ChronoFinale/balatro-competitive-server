@@ -77,6 +77,11 @@ public final class BossCatalog {
         return ante % 8 == 0;
     }
 
+    /** Every boss in the catalog — the surface the coverage net enumerates. */
+    public static List<BossBlind> all() {
+        return ALL;
+    }
+
     /** Deterministically pick a boss for the given ante. */
     public static BossBlind pick(int ante, RandomStreams rng) {
         return pick(ante, rng, 0);
