@@ -43,7 +43,9 @@ class DeckCoverageTest {
     void ghostDeckHasASpectralShopRateAndStartsWithHex() {
         DeckCatalog.DeckType ghost = DeckCatalog.get("d_ghost");
         assertThat(ghost.key()).isEqualTo("d_ghost"); // exists (was missing entirely)
-        assertThat(ghost.spectralRate()).isEqualTo(2);
+        // Ghost's Spectral rate is now a SPECTRAL_RATE Modify on the deck, folded by ShopEconomy.
+        assertThat(com.balatro.engine.game.ShopEconomy.resolve(java.util.Set.of(), ghost.mods()).spectralWeight())
+                .isEqualTo(2);
         assertThat(ghost.startingConsumables()).containsExactly("c_hex");
         // and the shop slot roll yields SPECTRAL in the tail when the rate is on
         assertThat(Shop.rollSlotType(0.99, 2)).isEqualTo(Shop.Kind.SPECTRAL);

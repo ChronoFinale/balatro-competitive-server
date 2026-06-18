@@ -21,7 +21,7 @@ import java.util.Set;
  */
 public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
                           double editionMultiplier, double polyMultiplier,
-                          int tarotWeight, int planetWeight,
+                          int tarotWeight, int planetWeight, int spectralWeight,
                           int playingCardWeight, boolean playingCardsEnhanced) {
 
     /** Shop card slots before any voucher (Overstock/Overstock Plus raise it). */
@@ -29,10 +29,16 @@ public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
     /** Base slot weight for a Tarot / Planet (Tarot/Planet Merchant & Tycoon raise it). */
     public static final int BASE_CONSUMABLE_WEIGHT = 4;
 
-    /** Fold the owned vouchers' {@link Modify} data into the effective shop economy — no key-strings.
-     *  Slots/edition odds use MAX (highest tier wins), price uses MIN (deepest discount), reroll ADD. */
+    /** Voucher-only resolve (Spectral rate stays 0 — only the Ghost Deck raises it). */
     public static ShopEconomy resolve(Set<String> vouchers) {
-        List<Modify> mods = new ArrayList<>();
+        return resolve(vouchers, List.of());
+    }
+
+    /** Fold the owned vouchers' {@link Modify} data <i>plus</i> any deck mods (Ghost's Spectral rate)
+     *  into the effective shop economy — no key-strings. Slots/edition odds/rates use MAX (highest tier
+     *  wins), price uses MIN (deepest discount), reroll ADD. */
+    public static ShopEconomy resolve(Set<String> vouchers, List<Modify> deckMods) {
+        List<Modify> mods = new ArrayList<>(deckMods);
         for (String v : vouchers) {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) mods.addAll(def.mods());
@@ -45,6 +51,7 @@ public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
                 Modify.fold(1.0, Value.Var.POLY_MULTIPLIER, mods),
                 (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.TAROT_RATE, mods),
                 (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.PLANET_RATE, mods),
+                (int) Modify.fold(0, Value.Var.SPECTRAL_RATE, mods),
                 (int) Modify.fold(0, Value.Var.SHOP_PLAYING_CARD_RATE, mods),
                 Modify.fold(0, Value.Var.SHOP_CARDS_ENHANCED, mods) >= 1);
     }

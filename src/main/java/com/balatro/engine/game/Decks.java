@@ -26,7 +26,6 @@ public final class Decks {
     private Composition composition = Composition.STANDARD;
     private final List<String> vouchers = new ArrayList<>();
     private final List<String> consumables = new ArrayList<>();
-    private int spectralRate = 0;
     private boolean balanceChipsMult = false;
     private int blindSizeMult = 1;
     private final List<String> onBossDefeatTags = new ArrayList<>();
@@ -69,8 +68,8 @@ public final class Decks {
 
     public Decks startsWith(String... consumables) { this.consumables.addAll(List.of(consumables)); return this; }
 
-    /** Ghost: Spectral cards appear in the shop at this weight. */
-    public Decks spectralRate(int rate) { this.spectralRate = rate; return this; }
+    /** Ghost: Spectral cards appear in the shop at this weight (a SPECTRAL_RATE Modify, folded by ShopEconomy). */
+    public Decks spectralRate(int rate) { resourceMods.add(Modify.max(Value.Var.SPECTRAL_RATE, rate)); return this; }
 
     /** Plasma: average chips & mult before the final score. */
     public Decks balancesChipsAndMult() { this.balanceChipsMult = true; return this; }
@@ -85,6 +84,6 @@ public final class Decks {
         return new DeckType(key, name, desc, List.copyOf(resourceMods),
                 greenEconomy, composition,
                 List.copyOf(vouchers), List.copyOf(consumables),
-                spectralRate, balanceChipsMult, blindSizeMult, List.copyOf(onBossDefeatTags));
+                balanceChipsMult, blindSizeMult, List.copyOf(onBossDefeatTags));
     }
 }

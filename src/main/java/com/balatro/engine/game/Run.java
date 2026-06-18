@@ -425,7 +425,7 @@ public final class Run {
         rollAnteVoucherIfNeeded(owned);
         Shop s = Shop.generate(state.queues, econ.slots(), jokerPoolForShop(), owned,
                 shopConfig().allowDuplicates(), econ.editionMultiplier(), econ.polyMultiplier(),
-                anteVoucher, playedHands(), deckType.spectralRate(), econ.tarotWeight(), econ.planetWeight(),
+                anteVoucher, playedHands(), econ.spectralWeight(), econ.tarotWeight(), econ.planetWeight(),
                 econ.playingCardWeight(), econ.playingCardsEnhanced());
         // Re-add any Voucher-Tag vouchers so they persist across rerolls within this shop visit.
         for (String tv : tagVouchers) {
@@ -557,7 +557,7 @@ public final class Run {
 
     /** The effective shop economy, derived from owned vouchers (Overstock/Clearance/Reroll/Hone). */
     private ShopEconomy shopEconomy() {
-        return ShopEconomy.resolve(state.vouchers);
+        return ShopEconomy.resolve(state.vouchers, deckType.mods()); // deck mods carry Ghost's Spectral rate
     }
 
     /** True if {@code cost} is affordable given the current debt floor. */

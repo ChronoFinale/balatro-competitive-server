@@ -35,7 +35,6 @@ public final class DeckCatalog {
                            Composition composition,
                            List<String> startingVouchers, List<String> startingConsumables,
                            // special-behaviour data (de-hardcoded from Run/ScoringEngine):
-                           int spectralRate,            // Ghost: Spectral cards appear in the shop at this weight
                            boolean balanceChipsMult,    // Plasma: average chips & mult before final score
                            int blindSizeMult,           // Plasma: blind requirements x this (default 1)
                            List<String> onBossDefeatTags) { // Anaglyph: tags granted after each Boss defeat
@@ -58,7 +57,7 @@ public final class DeckCatalog {
         public boolean hasEffect() {
             return !resourceMods.isEmpty() || greenEconomy
                     || composition != Composition.STANDARD || !startingVouchers.isEmpty()
-                    || !startingConsumables.isEmpty() || spectralRate != 0 || balanceChipsMult
+                    || !startingConsumables.isEmpty() || balanceChipsMult
                     || blindSizeMult != 1 || !onBossDefeatTags.isEmpty();
         }
     }
