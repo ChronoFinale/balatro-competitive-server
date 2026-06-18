@@ -741,12 +741,14 @@ public final class BuiltinJokerDefs {
                 // --- batch 45: Penny Pincher (Nemesis shop-spend economy) ---
                 new JokerDef("j_penny_pincher", "Penny Pincher",
                         "On entering the shop, gain $1 for every $3 your Nemesis spent last ante",
-                        "Uncommon", 6, 8, 17, null, null, true, List.of(), List.of()),
+                        "Uncommon", 6, 8, 17, null, null, true, List.of(), List.of(),
+                        List.of(), RunMod.pvpShopSpendShare(3)),
 
                 // --- batch 44: more Nemesis jokers (Skip-Off, Let's Go Gambling) ---
                 new JokerDef("j_skip_off", "Skip-Off",
                         "+1 Hand and +1 Discard per additional blind skipped vs your Nemesis",
-                        "Uncommon", 6, 6, 17, null, null, true, List.of(), List.of()),
+                        "Uncommon", 6, 6, 17, null, null, true, List.of(), List.of(),
+                        List.of(), RunMod.skipBonus()),
                 new JokerDef("j_lets_go_gambling", "Let's Go Gambling",
                         "1 in 4 chance for x4 Mult and $10",
                         "Uncommon", 6, 7, 17, null, null, true, List.of(),
@@ -817,7 +819,8 @@ public final class BuiltinJokerDefs {
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
                 new JokerDef("j_perkeo", "Perkeo",
                         "Creates a copy of a random held consumable when you leave the shop",
-                        "Legendary", 20, 1, 16, null, null, true, List.of(), List.of()),
+                        "Legendary", 20, 1, 16, null, null, true, List.of(), List.of(),
+                        List.of(), RunMod.consumableDuplicator()),
                 new JokerDef("j_invisible", "Invisible Joker",
                         "After 2 rounds, sell this to create a copy of a random Joker",
                         "Rare", 8, 2, 16, null, null, true,

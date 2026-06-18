@@ -487,9 +487,13 @@ public final class Run {
         return null;
     }
 
-    /** Penny Pincher (Nemesis): on entering the shop, gain $1 per $3 your Nemesis spent last ante. */
+    /** Penny Pincher (Nemesis): on entering the shop, gain $1 per $N your Nemesis spent last ante. */
     private void applyPennyPincher() {
-        if (hasJoker("j_penny_pincher")) state.money += state.oppShopSpentLastAnte / 3;
+        for (Joker j : state.jokers()) {
+            if (!(j instanceof DataJoker dj)) continue;
+            int denom = dj.def().runMod().pvpShopSpendDenominator();
+            if (denom > 0) state.money += state.oppShopSpentLastAnte / denom;
+        }
     }
 
     /** The lowest money a purchase may leave you at — derived economy (Credit Card allows -$20 of debt). */
@@ -594,7 +598,7 @@ public final class Run {
         state.handsLeft += deck.handsDelta();
         state.discardsLeft += deck.discardsDelta();
         // Skip-Off (Nemesis): +1 hand and +1 discard per extra blind skipped vs your Nemesis.
-        if (hasJoker("j_skip_off")) {
+        if (anyOwnedRunMod(m -> m.pvpSkipBonus())) {
             int diff = Math.max(0, state.blindsSkipped - state.oppBlindsSkipped);
             state.handsLeft += diff;
             state.discardsLeft += diff;
@@ -1566,7 +1570,7 @@ public final class Run {
 
     /** Perkeo: leaving the shop, create a (Negative) copy of a random held consumable. */
     private void applyShopExit() {
-        if (!hasJoker("j_perkeo") || state.consumables.isEmpty()) return;
+        if (!anyOwnedRunMod(m -> m.duplicatesConsumableOnShopExit()) || state.consumables.isEmpty()) return;
         String dup = state.queues.pick(state.consumables, RngSources.PERKEO_DUP, rngCtx(), s -> s, (a, b) -> 0);
         state.consumables.add(dup); // Negative copy ignores the slot cap
     }
