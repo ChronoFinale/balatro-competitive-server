@@ -50,4 +50,18 @@ class GameVarModifierTest {
         assertThat(run.blind).isEqualTo(BlindType.BOSS);
         assertThat(run.state.handSize).isEqualTo(8 + 2 + 1 - 1); // ...the Manacle joins the same fold
     }
+
+    @Test
+    void aVoucherFoldsIntoTheResourceLikeAnyOtherModifier() {
+        // A voucher is no longer a key-string in Run; it carries Modify(HANDS_LEFT/DISCARDS_LEFT, ...)
+        // as data and folds in with the deck/boss/joker modifiers.
+        Run run = new Run(Ruleset.standard(), "VR", stoneDeck(300), jokers("j_joker", "j_joker", "j_joker"));
+        run.state.vouchers.add("v_grabber");   // Permanently +1 hand
+        run.state.vouchers.add("v_wasteful");  // Permanently +1 discard
+
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // clear Small
+        run.proceed();                                          // -> Big; resources recomputed with the vouchers
+        assertThat(run.state.handsLeft).isEqualTo(Ruleset.standard().hands() + 1);    // Grabber folded in
+        assertThat(run.state.discardsLeft).isEqualTo(Ruleset.standard().discards() + 1); // Wasteful folded in
+    }
 }

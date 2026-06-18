@@ -1,5 +1,6 @@
 package com.balatro.engine.game;
 
+import com.balatro.engine.joker.def.Value;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,8 +19,21 @@ public final class VoucherCatalog {
 
     private VoucherCatalog() {}
 
-    /** {@code upgradeKey} is the Tier-2 key for a base voucher, or null for a Tier-2 voucher. */
-    public record Voucher(String key, String name, String description, int cost, String upgradeKey) {}
+    /**
+     * {@code upgradeKey} is the Tier-2 key for a base voucher, or null for a Tier-2 voucher.
+     * {@code mods} are the voucher's resource effects as data — a Grabber is {@code add(HANDS_LEFT, 1)},
+     * not a key-string check in {@code Run}.
+     */
+    public record Voucher(String key, String name, String description, int cost, String upgradeKey,
+                          List<Modify> mods) {
+        public Voucher(String key, String name, String description, int cost, String upgradeKey) {
+            this(key, name, description, cost, upgradeKey, List.of());
+        }
+
+        Voucher withMods(Modify... mods) {
+            return new Voucher(key, name, description, cost, upgradeKey, List.of(mods));
+        }
+    }
 
     private static final Map<String, Voucher> BY_KEY = new LinkedHashMap<>();
     private static final List<String> BASES = new ArrayList<>();
@@ -61,6 +75,19 @@ public final class VoucherCatalog {
                 "v_retcon", "Retcon", "Reroll the Boss Blind unlimited times ($10)");
         pair("v_paint_brush", "Paint Brush", "+1 hand size",
                 "v_palette", "Palette", "+1 hand size again");
+
+        // Resource vouchers carry their effect as data (a Modify on a game variable), folded by Run
+        // alongside the joker/boss/deck modifiers — no key-string checks.
+        addMods("v_grabber", Modify.add(Value.Var.HANDS_LEFT, 1));        // Permanently +1 hand
+        addMods("v_nacho_tong", Modify.add(Value.Var.HANDS_LEFT, 1));
+        addMods("v_wasteful", Modify.add(Value.Var.DISCARDS_LEFT, 1));    // Permanently +1 discard
+        addMods("v_recyclomancy", Modify.add(Value.Var.DISCARDS_LEFT, 1));
+        addMods("v_paint_brush", Modify.add(Value.Var.HAND_SIZE, 1));     // +1 hand size
+        addMods("v_palette", Modify.add(Value.Var.HAND_SIZE, 1));
+    }
+
+    private static void addMods(String key, Modify... mods) {
+        BY_KEY.put(key, BY_KEY.get(key).withMods(mods));
     }
 
     private static void pair(String baseKey, String baseName, String baseDesc,

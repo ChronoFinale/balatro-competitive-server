@@ -198,34 +198,30 @@ public final class Run {
         state.inPvpBlind = pvpBoss; // Nemesis jokers (Pacifist, Conjoined) read this
         // Blue stake (+) starts every round with one fewer discard (game.lua:2056). The stake reduces
         // the per-round baseline; a boss discard-override still replaces it outright.
-        int baseDiscards = Math.max(0, ruleset.discards() + stake.discardDelta());
-        // Hand size is no longer set per-branch: every contributor (deck/boss/joker/voucher) is a
-        // Modify(HAND_SIZE, ...) folded together in computeHandSize() below — one aspect, one applier.
+        // Hands, discards and hand size are no longer set per-branch: every contributor (deck, boss,
+        // joker, voucher, skip-off…) is a Modify on a game variable, folded in compute* below — one
+        // variable, one applier. The branches only decide the boss and the requirement.
         if (pvpBoss) {
             // Attrition Nemesis blind: no clear-requirement; play all hands, compare to opponent.
             pvpActive = true;
             boss = NEMESIS;
-            state.handsLeft = ruleset.hands();
-            state.discardsLeft = baseDiscards;
             requirement = 0; // outcome is decided by the head-to-head comparison
         } else if (blind == BlindType.BOSS) {
             boss = (forcedBoss != null) ? forcedBoss : BossCatalog.pick(ante, rng);
             boolean disabled = bossDisabled(); // Chicot: ignore the boss's hand/discard/size ability
-            state.handsLeft = (!disabled && boss.handsOverride() >= 0) ? boss.handsOverride() : ruleset.hands();
-            state.discardsLeft = (!disabled && boss.discardsOverride() >= 0) ? boss.discardsOverride() : baseDiscards;
             state.bossHalveBase = !disabled && boss.halveBase(); // The Flint
             requirement = Math.round(Blinds.getBlindAmount(ante, ruleset, stake.scaling()) * boss.reqMult() * ruleset.anteScaling());
         } else {
             boss = null;
-            state.handsLeft = ruleset.hands();
-            state.discardsLeft = baseDiscards;
             requirement = Blinds.requirement(ante, blind, ruleset, stake.scaling());
         }
         // Plasma Deck (ante_scaling=2): blinds are 2x larger. Our tables are even, so doubling the
         // rounded requirement equals doubling inside get_blind_amount.
         requirement *= deckType.blindSizeMult();
-        applyJokerRunMods(); // passive hand/discard deltas from owned jokers
-        state.handSize = computeHandSize(); // fold every HAND_SIZE Modify (deck/boss/joker/voucher) at once
+        // Fold every Modify on each resource variable at once (deck/boss/joker/voucher/skip-off/pizza).
+        state.handsLeft = computeHands();
+        state.discardsLeft = computeDiscards();
+        state.handSize = computeHandSize();
         applyJokerDestroyers(); // Ceremonial Dagger / Madness eat a joker at blind select
         // Oops! All 6s doubles every listed probability (numerator) per copy owned (a data capability).
         long oops = state.jokers().stream()
@@ -567,64 +563,87 @@ public final class Run {
         return arr[(int) (roll(src) * arr.length) % arr.length];
     }
 
-    /** Sum and apply passive run modifiers from owned data jokers (Juggler, Burglar, ...). */
-    private void applyJokerRunMods() {
-        boolean noDiscards = false;
+    /** Per-blind base discards: the ruleset default reduced by the stake (Blue: -1), floored at 0. */
+    private int baseDiscards() {
+        return Math.max(0, ruleset.discards() + stake.discardDelta());
+    }
+
+    /** Add every owned voucher's {@link Modify}s for {@code var} (Grabber/Wasteful/Paint Brush…). */
+    private void addVoucherMods(List<Modify> mods, Value.Var var) {
+        for (String v : state.vouchers) {
+            VoucherCatalog.Voucher def = VoucherCatalog.get(v);
+            if (def == null) continue;
+            for (Modify m : def.mods()) if (m.variable() == var) mods.add(m);
+        }
+    }
+
+    /** Add each owned data joker's flat {@code RunMod} delta for {@code var} to {@code mods}. */
+    private void addJokerDeltas(List<Modify> mods, Value.Var var, java.util.function.ToIntFunction<RunMod> delta) {
         for (Joker j : state.jokers()) {
-            if (!(j instanceof DataJoker dj)) continue;
-            RunMod m = dj.def().runMod();
-            if (m.isNone()) continue;
-            state.handsLeft += m.handsDelta();
-            state.discardsLeft += m.discardsDelta();
-            if (m.noDiscards()) noDiscards = true;
+            if (j instanceof DataJoker dj && delta.applyAsInt(dj.def().runMod()) != 0) {
+                mods.add(Modify.add(var, delta.applyAsInt(dj.def().runMod())));
+            }
         }
-        // Vouchers: permanent per-blind hand / discard upgrades (base + Tier 2).
-        if (state.vouchers.contains("v_grabber")) state.handsLeft += 1;
-        if (state.vouchers.contains("v_nacho_tong")) state.handsLeft += 1;
-        if (state.vouchers.contains("v_wasteful")) state.discardsLeft += 1;
-        if (state.vouchers.contains("v_recyclomancy")) state.discardsLeft += 1;
-        // Deck variant: per-blind hand/discard deltas (Red/Blue/Black).
-        DeckCatalog.DeckType deck = deckType; // per-run deck (chosen at newRun; defaults to the ruleset's)
-        state.handsLeft += deck.handsDelta();
-        state.discardsLeft += deck.discardsDelta();
-        // Skip-Off (Nemesis): +1 hand and +1 discard per extra blind skipped vs your Nemesis.
+    }
+
+    /** Skip-Off (Nemesis): the +1-per-extra-skip bonus as a Modify on {@code var}, or nothing. */
+    private void addSkipOff(List<Modify> mods, Value.Var var) {
         if (anyOwnedRunMod(m -> m.pvpSkipBonus())) {
-            int diff = Math.max(0, state.blindsSkipped - state.oppBlindsSkipped);
-            state.handsLeft += diff;
-            state.discardsLeft += diff;
+            mods.add(Modify.add(var, Math.max(0, state.blindsSkipped - state.oppBlindsSkipped)));
         }
-        // Pizza: temporary +discards for the ante after it's consumed at a PvP blind.
-        if (state.pizzaBlindsLeft > 0) {
-            state.discardsLeft += state.pizzaDiscardBonus;
+    }
+
+    /** Hands per round, folded from the deck, the boss (SET override), jokers, vouchers and Skip-Off. */
+    private int computeHands() {
+        List<Modify> mods = new ArrayList<>();
+        mods.add(Modify.add(Value.Var.HANDS_LEFT, deckType.handsDelta()));            // Blue Deck: +1
+        if (boss != null && !bossDisabled() && boss.handsOverride() >= 0) {
+            mods.add(Modify.set(Value.Var.HANDS_LEFT, boss.handsOverride()));         // The Needle: 1
+        }
+        addJokerDeltas(mods, Value.Var.HANDS_LEFT, RunMod::handsDelta);               // Burglar: +3
+        addVoucherMods(mods, Value.Var.HANDS_LEFT);                                   // Grabber / Nacho Tong
+        addSkipOff(mods, Value.Var.HANDS_LEFT);
+        return Math.max(1, (int) Modify.fold(ruleset.hands(), Value.Var.HANDS_LEFT, mods));
+    }
+
+    /** Discards per round, folded from every source; Burglar's "no discards" is a final override. */
+    private int computeDiscards() {
+        List<Modify> mods = new ArrayList<>();
+        mods.add(Modify.add(Value.Var.DISCARDS_LEFT, deckType.discardsDelta()));      // Red Deck: +1
+        if (boss != null && !bossDisabled() && boss.discardsOverride() >= 0) {
+            mods.add(Modify.set(Value.Var.DISCARDS_LEFT, boss.discardsOverride()));   // The Water: 0
+        }
+        addJokerDeltas(mods, Value.Var.DISCARDS_LEFT, RunMod::discardsDelta);         // Drunkard: +1
+        addVoucherMods(mods, Value.Var.DISCARDS_LEFT);                                // Wasteful / Recyclomancy
+        addSkipOff(mods, Value.Var.DISCARDS_LEFT);
+        if (state.pizzaBlindsLeft > 0) {                                              // Pizza (PvP): temp +discards
+            mods.add(Modify.add(Value.Var.DISCARDS_LEFT, state.pizzaDiscardBonus));
             state.pizzaBlindsLeft--;
         }
-        if (noDiscards) state.discardsLeft = 0;
-        state.handsLeft = Math.max(1, state.handsLeft);
-        state.discardsLeft = Math.max(0, state.discardsLeft);
+        int discards = (int) Modify.fold(baseDiscards(), Value.Var.DISCARDS_LEFT, mods);
+        if (anyOwnedRunMod(RunMod::noDiscards)) discards = 0;                         // Burglar: no discards at all
+        return Math.max(0, discards);
     }
 
     /**
-     * Resolve hand size as one fold over every {@link Modify#HAND_SIZE} contributor — the deck, the
-     * boss, each owned joker (flat deltas + Turtle Bean's decaying bonus), and the hand-size vouchers.
-     * Four different card types, one aspect, one applier: exactly the {@code HandMod} shape generalised.
+     * Hand size, folded from every {@code HAND_SIZE} contributor — the deck, the boss, each owned joker
+     * (flat deltas + Turtle Bean's decaying bonus), and the hand-size vouchers. Four different card
+     * types, one game variable, one applier: exactly the {@code HandMod} shape generalised.
      */
     private int computeHandSize() {
         List<Modify> mods = new ArrayList<>();
-        mods.add(Modify.add(Value.Var.HAND_SIZE, deckType.handSizeDelta()));         // Painted Deck: +2
+        mods.add(Modify.add(Value.Var.HAND_SIZE, deckType.handSizeDelta()));          // Painted Deck: +2
         if (boss != null && !bossDisabled()) {
-            mods.add(Modify.add(Value.Var.HAND_SIZE, boss.handSizeDelta()));         // Manacle: -1
+            mods.add(Modify.add(Value.Var.HAND_SIZE, boss.handSizeDelta()));          // The Manacle: -1
         }
-        for (Joker j : state.jokers()) {
-            if (!(j instanceof DataJoker dj)) continue;
-            RunMod m = dj.def().runMod();
-            if (m.handSizeDelta() != 0) mods.add(Modify.add(Value.Var.HAND_SIZE, m.handSizeDelta())); // Juggler: +1
-            if (m.handSizeDecayStart() > 0) {                                     // Turtle Bean: +N decaying
-                int acq = state.jokerInt(j, "acqRounds", 0);
-                mods.add(Modify.add(Value.Var.HAND_SIZE, Math.max(0, m.handSizeDecayStart() - (state.roundsPlayedTotal - acq))));
-            }
+        addJokerDeltas(mods, Value.Var.HAND_SIZE, RunMod::handSizeDelta);             // Juggler: +1
+        for (Joker j : state.jokers()) {                                             // Turtle Bean: +N decaying
+            if (!(j instanceof DataJoker dj) || dj.def().runMod().handSizeDecayStart() <= 0) continue;
+            int acq = state.jokerInt(j, "acqRounds", 0);
+            int start = dj.def().runMod().handSizeDecayStart();
+            mods.add(Modify.add(Value.Var.HAND_SIZE, Math.max(0, start - (state.roundsPlayedTotal - acq))));
         }
-        if (state.vouchers.contains("v_paint_brush")) mods.add(Modify.add(Value.Var.HAND_SIZE, 1));
-        if (state.vouchers.contains("v_palette")) mods.add(Modify.add(Value.Var.HAND_SIZE, 1));
+        addVoucherMods(mods, Value.Var.HAND_SIZE);                                    // Paint Brush / Palette
         return Math.max(1, (int) Modify.fold(ruleset.handSize(), Value.Var.HAND_SIZE, mods));
     }
 
