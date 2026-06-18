@@ -216,8 +216,7 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_scholar", "Scholar").cost(4).atlas(0, 4)
                         .desc("Played Aces give +20 Chips and +4 Mult")
                         .forEachScored(card().rankBetween(14, 14))
-                        .effect(new EffectTemplate(Op.CHIPS, new Value.Const(20),
-                                new EffectTemplate(Op.MULT, new Value.Const(4)))).build(),
+                        .effect(EffectTemplate.of(Op.CHIPS, 20).and(Op.MULT, 4)).build(),
 
                 // --- per-card mult ---
                 Jokers.common("j_smiley", "Smiley Face").cost(4).atlas(6, 15)
@@ -228,8 +227,7 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_walkie_talkie", "Walkie Talkie").cost(4).atlas(8, 15)
                         .desc("Each played 10 or 4 gives +10 Chips and +4 Mult")
                         .forEachScored(any(card().rankBetween(10, 10), card().rankBetween(4, 4)))
-                        .effect(new EffectTemplate(Op.CHIPS, new Value.Const(10),
-                                new EffectTemplate(Op.MULT, new Value.Const(4)))).build(),
+                        .effect(EffectTemplate.of(Op.CHIPS, 10).and(Op.MULT, 4)).build(),
 
                 // --- rank-set via any(): each played A, 2, 3, 5, 8 gives +8 Mult ---
                 Jokers.uncommon("j_fibonacci", "Fibonacci").cost(8).atlas(1, 5)
@@ -314,19 +312,19 @@ public final class BuiltinJokerDefs {
                 // --- MUTATE_CARD: Hiker permanently adds chips to each played card ---
                 Jokers.uncommon("j_hiker", "Hiker").cost(5).atlas(0, 11)
                         .desc("Each played card permanently gains +5 Chips")
-                        .forEachScored(always()).effect(EffectTemplate.mutate(CardMod.addChips(5))).build(),
+                        .forEachScored(always()).mutateCard(CardMod.addChips(5)).build(),
 
                 // --- MUTATE_CARD: Midas Mask turns played face cards into Gold cards ---
                 Jokers.uncommon("j_midas_mask", "Midas Mask").cost(7).atlas(0, 13)
                         .desc("Played face cards become Gold cards when scored")
-                        .forEachScored(card().isFace()).effect(EffectTemplate.mutate(CardMod.setEnhancement(Enhancement.GOLD))).build(),
+                        .forEachScored(card().isFace()).mutateCard(CardMod.setEnhancement(Enhancement.GOLD)).build(),
 
                 // --- MUTATE_CARD + stateful xMult: Vampire strips enhancements and grows ---
                 Jokers.uncommon("j_vampire", "Vampire").cost(7).atlas(2, 12)
                         .desc("Gains x0.1 Mult per enhanced card played, removing its enhancement")
                         .mutate(Trigger.ON_SCORED).when(not(card().enhancement(Enhancement.NONE))).gain("xm", 0.1)
                         .forEachScored(not(card().enhancement(Enhancement.NONE)))
-                        .effect(EffectTemplate.mutate(CardMod.removeEnhancement()))
+                        .mutateCard(CardMod.removeEnhancement())
                         .whenHand(state("xm").atLeast(0.1)).multiply(MULT, new Value.State("xm", 1.0, 1.0)).build(),
 
                 // --- economy-during-scoring: money earned mid-hand (credited at end) ---
@@ -472,44 +470,44 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_8_ball", "8 Ball").cost(5).atlas(1, 12)
                         .desc("1 in 4 chance for each played 8 to create a Tarot card (if room)")
                         .forEachScored(Cond.all(card().rankBetween(8, 8), new Condition.Chance(1, 4, "8ball")))
-                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                        .create(CreateSpec.Kind.TAROT).build(),
                 Jokers.uncommon("j_cartomancer", "Cartomancer").cost(6).atlas(2, 12)
                         .desc("Create a Tarot card when a blind is selected")
-                        .on(Trigger.BLIND_SELECTED).effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                        .on(Trigger.BLIND_SELECTED).create(CreateSpec.Kind.TAROT).build(),
                 Jokers.rare("j_vagabond", "Vagabond").cost(8).atlas(3, 12)
                         .desc("Create a Tarot if a hand is played with $4 or less")
                         .whenHand(not(runVar(Value.Var.MONEY).atLeast(5)))
-                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                        .create(CreateSpec.Kind.TAROT).build(),
                 Jokers.common("j_superposition", "Superposition").cost(5).atlas(4, 12)
                         .desc("Create a Tarot if a played hand contains an Ace and a Straight")
                         .whenHand(Cond.all(playedHand().contains(HandType.STRAIGHT),
                                 value(new Value.Count(Value.Source.SCORING,
                                         new Condition.ScoredRankBetween(14, 14), 0, 1)).atLeast(1)))
-                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                        .create(CreateSpec.Kind.TAROT).build(),
                 Jokers.uncommon("j_seance", "Seance").cost(6).atlas(5, 12)
                         .desc("Create a Spectral if the played hand is a Straight Flush")
                         .whenHand(playedHand().is(HandType.STRAIGHT_FLUSH))
-                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL))).build(),
+                        .create(CreateSpec.Kind.SPECTRAL).build(),
 
                 // --- batch 11: joker / playing-card creation + card destruction ---
                 Jokers.uncommon("j_marble", "Marble Joker").cost(6).atlas(6, 12)
                         .desc("Adds a Stone card to your deck when a blind is selected")
                         .on(Trigger.BLIND_SELECTED)
-                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, Enhancement.STONE))).build(),
+                        .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, Enhancement.STONE)).build(),
                 Jokers.common("j_riff_raff", "Riff-Raff").cost(6).atlas(7, 12)
                         .desc("Create 2 Common jokers when a blind is selected (if room)")
                         .on(Trigger.BLIND_SELECTED)
-                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.JOKER, 2, "Common", null))).build(),
+                        .create(new CreateSpec(CreateSpec.Kind.JOKER, 2, "Common", null)).build(),
                 Jokers.uncommon("j_sixth_sense", "Sixth Sense").cost(6).atlas(8, 12)
                         .desc("Play a single 6: destroy it and create a Spectral")
                         .forEachScored(Cond.all(playedHand().sizeExactly(1), card().rankBetween(6, 6)))
-                        .effect(new EffectTemplate(Op.DESTROY_SCORED, null,
+                        .effect(EffectTemplate.destroyScored().andThen(
                                 EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL)))).build(),
 
                 // --- batch 12: hand level-up ---
                 Jokers.uncommon("j_space", "Space Joker").cost(5).atlas(0, 13)
                         .desc("1 in 4 chance to upgrade the level of the played hand")
-                        .whenHand(new Condition.Chance(1, 4, "space")).effect(EffectTemplate.levelUpHand(1)).build(),
+                        .whenHand(new Condition.Chance(1, 4, "space")).levelUpHand(1).build(),
                 // --- batch 13: destruction-counting xMult (CARD_DESTROYED) ---
                 Jokers.uncommon("j_glass_joker", "Glass Joker").cost(6).atlas(5, 13)
                         .desc("Gains x0.75 Mult for every Glass card that is destroyed")
@@ -539,14 +537,14 @@ public final class BuiltinJokerDefs {
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("discards")
                         .mutate(Trigger.PRE_DISCARD).when(always()).gain("discards", 1)
                         .whenDiscarding(Cond.all(state("discards").atLeast(1), not(state("discards").atLeast(2))))
-                        .effect(EffectTemplate.levelUpHand(1)).build(),
+                        .levelUpHand(1).build(),
 
                 // --- batch 16: card copy (DNA) + sealed card creation (Certificate) ---
                 Jokers.rare("j_dna", "DNA").cost(8).atlas(9, 12)
                         .desc("If the first hand of the round is a single card, add a permanent copy to your deck")
                         .forEachScored(Cond.all(playedHand().sizeExactly(1),
                                 not(runVar(Value.Var.HANDS_PLAYED).atLeast(1))))
-                        .effect(EffectTemplate.copyScored()).build(),
+                        .copyScored().build(),
                 Jokers.uncommon("j_hologram", "Hologram").cost(7).atlas(8, 13)
                         .desc("Gains x0.25 Mult for every playing card added to your deck")
                         .mutate(Trigger.CARD_ADDED).when(always()).gain("x", 0.25)
@@ -554,7 +552,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_certificate", "Certificate").cost(6).atlas(0, 13)
                         .desc("When a blind is selected, add a random playing card with a random seal to your deck")
                         .on(Trigger.BLIND_SELECTED)
-                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, null, true))).build(),
+                        .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, null, true)).build(),
 
                 // --- batch 18: decay jokers (run-long counters + clamped values) ---
                 Jokers.common("j_ice_cream", "Ice Cream").cost(5).atlas(2, 13)
@@ -577,7 +575,7 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_hallucination", "Hallucination").cost(4).atlas(1, 17)
                         .desc("1 in 2 chance to create a Tarot card when a booster pack is opened")
                         .on(Trigger.OPEN_BOOSTER).when(new Condition.Chance(1, 2, "hallucination"))
-                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                        .create(CreateSpec.Kind.TAROT).build(),
                 Jokers.common("j_red_card", "Red Card").cost(5).atlas(2, 17)
                         .desc("Gains +3 Mult when a booster pack is skipped")
                         .mutate(Trigger.SKIP_BOOSTER).when(always()).gain("mult", 3)
@@ -610,8 +608,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_lets_go_gambling", "Let's Go Gambling").cost(6).atlas(7, 17)
                         .desc("1 in 4 chance for x4 Mult and $10")
                         .whenHand(new Condition.Chance(1, 4, "gambling"))
-                        .effect(new EffectTemplate(Op.XMULT, new Value.Const(4),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(10)))).build(),
+                        .effect(EffectTemplate.of(Op.XMULT, 4).and(Op.DOLLARS, 10)).build(),
 
                 // --- batch 43: multiplayer-exclusive "Nemesis" jokers (read opponent state) ---
                 Jokers.uncommon("j_pacifist", "Pacifist").cost(6).atlas(2, 17)

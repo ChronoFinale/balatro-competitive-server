@@ -71,6 +71,23 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
         return new EffectTemplate(Op.CREATE, null, null, null, spec);
     }
 
+    /** Start a compound numeric chain: {@code of(CHIPS, 20).and(MULT, 4)} (Scholar). */
+    public static EffectTemplate of(Op op, double amount) {
+        return new EffectTemplate(op, new Value.Const(amount));
+    }
+
+    /** Append another numeric op to this effect's chain (+20 Chips <b>and</b> +4 Mult). */
+    public EffectTemplate and(Op op, double amount) {
+        return andThen(new EffectTemplate(op, new Value.Const(amount)));
+    }
+
+    /** Append any effect to the end of this one's chain (Sixth Sense: destroy <b>then</b> create). */
+    public EffectTemplate andThen(EffectTemplate next) {
+        return extra == null
+                ? new EffectTemplate(op, value, next, cardMod, create)
+                : new EffectTemplate(op, value, extra.andThen(next), cardMod, create);
+    }
+
     /**
      * Build the effect: a numeric contribution (op + value) and/or a card mutation
      * ({@link #cardMod}), chaining {@link #extra} so one rule can emit a compound

@@ -1,5 +1,6 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.engine.card.CardMod;
 import com.balatro.engine.hand.HandMod;
 import com.balatro.engine.joker.Trigger;
 import java.util.ArrayList;
@@ -191,6 +192,23 @@ public final class Jokers {
 
         /** Effect with an explicit {@link Value} (per-card counts, run vars, ...). */
         public Jokers gives(EffectTemplate.Op op, Value v) { return commit(op, v); }
+
+        // --- non-numeric effect terminals: read as verbs instead of .effect(EffectTemplate.x(...)) ---
+
+        /** Create cards/consumables/jokers (8 Ball, Cartomancer, Riff-Raff, ...). */
+        public Jokers create(CreateSpec spec) { return effect(EffectTemplate.create(spec)); }
+
+        /** Create one of {@code kind} (the common single-card case). */
+        public Jokers create(CreateSpec.Kind kind) { return effect(EffectTemplate.create(new CreateSpec(kind))); }
+
+        /** Permanently mutate each matching card — enhance/convert/add-chips (Hiker, Midas Mask, Vampire). */
+        public Jokers mutateCard(CardMod mod) { return effect(EffectTemplate.mutate(mod)); }
+
+        /** Level up the played poker hand by {@code levels} (Space, Burnt). */
+        public Jokers levelUpHand(int levels) { return effect(EffectTemplate.levelUpHand(levels)); }
+
+        /** Add a permanent copy of the scored card to the deck (DNA). */
+        public Jokers copyScored() { return effect(EffectTemplate.copyScored()); }
 
         private static EffectTemplate.Op addOp(Target t) {
             return switch (t) {
