@@ -128,9 +128,15 @@ public sealed interface Value {
     }
 
     /** Which live run-state quantity a {@link RunVar} reads. */
-    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, CONSUMABLE_SLOTS, ANTE, DISCARDS_USED,
+    enum Var {
+        // --- readable run-state quantities (a condition can read these) ---
+        MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, CONSUMABLE_SLOTS, ANTE, DISCARDS_USED,
         HANDS_PLAYED, HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS,
-        UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD }
+        UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD,
+        // --- derived economy/shop policy variables: written by Modifys (folded in EconomyConfig /
+        //     ShopEconomy), not yet read by any condition. Reading one throws (see readVar). ---
+        INTEREST_CAP, MONEY_PER_HAND, MONEY_PER_DISCARD, MIN_MONEY,
+        SHOP_SLOTS, PRICE_MULTIPLIER, REROLL_DISCOUNT, EDITION_MULTIPLIER, POLY_MULTIPLIER }
 
     /** Read a live run-state quantity. Shared by {@link RunVar}, {@link RunVarStep}, and
      *  {@code Condition.RunVarModulo} so the {@link Var}→{@code RunState} mapping lives in one place. */
@@ -154,6 +160,9 @@ public sealed interface Value {
             case OPP_LIVES_BEHIND -> Math.max(0, ctx.run.oppLives - ctx.run.myLives);
             case OPP_HANDS_LEFT -> ctx.run.oppHandsLeft;
             case OPP_CARDS_SOLD -> ctx.run.oppCardsSold;
+            // Policy variables are Modify write-targets folded by EconomyConfig/ShopEconomy, not
+            // run-state a condition reads. If one ever needs to be readable, give it a mapping here.
+            default -> throw new UnsupportedOperationException("not a readable run variable: " + which);
         };
     }
 

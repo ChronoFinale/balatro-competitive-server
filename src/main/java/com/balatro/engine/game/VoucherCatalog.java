@@ -87,6 +87,17 @@ public final class VoucherCatalog {
         addMods("v_palette", Modify.add(Value.Var.HAND_SIZE, 1));
         addMods("v_crystal_ball", Modify.add(Value.Var.CONSUMABLE_SLOTS, 1)); // +1 consumable slot
         addMods("v_omen_globe", Modify.add(Value.Var.CONSUMABLE_SLOTS, 1));
+
+        // Shop-economy vouchers (folded by ShopEconomy). Tiered ones use max/min — the highest/deepest
+        // owned tier wins, so owning Seed-Money-style base + upgrade resolves to the upgrade, in any order.
+        addMods("v_overstock", Modify.max(Value.Var.SHOP_SLOTS, 3));         // base 2 -> 3 shop slots
+        addMods("v_overstock_plus", Modify.max(Value.Var.SHOP_SLOTS, 4));    // -> 4
+        addMods("v_clearance_sale", Modify.min(Value.Var.PRICE_MULTIPLIER, 0.75)); // 25% off
+        addMods("v_liquidation", Modify.min(Value.Var.PRICE_MULTIPLIER, 0.50));    // 50% off
+        addMods("v_reroll_surplus", Modify.add(Value.Var.REROLL_DISCOUNT, 2));     // -$2 reroll (cumulative)
+        addMods("v_reroll_glut", Modify.add(Value.Var.REROLL_DISCOUNT, 2));        // -$2 more
+        addMods("v_hone", Modify.max(Value.Var.EDITION_MULTIPLIER, 2), Modify.max(Value.Var.POLY_MULTIPLIER, 3));
+        addMods("v_glow_up", Modify.max(Value.Var.EDITION_MULTIPLIER, 4), Modify.max(Value.Var.POLY_MULTIPLIER, 7));
     }
 
     private static void addMods(String key, Modify... mods) {

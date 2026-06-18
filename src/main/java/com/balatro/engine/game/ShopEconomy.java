@@ -1,5 +1,9 @@
 package com.balatro.engine.game;
 
+import com.balatro.engine.joker.def.Modify;
+import com.balatro.engine.joker.def.Value;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,18 +22,19 @@ import java.util.Set;
 public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
                           double editionMultiplier, double polyMultiplier) {
 
-    /** Fold the currently-owned vouchers into the effective shop economy. Pure — no side effects. */
+    /** Fold the owned vouchers' {@link Modify} data into the effective shop economy — no key-strings.
+     *  Slots/edition odds use MAX (highest tier wins), price uses MIN (deepest discount), reroll ADD. */
     public static ShopEconomy resolve(Set<String> vouchers) {
-        int slots = vouchers.contains("v_overstock_plus") ? 4
-                : vouchers.contains("v_overstock") ? 3 : 2;
-        double price = vouchers.contains("v_liquidation") ? 0.50
-                : vouchers.contains("v_clearance_sale") ? 0.75 : 1.0;
-        int reroll = (vouchers.contains("v_reroll_surplus") ? 2 : 0)
-                + (vouchers.contains("v_reroll_glut") ? 2 : 0);
-        double editionMult = vouchers.contains("v_glow_up") ? 4.0
-                : vouchers.contains("v_hone") ? 2.0 : 1.0;
-        double polyMult = vouchers.contains("v_glow_up") ? 7.0
-                : vouchers.contains("v_hone") ? 3.0 : 1.0;
-        return new ShopEconomy(slots, price, reroll, editionMult, polyMult);
+        List<Modify> mods = new ArrayList<>();
+        for (String v : vouchers) {
+            VoucherCatalog.Voucher def = VoucherCatalog.get(v);
+            if (def != null) mods.addAll(def.mods());
+        }
+        return new ShopEconomy(
+                (int) Modify.fold(2, Value.Var.SHOP_SLOTS, mods),
+                Modify.fold(1.0, Value.Var.PRICE_MULTIPLIER, mods),
+                (int) Modify.fold(0, Value.Var.REROLL_DISCOUNT, mods),
+                Modify.fold(1.0, Value.Var.EDITION_MULTIPLIER, mods),
+                Modify.fold(1.0, Value.Var.POLY_MULTIPLIER, mods));
     }
 }
