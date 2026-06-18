@@ -14,7 +14,8 @@ import java.util.List;
  *
  * <p>Global modifiers ({@link HandMods}) are honoured: Four Fingers (4-card
  * flush/straight), Shortcut (gapped straights) and Smeared (merged suits for
- * flushes). Splash and Wild suits remain out of scope for this slice.
+ * flushes). Wild cards count as every suit (see {@link Card#isWild()}); Splash
+ * remains out of scope for this slice.
  */
 public final class HandEvaluator {
 
@@ -101,16 +102,17 @@ public final class HandEvaluator {
         int need = mods.runLength();
         if (cards.size() < need) return List.of();
         int groups = mods.smeared() ? 2 : Suit.values().length;
-        int[] counts = new int[groups];
-        for (Card c : cards) counts[group(c.suit, mods)]++;
         for (int g = 0; g < groups; g++) {
-            if (counts[g] >= need) {
-                List<Card> r = new ArrayList<>();
-                for (Card c : cards) if (group(c.suit, mods) == g) r.add(c);
-                return r;
-            }
+            List<Card> r = new ArrayList<>();
+            for (Card c : cards) if (inGroup(c, g, mods)) r.add(c);
+            if (r.size() >= need) return r;
         }
         return List.of();
+    }
+
+    /** A card belongs to suit-group {@code g} by its own suit — or, if it's a Wild card, to every group. */
+    private static boolean inGroup(Card c, int g, HandMods mods) {
+        return c.isWild() || group(c.suit, mods) == g;
     }
 
     private static int group(Suit s, HandMods mods) {

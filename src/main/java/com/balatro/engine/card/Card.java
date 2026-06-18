@@ -71,9 +71,14 @@ public final class Card {
         return enhancement == Enhancement.STONE;
     }
 
-    /** Stone cards have no rank/suit, so they never match suit/rank-based checks. */
+    /** A Wild card counts as every suit simultaneously (Stone, which has no suit, never does). */
+    public boolean isWild() {
+        return enhancement == Enhancement.WILD;
+    }
+
+    /** Stone cards have no rank/suit, so they never match suit-based checks; a Wild card matches them all. */
     public boolean isSuit(Suit s) {
-        return !isStone() && suit == s;
+        return !isStone() && (isWild() || suit == s);
     }
 
     public boolean isFace() {
