@@ -79,12 +79,19 @@ public final class BossCatalog {
 
     /** Deterministically pick a boss for the given ante. */
     public static BossBlind pick(int ante, RandomStreams rng) {
+        return pick(ante, rng, 0);
+    }
+
+    /** Pick the boss for {@code ante}; {@code reroll} (Director's Cut/Retcon) varies the stream so a
+     *  reroll yields a different draw, deterministically. */
+    public static BossBlind pick(int ante, RandomStreams rng, int reroll) {
         boolean finisher = isFinisherAnte(ante);
         List<BossBlind> pool = new ArrayList<>();
         for (BossBlind b : ALL) {
             if (b.finisher() == finisher && b.minAnte() <= ante) pool.add(b);
         }
         if (pool.isEmpty()) pool.add(ALL.get(0));
-        return pool.get(rng.stream("boss:" + ante).nextInt(pool.size()));
+        String key = "boss:" + ante + (reroll > 0 ? ":r" + reroll : "");
+        return pool.get(rng.stream(key).nextInt(pool.size()));
     }
 }

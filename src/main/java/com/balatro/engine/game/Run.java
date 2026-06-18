@@ -152,6 +152,17 @@ public final class Run {
 
     private static final int BASE_CONSUMABLE_SLOTS = 2; // before deck/voucher CONSUMABLE_SLOTS Modifys
 
+    /** Fold {@code var} from every owned voucher's Modifys over {@code base} — the derived-from-ownership
+     *  pattern for voucher-driven variables (win ante, boss rerolls, ...). */
+    private int voucherFold(Value.Var var, int base) {
+        List<Modify> mods = new ArrayList<>();
+        for (String v : state.vouchers) {
+            VoucherCatalog.Voucher def = VoucherCatalog.get(v);
+            if (def != null) mods.addAll(def.mods());
+        }
+        return (int) Modify.fold(base, var, mods);
+    }
+
     /** Consumable slots = base + every CONSUMABLE_SLOTS Modify owned (deck + Crystal Ball/Omen Globe),
      *  folded fresh — a pure function of what you own, recomputed whenever that changes. */
     private void recomputeConsumableSlots() {
@@ -279,6 +290,28 @@ public final class Run {
         phase = Phase.BLIND_ACTIVE;
         return null;
     }
+
+    /** Director's Cut / Retcon: reroll the Boss Blind at the select screen for $10, up to the owned
+     *  per-ante limit (folded from the BOSS_REROLLS_PER_ANTE voucher data). Re-picks the boss and
+     *  re-applies its effects to the dealt hand. Null on success, else a reason. */
+    public String rerollBoss() {
+        if (phase != Phase.BLIND_SELECT || blind != BlindType.BOSS || boss == null) return "no boss to reroll";
+        if (state.bossRerollsThisAnte >= voucherFold(Value.Var.BOSS_REROLLS_PER_ANTE, 0)) return "no boss rerolls left";
+        if (!canAfford(BOSS_REROLL_COST)) return "not enough money";
+        spend(BOSS_REROLL_COST);
+        state.bossRerollsThisAnte++;
+        boss = BossCatalog.pick(ante, rng, state.bossRerollsThisAnte);
+        boolean disabled = bossDisabled();
+        state.bossHalveBase = !disabled && boss.halveBase(); // The Flint
+        requirement = Math.round(Blinds.getBlindAmount(ante, ruleset, stake.scaling())
+                * boss.reqMult() * ruleset.anteScaling()) * deckType.blindSizeMult();
+        applyResourceMods();                            // recompute hands/discards/size for the new boss
+        markFaceDown(state.hand, DrawContext.INITIAL);  // re-mark face-down for the new boss
+        refreshDebuffs();                               // re-mark card debuffs for the new boss
+        return null;
+    }
+
+    private static final int BOSS_REROLL_COST = 10;
 
     /** Jokers that consume another joker at blind select: Ceremonial Dagger (right neighbour ->
      *  +Mult from 2x its sell value) and Madness (a random other joker -> +x0.5 Mult, non-boss only). */
@@ -1819,7 +1852,8 @@ public final class Run {
             case BIG -> blind = BlindType.BOSS;
             case BOSS -> {
                 // Attrition (pvpFromAnte>0) is endless — only lives decide it.
-                if (pvpFromAnte == 0 && ruleset.winAnte() > 0 && ante >= ruleset.winAnte()) {
+                int winAnte = voucherFold(Value.Var.WIN_ANTE, ruleset.winAnte()); // Hieroglyph/Petroglyph: -1 each
+                if (pvpFromAnte == 0 && ruleset.winAnte() > 0 && ante >= winAnte) {
                     phase = Phase.RUN_WON;
                     return;
                 }
@@ -1827,6 +1861,7 @@ public final class Run {
                 blind = BlindType.SMALL;
                 state.shopSpentLastAnte = state.shopSpentThisAnte; // snapshot for Penny Pincher
                 state.shopSpentThisAnte = 0;
+                state.bossRerollsThisAnte = 0; // Director's Cut/Retcon: rerolls refresh each ante
                 for (Card c : composition) c.playedThisAnte = false; // The Pillar: fresh ante, fresh cards
             }
         }

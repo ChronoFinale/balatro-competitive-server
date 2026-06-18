@@ -106,6 +106,12 @@ public final class VoucherCatalog {
         addMods("v_tarot_tycoon", Modify.max(Value.Var.TAROT_RATE, 16));
         addMods("v_planet_merchant", Modify.max(Value.Var.PLANET_RATE, 8));
         addMods("v_planet_tycoon", Modify.max(Value.Var.PLANET_RATE, 16));
+        // Hieroglyph/Petroglyph: -1 Ante to win (folded into the win condition) + a per-round resource cost.
+        addMods("v_hieroglyph", Modify.add(Value.Var.WIN_ANTE, -1), Modify.add(Value.Var.HANDS_LEFT, -1));
+        addMods("v_petroglyph", Modify.add(Value.Var.WIN_ANTE, -1), Modify.add(Value.Var.DISCARDS_LEFT, -1));
+        // Director's Cut / Retcon: reroll the Boss Blind — once per ante, then unlimited.
+        addMods("v_directors_cut", Modify.max(Value.Var.BOSS_REROLLS_PER_ANTE, 1));
+        addMods("v_retcon", Modify.max(Value.Var.BOSS_REROLLS_PER_ANTE, 9999));
     }
 
     private static void addMods(String key, Modify... mods) {

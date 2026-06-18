@@ -59,6 +59,7 @@ public final class RunState {
     public int cardsSoldSinceLastPvp = 0; // your sells since the last PvP (feeds the opponent's Taxes)
     public int shopSpentThisAnte = 0;     // money spent in the shop this ante
     public int shopSpentLastAnte = 0;     // snapshot at ante rollover
+    public int bossRerollsThisAnte = 0;   // Director's Cut/Retcon: boss rerolls used this ante
     public int oppShopSpentLastAnte = 0;  // nemesis shop spend last ante (Penny Pincher)
     public int pizzaDiscardBonus = 0;     // temporary +discards from Pizza
     public int pizzaBlindsLeft = 0;       // blinds the Pizza discard bonus still applies for
