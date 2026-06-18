@@ -178,7 +178,7 @@ public final class BuiltinJokerDefs {
 
                 new JokerDef("j_mystic_summit", "Mystic Summit", "+15 Mult when 0 discards remain",
                         "Common", 5, 2, 2, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.DiscardsLeft(Cmp.EQ, 0),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.DISCARDS_LEFT, Cmp.EQ, 0),
                                 new EffectTemplate(Op.MULT, new Value.Const(15))))),
 
                 // --- run-state scaling ---
@@ -208,7 +208,7 @@ public final class BuiltinJokerDefs {
                         "Common", 4, 9, 11, null, null, true,
                         List.of(new Mutation(Trigger.BEFORE, new Condition.PlayedCount(Cmp.EQ, 4),
                                 "chips", Mutation.Op.ADD, 4)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("chips", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
                                 new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
 
                 // --- type-mult family (contains a hand category -> +Mult) ---
@@ -271,7 +271,7 @@ public final class BuiltinJokerDefs {
                         "Common", 5, 3, 10, null, null, true,
                         List.of(new Mutation(Trigger.BEFORE, new Condition.HandContains(HandType.STRAIGHT),
                                 "chips", Mutation.Op.ADD, 15)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("chips", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
                                 new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
 
                 // --- stateful: gains +8 Chips for each played 2 ---
@@ -279,7 +279,7 @@ public final class BuiltinJokerDefs {
                         "Rare", 8, 0, 0, null, null, true,
                         List.of(new Mutation(Trigger.ON_SCORED, new Condition.ScoredRankBetween(2, 2),
                                 "chips", Mutation.Op.ADD, 8)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("chips", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
                                 new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
 
                 // --- xMult "contains" family (The Duo / Trio / Family / Order / Tribe) ---
@@ -304,7 +304,7 @@ public final class BuiltinJokerDefs {
                         "Uncommon", 5, 0, 15, null, null, true,
                         List.of(new Mutation(Trigger.REROLL_SHOP, new Condition.Always(),
                                 "mult", Mutation.Op.ADD, 2)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("mult", Cmp.GTE, 1),
                                 new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
 
                 // --- stateful: gains +2 Mult whenever the played hand contains a Two Pair ---
@@ -312,7 +312,7 @@ public final class BuiltinJokerDefs {
                         "Uncommon", 6, 4, 15, null, null, true,
                         List.of(new Mutation(Trigger.BEFORE, new Condition.HandContains(HandType.TWO_PAIR),
                                 "mult", Mutation.Op.ADD, 2)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("mult", Cmp.GTE, 1),
                                 new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
 
                 // --- probabilistic (Chance / Random) ---
@@ -369,7 +369,7 @@ public final class BuiltinJokerDefs {
                                 new Rule(Trigger.ON_SCORED,
                                         new Condition.Not(new Condition.ScoredEnhancement(Enhancement.NONE)),
                                         EffectTemplate.mutate(CardMod.removeEnhancement())),
-                                new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("xm", 0.1),
+                                new Rule(Trigger.JOKER_MAIN, new Condition.Compare("xm", Cmp.GTE, 0.1),
                                         new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0))))),
 
                 // --- economy-during-scoring: money earned mid-hand (credited at end) ---
@@ -395,7 +395,7 @@ public final class BuiltinJokerDefs {
                                 new EffectTemplate(Op.XMULT, new Value.Const(3))))),
                 new JokerDef("j_acrobat", "Acrobat", "x3 Mult on the final hand of the round",
                         "Uncommon", 7, 8, 3, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandsLeft(Condition.Cmp.LTE, 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.HANDS_LEFT, Condition.Cmp.LTE, 1),
                                 new EffectTemplate(Op.XMULT, new Value.Const(3))))),
                 new JokerDef("j_joker_stencil", "Joker Stencil",
                         "x1 Mult for each empty Joker slot (Joker Stencil included)",
@@ -456,7 +456,7 @@ public final class BuiltinJokerDefs {
                                 new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
                 new JokerDef("j_dusk", "Dusk", "Retrigger all played cards on the final hand of the round",
                         "Uncommon", 5, 9, 5, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.HandsLeft(Cmp.LTE, 1),
+                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.Compare(Value.Var.HANDS_LEFT, Cmp.LTE, 1),
                                 new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
 
                 // --- Gold-card economy when scored ---
@@ -474,8 +474,8 @@ public final class BuiltinJokerDefs {
                         "x3 Mult if you have at least 16 enhanced cards in your deck",
                         "Rare", 7, 6, 13, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN,
-                                new Condition.ValueAtLeast(
-                                        new Value.Stat(Value.Which.ENHANCED_CARD_COUNT, 0, 1, null), 16),
+                                new Condition.Compare(
+                                        new Value.Stat(Value.Which.ENHANCED_CARD_COUNT, 0, 1, null), Cmp.GTE, 16),
                                 new EffectTemplate(Op.XMULT, new Value.Const(3))))),
                 new JokerDef("j_blackboard", "Blackboard",
                         "x3 Mult if all cards held in hand are Spades or Clubs",
@@ -498,14 +498,14 @@ public final class BuiltinJokerDefs {
                         "Common", 4, 6, 5, null, null, true,
                         List.of(new Mutation(Trigger.BEFORE, new Condition.Always(), "m", Mutation.Op.ADD, 1),
                                 new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "m", Mutation.Op.ADD, -1)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("m", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("m", Cmp.GTE, 1),
                                 new EffectTemplate(Op.MULT, new Value.State("m", 0, 1))))),
                 new JokerDef("j_fortune_teller", "Fortune Teller",
                         "+1 Mult per Tarot card used this run",
                         "Common", 6, 8, 8, null, null, true,
                         List.of(new Mutation(Trigger.USE_CONSUMABLE, new Condition.ConsumableType("Tarot"),
                                 "tarots", Mutation.Op.ADD, 1)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("tarots", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("tarots", Cmp.GTE, 1),
                                 new EffectTemplate(Op.MULT, new Value.State("tarots", 0, 1))))),
 
                 // --- batch 5: stepwise / deck-size scaling values ---
@@ -562,8 +562,8 @@ public final class BuiltinJokerDefs {
                         "Earn $2 per remaining discard at end of round if no discards were used",
                         "Common", 4, 3, 11, null, null, true, List.of(),
                         List.of(new Rule(Trigger.END_OF_ROUND,
-                                new Condition.Not(new Condition.ValueAtLeast(
-                                        new Value.RunVar(Value.Var.DISCARDS_USED, 0, 1), 1)),
+                                new Condition.Not(new Condition.Compare(
+                                        new Value.RunVar(Value.Var.DISCARDS_USED, 0, 1), Cmp.GTE, 1)),
                                 new EffectTemplate(Op.DOLLARS,
                                         new Value.RunVar(Value.Var.DISCARDS_LEFT, 0, 2))))),
 
@@ -582,15 +582,15 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_vagabond", "Vagabond", "Create a Tarot if a hand is played with $4 or less",
                         "Rare", 8, 3, 12, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN,
-                                new Condition.Not(new Condition.MoneyAtLeast(5)),
+                                new Condition.Not(new Condition.Compare(Value.Var.MONEY, Cmp.GTE, 5)),
                                 EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
                 new JokerDef("j_superposition", "Superposition",
                         "Create a Tarot if a played hand contains an Ace and a Straight",
                         "Common", 5, 4, 12, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.And(List.of(
                                 new Condition.HandContains(HandType.STRAIGHT),
-                                new Condition.ValueAtLeast(new Value.Count(Value.Source.SCORING,
-                                        new Condition.ScoredRankBetween(14, 14), 0, 1), 1))),
+                                new Condition.Compare(new Value.Count(Value.Source.SCORING,
+                                        new Condition.ScoredRankBetween(14, 14), 0, 1), Cmp.GTE, 1))),
                                 EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
                 new JokerDef("j_seance", "Seance", "Create a Spectral if the played hand is a Straight Flush",
                         "Uncommon", 6, 5, 12, null, null, true, List.of(),
@@ -662,8 +662,8 @@ public final class BuiltinJokerDefs {
                                 new Mutation(Trigger.PRE_DISCARD, new Condition.Always(),
                                         "discards", Mutation.Op.ADD, 1)),
                         List.of(new Rule(Trigger.PRE_DISCARD,
-                                new Condition.And(List.of(new Condition.StateAtLeast("discards", 1),
-                                        new Condition.Not(new Condition.StateAtLeast("discards", 2)))),
+                                new Condition.And(List.of(new Condition.Compare("discards", Cmp.GTE, 1),
+                                        new Condition.Not(new Condition.Compare("discards", Cmp.GTE, 2)))),
                                 EffectTemplate.levelUpHand(1)))),
 
                 // --- batch 16: card copy (DNA) + sealed card creation (Certificate) ---
@@ -672,8 +672,8 @@ public final class BuiltinJokerDefs {
                         "Rare", 8, 9, 12, null, null, true, List.of(),
                         List.of(new Rule(Trigger.ON_SCORED, new Condition.And(List.of(
                                 new Condition.PlayedCount(Condition.Cmp.EQ, 1),
-                                new Condition.Not(new Condition.ValueAtLeast(
-                                        new Value.RunVar(Value.Var.HANDS_PLAYED, 0, 1), 1)))),
+                                new Condition.Not(new Condition.Compare(
+                                        new Value.RunVar(Value.Var.HANDS_PLAYED, 0, 1), Cmp.GTE, 1)))),
                                 EffectTemplate.copyScored()))),
                 new JokerDef("j_hologram", "Hologram",
                         "Gains x0.25 Mult for every playing card added to your deck",
@@ -722,7 +722,7 @@ public final class BuiltinJokerDefs {
                         "Common", 5, 2, 17, null, null, true,
                         List.of(new Mutation(Trigger.SKIP_BOOSTER, new Condition.Always(),
                                 "mult", Mutation.Op.ADD, 3)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("mult", Cmp.GTE, 1),
                                 new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
 
                 // --- batch 39: Showman (allow duplicate shop offerings; disables the skip-if-owned rule) ---
@@ -837,7 +837,7 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_ceremonial", "Ceremonial Dagger",
                         "When a blind is selected, destroys the Joker to the right and gains 2x its sell value as Mult",
                         "Uncommon", 6, 9, 15, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("mult", Cmp.GTE, 1),
                                 new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1)))),
                         List.of(), RunMod.ceremonialDagger()),
                 new JokerDef("j_madness", "Madness",
@@ -846,7 +846,7 @@ public final class BuiltinJokerDefs {
                         // ×0.5 Mult is a Mutation; eating a random joker is the jokerEater() capability.
                         List.of(new Mutation(Trigger.BLIND_SELECTED,
                                 new Condition.Not(new Condition.BossBlindSelected()), "xm", Mutation.Op.ADD, 0.5)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("xm", 0.5),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("xm", Cmp.GTE, 0.5),
                                 new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0)))),
                         List.of(), RunMod.jokerEater()),
 
@@ -918,7 +918,7 @@ public final class BuiltinJokerDefs {
                                         "chips", Mutation.Op.RESET, 0),
                                 new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "chips",
                                         Mutation.Op.ADD, 3, new Condition.ScoredSuitIsTarget("castleSuit"))),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("chips", 1),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
                                 new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
                 new JokerDef("j_todo_list", "To Do List",
                         "Earn $4 if the played poker hand is this round's hand",

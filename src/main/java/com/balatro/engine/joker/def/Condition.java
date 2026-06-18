@@ -40,7 +40,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoringAnyFace.class, name = "scoringAnyFace"),
     @JsonSubTypes.Type(value = Condition.ScoringContainsSuit.class, name = "scoringContainsSuit"),
     @JsonSubTypes.Type(value = Condition.ScoredFirstFace.class, name = "scoredFirstFace"),
-    @JsonSubTypes.Type(value = Condition.ValueAtLeast.class, name = "valueAtLeast"),
+    @JsonSubTypes.Type(value = Condition.Compare.class, name = "compare"),
     @JsonSubTypes.Type(value = Condition.HeldAllSuits.class, name = "heldAllSuits"),
     @JsonSubTypes.Type(value = Condition.BossDefeated.class, name = "bossDefeated"),
     @JsonSubTypes.Type(value = Condition.HandPlayedThisRound.class, name = "handPlayedThisRound"),
@@ -52,12 +52,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.HandsSinceAcquire.class, name = "handsSinceAcquire"),
     @JsonSubTypes.Type(value = Condition.InPvpBlind.class, name = "inPvpBlind"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
-    @JsonSubTypes.Type(value = Condition.StateAtLeast.class, name = "stateAtLeast"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
-    @JsonSubTypes.Type(value = Condition.MoneyAtLeast.class, name = "moneyAtLeast"),
-    @JsonSubTypes.Type(value = Condition.HandsLeft.class, name = "handsLeft"),
-    @JsonSubTypes.Type(value = Condition.DiscardsLeft.class, name = "discardsLeft"),
-    @JsonSubTypes.Type(value = Condition.Ante.class, name = "ante"),
     @JsonSubTypes.Type(value = Condition.And.class, name = "and"),
     @JsonSubTypes.Type(value = Condition.Or.class, name = "or"),
     @JsonSubTypes.Type(value = Condition.Not.class, name = "not"),
@@ -75,7 +70,7 @@ public sealed interface Condition {
     enum Cmp {
         LTE, GTE, EQ;
 
-        boolean holds(int value, int target) {
+        boolean holds(double value, double target) {
             return switch (this) {
                 case LTE -> value <= target;
                 case GTE -> value >= target;
@@ -83,7 +78,7 @@ public sealed interface Condition {
             };
         }
 
-        static boolean holds(Cmp cmp, int value, int target) {
+        static boolean holds(Cmp cmp, double value, double target) {
             return cmp.holds(value, target);
         }
     }
@@ -247,9 +242,25 @@ public sealed interface Condition {
     }
 
     /** A resolved {@link Value} is at least {@code min} (Drivers License: >=16 enhanced). */
-    record ValueAtLeast(Value value, double min) implements Condition {
+    /**
+     * The one numeric-comparison primitive: resolve a {@link Value}, compare it to {@code threshold}
+     * with a {@link Cmp}. Absorbs the old MoneyAtLeast / HandsLeft / DiscardsLeft / Ante / StateAtLeast
+     * / ValueAtLeast — each was "read a quantity, compare to a number", differing only in which quantity.
+     * The quantity reuses the full {@link Value} vocabulary, so a run-state var ({@link Value.RunVar}),
+     * a per-joker counter ({@link Value.State}), a card {@link Value.Count}, etc. all compare the same way.
+     * Convenience constructors cover the two common sources directly.
+     */
+    record Compare(Value value, Cmp cmp, double threshold) implements Condition {
+        /** Compare a live run-state variable (Money/HandsLeft/Ante/…). */
+        Compare(Value.Var variable, Cmp cmp, double threshold) {
+            this(new Value.RunVar(variable, 0, 1), cmp, threshold);
+        }
+        /** Compare a per-joker state counter (the old StateAtLeast, always GTE before). */
+        Compare(String selfStateVar, Cmp cmp, double threshold) {
+            this(new Value.State(selfStateVar, 0, 1), cmp, threshold);
+        }
         public boolean test(EvaluationContext ctx) {
-            return value.resolve(ctx) >= min;
+            return cmp.holds(value.resolve(ctx), threshold);
         }
     }
 
@@ -379,15 +390,6 @@ public sealed interface Condition {
         }
     }
 
-    /** A server-only state variable is at least {@code min} (e.g. planets gained > 0). */
-    record StateAtLeast(String var, double min) implements Condition {
-        public boolean test(EvaluationContext ctx) {
-            Object v = ctx.selfState().getOrDefault(var, 0);
-            double n = (v instanceof Number num) ? num.doubleValue() : 0;
-            return n >= min;
-        }
-    }
-
     /**
      * Probabilistic gate: true with probability {@code numerator/denominator},
      * scaled by {@code probabilityNumerator} (Oops! All 6s). Each evaluation pops
@@ -398,34 +400,6 @@ public sealed interface Condition {
         public boolean test(EvaluationContext ctx) {
             int probNum = ctx.run != null ? ctx.run.probabilityNumerator : 1;
             return ctx.nextProb(seedKey) < (double) (numerator * probNum) / denominator;
-        }
-    }
-
-    /** The run has at least {@code min} money. */
-    record MoneyAtLeast(int min) implements Condition {
-        public boolean test(EvaluationContext ctx) {
-            return ctx.run != null && ctx.run.money >= min;
-        }
-    }
-
-    /** Hands remaining this round compares to {@code n}. */
-    record HandsLeft(Cmp cmp, int n) implements Condition {
-        public boolean test(EvaluationContext ctx) {
-            return ctx.run != null && Cmp.holds(cmp, ctx.run.handsLeft, n);
-        }
-    }
-
-    /** Discards remaining this round compares to {@code n}. */
-    record DiscardsLeft(Cmp cmp, int n) implements Condition {
-        public boolean test(EvaluationContext ctx) {
-            return ctx.run != null && Cmp.holds(cmp, ctx.run.discardsLeft, n);
-        }
-    }
-
-    /** The current ante compares to {@code n}. */
-    record Ante(Cmp cmp, int n) implements Condition {
-        public boolean test(EvaluationContext ctx) {
-            return ctx.run != null && Cmp.holds(cmp, ctx.run.ante, n);
         }
     }
 

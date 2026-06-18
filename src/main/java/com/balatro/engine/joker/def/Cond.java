@@ -53,6 +53,12 @@ public final class Cond {
     /** This joker's persistent state counter. */
     public static StateRef state(String var) { return new StateRef(var); }
 
+    /** A live run-state quantity (money, hands left, ante, …) to compare against. */
+    public static Compare runVar(Value.Var v) { return new Compare(new Value.RunVar(v, 0, 1)); }
+
+    /** Any {@link Value} (a card count, a derived quantity) to compare against. */
+    public static Compare value(Value v) { return new Compare(v); }
+
     public static final class CardC {
         static final CardC I = new CardC();
         public Condition suit(Suit s) { return new Condition.ScoredSuit(s); }
@@ -105,6 +111,17 @@ public final class Cond {
     public static final class StateRef {
         private final String var;
         StateRef(String var) { this.var = var; }
-        public Condition atLeast(double min) { return new Condition.StateAtLeast(var, min); }
+        public Condition atLeast(double min) { return new Condition.Compare(var, Condition.Cmp.GTE, min); }
+        public Condition atMost(double max) { return new Condition.Compare(var, Condition.Cmp.LTE, max); }
+        public Condition exactly(double n) { return new Condition.Compare(var, Condition.Cmp.EQ, n); }
+    }
+
+    /** Fluent tail for a value comparison: {@code runVar(MONEY).atLeast(5)}, {@code state("x").atMost(2)}. */
+    public static final class Compare {
+        private final Value value;
+        Compare(Value value) { this.value = value; }
+        public Condition atLeast(double n) { return new Condition.Compare(value, Condition.Cmp.GTE, n); }
+        public Condition atMost(double n) { return new Condition.Compare(value, Condition.Cmp.LTE, n); }
+        public Condition exactly(double n) { return new Condition.Compare(value, Condition.Cmp.EQ, n); }
     }
 }

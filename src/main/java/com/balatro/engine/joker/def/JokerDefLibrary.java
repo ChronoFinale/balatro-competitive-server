@@ -86,7 +86,7 @@ public final class JokerDefLibrary {
                 "Gains x0.1 Mult per Planet card used", "Uncommon", 6, 9, 10, null, null, true,
                 List.of(new Mutation(Trigger.USE_CONSUMABLE, new Condition.ConsumableType("Planet"),
                         "planets", Mutation.Op.ADD, 1)),
-                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("planets", 1),
+                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("planets", Condition.Cmp.GTE, 1),
                         new EffectTemplate(Op.XMULT, new Value.State("planets", 1.0, 0.1))))));
     }
 

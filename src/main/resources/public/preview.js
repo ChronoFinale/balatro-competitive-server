@@ -160,16 +160,13 @@
         const firstFace = ctx.scoring.find((x) => faceOf(x, ctx));
         return firstFace === c;
       }
-      case 'valueAtLeast': {
-        const rv = valResolve(cond.value, ctx);
-        return rv === null ? null : rv >= cond.min;
+      // The one numeric-comparison primitive (mirrors Condition.Compare): resolve a Value, compare
+      // to threshold. Absorbs the old valueAtLeast/moneyAtLeast/handsLeft/discardsLeft/ante/stateAtLeast.
+      case 'compare': {
+        const cv = valResolve(cond.value, ctx);
+        return cv === null ? null : cmp(cond.cmp, cv, cond.threshold);
       }
       case 'heldAllSuits': return (ctx.held || []).every((x) => cond.suits.some((s) => isSuit(x, s)));
-      case 'moneyAtLeast': return ctx.run.money >= cond.min;
-      case 'handsLeft': return cmp(cond.cmp, ctx.run.handsLeft, cond.n);
-      case 'discardsLeft': return cmp(cond.cmp, ctx.run.discardsLeft, cond.n);
-      case 'ante': return cmp(cond.cmp, ctx.run.ante, cond.n);
-      case 'stateAtLeast': return (ctx.state[cond.var] || 0) >= cond.min;
       case 'and': return cond.all.every((x) => condTest(x, ctx));
       case 'or': return cond.any.some((x) => condTest(x, ctx));
       case 'not': return !condTest(cond.inner, ctx);

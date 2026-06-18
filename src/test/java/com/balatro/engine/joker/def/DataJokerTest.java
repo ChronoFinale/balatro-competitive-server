@@ -242,17 +242,17 @@ class DataJokerTest {
 
     @Test
     void runStateConditions() {
-        DataJoker rich = oneRule(Trigger.JOKER_MAIN, new Condition.MoneyAtLeast(10), Op.MULT, 3);
+        DataJoker rich = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.MONEY, Condition.Cmp.GTE, 10), Op.MULT, 3);
         assertThat(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 12; })).mult)
                 .isEqualTo(3);
         assertThat(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 4; }))).isNull();
 
-        DataJoker lateAnte = oneRule(Trigger.JOKER_MAIN, new Condition.Ante(Condition.Cmp.GTE, 3), Op.MULT, 8);
+        DataJoker lateAnte = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.ANTE, Condition.Cmp.GTE, 3), Op.MULT, 8);
         assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 5; })).mult)
                 .isEqualTo(8);
         assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 1; }))).isNull();
 
-        DataJoker finisher = oneRule(Trigger.JOKER_MAIN, new Condition.HandsLeft(Condition.Cmp.EQ, 0), Op.MULT, 4);
+        DataJoker finisher = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.HANDS_LEFT, Condition.Cmp.EQ, 0), Op.MULT, 4);
         assertThat(finisher.calculate(fresh(finisher, c -> { c.phase = Trigger.JOKER_MAIN; c.run.handsLeft = 0; })).mult)
                 .isEqualTo(4);
     }
