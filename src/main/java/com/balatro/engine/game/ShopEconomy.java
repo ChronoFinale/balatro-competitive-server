@@ -20,10 +20,13 @@ import java.util.Set;
  * </ul>
  */
 public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
-                          double editionMultiplier, double polyMultiplier) {
+                          double editionMultiplier, double polyMultiplier,
+                          int tarotWeight, int planetWeight) {
 
     /** Shop card slots before any voucher (Overstock/Overstock Plus raise it). */
     public static final int BASE_SHOP_SLOTS = 2;
+    /** Base slot weight for a Tarot / Planet (Tarot/Planet Merchant & Tycoon raise it). */
+    public static final int BASE_CONSUMABLE_WEIGHT = 4;
 
     /** Fold the owned vouchers' {@link Modify} data into the effective shop economy — no key-strings.
      *  Slots/edition odds use MAX (highest tier wins), price uses MIN (deepest discount), reroll ADD. */
@@ -38,6 +41,8 @@ public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
                 Modify.fold(1.0, Value.Var.PRICE_MULTIPLIER, mods),
                 (int) Modify.fold(0, Value.Var.REROLL_DISCOUNT, mods),
                 Modify.fold(1.0, Value.Var.EDITION_MULTIPLIER, mods),
-                Modify.fold(1.0, Value.Var.POLY_MULTIPLIER, mods));
+                Modify.fold(1.0, Value.Var.POLY_MULTIPLIER, mods),
+                (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.TAROT_RATE, mods),
+                (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.PLANET_RATE, mods));
     }
 }

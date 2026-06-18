@@ -380,7 +380,7 @@ public final class Run {
         rollAnteVoucherIfNeeded(owned);
         Shop s = Shop.generate(state.queues, econ.slots(), jokerPoolForShop(), owned,
                 shopConfig().allowDuplicates(), econ.editionMultiplier(), econ.polyMultiplier(),
-                anteVoucher, playedHands(), deckType.spectralRate());
+                anteVoucher, playedHands(), deckType.spectralRate(), econ.tarotWeight(), econ.planetWeight());
         // Re-add any Voucher-Tag vouchers so they persist across rerolls within this shop visit.
         for (String tv : tagVouchers) {
             if (!state.vouchers.contains(tv)) s.addVoucher(tv);

@@ -101,6 +101,11 @@ public final class VoucherCatalog {
         // Interest cap (folded by EconomyConfig): Seed Money $10, Money Tree $20 — highest tier wins.
         addMods("v_seed_money", Modify.max(Value.Var.INTEREST_CAP, 10));
         addMods("v_money_tree", Modify.max(Value.Var.INTEREST_CAP, 20));
+        // Merchant/Tycoon: Tarots/Planets appear more often (slot weight; base 4 -> 8 = 2x, 16 = 4x).
+        addMods("v_tarot_merchant", Modify.max(Value.Var.TAROT_RATE, 8));
+        addMods("v_tarot_tycoon", Modify.max(Value.Var.TAROT_RATE, 16));
+        addMods("v_planet_merchant", Modify.max(Value.Var.PLANET_RATE, 8));
+        addMods("v_planet_tycoon", Modify.max(Value.Var.PLANET_RATE, 16));
     }
 
     private static void addMods(String key, Modify... mods) {

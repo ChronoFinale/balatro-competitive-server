@@ -112,7 +112,7 @@ public final class Shop {
 
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman) {
-        return generate(queues, slots, pool, owned, showman, 1.0, 1.0, null, null, 0);
+        return generate(queues, slots, pool, owned, showman, 1.0, 1.0, null, null, 0, 4, 4);
     }
 
     /**
@@ -124,7 +124,7 @@ public final class Shop {
      */
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman, double editionMult, double polyMult, String voucher,
-            Set<HandType> playedHands, int spectralRate) {
+            Set<HandType> playedHands, int spectralRate, int tarotWeight, int planetWeight) {
         GameQueue<Edition> editionQ = queues.queue(RngSources.JOKER_EDITION,
                 r -> rollEdition(r.nextDouble(), editionMult, polyMult));
         List<String> planetKeys = PlanetCatalog.keys();
@@ -134,7 +134,8 @@ public final class Shop {
         List<String> spectralKeys = TarotCatalog.spectralKeys();
         GameQueue<String> spectralQ = queues.queue(RngSources.SOUL, r -> spectralKeys.get(r.nextInt(spectralKeys.size())));
         // Master queue: the TYPE of each main slot (vanilla weights Joker 20 / Tarot 4 / Planet 4 / Spectral N).
-        GameQueue<Kind> slotQ = queues.queue(RngSources.SHOP_SLOT, r -> rollSlotType(r.nextDouble(), spectralRate));
+        GameQueue<Kind> slotQ = queues.queue(RngSources.SHOP_SLOT,
+                r -> rollSlotType(r.nextDouble(), spectralRate, tarotWeight, planetWeight));
 
         List<Item> items = new ArrayList<>();
         Set<String> offeredJokers = new HashSet<>();
@@ -171,18 +172,24 @@ public final class Shop {
     }
 
     /** The type of a main shop slot. Vanilla weights Joker 20 / Tarot 4 / Planet 4, plus a Spectral
-     *  weight {@code spectralRate} (0 normally, 2 on the Ghost Deck). */
-    public static Kind rollSlotType(double x, int spectralRate) {
-        double total = 28.0 + spectralRate;
+     *  weight {@code spectralRate} (0 normally, 2 on the Ghost Deck). Tarot/Planet weights are raised
+     *  by the Merchant/Tycoon vouchers (4 -> 8 = 2x, 16 = 4x). */
+    public static Kind rollSlotType(double x, int spectralRate, int tarotWeight, int planetWeight) {
+        double total = 20.0 + tarotWeight + planetWeight + spectralRate;
         if (x < 20.0 / total) return Kind.JOKER;
-        if (x < 24.0 / total) return Kind.TAROT;
-        if (x < 28.0 / total) return Kind.PLANET;
+        if (x < (20.0 + tarotWeight) / total) return Kind.TAROT;
+        if (x < (20.0 + tarotWeight + planetWeight) / total) return Kind.PLANET;
         return Kind.SPECTRAL;
     }
 
-    /** No-spectral slot roll (the default deck). */
+    /** Slot roll at the base Tarot/Planet weights (4 each). */
+    public static Kind rollSlotType(double x, int spectralRate) {
+        return rollSlotType(x, spectralRate, 4, 4);
+    }
+
+    /** No-spectral slot roll at base weights (the default deck). */
     public static Kind rollSlotType(double x) {
-        return rollSlotType(x, 0);
+        return rollSlotType(x, 0, 4, 4);
     }
 
     /** A joker's rarity, vanilla shop weights: Common 70% / Uncommon 25% / Rare 5% (no Legendary). */
