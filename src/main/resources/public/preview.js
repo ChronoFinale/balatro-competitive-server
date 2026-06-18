@@ -178,16 +178,13 @@
       case 'handPlayedThisRound':
         return (((ctx.run.counters && ctx.run.counters.handTypesThisRound) || []).indexOf(ctx.handType) >= 0);
       case 'otherJokerRarity': return !!ctx.otherJoker && ctx.otherJoker.rarity === cond.rarity;
-      case 'scoredIsIdol': {
-        const k = ctx.run.counters || {};
-        return !!c && !isStone(c) && id(c) === k.idolRankId && c.suit === k.idolSuit;
-      }
-      case 'scoredSuitIsAncient':
-        return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {}).ancientSuit);
-      case 'scoredSuitIsCastle':
-        return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {}).castleSuit);
-      case 'handIsTodo': return ctx.handType === ((ctx.run.counters || {}).todoHand);
-      case 'scoredRankIsRebate': return !!c && !isStone(c) && id(c) === ((ctx.run.counters || {}).rebateRankId);
+      // Per-round targets (Idol/Ancient/Castle/To Do/Rebate): match against the rolled value the
+      // server ships in counters[cond.key]. Idol composes as and(scoredRankIsTarget, scoredSuitIsTarget).
+      case 'scoredSuitIsTarget':
+        return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {})[cond.key]);
+      case 'scoredRankIsTarget':
+        return !!c && !isStone(c) && id(c) === ((ctx.run.counters || {})[cond.key]);
+      case 'handIsTarget': return ctx.handType === ((ctx.run.counters || {})[cond.key]);
       case 'runVarModulo': {
         if (cond.mod === 0) return false;
         const n = runVarValue(cond.which, ctx.run);
@@ -231,6 +228,11 @@
   function valResolve(v, ctx) {
     switch (v.type) {
       case 'const': return v.amount;
+      case 'prop': { // a declared constant property of the joker currently scoring
+        const sj = (ctx.jokers || [])[ctx.selfIndex];
+        const p = sj && sj.def && sj.def.props;
+        return (p && typeof p[v.name] === 'number') ? p[v.name] : 0;
+      }
       case 'state': return v.base + v.scale * (ctx.state[v.var] || 0);
       case 'stateStep': return v.per === 0 ? v.base : v.base + v.scale * Math.floor((ctx.state[v.var] || 0) / v.per);
       case 'runVar': return v.base + v.scale * runVarValue(v.which, ctx.run);
@@ -322,6 +324,7 @@
   // DataJoker.calculate for a phase: first matching rule's effect (mutations skipped in preview).
   function jokerEffect(joker, ctx) {
     if (!joker.def) return { ok: false };
+    if (joker.def.copy) return { ok: false }; // copiers (Blueprint/Brainstorm): defer to server preview
     for (const r of joker.def.rules || []) {
       if (r.when !== ctx.phase) continue;
       const t = condTest(r.condition, ctx);

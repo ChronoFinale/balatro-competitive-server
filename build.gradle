@@ -35,7 +35,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'com.balatromp.engine.net.ServerMain'
+    mainClass = 'com.balatro.engine.net.ServerMain'
 }
 
 tasks.named('run') {
@@ -64,7 +64,7 @@ tasks.register('play', JavaExec) {
     group = 'application'
     description = 'Play a solo run in the terminal (embeds the server)'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.balatromp.engine.net.ClientCli'
+    mainClass = 'com.balatro.engine.net.ClientCli'
     standardInput = System.in
 }
 
@@ -73,7 +73,7 @@ tasks.register('loadTest', JavaExec) {
     group = 'verification'
     description = 'Run the WebSocket load harness (args: <connections> <handsPerConn>)'
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.balatromp.engine.net.LoadClient'
+    mainClass = 'com.balatro.engine.net.LoadClient'
     if (project.hasProperty('args')) {
         args(project.property('args').toString().split(' '))
     }
