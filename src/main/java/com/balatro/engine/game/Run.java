@@ -363,15 +363,11 @@ public final class Run {
         java.util.Set<String> owned = new java.util.HashSet<>();
         for (Joker j : state.jokers()) owned.add(j.key());
         owned.addAll(state.vouchers); // skip vouchers you already own too (distinct v_ namespace)
-        int slots = state.vouchers.contains("v_overstock_plus") ? 4
-                : state.vouchers.contains("v_overstock") ? 3 : 2; // Overstock (+1) / Overstock Plus (+2)
-        // Hone (Foil/Holo 2×, Poly 3×) and its upgrade Glow Up (4× / 7×) raise edition odds.
-        double editionMult = 1.0, polyMult = 1.0;
-        if (state.vouchers.contains("v_glow_up")) { editionMult = 4.0; polyMult = 7.0; }
-        else if (state.vouchers.contains("v_hone")) { editionMult = 2.0; polyMult = 3.0; }
+        ShopEconomy econ = shopEconomy(); // Overstock slots + Hone/Glow Up edition odds, derived from vouchers
         rollAnteVoucherIfNeeded(owned);
-        Shop s = Shop.generate(state.queues, slots, jokerPoolForShop(), owned,
-                shopConfig().allowDuplicates(), editionMult, polyMult, anteVoucher, playedHands(), deckType.spectralRate());
+        Shop s = Shop.generate(state.queues, econ.slots(), jokerPoolForShop(), owned,
+                shopConfig().allowDuplicates(), econ.editionMultiplier(), econ.polyMultiplier(),
+                anteVoucher, playedHands(), deckType.spectralRate());
         // Re-add any Voucher-Tag vouchers so they persist across rerolls within this shop visit.
         for (String tv : tagVouchers) {
             if (!state.vouchers.contains(tv)) s.addVoucher(tv);
@@ -498,6 +494,11 @@ public final class Run {
     /** The effective shop rules, derived from owned jokers (Showman/Astronomer/Chaos). */
     private ShopConfig shopConfig() {
         return ShopConfig.resolve(state.jokers());
+    }
+
+    /** The effective shop economy, derived from owned vouchers (Overstock/Clearance/Reroll/Hone). */
+    private ShopEconomy shopEconomy() {
+        return ShopEconomy.resolve(state.vouchers);
     }
 
     /** True if {@code cost} is affordable given the current debt floor. */
@@ -988,8 +989,7 @@ public final class Run {
      *  Coupon Tag makes this shop's initial cards/packs free until the first reroll. */
     private int price(int cost) {
         if (couponActive) return 0;
-        if (state.vouchers.contains("v_liquidation")) return (int) (cost * 0.50);
-        return state.vouchers.contains("v_clearance_sale") ? (int) (cost * 0.75) : cost;
+        return (int) (cost * shopEconomy().priceMultiplier()); // Clearance/Liquidation, derived
     }
 
     /** Pay {@code cost} from money and record it as shop spend this ante (feeds Penny Pincher). */
@@ -1040,10 +1040,7 @@ public final class Run {
     /** Current reroll cost: base $5, reduced $2 by Reroll Surplus and a further $2 by Reroll Glut (floor $0). */
     private int rerollCost() {
         if (d6Active) return 0; // D6 Tag: first reroll is free this shop
-        int cost = Shop.REROLL_COST;
-        if (state.vouchers.contains("v_reroll_surplus")) cost -= 2;
-        if (state.vouchers.contains("v_reroll_glut")) cost -= 2;
-        return Math.max(0, cost);
+        return Math.max(0, Shop.REROLL_COST - shopEconomy().rerollDiscount()); // Reroll Surplus/Glut, derived
     }
 
     /** Reroll the shop offerings. Returns null on success, else a reason. */
