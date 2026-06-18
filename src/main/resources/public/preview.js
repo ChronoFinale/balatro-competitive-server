@@ -134,7 +134,10 @@
     const c = ctx.scoredCard;
     switch (cond.type) {
       case 'always': return true;
-      case 'scoredSuit': return !!c && isSuit(c, cond.suit);
+      case 'scoredSuit': {
+        const want = cond.targetKey != null ? ((ctx.run.counters || {})[cond.targetKey]) : cond.suit;
+        return !!c && want != null && isSuit(c, want);
+      }
       case 'scoredParity': {
         if (!c || isStone(c)) return false;
         const r = id(c);
@@ -151,7 +154,10 @@
       case 'scoredSeal': return !!c && c.seal === cond.seal;
       case 'handContainsPair': return handContains(ctx.handType, 'PAIR');
       case 'handContains': return handContains(ctx.handType, cond.hand);
-      case 'handIs': return ctx.handType === cond.hand;
+      case 'handIs': {
+        const want = cond.targetKey != null ? ((ctx.run.counters || {})[cond.targetKey]) : cond.hand;
+        return want != null && ctx.handType === want;
+      }
       case 'playedCount': return cmp(cond.cmp, ctx.played.length, cond.n);
       case 'scoringAnyFace': return ctx.scoring.some((x) => faceOf(x, ctx));
       case 'scoringContainsSuit': return ctx.scoring.some((x) => isSuit(x, cond.suit));
@@ -175,13 +181,11 @@
       case 'handPlayedThisRound':
         return (((ctx.run.counters && ctx.run.counters.handTypesThisRound) || []).indexOf(ctx.handType) >= 0);
       case 'otherJokerRarity': return !!ctx.otherJoker && ctx.otherJoker.rarity === cond.rarity;
-      // Per-round targets (Idol/Ancient/Castle/To Do/Rebate): match against the rolled value the
-      // server ships in counters[cond.key]. Idol composes as and(scoredRankIsTarget, scoredSuitIsTarget).
-      case 'scoredSuitIsTarget':
-        return !!c && !isStone(c) && c.suit === ((ctx.run.counters || {})[cond.key]);
+      // Per-round targets (Idol/Ancient/Castle/To Do/Rebate): match against the rolled value the server
+      // ships in counters[key]. Suit/hand targets fold into scoredSuit/handIs via their targetKey; only
+      // the rank target stays its own case (no literal twin). Idol = and(scoredRankIsTarget, scoredSuit(target)).
       case 'scoredRankIsTarget':
         return !!c && !isStone(c) && id(c) === ((ctx.run.counters || {})[cond.key]);
-      case 'handIsTarget': return ctx.handType === ((ctx.run.counters || {})[cond.key]);
       case 'runVarModulo': {
         if (cond.mod === 0) return false;
         const n = runVarValue(cond.which, ctx.run);

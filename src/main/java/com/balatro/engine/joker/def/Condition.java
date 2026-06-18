@@ -45,9 +45,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.BossDefeated.class, name = "bossDefeated"),
     @JsonSubTypes.Type(value = Condition.HandPlayedThisRound.class, name = "handPlayedThisRound"),
     @JsonSubTypes.Type(value = Condition.OtherJokerRarity.class, name = "otherJokerRarity"),
-    @JsonSubTypes.Type(value = Condition.ScoredSuitIsTarget.class, name = "scoredSuitIsTarget"),
     @JsonSubTypes.Type(value = Condition.ScoredRankIsTarget.class, name = "scoredRankIsTarget"),
-    @JsonSubTypes.Type(value = Condition.HandIsTarget.class, name = "handIsTarget"),
     @JsonSubTypes.Type(value = Condition.RunVarModulo.class, name = "runVarModulo"),
     @JsonSubTypes.Type(value = Condition.HandsSinceAcquire.class, name = "handsSinceAcquire"),
     @JsonSubTypes.Type(value = Condition.InPvpBlind.class, name = "inPvpBlind"),
@@ -90,10 +88,18 @@ public sealed interface Condition {
         }
     }
 
-    /** The currently-scoring card is of a given suit (Stone cards never match). */
-    record ScoredSuit(Suit suit) implements Condition {
+    /**
+     * The currently-scoring card is of a suit — either a fixed {@code suit}, or (when {@code targetKey}
+     * is set) this round's rolled target suit under that key (Ancient/Castle/Idol-suit). One record, not
+     * a literal/target pair. Stone cards never match; a Wild card matches any. */
+    record ScoredSuit(Suit suit, String targetKey) implements Condition {
+        ScoredSuit(Suit suit) { this(suit, null); }
         public boolean test(EvaluationContext ctx) {
-            return ctx.scoredCard != null && ctx.scoredCard.isSuit(suit);
+            Card c = ctx.scoredCard;
+            if (c == null) return false;
+            Suit want = (targetKey == null) ? suit
+                    : (ctx.run != null && ctx.run.roundTargets.get(targetKey) instanceof Suit s ? s : null);
+            return want != null && c.isSuit(want);
         }
     }
 
@@ -184,10 +190,16 @@ public sealed interface Condition {
         }
     }
 
-    /** The played hand is exactly this type. */
-    record HandIs(HandType hand) implements Condition {
+    /**
+     * The played hand is exactly a type — either a fixed {@code hand}, or (when {@code targetKey} is set)
+     * this round's rolled target hand under that key (To Do List). One record, not a literal/target pair. */
+    record HandIs(HandType hand, String targetKey) implements Condition {
+        HandIs(HandType hand) { this(hand, null); }
         public boolean test(EvaluationContext ctx) {
-            return ctx.handType == hand;
+            if (ctx.handType == null) return false;
+            HandType want = (targetKey == null) ? hand
+                    : (ctx.run != null && ctx.run.roundTargets.get(targetKey) instanceof HandType h ? h : null);
+            return want != null && ctx.handType == want;
         }
     }
 
@@ -288,15 +300,6 @@ public sealed interface Condition {
         }
     }
 
-    /** The scored card's suit is this round's target suit under {@code key} (Ancient, Castle, Idol-suit). */
-    record ScoredSuitIsTarget(String key) implements Condition {
-        public boolean test(EvaluationContext ctx) {
-            Card c = ctx.scoredCard;
-            return c != null && ctx.run != null
-                    && ctx.run.roundTargets.get(key) instanceof com.balatro.engine.card.Suit s && c.isSuit(s);
-        }
-    }
-
     /** The scored/event card's rank is this round's target rank under {@code key} (Rebate, Idol-rank). */
     record ScoredRankIsTarget(String key) implements Condition {
         public boolean test(EvaluationContext ctx) {
@@ -327,13 +330,6 @@ public sealed interface Condition {
         public boolean test(EvaluationContext ctx) {
             if (ctx.run == null || mod == 0) return false;
             return Math.floorMod((long) Value.readVar(which, ctx), mod) == remainder;
-        }
-    }
-
-    /** The played poker hand is this round's target hand under {@code key} (To Do List). */
-    record HandIsTarget(String key) implements Condition {
-        public boolean test(EvaluationContext ctx) {
-            return ctx.run != null && ctx.handType != null && ctx.handType == ctx.run.roundTargets.get(key);
         }
     }
 

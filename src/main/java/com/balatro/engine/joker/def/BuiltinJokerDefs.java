@@ -917,13 +917,13 @@ public final class BuiltinJokerDefs {
                         List.of(new Mutation(Trigger.BLIND_SELECTED, new Condition.Always(),
                                         "chips", Mutation.Op.RESET, 0),
                                 new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "chips",
-                                        Mutation.Op.ADD, 3, new Condition.ScoredSuitIsTarget("castleSuit"))),
+                                        Mutation.Op.ADD, 3, new Condition.ScoredSuit(null, "castleSuit"))),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
                                 new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
                 new JokerDef("j_todo_list", "To Do List",
                         "Earn $4 if the played poker hand is this round's hand",
                         "Common", 4, 6, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandIsTarget("todoHand"),
+                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandIs(null, "todoHand"),
                                 new EffectTemplate(Op.DOLLARS, new Value.Const(4))))),
 
                 // --- batch 23: per-round dynamic targets (The Idol, Ancient Joker) ---
@@ -932,12 +932,12 @@ public final class BuiltinJokerDefs {
                         "Uncommon", 6, 3, 14, null, null, true, List.of(),
                         List.of(new Rule(Trigger.ON_SCORED, new Condition.And(List.of(
                                         new Condition.ScoredRankIsTarget("idolRankId"),
-                                        new Condition.ScoredSuitIsTarget("idolSuit"))),
+                                        new Condition.ScoredSuit(null, "idolSuit"))),
                                 new EffectTemplate(Op.XMULT, new Value.Const(2))))),
                 new JokerDef("j_ancient_joker", "Ancient Joker",
                         "Each played card of this round's Ancient suit gives x1.5 Mult",
                         "Rare", 8, 4, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredSuitIsTarget("ancientSuit"),
+                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredSuit(null, "ancientSuit"),
                                 new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
 
                 // --- batch 22: joker-on-joker reads (Baseball Card, Swashbuckler) ---

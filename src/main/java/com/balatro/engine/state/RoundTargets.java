@@ -12,8 +12,8 @@ import java.util.Map;
  * To Do List's hand, Mail-In Rebate's rank.
  *
  * <p>Each {@link Spec} is pure data. Adding a new "matches a rolled X this round" card needs only a row
- * here plus a generic {@code Condition.ScoredSuitIsTarget}/{@code ScoredRankIsTarget}/{@code HandIsTarget}
- * referencing its {@code id} — no new {@code RunState} field, no roll code, no bespoke {@code Condition}.
+ * here plus a target-valued condition — {@code ScoredSuit(null, id)} / {@code ScoredRankIsTarget(id)} /
+ * {@code HandIs(null, id)} — referencing its {@code id}: no new {@code RunState} field, no roll code.
  * The rolled values live generically in {@link RunState#roundTargets} keyed by {@code id}.
  */
 public final class RoundTargets {
