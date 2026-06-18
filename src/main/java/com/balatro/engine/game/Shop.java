@@ -215,10 +215,18 @@ public final class Shop {
         return rollSlotType(x, 0, 4, 4, 0);
     }
 
-    /** A joker's rarity, vanilla shop weights: Common 70% / Uncommon 25% / Rare 5% (no Legendary). */
+    // Shop joker rarity weights (the fundamental rarity distribution — a single source of truth, not magic
+    // numbers). No vanilla content modifies these; the day one does, promote them to a folded RARE_RATE/…
+    // Value.Var exactly like SPECTRAL_RATE/TAROT_RATE and thread the folded weights through here.
+    public static final int COMMON_WEIGHT = 70;
+    public static final int UNCOMMON_WEIGHT = 25;
+    public static final int RARE_WEIGHT = 5; // Legendary is Soul-only, never a shop roll
+
+    /** A joker's rarity from the weights above: Common 70% / Uncommon 25% / Rare 5% (no Legendary). */
     public static String rollRarity(double x) {
-        if (x < 0.70) return "Common";
-        if (x < 0.95) return "Uncommon";
+        double total = COMMON_WEIGHT + UNCOMMON_WEIGHT + RARE_WEIGHT;
+        if (x < COMMON_WEIGHT / total) return "Common";
+        if (x < (COMMON_WEIGHT + UNCOMMON_WEIGHT) / total) return "Uncommon";
         return "Rare";
     }
 
