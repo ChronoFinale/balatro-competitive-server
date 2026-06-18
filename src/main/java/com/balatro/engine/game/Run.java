@@ -417,7 +417,8 @@ public final class Run {
         rollAnteVoucherIfNeeded(owned);
         Shop s = Shop.generate(state.queues, econ.slots(), jokerPoolForShop(), owned,
                 shopConfig().allowDuplicates(), econ.editionMultiplier(), econ.polyMultiplier(),
-                anteVoucher, playedHands(), deckType.spectralRate(), econ.tarotWeight(), econ.planetWeight());
+                anteVoucher, playedHands(), deckType.spectralRate(), econ.tarotWeight(), econ.planetWeight(),
+                econ.playingCardWeight(), econ.playingCardsEnhanced());
         // Re-add any Voucher-Tag vouchers so they persist across rerolls within this shop visit.
         for (String tv : tagVouchers) {
             if (!state.vouchers.contains(tv)) s.addVoucher(tv);
@@ -1020,6 +1021,12 @@ public final class Run {
                 spend(cost);
                 state.consumables.add(item.key());
             }
+            case PLAYING_CARD -> { // Magic Trick / Illusion: the card joins your deck permanently
+                if (!canAfford(price(item.cost()))) return "not enough money";
+                spend(price(item.cost()));
+                composition.add(item.card().copy());
+            }
+            default -> { /* SPECTRAL shop items (Ghost Deck) are handled by their own path */ }
         }
         shop.items().remove(index);
         return null;

@@ -22,9 +22,8 @@ class VoucherCoverageTest {
     /** Deliberately does nothing. */
     private static final Set<String> NO_OP = Set.of("v_blank");
 
-    /** Catalog-only — effect not yet implemented (tracked so it can't be forgotten). */
-    private static final Set<String> UNIMPLEMENTED = Set.of(
-            "v_magic_trick", "v_illusion");     // buy playing cards in the shop
+    /** Catalog-only — effect not yet implemented (tracked so it can't be forgotten). Empty = all wired! */
+    private static final Set<String> UNIMPLEMENTED = Set.of();
 
     @Test
     void everyVoucherIsClassified() {

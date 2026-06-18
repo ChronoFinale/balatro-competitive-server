@@ -41,4 +41,17 @@ class ShopEconomyTest {
         assertThat(com.balatro.engine.game.Shop.rollSlotType(0.65, 0, 8, 4))
                 .isEqualTo(com.balatro.engine.game.Shop.Kind.TAROT);
     }
+
+    @Test
+    void magicTrickAddsPlayingCardSlotsIllusionEnhancesThem() {
+        assertThat(ShopEconomy.resolve(Set.of()).playingCardWeight()).isZero();
+        assertThat(ShopEconomy.resolve(Set.of("v_magic_trick")).playingCardWeight()).isEqualTo(4);
+        assertThat(ShopEconomy.resolve(Set.of("v_magic_trick")).playingCardsEnhanced()).isFalse();
+        assertThat(ShopEconomy.resolve(Set.of("v_illusion")).playingCardsEnhanced()).isTrue();
+        // With a playing-card weight, a high roll lands on a PLAYING_CARD slot; without it, it doesn't.
+        assertThat(com.balatro.engine.game.Shop.rollSlotType(0.99, 0, 4, 4, 4))
+                .isEqualTo(com.balatro.engine.game.Shop.Kind.PLAYING_CARD);
+        assertThat(com.balatro.engine.game.Shop.rollSlotType(0.99, 0, 4, 4, 0))
+                .isNotEqualTo(com.balatro.engine.game.Shop.Kind.PLAYING_CARD);
+    }
 }

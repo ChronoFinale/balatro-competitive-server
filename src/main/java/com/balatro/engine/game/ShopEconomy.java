@@ -21,7 +21,8 @@ import java.util.Set;
  */
 public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
                           double editionMultiplier, double polyMultiplier,
-                          int tarotWeight, int planetWeight) {
+                          int tarotWeight, int planetWeight,
+                          int playingCardWeight, boolean playingCardsEnhanced) {
 
     /** Shop card slots before any voucher (Overstock/Overstock Plus raise it). */
     public static final int BASE_SHOP_SLOTS = 2;
@@ -43,6 +44,8 @@ public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
                 Modify.fold(1.0, Value.Var.EDITION_MULTIPLIER, mods),
                 Modify.fold(1.0, Value.Var.POLY_MULTIPLIER, mods),
                 (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.TAROT_RATE, mods),
-                (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.PLANET_RATE, mods));
+                (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.PLANET_RATE, mods),
+                (int) Modify.fold(0, Value.Var.SHOP_PLAYING_CARD_RATE, mods),
+                Modify.fold(0, Value.Var.SHOP_CARDS_ENHANCED, mods) >= 1);
     }
 }

@@ -1,5 +1,6 @@
 package com.balatro.engine.game;
 
+import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.consumable.Consumable;
 import com.balatro.engine.consumable.TarotCatalog;
@@ -32,17 +33,18 @@ public final class Shop {
     public static final int CONSUMABLE_COST = 3;
 
     /** What a shop slot offers. (Spectrals come from packs/Ghost Deck, not the main shop.) */
-    public enum Kind { JOKER, TAROT, PLANET, SPECTRAL }
+    public enum Kind { JOKER, TAROT, PLANET, SPECTRAL, PLAYING_CARD }
 
-    /** A single shop slot — any {@link Kind}, with the display fields the client renders. */
+    /** A single shop slot — any {@link Kind}, with the display fields the client renders. {@code card}
+     *  is set only for PLAYING_CARD slots (Magic Trick / Illusion), carrying the actual card to buy. */
     public record Item(Kind kind, String key, String name, String description,
                        int cost, String rarity, Edition edition,
-                       boolean eternal, boolean perishable, boolean rental) {
+                       boolean eternal, boolean perishable, boolean rental, Card card) {
 
-        /** Backward-compatible: an item with no stake stickers. */
+        /** Backward-compatible: an item with no stake stickers and no playing card. */
         public Item(Kind kind, String key, String name, String description,
                     int cost, String rarity, Edition edition) {
-            this(kind, key, name, description, cost, rarity, edition, false, false, false);
+            this(kind, key, name, description, cost, rarity, edition, false, false, false, null);
         }
 
         public static Item joker(JokerInfo info, Edition edition) {
@@ -50,10 +52,16 @@ public final class Shop {
                     info.cost(), info.rarity(), edition);
         }
 
+        /** Magic Trick / Illusion: a playing card for sale (Illusion may give it an Enhancement/Edition). */
+        public static Item playingCard(Card card, int cost) {
+            return new Item(Kind.PLAYING_CARD, card.toString(), card.toString(), "Playing card",
+                    cost, null, card.edition, false, false, false, card);
+        }
+
         /** Copy this item with stake stickers applied (rental jokers cost $1). */
         public Item withStickers(boolean eternal, boolean perishable, boolean rental) {
             return new Item(kind, key, name, description, rental ? 1 : cost, rarity, edition,
-                    eternal, perishable, rental);
+                    eternal, perishable, rental, card);
         }
     }
 
@@ -112,7 +120,7 @@ public final class Shop {
 
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman) {
-        return generate(queues, slots, pool, owned, showman, 1.0, 1.0, null, null, 0, 4, 4);
+        return generate(queues, slots, pool, owned, showman, 1.0, 1.0, null, null, 0, 4, 4, 0, false);
     }
 
     /**
@@ -124,7 +132,8 @@ public final class Shop {
      */
     public static Shop generate(QueueSet queues, int slots, List<String> pool,
             Set<String> owned, boolean showman, double editionMult, double polyMult, String voucher,
-            Set<HandType> playedHands, int spectralRate, int tarotWeight, int planetWeight) {
+            Set<HandType> playedHands, int spectralRate, int tarotWeight, int planetWeight,
+            int playingCardWeight, boolean cardsEnhanced) {
         GameQueue<Edition> editionQ = queues.queue(RngSources.JOKER_EDITION,
                 r -> rollEdition(r.nextDouble(), editionMult, polyMult));
         List<String> planetKeys = PlanetCatalog.keys();
@@ -135,7 +144,14 @@ public final class Shop {
         GameQueue<String> spectralQ = queues.queue(RngSources.SOUL, r -> spectralKeys.get(r.nextInt(spectralKeys.size())));
         // Master queue: the TYPE of each main slot (vanilla weights Joker 20 / Tarot 4 / Planet 4 / Spectral N).
         GameQueue<Kind> slotQ = queues.queue(RngSources.SHOP_SLOT,
-                r -> rollSlotType(r.nextDouble(), spectralRate, tarotWeight, planetWeight));
+                r -> rollSlotType(r.nextDouble(), spectralRate, tarotWeight, planetWeight, playingCardWeight));
+        java.util.List<com.balatro.engine.card.Rank> ranks = java.util.List.of(com.balatro.engine.card.Rank.values());
+        java.util.List<com.balatro.engine.card.Suit> suits = java.util.List.of(com.balatro.engine.card.Suit.values());
+        GameQueue<Card> cardQ = queues.queue(RngSources.PACK_CARD, r -> {
+            Card c = new Card(ranks.get(r.nextInt(ranks.size())), suits.get(r.nextInt(suits.size())));
+            if (cardsEnhanced) c.edition = rollEdition(r.nextDouble(), editionMult, polyMult); // Illusion
+            return c;
+        });
 
         List<Item> items = new ArrayList<>();
         Set<String> offeredJokers = new HashSet<>();
@@ -163,6 +179,7 @@ public final class Shop {
                     items.add(new Item(Kind.SPECTRAL, c.key(), c.name(), c.description(),
                             CONSUMABLE_COST, null, Edition.NONE));
                 }
+                case PLAYING_CARD -> items.add(Item.playingCard(cardQ.next(), CONSUMABLE_COST)); // Magic Trick / Illusion
             }
         }
 
@@ -174,22 +191,28 @@ public final class Shop {
     /** The type of a main shop slot. Vanilla weights Joker 20 / Tarot 4 / Planet 4, plus a Spectral
      *  weight {@code spectralRate} (0 normally, 2 on the Ghost Deck). Tarot/Planet weights are raised
      *  by the Merchant/Tycoon vouchers (4 -> 8 = 2x, 16 = 4x). */
-    public static Kind rollSlotType(double x, int spectralRate, int tarotWeight, int planetWeight) {
-        double total = 20.0 + tarotWeight + planetWeight + spectralRate;
+    public static Kind rollSlotType(double x, int spectralRate, int tarotWeight, int planetWeight,
+            int playingCardWeight) {
+        double total = 20.0 + tarotWeight + planetWeight + spectralRate + playingCardWeight;
         if (x < 20.0 / total) return Kind.JOKER;
         if (x < (20.0 + tarotWeight) / total) return Kind.TAROT;
         if (x < (20.0 + tarotWeight + planetWeight) / total) return Kind.PLANET;
-        return Kind.SPECTRAL;
+        if (x < (20.0 + tarotWeight + planetWeight + spectralRate) / total) return Kind.SPECTRAL;
+        return Kind.PLAYING_CARD; // Magic Trick / Illusion
+    }
+
+    public static Kind rollSlotType(double x, int spectralRate, int tarotWeight, int planetWeight) {
+        return rollSlotType(x, spectralRate, tarotWeight, planetWeight, 0);
     }
 
     /** Slot roll at the base Tarot/Planet weights (4 each). */
     public static Kind rollSlotType(double x, int spectralRate) {
-        return rollSlotType(x, spectralRate, 4, 4);
+        return rollSlotType(x, spectralRate, 4, 4, 0);
     }
 
     /** No-spectral slot roll at base weights (the default deck). */
     public static Kind rollSlotType(double x) {
-        return rollSlotType(x, 0, 4, 4);
+        return rollSlotType(x, 0, 4, 4, 0);
     }
 
     /** A joker's rarity, vanilla shop weights: Common 70% / Uncommon 25% / Rare 5% (no Legendary). */

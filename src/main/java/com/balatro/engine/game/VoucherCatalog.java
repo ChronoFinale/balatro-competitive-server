@@ -116,6 +116,10 @@ public final class VoucherCatalog {
         addMods("v_observatory", Modify.max(Value.Var.HELD_PLANET_MULT, 1.5));
         // Telescope: a Celestial Pack always contains your most-played hand's Planet (flag = 1).
         addMods("v_telescope", Modify.max(Value.Var.CELESTIAL_MOST_PLAYED, 1));
+        // Magic Trick: playing cards appear in the shop (slot weight). Illusion: + they may be enhanced.
+        addMods("v_magic_trick", Modify.max(Value.Var.SHOP_PLAYING_CARD_RATE, 4));
+        addMods("v_illusion", Modify.max(Value.Var.SHOP_PLAYING_CARD_RATE, 4),
+                Modify.max(Value.Var.SHOP_CARDS_ENHANCED, 1));
     }
 
     private static void addMods(String key, Modify... mods) {
