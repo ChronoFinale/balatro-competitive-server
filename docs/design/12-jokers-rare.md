@@ -98,7 +98,7 @@ center `config` block (game.lua) and corroborated by the Divvy sim function (`_V
 
 ## Expressibility against our JokerDef algebra
 
-Assessed against `com.balatromp.engine.joker` triggers/conditions/values/effect-ops and state
+Assessed against `com.balatro.engine.joker` triggers/conditions/values/effect-ops and state
 mutations listed in the engine spec.
 
 | Joker | Verdict | Mapping / missing building blocks |

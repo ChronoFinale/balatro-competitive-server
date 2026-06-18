@@ -52,7 +52,7 @@ Everything else keeps **base-game default values** (the release.lua tweaks are i
 ## Catalogue
 
 Legend for "Expressible vs our algebra":
-- Trigger / Condition / Value / Op refer to the `com.balatromp.engine.joker` enums in the task brief.
+- Trigger / Condition / Value / Op refer to the `com.balatro.engine.joker` enums in the task brief.
 - "SCORING" = `Count(source=SCORING, …)`; "PLAYED"/"HELD" likewise.
 - Where a base-game `config.extra` is an X-mult, it is stored as a plain number but applied as XMULT.
 

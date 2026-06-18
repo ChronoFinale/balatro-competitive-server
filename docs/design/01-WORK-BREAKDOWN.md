@@ -7,7 +7,7 @@ acceptance criteria (incl. tests), and rough size (S/M/L).
 
 Conventions:
 - Paths are real and current unless prefixed **NEW** (file to be created).
-- Source root: `src/main/java/com/balatromp/engine/`; tests: `src/test/java/com/balatromp/engine/`.
+- Source root: `src/main/java/com/balatro/engine/`; tests: `src/test/java/com/balatro/engine/`.
 - "AC" = acceptance criteria. Every package must keep the existing suite green
   (`./gradlew test`) in addition to its own new tests.
 - Build with `./gradlew test`; play-verify with `./gradlew run` / `play`.

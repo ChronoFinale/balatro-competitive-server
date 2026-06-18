@@ -244,7 +244,7 @@ when `gold_on_life_loss` and a life was actually lost.
 
 ## 2. How OUR engine does it today
 
-Source: `D:/NewServer/src/main/java/com/balatromp/engine/game/Match.java`.
+Source: `D:/NewServer/src/main/java/com/balatro/engine/game/Match.java`.
 
 - **`Match`** is a 2-player same-seed coordinator. Each `Side` holds its own
   authoritative `Run` and an `int lives`. Phases: WAITING → AGREEING (host

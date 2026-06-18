@@ -2,7 +2,7 @@
 
 Definitive catalogue of all **22** vanilla Tarot consumables, their exact effects,
 targets, RNG touch-points, and how each maps onto our (not-yet-existent) consumable
-model in `com.balatromp.engine`.
+model in `com.balatro.engine`.
 
 ## Sources (all claims grounded here)
 

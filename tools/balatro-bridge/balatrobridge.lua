@@ -30,6 +30,10 @@ local ENGAGED = false    -- true when a server run is driving this blind
 local VIEW = nil         -- latest authoritative ClientView scalars (phase/requirement/roundScore/...)
 local RUN_LIVE = false   -- a server run is mid-progression: continue it across blinds (don't newRun)
 local SHOP_DONE = false  -- this shop visit has been reconciled to the server's items (once per visit)
+local SCORING = false    -- a play is being scored: retarget ONLY its round-score ease, not Balatro's
+                         -- end-of-round reset-to-0 ease (which we were hijacking -> score lingered)
+local PENDING_PLAY = nil -- server result fetched at the Play button (BEFORE scoring animates), consumed by
+                         -- evaluate_play -- so the blocking round-trip doesn't freeze mid-scoring
 
 local lines = {}
 local function logln(s)
@@ -76,8 +80,9 @@ end
 
 local function parse_hand(view)
 	local hand = {}
-	for uid, rank, suit in view:gmatch('"uid":(%d+),"rank":"(%u+)","suit":"(%u+)"') do
-		hand[#hand + 1] = { uid = tonumber(uid), rank = rank, suit = suit }
+	-- card uid is a UUID string: "uid":"<8-4-4-4-12 hex>","rank":...,"suit":...
+	for uid, rank, suit in view:gmatch('"uid":"([%x%-]+)","rank":"(%u+)","suit":"(%u+)"') do
+		hand[#hand + 1] = { uid = uid, rank = rank, suit = suit }
 	end
 	return hand
 end
@@ -468,13 +473,36 @@ local function reconcile_shop_to_server()
 		end
 	end
 
-	-- Divergence tripwire: the joker row should match the server's owned jokers (it does when every
-	-- joker arrived via a native buy). Logs server-granted jokers we don't yet render (a follow-up).
-	if G.jokers and G.jokers.cards and VIEW.jokers then
-		if #G.jokers.cards ~= #VIEW.jokers then
-			logln("!! joker divergence: native row=" .. #G.jokers.cards .. " server=" .. #VIEW.jokers ..
-				" (server-granted jokers not yet rendered)")
+	-- Render the joker row from the server. Native's buy_from_shop does NOT reliably emplace bought jokers
+	-- here (observed native row=0 while server=1 -> you pay but see no joker), so make G.jokers match
+	-- VIEW.jokers positionally: create the missing ones (display + native juice during scoring; the server
+	-- stays authoritative for the actual score), fix any wrong identity, and drop extras (self-corrects a
+	-- double if native ever does emplace one).
+	if G.jokers and G.jokers.cards and VIEW.jokers and Card and G.P_CENTERS then
+		for i = 1, #VIEW.jokers do
+			local jk, c = VIEW.jokers[i], G.jokers.cards[i]
+			if jk and jk.key and G.P_CENTERS[jk.key] then
+				if c then
+					if (c.config and c.config.center_key) ~= jk.key and c.set_ability then
+						pcall(function() c:set_ability(G.P_CENTERS[jk.key], true) end)
+					end
+				else
+					pcall(function()
+						local nc = Card(G.jokers.T.x + G.jokers.T.w / 2, G.jokers.T.y, G.CARD_W, G.CARD_H,
+							G.P_CARDS.empty, G.P_CENTERS[jk.key],
+							{ bypass_discovery_center = true, bypass_discovery_ui = true })
+						nc.bbridge_owned = true
+						nc:start_materialize()
+						G.jokers:emplace(nc)
+					end)
+				end
+			end
 		end
+		for i = #G.jokers.cards, #VIEW.jokers + 1, -1 do -- native row longer than the server -> drop extras
+			local c = G.jokers.cards[i]
+			pcall(function() G.jokers:remove_card(c); if c.remove then c:remove() end end)
+		end
+		logln("joker row rendered: " .. #G.jokers.cards .. " card(s) (server " .. #VIEW.jokers .. ")")
 	end
 	-- Reroll-button cost = the server's (native increments its own on reroll, which can drift).
 	pcall(function()
@@ -973,33 +1001,55 @@ local function install_hooks()
 	end
 
 	-- 3) evaluate_play: map played cards (by uid) to server indices, the server scores them, queue new draws.
-	local _eval = G.FUNCS.evaluate_play
-	G.FUNCS.evaluate_play = function(e)
-		if ENGAGED and CONN and G.play and G.play.cards then
+	-- 2c) play_cards_from_highlighted: fetch the server's score for this hand NOW, at the Play-button moment,
+	-- BEFORE the cards fly up and score. The networking is blocking; doing it here (like discard already
+	-- does) keeps the freeze OUT of the scoring animation. If the block happened mid-scoring (as it did in
+	-- evaluate_play), the frozen frame made Balatro fast-forward its event queue and skip every per-card
+	-- "+chips" animation. evaluate_play then consumes the pre-fetched result without blocking.
+	local _play = G.FUNCS.play_cards_from_highlighted
+	G.FUNCS.play_cards_from_highlighted = function(e)
+		PENDING_PLAY = nil
+		if ENGAGED and CONN and G.hand and G.hand.highlighted and G.hand.highlighted[1] then
 			pcall(function()
 				local idx = {}
-				for _, c in ipairs(G.play.cards) do
+				for _, c in ipairs(G.hand.highlighted) do
 					local ix = c.bbridge_uid and uid_to_index(c.bbridge_uid)
 					if ix then idx[#idx + 1] = ix end
 				end
 				if #idx == 0 then return end
-				if #idx ~= #G.play.cards then
-						logln("!! IDENTITY GAP: Balatro played " .. #G.play.cards .. " cards, only " .. #idx .. " mapped to server (unmapped cards keep Balatro's own face -> score divergence)")
-						for _, gc in ipairs(G.play.cards) do
-							if not gc.bbridge_uid then logln("   unmapped played card: " .. tostring(gc.base and gc.base.value) .. " of " .. tostring(gc.base and gc.base.suit)) end
-						end
+				if #idx ~= #G.hand.highlighted then
+					logln("!! IDENTITY GAP: played " .. #G.hand.highlighted .. " cards, only " .. #idx ..
+						" mapped to server (unmapped cards keep Balatro's own face -> score divergence)")
+				end
+				PENDING_PLAY = server_play(idx) -- blocking, but BEFORE the animation
+			end)
+		end
+		return _play(e)
+	end
+
+	-- 3) evaluate_play: consume the pre-fetched server result (no blocking here), apply it, then let native
+	-- animate the score uninterrupted.
+	local _eval = G.FUNCS.evaluate_play
+	G.FUNCS.evaluate_play = function(e)
+		if ENGAGED and CONN and G.play and G.play.cards then
+			pcall(function()
+				local res = PENDING_PLAY
+				PENDING_PLAY = nil
+				if not res then -- safety net only: the Play hook normally pre-fetched (this re-blocks if not)
+					local idx = {}
+					for _, c in ipairs(G.play.cards) do
+						local ix = c.bbridge_uid and uid_to_index(c.bbridge_uid)
+						if ix then idx[#idx + 1] = ix end
 					end
-					local res = server_play(idx)
+					if #idx == 0 then return end
+					res = server_play(idx)
+				end
 				if not res then logln("play: no server response"); return end
 				if res.accepted then
+					SCORING = true -- arm the ONE round-score ease this play creates (consumed in hook 7)
 					SERVER_HAND = (res.handsLeft and res.handsLeft > 0) and res.hand or {}
 					recompute_draw_queue(nil) -- played cards already left G.hand -> kept cards are "held"
 					local hs = (res.chips or 0) * (res.mult or 0)
-					-- No bolted-on popup or fixed-delay forced set (those desync on slow machines / game
-					-- speed). Balatro renders the score with its OWN add animation at its own pace; for a
-					-- base run that IS the server's number. The log records server vs the authoritative total
-					-- so we can confirm parity and catch any divergence (where Stage 4 will drive the native
-					-- chip-ease to the server value instead).
 					logln(string.format("play -> SERVER %s x %s = %g [round %s] handsLeft=%s new=%d",
 						tostring(res.chips), tostring(res.mult), hs, tostring(res.score), tostring(res.handsLeft), #DRAW_QUEUE))
 					reconcile(res.view); if res.handsLeft == 0 then logln("server: blind hands exhausted -> server decides win/lose, native renders it") end
@@ -1009,7 +1059,7 @@ local function install_hooks()
 				end
 			end)
 		end
-		return _eval(e) -- Balatro animates locally (matches the server for the base game); Stage 1b drives it from the replay
+		return _eval(e) -- native animates the count-up uninterrupted now (no mid-scoring block)
 	end
 
 	-- 6) Tag:apply_to_run -- NEUTER native tag EFFECTS while engaged (the #1 systemic divergence). Native
@@ -1037,11 +1087,12 @@ local function install_hooks()
 	if EventManager and EventManager.add_event then
 		local _add = EventManager.add_event
 		function EventManager:add_event(event, queue, front)
-			if ENGAGED and VIEW and VIEW.roundScore and event and event.trigger == "ease" and event.ease
-				and event.ease.ref_table == G.GAME and event.ease.ref_value == "chips" then
+			if SCORING and ENGAGED and VIEW and VIEW.roundScore and event and event.trigger == "ease"
+				and event.ease and event.ease.ref_table == G.GAME and event.ease.ref_value == "chips" then
 				logln("chips ease retargeted: native end_val=" .. tostring(event.ease.end_val) ..
 					" -> server roundScore=" .. tostring(VIEW.roundScore))
 				event.ease.end_val = VIEW.roundScore
+				SCORING = false -- one-shot: do NOT touch Balatro's end-of-round reset-to-0 ease
 			end
 			return _add(self, event, queue, front)
 		end

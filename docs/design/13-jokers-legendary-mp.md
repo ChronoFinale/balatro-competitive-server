@@ -5,7 +5,7 @@ Definitive catalogue for **Balatro Multiplayer (BMP) 0.4.0** (the version curren
 real source file (path cited inline). Where an exact number could not be found on disk it is
 flagged **(unverified)**.
 
-This section assesses each joker against **our** `com.balatromp.engine.joker` / `joker/def` algebra
+This section assesses each joker against **our** `com.balatro.engine.joker` / `joker/def` algebra
 (triggers / conditions / values / effect-ops / state-mutations) and marks it **EXPRESSIBLE** or
 **NEEDS: \<new building blocks\>**.
 

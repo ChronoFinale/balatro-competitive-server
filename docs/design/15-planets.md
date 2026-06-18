@@ -89,7 +89,7 @@ For implementing the level engine — every leveled hand, its base, and its incr
 
 ## Cross-check vs our current engine
 
-`D:/NewServer/src/main/java/com/balatromp/engine/hand/HandType.java` already models `(baseChips, baseMult, lChips, lMult)` per hand and `RunState` tracks levels with `handLevelChipBonus = (level-1)*lChips` / `handLevelMultBonus = (level-1)*lMult` (`RunState.java:69-74`). This matches the vanilla formula exactly.
+`D:/NewServer/src/main/java/com/balatro/engine/hand/HandType.java` already models `(baseChips, baseMult, lChips, lMult)` per hand and `RunState` tracks levels with `handLevelChipBonus = (level-1)*lChips` / `handLevelMultBonus = (level-1)*lMult` (`RunState.java:69-74`). This matches the vanilla formula exactly.
 
 **BUT our HandType currently hard-codes VANILLA increments**, not the BMP 0.4.0 release values:
 - `HandType.java:13` `STRAIGHT("Straight", 30, 4, 30, 3)` — lMult should be **2**

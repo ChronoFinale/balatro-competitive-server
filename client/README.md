@@ -16,7 +16,7 @@ and scoring is server-authoritative — this client computes nothing that affect
    and **28789** (raw TCP, what this client uses):
 
    ```
-   ./gradlew run            # or run com.balatromp.engine.net.ServerMain
+   ./gradlew run            # or run com.balatro.engine.net.ServerMain
    ```
 
 2. Launch the client:

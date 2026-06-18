@@ -251,7 +251,7 @@ than accept it.
 
 ## 2. How OUR engine does it today (cite our Java)
 
-`com.balatromp.engine.scoring.ScoringEngine.score(played, held, run, rng)`
+`com.balatro.engine.scoring.ScoringEngine.score(played, held, run, rng)`
 (`ScoringEngine.java:46-135`). Structure:
 
 1. `HandEvaluator.evaluate(played)` → `HandResult` (`:47`).

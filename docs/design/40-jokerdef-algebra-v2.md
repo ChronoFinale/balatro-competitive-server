@@ -1,6 +1,6 @@
 # 40 — JokerDef Algebra v2 (Definitive Spec)
 
-The data-driven algebra (`com.balatromp.engine.joker` + `joker/def`) that must express the
+The data-driven algebra (`com.balatro.engine.joker` + `joker/def`) that must express the
 **entire** vanilla + BMP 0.4.0 content set: 61 Common + 64 Uncommon + 20 Rare + 5 Legendary
 jokers, 9 BMP-exclusive jokers, 22 Tarots, 12 Planets + Black Hole, 18 Spectrals, and the
 pack/edition/enhancement/seal layer (docs 10–16, 19).

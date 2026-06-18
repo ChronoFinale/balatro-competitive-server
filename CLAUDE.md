@@ -18,7 +18,7 @@ intent, the server computes, the `ClientView` reflects the result.
 ```bash
 ./gradlew build            # compile + full test suite
 ./gradlew test             # JUnit 5 + AssertJ + jqwik (property tests)
-./gradlew test --tests 'com.balatromp.engine.HandTypeScoringTest'   # one class
+./gradlew test --tests 'com.balatro.engine.HandTypeScoringTest'   # one class
 ./gradlew run              # start the server: HTTP 28788 (login/REST), TCP+WS 28789 (non-standard, avoids BMP's 8788)
 ./gradlew play             # ClientCli (terminal client)
 ```
@@ -29,7 +29,7 @@ with `accepted`, `view` (ClientView), `replay`).
 
 ## Layout
 
-- `src/main/java/com/balatromp/engine/`
+- `src/main/java/com/balatro/engine/`
   - `net/` — `ServerMain`, `GameServer` (routing + serialization), `ClientView` (the hiding boundary),
     `IntentHandler`, `ServerUpdate`/`ReplayEntry`.
   - `game/` — `Run` (the run loop), `Shop`, `Match` (PvP/Attrition), catalogs.

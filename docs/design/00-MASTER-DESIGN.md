@@ -46,7 +46,7 @@ above all: every cheat class is closed structurally, not by detection
 
 ## 2. Target architecture
 
-Eight engine packages under `com.balatromp.engine`, all server-side; the client
+Eight engine packages under `com.balatro.engine`, all server-side; the client
 sees only `ClientView` + a scoring replay log.
 
 ### 2.1 Authoritative scoring core

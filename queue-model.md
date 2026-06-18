@@ -16,7 +16,7 @@ the **Nth item of a category is always the same item**, so identical choices giv
 identical results — and a different number of rerolls just means you're further
 along the *same* list.
 
-## The primitives (`com.balatromp.engine.rng`)
+## The primitives (`com.balatro.engine.rng`)
 
 - **`GameQueue<T>`** — a lazily-generated, cached sequence with a cursor.
   - `next()` / `peek()` — consume / look at the next item.

@@ -1,16 +1,20 @@
 // TypeScript mirror of the server's authoritative view contract
-// (com.balatromp.engine.net.ClientView / CardView). The renderer's only knowledge
+// (com.balatro.engine.net.ClientView / CardView). The renderer's only knowledge
 // of game state — keep in sync with the Java records.
 
 export interface CardView {
-  uid: number;
-  rank: string;
-  suit: string;
-  enhancement: string;
-  edition: string;
-  seal: string;
+  uid: string; // server card UUID (target handle)
+  // Identity fields are null when faceDown (boss blinds: The House/Wheel/Mark/Fish). The server
+  // withholds them so the player can't peek at what they're forced to play — render a card back.
+  rank: string | null;
+  suit: string | null;
+  enhancement: string | null;
+  edition: string | null;
+  seal: string | null;
   permaChips: number;
   permaMult: number;
+  faceDown: boolean;
+  forcedSelected: boolean; // Cerulean Bell: this card is locked into every played hand
 }
 
 export interface JokerView {

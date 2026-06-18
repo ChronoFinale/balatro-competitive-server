@@ -14,7 +14,7 @@ Definitive catalogue of **every** Spectral card: internal key, cost, exact effec
   - "The Order" deterministic RNG patch (affects every Spectral that shuffles / picks elements, plus Wraith rarity): `.../compatibility/TheOrder.lua`.
   - Changelog: `.../CHANGELOG.md` (only Spectral line in 0.4.0: "**Ouija** and **Ectoplasm** — Now cost $4 (bug fix)").
 - 0.3.3 changes doc (baseline, flagged where 0.4 differs): `C:/Users/micha/AppData/Local/Temp/xlsx_out2/03_Consumables.txt`.
-- Existing engine building blocks: `D:/NewServer/src/main/java/com/balatromp/engine/card/{Edition,Seal}.java`.
+- Existing engine building blocks: `D:/NewServer/src/main/java/com/balatro/engine/card/{Edition,Seal}.java`.
 
 ## Common mechanics
 

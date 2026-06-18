@@ -271,7 +271,7 @@ relying on deck order.
 
 ## 2. How OUR engine does it today
 
-`com.balatromp.engine.rng`:
+`com.balatro.engine.rng`:
 
 - **`Rng`** (`Rng.java`) — xoshiro256** + SplitMix64 seeder. Clean, documented,
   **deliberately NOT byte-compatible** with vanilla `pseudohash` (spec §8,

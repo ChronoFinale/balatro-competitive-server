@@ -8,7 +8,7 @@ Definitive catalogue of every **Uncommon-rarity** (`rarity = 2`) vanilla Balatro
 - **Exact effect semantics**: `C:/Users/micha/AppData/Roaming/Balatro/Mods/multiplayer-0.4.0/compatibility/Preview/Jokers/_Vanilla.lua` (Divvy's simulation; the most precise structured behaviour source).
 - **0.4.0 deltas vs 0.3.3**: `C:/Users/micha/AppData/Roaming/Balatro/Mods/multiplayer-0.4.0/CHANGELOG.md`.
 - **MP queue mechanics for procs/spectral**: `C:/Users/micha/AppData/Local/Temp/xlsx_out2/05_Jokers.txt` (0.3.3 baseline; flagged where 0.4 supersedes).
-- **Our algebra under test**: `D:/NewServer/src/main/java/com/balatromp/engine/joker` + `joker/def` (triggers/conditions/values/ops enumerated in the task brief).
+- **Our algebra under test**: `D:/NewServer/src/main/java/com/balatro/engine/joker` + `joker/def` (triggers/conditions/values/ops enumerated in the task brief).
 
 > Notation: all numbers below are **base values** straight from `config` in `game.lua`. "extra" is the raw config field. Where the simulation reveals the actual operation (mult/chips/xmult/dollars/reps), that wins.
 

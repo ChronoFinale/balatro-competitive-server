@@ -7,7 +7,7 @@ shop entry/exit, ante progression, win/loss, and endless — plus the multiplaye
 
 Convention used below: `dump/game.lua` = `C:/Users/micha/AppData/Roaming/Balatro/Mods/lovely/dump/game.lua`;
 `BMP/` = `C:/Users/micha/AppData/Roaming/Balatro/Mods/multiplayer-0.4.0/`;
-`SERVER/` = `D:/BalatroMultiplayerAPI-Server-main/`; `OURS/` = `D:/NewServer/src/main/java/com/balatromp/engine/`.
+`SERVER/` = `D:/BalatroMultiplayerAPI-Server-main/`; `OURS/` = `D:/NewServer/src/main/java/com/balatro/engine/`.
 
 ---
 
