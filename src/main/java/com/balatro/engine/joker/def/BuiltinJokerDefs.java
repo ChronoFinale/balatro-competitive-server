@@ -705,7 +705,8 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 41: tags (Diet Cola) ---
                 new JokerDef("j_diet_cola", "Diet Cola", "Sell this to create a free Double Tag",
-                        "Uncommon", 6, 0, 18, null, null, true, List.of(), List.of()),
+                        "Uncommon", 6, 0, 18, null, null, true, List.of(), List.of(),
+                        List.of(), RunMod.createsTagOnSell("tag_double")),
 
                 // --- batch 40: booster packs (Hallucination, Red Card) ---
                 new JokerDef("j_hallucination", "Hallucination",
@@ -819,9 +820,10 @@ public final class BuiltinJokerDefs {
                         "Rare", 8, 2, 16, null, null, true,
                         List.of(new Mutation(Trigger.END_OF_ROUND, new Condition.Always(),
                                 "rounds", Mutation.Op.ADD, 1)),
-                        List.of()),
+                        List.of(), List.of(), RunMod.duplicatesJokerOnSell(2)),
                 new JokerDef("j_luchador", "Luchador", "Sell this to disable the current Boss Blind",
-                        "Uncommon", 5, 3, 16, null, null, true, List.of(), List.of()),
+                        "Uncommon", 5, 3, 16, null, null, true, List.of(), List.of(),
+                        List.of(), RunMod.disablesBossOnSell()),
 
                 // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
                 new JokerDef("j_ceremonial", "Ceremonial Dagger",

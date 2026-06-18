@@ -1000,9 +1000,11 @@ public final class Run {
         state.cardsSoldSinceLastPvp++; // feeds the opponent's Taxes joker
         int bonus = state.jokerInt(sold, "sellBonus", 0);
         state.money += Math.max(1, sold.info().cost() / 2) + bonus; // sell value (+ Egg/Gift bonus)
-        // Invisible Joker: sold after >=2 rounds owned, duplicate a random remaining joker.
-        if (sold.key().equals("j_invisible")
-                && state.jokerInt(sold, "rounds", 0) >= 2
+        // The sold joker's own SELL_SELF reactions, read from its data capabilities (no key strings).
+        RunMod.OnSell onSell = (sold instanceof DataJoker dj) ? dj.def().runMod().onSell() : RunMod.OnSell.NONE;
+        // Invisible Joker: sold after >=N rounds owned, duplicate a random remaining joker.
+        if (onSell.duplicatesJokerAfterRounds() >= 0
+                && state.jokerInt(sold, "rounds", 0) >= onSell.duplicatesJokerAfterRounds()
                 && !state.jokers().isEmpty() && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
             // MP: copy the rightmost remaining joker (deterministic + comparable between players);
             // single-player picks a random remaining joker by identity (order-independent).
@@ -1011,11 +1013,11 @@ public final class Run {
                     : state.queues.pick(state.jokers(), RngSources.INVISIBLE_DUP, rngCtx(), Joker::key, JOKER_QUALITY);
             state.addJoker(JokerLibrary.create(source.key()));
         }
-        // Diet Cola: sold, creates a free Double Tag (duplicates the next tag you gain).
-        if (sold.key().equals("j_diet_cola")) state.tags.add("tag_double");
+        // Diet Cola: sold, creates a free tag (Double Tag duplicates the next tag you gain).
+        if (onSell.createsTag() != null) state.tags.add(onSell.createsTag());
         // Luchador: sold during a boss blind, disable that boss's ability for the rest of the blind.
         // Verdant Leaf works the other way round: ITS rule is that selling ANY joker lifts the boss.
-        if (boss != null && (sold.key().equals("j_luchador") || boss.disableOnJokerSell())) {
+        if (boss != null && (onSell.disablesBoss() || boss.disableOnJokerSell())) {
             luchadorDisabledBoss = true;
             refreshDebuffs();
         }
