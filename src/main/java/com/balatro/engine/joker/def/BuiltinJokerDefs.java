@@ -705,7 +705,8 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_credit_card", "Credit Card").cost(1).atlas(0, 15)
                         .desc("Go up to -$20 in debt").behaviorInCode().build(),
                 Jokers.common("j_chaos", "Chaos the Clown").cost(4).atlas(1, 15)
-                        .desc("1 free reroll each shop").behaviorInCode().build(),
+                        .desc("1 free reroll each shop")
+                        .runMod(RunMod.stats(Modify.add(Value.Var.FREE_REROLLS, 1))).build(),
                 Jokers.uncommon("j_astronomer", "Astronomer").cost(8).atlas(2, 15)
                         .desc("All Planet cards in the shop are free").behaviorInCode().build(),
 

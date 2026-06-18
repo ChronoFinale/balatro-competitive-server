@@ -12,15 +12,16 @@ import java.util.List;
  * <ul>
  *   <li>{@code allowDuplicates} — Showman: cards already owned may reappear in shop pools.</li>
  *   <li>{@code planetsFree} — Astronomer: Planet cards in the shop cost $0.</li>
- *   <li>{@code firstRerollFree} — Chaos the Clown: the first reroll each shop visit is free
- *       (whether that free reroll has been spent yet is transient run state, not a rule).</li>
  * </ul>
+ *
+ * <p>(Chaos the Clown's free reroll is no longer a rule here — it's a {@code FREE_REROLLS}
+ * {@link com.balatro.engine.joker.def.Value.Var} folded from ownership, like every other resource.)
  */
-public record ShopConfig(boolean allowDuplicates, boolean planetsFree, boolean firstRerollFree) {
+public record ShopConfig(boolean allowDuplicates, boolean planetsFree) {
 
     /** Fold the currently-owned jokers into the effective shop rules. Pure — no side effects. */
     public static ShopConfig resolve(List<Joker> jokers) {
-        return new ShopConfig(owns(jokers, "j_showman"), owns(jokers, "j_astronomer"), owns(jokers, "j_chaos"));
+        return new ShopConfig(owns(jokers, "j_showman"), owns(jokers, "j_astronomer"));
     }
 
     private static boolean owns(List<Joker> jokers, String key) {

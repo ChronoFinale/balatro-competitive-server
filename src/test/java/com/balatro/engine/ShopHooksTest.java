@@ -146,16 +146,26 @@ class ShopHooksTest {
 
     @Test
     void shopRulesAreDerivedFromOwnedJokers() {
-        // Showman / Astronomer / Chaos are no longer scattered hasJoker checks — they fold into one
-        // derived ShopConfig, the sibling of EconomyConfig.
+        // Showman / Astronomer are no longer scattered hasJoker checks — they fold into one derived
+        // ShopConfig, the sibling of EconomyConfig. (Chaos moved to a folded FREE_REROLLS var.)
         var none = com.balatro.engine.game.ShopConfig.resolve(java.util.List.of());
         assertThat(none.allowDuplicates()).isFalse();
         assertThat(none.planetsFree()).isFalse();
-        assertThat(none.firstRerollFree()).isFalse();
 
-        var all = com.balatro.engine.game.ShopConfig.resolve(jokers("j_showman", "j_astronomer", "j_chaos"));
+        var all = com.balatro.engine.game.ShopConfig.resolve(jokers("j_showman", "j_astronomer"));
         assertThat(all.allowDuplicates()).isTrue();   // Showman
         assertThat(all.planetsFree()).isTrue();       // Astronomer
-        assertThat(all.firstRerollFree()).isTrue();   // Chaos
+    }
+
+    @Test
+    void chaosGivesItsFreeRerollViaTheFoldedFreeRerollsVar() {
+        Run plain = wonRun();
+        Run chaos = wonRun("j_chaos");
+        plain.state.money = chaos.state.money = 100;
+        int p0 = plain.state.money, c0 = chaos.state.money;
+        plain.reroll();   // no Chaos -> first reroll costs $5
+        chaos.reroll();   // Chaos -> first reroll free
+        assertThat(p0 - plain.state.money).isEqualTo(5);
+        assertThat(c0 - chaos.state.money).as("Chaos's first reroll is free, folded from FREE_REROLLS").isZero();
     }
 }
