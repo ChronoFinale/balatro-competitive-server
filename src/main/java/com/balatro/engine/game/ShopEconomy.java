@@ -22,6 +22,9 @@ import java.util.Set;
 public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
                           double editionMultiplier, double polyMultiplier) {
 
+    /** Shop card slots before any voucher (Overstock/Overstock Plus raise it). */
+    public static final int BASE_SHOP_SLOTS = 2;
+
     /** Fold the owned vouchers' {@link Modify} data into the effective shop economy — no key-strings.
      *  Slots/edition odds use MAX (highest tier wins), price uses MIN (deepest discount), reroll ADD. */
     public static ShopEconomy resolve(Set<String> vouchers) {
@@ -31,7 +34,7 @@ public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
             if (def != null) mods.addAll(def.mods());
         }
         return new ShopEconomy(
-                (int) Modify.fold(2, Value.Var.SHOP_SLOTS, mods),
+                (int) Modify.fold(BASE_SHOP_SLOTS, Value.Var.SHOP_SLOTS, mods),
                 Modify.fold(1.0, Value.Var.PRICE_MULTIPLIER, mods),
                 (int) Modify.fold(0, Value.Var.REROLL_DISCOUNT, mods),
                 Modify.fold(1.0, Value.Var.EDITION_MULTIPLIER, mods),

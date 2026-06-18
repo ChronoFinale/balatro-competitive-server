@@ -150,7 +150,9 @@ public final class Run {
         recomputeConsumableSlots();
     }
 
-    /** Consumable slots = base 2 + every CONSUMABLE_SLOTS Modify owned (deck + Crystal Ball/Omen Globe),
+    private static final int BASE_CONSUMABLE_SLOTS = 2; // before deck/voucher CONSUMABLE_SLOTS Modifys
+
+    /** Consumable slots = base + every CONSUMABLE_SLOTS Modify owned (deck + Crystal Ball/Omen Globe),
      *  folded fresh — a pure function of what you own, recomputed whenever that changes. */
     private void recomputeConsumableSlots() {
         List<Modify> mods = new ArrayList<>(deckType.mods());
@@ -158,7 +160,7 @@ public final class Run {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) mods.addAll(def.mods());
         }
-        state.consumableSlots = (int) Modify.fold(2, Value.Var.CONSUMABLE_SLOTS, mods);
+        state.consumableSlots = (int) Modify.fold(BASE_CONSUMABLE_SLOTS, Value.Var.CONSUMABLE_SLOTS, mods);
     }
 
     /** Reshape the starting composition for decks that change it (game.lua:636-642). */

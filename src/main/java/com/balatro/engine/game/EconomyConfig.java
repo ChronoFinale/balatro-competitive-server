@@ -18,6 +18,11 @@ import java.util.Set;
 public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInterest,
                             int interestCap, boolean toTheMoon, int minMoney) {
 
+    /** Earn $1 of interest per this many dollars held (Balatro's $1 / $5). */
+    public static final int DOLLARS_PER_INTEREST = 5;
+    /** The interest cap before any voucher upgrade (max $5; Seed Money/Money Tree raise it). */
+    public static final int BASE_INTEREST_CAP = 5;
+
     /** Fold the currently-owned sources into the effective economy. Pure — no side effects. */
     public static EconomyConfig resolve(DeckCatalog.DeckType deck, Set<String> vouchers, List<Joker> jokers) {
         boolean green = deck.greenEconomy();                 // Green Deck: hand/discard money, no interest
@@ -26,7 +31,7 @@ public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInt
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) voucherMods.addAll(def.mods());
         }
-        int cap = (int) Modify.fold(5, Value.Var.INTEREST_CAP, voucherMods); // base $5, Seed Money/Money Tree raise it
+        int cap = (int) Modify.fold(BASE_INTEREST_CAP, Value.Var.INTEREST_CAP, voucherMods);
         boolean moon = jokers.stream().anyMatch(j -> "j_to_the_moon".equals(j.key())); // +$1/$5, uncapped
         boolean credit = jokers.stream().anyMatch(j -> "j_credit_card".equals(j.key())); // debt floor of -$20
         return new EconomyConfig(green ? 2 : 1, green ? 1 : 0, green, cap, moon, credit ? -20 : 0);
@@ -40,6 +45,7 @@ public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInt
     /** Interest ($1 per $5 held, capped) plus To the Moon's extra uncapped $1 per $5. */
     public int interest(int money) {
         if (noInterest) return 0;
-        return Math.min(interestCap, money / 5) + (toTheMoon ? money / 5 : 0);
+        int perDollar = money / DOLLARS_PER_INTEREST;
+        return Math.min(interestCap, perDollar) + (toTheMoon ? perDollar : 0);
     }
 }
