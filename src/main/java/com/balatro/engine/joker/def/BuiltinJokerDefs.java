@@ -17,6 +17,7 @@ import static com.balatro.engine.joker.def.Cond.held;
 import static com.balatro.engine.joker.def.Cond.discard;
 import static com.balatro.engine.joker.def.Cond.using;
 import static com.balatro.engine.joker.def.Cond.state;
+import static com.balatro.engine.joker.def.Cond.runVar;
 import static com.balatro.engine.joker.def.Target.CHIPS;
 import static com.balatro.engine.joker.def.Target.DOLLARS;
 import static com.balatro.engine.joker.def.Target.MULT;
@@ -171,45 +172,37 @@ public final class BuiltinJokerDefs {
                         .copies(CopySpec.Selector.LEFTMOST).build(),
 
                 // --- type / conditional ---
-                new JokerDef("j_jolly", "Jolly Joker", "+8 Mult if the played hand contains a Pair",
-                        "Common", 3, 2, 0, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandContainsPair(),
-                                new EffectTemplate(Op.MULT, new Value.Const(8))))),
+                Jokers.common("j_jolly", "Jolly Joker").cost(3).atlas(2, 0)
+                        .desc("+8 Mult if the played hand contains a Pair")
+                        .whenHand(playedHand().containsPair()).add(MULT, 8).build(),
 
-                new JokerDef("j_mystic_summit", "Mystic Summit", "+15 Mult when 0 discards remain",
-                        "Common", 5, 2, 2, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.DISCARDS_LEFT, Cmp.EQ, 0),
-                                new EffectTemplate(Op.MULT, new Value.Const(15))))),
+                Jokers.common("j_mystic_summit", "Mystic Summit").cost(5).atlas(2, 2)
+                        .desc("+15 Mult when 0 discards remain")
+                        .whenHand(runVar(Value.Var.DISCARDS_LEFT).exactly(0)).add(MULT, 15).build(),
 
                 // --- run-state scaling ---
-                new JokerDef("j_banner", "Banner", "+30 Chips for each remaining discard",
-                        "Common", 5, 1, 2, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.CHIPS, new Value.RunVar(Value.Var.DISCARDS_LEFT, 0, 30))))),
+                Jokers.common("j_banner", "Banner").cost(5).atlas(1, 2)
+                        .desc("+30 Chips for each remaining discard")
+                        .whenHand().add(CHIPS, new Value.RunVar(Value.Var.DISCARDS_LEFT, 0, 30)).build(),
 
-                new JokerDef("j_bull", "Bull", "+2 Chips for each $1 you have",
-                        "Uncommon", 6, 7, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.CHIPS, new Value.RunVar(Value.Var.MONEY, 0, 2))))),
+                Jokers.uncommon("j_bull", "Bull").cost(6).atlas(7, 14)
+                        .desc("+2 Chips for each $1 you have")
+                        .whenHand().add(CHIPS, new Value.RunVar(Value.Var.MONEY, 0, 2)).build(),
 
                 // --- per-card chips ---
-                new JokerDef("j_scary_face", "Scary Face", "Played face cards give +30 Chips",
-                        "Common", 4, 2, 3, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredIsFace(),
-                                new EffectTemplate(Op.CHIPS, new Value.Const(30))))),
+                Jokers.common("j_scary_face", "Scary Face").cost(4).atlas(2, 3)
+                        .desc("Played face cards give +30 Chips")
+                        .forEachScored(card().isFace()).add(CHIPS, 30).build(),
 
-                new JokerDef("j_odd_todd", "Odd Todd", "Played odd-rank cards (A,9,7,5,3) give +31 Chips",
-                        "Common", 4, 9, 3, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredParity(false),
-                                new EffectTemplate(Op.CHIPS, new Value.Const(31))))),
+                Jokers.common("j_odd_todd", "Odd Todd").cost(4).atlas(9, 3)
+                        .desc("Played odd-rank cards (A,9,7,5,3) give +31 Chips")
+                        .forEachScored(card().odd()).add(CHIPS, 31).build(),
 
                 // --- stateful: gains chips as you play exactly-4-card hands ---
-                new JokerDef("j_square", "Square Joker", "Gains +4 Chips if exactly 4 cards are played",
-                        "Common", 4, 9, 11, null, null, true,
-                        List.of(new Mutation(Trigger.BEFORE, new Condition.PlayedCount(Cmp.EQ, 4),
-                                "chips", Mutation.Op.ADD, 4)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
-                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
+                Jokers.common("j_square", "Square Joker").cost(4).atlas(9, 11)
+                        .desc("Gains +4 Chips if exactly 4 cards are played")
+                        .beforeScoring(playedHand().sizeExactly(4)).gain("chips", 4)
+                        .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
 
                 // --- type-mult family (contains a hand category -> +Mult) ---
                 typeMult("j_zany", "Zany Joker", HandType.THREE_OF_A_KIND, 12, 3, 0),
@@ -223,64 +216,53 @@ public final class BuiltinJokerDefs {
                 typeChips("j_devious", "Devious Joker", HandType.STRAIGHT, 100, 3, 14),
                 typeChips("j_crafty", "Crafty Joker", HandType.FLUSH, 80, 4, 14),
 
-                // --- compound effect: Aces give chips AND mult (extra-chain) ---
-                new JokerDef("j_scholar", "Scholar", "Played Aces give +20 Chips and +4 Mult",
-                        "Common", 4, 0, 4, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredRankBetween(14, 14),
-                                new EffectTemplate(Op.CHIPS, new Value.Const(20),
-                                        new EffectTemplate(Op.MULT, new Value.Const(4)))))),
+                // --- compound effect: Aces give chips AND mult (extra-chain via .effect escape hatch) ---
+                Jokers.common("j_scholar", "Scholar").cost(4).atlas(0, 4)
+                        .desc("Played Aces give +20 Chips and +4 Mult")
+                        .forEachScored(card().rankBetween(14, 14))
+                        .effect(new EffectTemplate(Op.CHIPS, new Value.Const(20),
+                                new EffectTemplate(Op.MULT, new Value.Const(4)))).build(),
 
                 // --- per-card mult ---
-                new JokerDef("j_smiley", "Smiley Face", "Played face cards give +5 Mult",
-                        "Common", 4, 6, 15, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredIsFace(),
-                                new EffectTemplate(Op.MULT, new Value.Const(5))))),
+                Jokers.common("j_smiley", "Smiley Face").cost(4).atlas(6, 15)
+                        .desc("Played face cards give +5 Mult")
+                        .forEachScored(card().isFace()).add(MULT, 5).build(),
 
                 // --- compound per-card: each played 10 or 4 gives +10 Chips and +4 Mult ---
-                new JokerDef("j_walkie_talkie", "Walkie Talkie", "Each played 10 or 4 gives +10 Chips and +4 Mult",
-                        "Common", 4, 8, 15, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED,
-                                new Condition.Or(List.of(new Condition.ScoredRankBetween(10, 10),
-                                        new Condition.ScoredRankBetween(4, 4))),
-                                new EffectTemplate(Op.CHIPS, new Value.Const(10),
-                                        new EffectTemplate(Op.MULT, new Value.Const(4)))))),
+                Jokers.common("j_walkie_talkie", "Walkie Talkie").cost(4).atlas(8, 15)
+                        .desc("Each played 10 or 4 gives +10 Chips and +4 Mult")
+                        .forEachScored(any(card().rankBetween(10, 10), card().rankBetween(4, 4)))
+                        .effect(new EffectTemplate(Op.CHIPS, new Value.Const(10),
+                                new EffectTemplate(Op.MULT, new Value.Const(4)))).build(),
 
-                // --- rank-set via Or: each played A, 2, 3, 5, 8 gives +8 Mult ---
-                new JokerDef("j_fibonacci", "Fibonacci", "Each played Ace, 2, 3, 5, or 8 gives +8 Mult",
-                        "Uncommon", 8, 1, 5, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.Or(List.of(
-                                new Condition.ScoredRankBetween(14, 14), new Condition.ScoredRankBetween(2, 2),
-                                new Condition.ScoredRankBetween(3, 3), new Condition.ScoredRankBetween(5, 5),
-                                new Condition.ScoredRankBetween(8, 8))),
-                                new EffectTemplate(Op.MULT, new Value.Const(8))))),
+                // --- rank-set via any(): each played A, 2, 3, 5, 8 gives +8 Mult ---
+                Jokers.uncommon("j_fibonacci", "Fibonacci").cost(8).atlas(1, 5)
+                        .desc("Each played Ace, 2, 3, 5, or 8 gives +8 Mult")
+                        .forEachScored(any(card().rankBetween(14, 14), card().rankBetween(2, 2),
+                                card().rankBetween(3, 3), card().rankBetween(5, 5), card().rankBetween(8, 8)))
+                        .add(MULT, 8).build(),
 
                 // --- held-card additive mult: each Queen held gives +13 Mult ---
-                new JokerDef("j_shoot_the_moon", "Shoot the Moon", "Each Queen held in hand gives +13 Mult",
-                        "Common", 5, 2, 6, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_HELD, new Condition.ScoredRankBetween(12, 12),
-                                new EffectTemplate(Op.MULT, new Value.Const(13))))),
+                Jokers.common("j_shoot_the_moon", "Shoot the Moon").cost(5).atlas(2, 6)
+                        .desc("Each Queen held in hand gives +13 Mult")
+                        .forEachHeld(card().rankBetween(12, 12)).add(MULT, 13).build(),
 
                 // --- held-card xmult: each King held gives x1.5 Mult ---
-                new JokerDef("j_baron", "Baron", "Each King held in hand gives x1.5 Mult",
-                        "Rare", 8, 6, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_HELD, new Condition.ScoredRankBetween(13, 13),
-                                new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
+                Jokers.rare("j_baron", "Baron").cost(8).atlas(6, 12)
+                        .desc("Each King held in hand gives x1.5 Mult")
+                        .forEachHeld(card().rankBetween(13, 13)).multiply(MULT, 1.5).build(),
 
                 // --- stateful: gains +15 Chips whenever the played hand contains a Straight ---
-                new JokerDef("j_runner", "Runner", "Gains +15 Chips if the played hand contains a Straight",
-                        "Common", 5, 3, 10, null, null, true,
-                        List.of(new Mutation(Trigger.BEFORE, new Condition.HandContains(HandType.STRAIGHT),
-                                "chips", Mutation.Op.ADD, 15)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
-                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
+                Jokers.common("j_runner", "Runner").cost(5).atlas(3, 10)
+                        .desc("Gains +15 Chips if the played hand contains a Straight")
+                        .beforeScoring(playedHand().contains(HandType.STRAIGHT)).gain("chips", 15)
+                        .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
 
                 // --- stateful: gains +8 Chips for each played 2 ---
-                new JokerDef("j_wee", "Wee Joker", "Gains +8 Chips for each played 2",
-                        "Rare", 8, 0, 0, null, null, true,
-                        List.of(new Mutation(Trigger.ON_SCORED, new Condition.ScoredRankBetween(2, 2),
-                                "chips", Mutation.Op.ADD, 8)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
-                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
+                Jokers.rare("j_wee", "Wee Joker").cost(8).atlas(0, 0)
+                        .desc("Gains +8 Chips for each played 2")
+                        .mutate(Trigger.ON_SCORED).when(card().rankBetween(2, 2)).gain("chips", 8)
+                        .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
 
                 // --- xMult "contains" family (The Duo / Trio / Family / Order / Tribe) ---
                 typeXMult("j_duo", "The Duo", HandType.PAIR, 2, 5, 4),
