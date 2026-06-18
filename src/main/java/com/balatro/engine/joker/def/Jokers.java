@@ -1,5 +1,6 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.engine.hand.HandMod;
 import com.balatro.engine.joker.Trigger;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,8 @@ public final class Jokers {
     private CopySpec copy;
     private final List<Rule> rules = new ArrayList<>();
     private final List<Mutation> mutations = new ArrayList<>();
+    private final List<HandMod> handMods = new ArrayList<>();
+    private RunMod runMod = RunMod.NONE;
     private final java.util.Map<String, Object> props = new java.util.LinkedHashMap<>();
     private final java.util.Map<String, Object> state = new java.util.LinkedHashMap<>();
 
@@ -112,6 +115,18 @@ public final class Jokers {
     /** Escape hatch: a state mutation on a raw {@code trigger} (for moments without a named verb). */
     public MutationBuilder mutate(Trigger trigger) { return new MutationBuilder(trigger); }
 
+    /** Attach passive hand modifiers (Four Fingers, Shortcut, Splash, Pareidolia, Smeared). */
+    public Jokers handMod(HandMod... mods) { java.util.Collections.addAll(handMods, mods); return this; }
+
+    /** Attach the run-capability bag (boss disabler, probability doubler, hand-size decay, sell hooks…). */
+    public Jokers runMod(RunMod mod) { this.runMod = mod; return this; }
+
+    /** Escape hatch: append a fully-built {@link Rule} (a trigger/effect combination without a fluent verb). */
+    public Jokers rule(Rule r) { rules.add(r); return this; }
+
+    /** Escape hatch: append a fully-built {@link Mutation}. */
+    public Jokers mutation(Mutation m) { mutations.add(m); return this; }
+
     public JokerDef build() {
         // Fail loud and COMPLETE: list every missing required field by name, so you never have to guess
         // what a joker needs (the error is the documentation). Identity (key/name/rarity) is enforced by
@@ -121,15 +136,16 @@ public final class Jokers {
         if (name == null || name.isBlank()) missing.add("name");
         if (desc == null || desc.isBlank()) missing.add("description (.desc)");
         if (!costSet) missing.add("cost (.cost)");
-        if (rules.isEmpty() && mutations.isEmpty() && copy == null) {
-            missing.add("behavior (.on / .mutate / .copies)");
+        if (rules.isEmpty() && mutations.isEmpty() && copy == null && handMods.isEmpty() && runMod.isNone()) {
+            missing.add("behavior (.on / .mutate / .copies / .handMod / .runMod)");
         }
         if (!missing.isEmpty()) {
             throw new IllegalStateException(
                     "Joker '" + key + "' is missing required: " + String.join(", ", missing));
         }
         return new JokerDef(key, name, desc, rarity, cost, atlasX, atlasY, null, null,
-                blueprintCompatible, List.copyOf(mutations), List.copyOf(rules), List.of(), RunMod.NONE, copy,
+                blueprintCompatible, List.copyOf(mutations), List.copyOf(rules),
+                List.copyOf(handMods), runMod, copy,
                 java.util.Map.copyOf(props), java.util.Map.copyOf(state));
     }
 

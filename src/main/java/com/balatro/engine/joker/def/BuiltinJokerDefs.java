@@ -87,35 +87,35 @@ public final class BuiltinJokerDefs {
 
     /** "+N Mult if the played hand contains [type]" (Jolly/Zany/Mad/Crazy/Droll family). */
     private static JokerDef typeMult(String key, String name, HandType part, int mult, int ax, int ay) {
-        return new JokerDef(key, name, "+" + mult + " Mult if the played hand contains a " + part.display,
-                "Common", 4, ax, ay, null, null, true, List.of(),
-                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandContains(part),
-                        new EffectTemplate(Op.MULT, new Value.Const(mult)))));
+        return Jokers.common(key, name).cost(4).atlas(ax, ay)
+                .desc("+" + mult + " Mult if the played hand contains a " + part.display)
+                .whenHand(playedHand().contains(part)).add(MULT, mult)
+                .build();
     }
 
     /** "+N Chips if the played hand contains [type]" (Sly/Wily/Clever/Devious/Crafty family). */
     private static JokerDef typeChips(String key, String name, HandType part, int chips, int ax, int ay) {
-        return new JokerDef(key, name, "+" + chips + " Chips if the played hand contains a " + part.display,
-                "Common", 4, ax, ay, null, null, true, List.of(),
-                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandContains(part),
-                        new EffectTemplate(Op.CHIPS, new Value.Const(chips)))));
+        return Jokers.common(key, name).cost(4).atlas(ax, ay)
+                .desc("+" + chips + " Chips if the played hand contains a " + part.display)
+                .whenHand(playedHand().contains(part)).add(CHIPS, chips)
+                .build();
     }
 
     /** "xN Mult if the played hand contains [type]" (The Duo/Trio/Family/Order/Tribe). Rare, $8. */
     private static JokerDef typeXMult(String key, String name, HandType part, double xmult, int ax, int ay) {
-        return new JokerDef(key, name, "x" + xmult + " Mult if the played hand contains a " + part.display,
-                "Rare", 8, ax, ay, null, null, true, List.of(),
-                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandContains(part),
-                        new EffectTemplate(Op.XMULT, new Value.Const(xmult)))));
+        return Jokers.rare(key, name).cost(8).atlas(ax, ay)
+                .desc("x" + xmult + " Mult if the played hand contains a " + part.display)
+                .whenHand(playedHand().contains(part)).multiply(MULT, xmult)
+                .build();
     }
 
     /** "Each played [suit] gives +N Chips/Mult" gem joker (Arrowhead/Onyx Agate). Uncommon, $7. */
     private static JokerDef gem(String key, String name, Suit suit, Op op, int amount, int ax, int ay) {
         String unit = op == Op.CHIPS ? " Chips" : " Mult";
-        return new JokerDef(key, name, "Each played " + suitName(suit) + " gives +" + amount + unit,
-                "Uncommon", 7, ax, ay, null, null, true, List.of(),
-                List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredSuit(suit),
-                        new EffectTemplate(op, new Value.Const(amount)))));
+        return Jokers.uncommon(key, name).cost(7).atlas(ax, ay)
+                .desc("Each played " + suitName(suit) + " gives +" + amount + unit)
+                .forEachScored(card().suit(suit)).gives(op, new Value.Const(amount))
+                .build();
     }
 
     public static List<JokerDef> all() {
