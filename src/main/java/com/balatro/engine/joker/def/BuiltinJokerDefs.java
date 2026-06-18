@@ -18,6 +18,8 @@ import static com.balatro.engine.joker.def.Cond.discard;
 import static com.balatro.engine.joker.def.Cond.using;
 import static com.balatro.engine.joker.def.Cond.state;
 import static com.balatro.engine.joker.def.Cond.runVar;
+import static com.balatro.engine.joker.def.Cond.value;
+import com.balatro.engine.hand.HandMod;
 import static com.balatro.engine.joker.def.Target.CHIPS;
 import static com.balatro.engine.joker.def.Target.DOLLARS;
 import static com.balatro.engine.joker.def.Target.MULT;
@@ -367,110 +369,77 @@ public final class BuiltinJokerDefs {
                         .gives(Op.REPETITIONS, new Value.Const(2)).build(),
 
                 // --- ScoringContainsSuit: suit-coverage xMult jokers ---
-                new JokerDef("j_flower_pot", "Flower Pot",
-                        "x3 Mult if the scoring hand contains a Diamond, Club, Heart and Spade",
-                        "Uncommon", 6, 8, 4, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.And(List.of(
-                                new Condition.ScoringContainsSuit(Suit.DIAMONDS),
-                                new Condition.ScoringContainsSuit(Suit.CLUBS),
-                                new Condition.ScoringContainsSuit(Suit.HEARTS),
-                                new Condition.ScoringContainsSuit(Suit.SPADES))),
-                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
-                new JokerDef("j_seeing_double", "Seeing Double",
-                        "x2 Mult if the scoring hand has a Club and a card of any other suit",
-                        "Uncommon", 6, 9, 4, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.And(List.of(
-                                new Condition.ScoringContainsSuit(Suit.CLUBS),
-                                new Condition.Or(List.of(
-                                        new Condition.ScoringContainsSuit(Suit.DIAMONDS),
-                                        new Condition.ScoringContainsSuit(Suit.HEARTS),
-                                        new Condition.ScoringContainsSuit(Suit.SPADES))))),
-                                new EffectTemplate(Op.XMULT, new Value.Const(2))))),
+                Jokers.uncommon("j_flower_pot", "Flower Pot").cost(6).atlas(8, 4)
+                        .desc("x3 Mult if the scoring hand contains a Diamond, Club, Heart and Spade")
+                        .whenHand(Cond.all(playedHand().hasSuit(Suit.DIAMONDS), playedHand().hasSuit(Suit.CLUBS),
+                                playedHand().hasSuit(Suit.HEARTS), playedHand().hasSuit(Suit.SPADES)))
+                        .multiply(MULT, 3).build(),
+                Jokers.uncommon("j_seeing_double", "Seeing Double").cost(6).atlas(9, 4)
+                        .desc("x2 Mult if the scoring hand has a Club and a card of any other suit")
+                        .whenHand(Cond.all(playedHand().hasSuit(Suit.CLUBS), any(playedHand().hasSuit(Suit.DIAMONDS),
+                                playedHand().hasSuit(Suit.HEARTS), playedHand().hasSuit(Suit.SPADES))))
+                        .multiply(MULT, 2).build(),
 
                 // --- global hand-evaluation modifiers (HandMod): change what hands form ---
-                new JokerDef("j_four_fingers", "Four Fingers",
-                        "All Flushes and Straights can be made with 4 cards",
-                        "Uncommon", 7, 1, 6, null, null, true, List.of(), List.of(),
-                        List.of(com.balatro.engine.hand.HandMod.FOUR_FINGERS)),
-                new JokerDef("j_shortcut", "Shortcut",
-                        "Allows Straights to be made with gaps of 1 rank",
-                        "Uncommon", 7, 2, 6, null, null, true, List.of(), List.of(),
-                        List.of(com.balatro.engine.hand.HandMod.SHORTCUT)),
-                new JokerDef("j_smeared_joker", "Smeared Joker",
-                        "Hearts and Diamonds count as the same suit, Spades and Clubs the same",
-                        "Uncommon", 7, 3, 6, null, null, true, List.of(), List.of(),
-                        List.of(com.balatro.engine.hand.HandMod.SMEARED)),
+                Jokers.uncommon("j_four_fingers", "Four Fingers").cost(7).atlas(1, 6)
+                        .desc("All Flushes and Straights can be made with 4 cards")
+                        .handMod(HandMod.FOUR_FINGERS).build(),
+                Jokers.uncommon("j_shortcut", "Shortcut").cost(7).atlas(2, 6)
+                        .desc("Allows Straights to be made with gaps of 1 rank")
+                        .handMod(HandMod.SHORTCUT).build(),
+                Jokers.uncommon("j_smeared_joker", "Smeared Joker").cost(7).atlas(3, 6)
+                        .desc("Hearts and Diamonds count as the same suit, Spades and Clubs the same")
+                        .handMod(HandMod.SMEARED).build(),
 
                 // --- retrigger jokers (existing algebra) ---
-                new JokerDef("j_mime", "Mime", "Retrigger all cards held in hand",
-                        "Uncommon", 5, 8, 5, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_HELD, new Condition.Always(),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
-                new JokerDef("j_dusk", "Dusk", "Retrigger all played cards on the final hand of the round",
-                        "Uncommon", 5, 9, 5, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.Compare(Value.Var.HANDS_LEFT, Cmp.LTE, 1),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+                Jokers.uncommon("j_mime", "Mime").cost(5).atlas(8, 5)
+                        .desc("Retrigger all cards held in hand")
+                        .on(Trigger.REPETITION_HELD).retrigger().build(),
+                Jokers.uncommon("j_dusk", "Dusk").cost(5).atlas(9, 5)
+                        .desc("Retrigger all played cards on the final hand of the round")
+                        .on(Trigger.REPETITION_PLAYED).when(runVar(Value.Var.HANDS_LEFT).atMost(1)).retrigger().build(),
 
                 // --- Gold-card economy when scored ---
-                new JokerDef("j_golden_ticket", "Golden Ticket", "Played Gold cards give $4 when scored",
-                        "Common", 5, 6, 7, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.GOLD),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(4))))),
+                Jokers.common("j_golden_ticket", "Golden Ticket").cost(5).atlas(6, 7)
+                        .desc("Played Gold cards give $4 when scored")
+                        .forEachScored(card().enhancement(Enhancement.GOLD)).add(DOLLARS, 4).build(),
 
                 // --- batch 2: first-face / stat-threshold / held-suit conditions ---
-                new JokerDef("j_photograph", "Photograph", "The first scored face card gives x2 Mult",
-                        "Common", 5, 4, 7, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredFirstFace(),
-                                new EffectTemplate(Op.XMULT, new Value.Const(2))))),
-                new JokerDef("j_drivers_license", "Driver's License",
-                        "x3 Mult if you have at least 16 enhanced cards in your deck",
-                        "Rare", 7, 6, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN,
-                                new Condition.Compare(
-                                        new Value.Stat(Value.Which.ENHANCED_CARD_COUNT, 0, 1, null), Cmp.GTE, 16),
-                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
-                new JokerDef("j_blackboard", "Blackboard",
-                        "x3 Mult if all cards held in hand are Spades or Clubs",
-                        "Uncommon", 6, 0, 7, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN,
-                                new Condition.HeldAllSuits(List.of(Suit.SPADES, Suit.CLUBS)),
-                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
+                Jokers.common("j_photograph", "Photograph").cost(5).atlas(4, 7)
+                        .desc("The first scored face card gives x2 Mult")
+                        .forEachScored(new Condition.ScoredFirstFace()).multiply(MULT, 2).build(),
+                Jokers.rare("j_drivers_license", "Driver's License").cost(7).atlas(6, 13)
+                        .desc("x3 Mult if you have at least 16 enhanced cards in your deck")
+                        .whenHand(value(new Value.Stat(Value.Which.ENHANCED_CARD_COUNT, 0, 1, null)).atLeast(16))
+                        .multiply(MULT, 3).build(),
+                Jokers.uncommon("j_blackboard", "Blackboard").cost(6).atlas(0, 7)
+                        .desc("x3 Mult if all cards held in hand are Spades or Clubs")
+                        .whenHand(new Condition.HeldAllSuits(List.of(Suit.SPADES, Suit.CLUBS))).multiply(MULT, 3).build(),
 
                 // --- batch 3: global scoring modifiers ---
-                new JokerDef("j_pareidolia", "Pareidolia", "All cards are considered face cards",
-                        "Uncommon", 5, 5, 6, null, null, true, List.of(), List.of(),
-                        List.of(com.balatro.engine.hand.HandMod.PAREIDOLIA)),
-                new JokerDef("j_splash", "Splash", "Every played card counts in scoring",
-                        "Common", 3, 6, 6, null, null, true, List.of(), List.of(),
-                        List.of(com.balatro.engine.hand.HandMod.SPLASH)),
+                Jokers.uncommon("j_pareidolia", "Pareidolia").cost(5).atlas(5, 6)
+                        .desc("All cards are considered face cards").handMod(HandMod.PAREIDOLIA).build(),
+                Jokers.common("j_splash", "Splash").cost(3).atlas(6, 6)
+                        .desc("Every played card counts in scoring").handMod(HandMod.SPLASH).build(),
 
                 // --- batch 4: lifecycle counter-scaling (state ships to client, JOKER_MAIN reads it) ---
-                new JokerDef("j_green_joker", "Green Joker",
-                        "+1 Mult per hand played, -1 Mult per discard",
-                        "Common", 4, 6, 5, null, null, true,
-                        List.of(new Mutation(Trigger.BEFORE, new Condition.Always(), "m", Mutation.Op.ADD, 1),
-                                new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "m", Mutation.Op.ADD, -1)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("m", Cmp.GTE, 1),
-                                new EffectTemplate(Op.MULT, new Value.State("m", 0, 1))))),
-                new JokerDef("j_fortune_teller", "Fortune Teller",
-                        "+1 Mult per Tarot card used this run",
-                        "Common", 6, 8, 8, null, null, true,
-                        List.of(new Mutation(Trigger.USE_CONSUMABLE, new Condition.ConsumableType("Tarot"),
-                                "tarots", Mutation.Op.ADD, 1)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("tarots", Cmp.GTE, 1),
-                                new EffectTemplate(Op.MULT, new Value.State("tarots", 0, 1))))),
+                Jokers.common("j_green_joker", "Green Joker").cost(4).atlas(6, 5)
+                        .desc("+1 Mult per hand played, -1 Mult per discard")
+                        .beforeScoring(always()).gain("m", 1)
+                        .mutate(Trigger.PRE_DISCARD).when(always()).gain("m", -1)
+                        .whenHand(state("m").atLeast(1)).add(MULT, Val.state("m")).build(),
+                Jokers.common("j_fortune_teller", "Fortune Teller").cost(6).atlas(8, 8)
+                        .desc("+1 Mult per Tarot card used this run")
+                        .whenUsing("Tarot").gain("tarots", 1)
+                        .whenHand(state("tarots").atLeast(1)).add(MULT, Val.state("tarots")).build(),
 
                 // --- batch 5: stepwise / deck-size scaling values ---
-                new JokerDef("j_bootstraps", "Bootstraps", "+2 Mult for every $5 you have",
-                        "Uncommon", 6, 9, 8, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.RunVarStep(Value.Var.MONEY, 0, 2, 5))))),
-                new JokerDef("j_erosion", "Erosion",
-                        "+4 Mult for each card below 52 in your full deck",
-                        "Uncommon", 6, 7, 8, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT,
-                                        new Value.Stat(Value.Which.CARDS_BELOW_FULL, 0, 4, null))))),
+                Jokers.uncommon("j_bootstraps", "Bootstraps").cost(6).atlas(9, 8)
+                        .desc("+2 Mult for every $5 you have")
+                        .whenHand().add(MULT, new Value.RunVarStep(Value.Var.MONEY, 0, 2, 5)).build(),
+                Jokers.uncommon("j_erosion", "Erosion").cost(6).atlas(7, 8)
+                        .desc("+4 Mult for each card below 52 in your full deck")
+                        .whenHand().add(MULT, new Value.Stat(Value.Which.CARDS_BELOW_FULL, 0, 4, null)).build(),
 
                 // --- batch 6: passive run modifiers (applied at blind start) ---
                 runModJoker("j_juggler", "Juggler", "+1 hand size", "Common", 4, 0, 9,
