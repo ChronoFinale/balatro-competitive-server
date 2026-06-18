@@ -66,6 +66,23 @@ fold).
 init and on each voucher grant. It's a pure function of what you own (deck + Crystal Ball/Omen Globe),
 so it's idempotent — no incremental `+=`.
 
+## `MAX` / `MIN` — tiered & "best wins" modifiers
+
+`fold` order is **SET → ADD → MULTIPLY → MAX → MIN**. `MAX`/`MIN` express *tiered* and *best-wins*
+effects without key-strings: the **highest** tier owned wins a `MAX`, the **deepest** wins a `MIN`.
+
+```
+Seed Money  -> max(INTEREST_CAP, 10)     Money Tree -> max(INTEREST_CAP, 20)   // own both -> 20, not 30
+Overstock   -> max(SHOP_SLOTS, 3)        Overstock+ -> max(SHOP_SLOTS, 4)
+Clearance   -> min(PRICE_MULTIPLIER,.75) Liquidation-> min(PRICE_MULTIPLIER,.5)
+```
+
+This is order-independent (unlike last-`SET`-wins) and needs no "which tier do I own" check — the
+voucher just carries `max/min(value)` and `fold` does the rest. `Value.Var` gained the policy
+variables (`INTEREST_CAP`, `SHOP_SLOTS`, `PRICE_MULTIPLIER`, `REROLL_DISCOUNT`, `EDITION/POLY_MULTIPLIER`,
+`MONEY_PER_HAND/DISCARD`, `MIN_MONEY`) as **write-targets** — folded by the derived configs, not yet
+read by any condition (`readVar` throws for them until one needs reading).
+
 ## Sibling: derived configs for things that aren't per-blind folds
 
 Some state isn't reset-and-recomputed each blind; it's a pure function of *what you own*, resolved on
@@ -76,7 +93,15 @@ demand. These use the same "derived, no mutation" pattern, not the fold:
 - **`ShopConfig`** — shop rules from owned jokers: Showman (dups), Astronomer (free planets), Chaos
   (free reroll).
 - **`ShopEconomy`** — shop economy from owned vouchers: Overstock (slots), Clearance/Liquidation
-  (price), Reroll Surplus/Glut (reroll cost), Hone/Glow Up (edition odds).
+  (price), Reroll Surplus/Glut (reroll cost), Hone/Glow Up (edition odds). **`resolve()` is now a
+  `fold` over the owned vouchers' `Modify` data — zero key-strings.**
+
+`ShopEconomy.resolve` and `EconomyConfig`'s interest cap fold the vouchers' own `Modify`s, so a new
+voucher adds a shop/economy effect by carrying data, not by editing `resolve()`. Still key-string in
+`resolve()` (a deliberate not-yet): the *deck*-driven economy (Green's payout rates / no-interest) and
+*joker*-driven bits (Credit Card's debt floor; To the Moon's **uncapped interest**, which is gated by
+`noInterest` so it can't become a clean standalone end-of-round Rule without an "interest-enabled"
+condition the deck doesn't currently expose).
 
 ## Frontier (not yet on the model)
 
