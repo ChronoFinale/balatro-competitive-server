@@ -626,111 +626,83 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_pacifist", "Pacifist").cost(6).atlas(2, 17)
                         .desc("x10 Mult while not in a PvP blind")
                         .whenHand(not(new Condition.InPvpBlind())).multiply(MULT, 10).build(),
-                new JokerDef("j_defensive_joker", "Defensive Joker",
-                        "+125 Chips for every life you are behind your Nemesis",
-                        "Uncommon", 6, 3, 17, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.CHIPS, new Value.RunVar(Value.Var.OPP_LIVES_BEHIND, 0, 125))))),
-                new JokerDef("j_conjoined", "Conjoined Joker",
-                        "In a PvP blind, x0.5 Mult per hand your Nemesis has left (max x3)",
-                        "Rare", 8, 4, 17, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.InPvpBlind(),
-                                new EffectTemplate(Op.XMULT, new Value.Clamp(
-                                        new Value.RunVar(Value.Var.OPP_HANDS_LEFT, 1, 0.5), 1, 3))))),
-                new JokerDef("j_taxes", "Taxes",
-                        "+4 Mult per card your Nemesis has sold since the last PvP blind",
-                        "Uncommon", 6, 5, 17, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.RunVar(Value.Var.OPP_CARDS_SOLD, 0, 4))))),
+                Jokers.uncommon("j_defensive_joker", "Defensive Joker").cost(6).atlas(3, 17)
+                        .desc("+125 Chips for every life you are behind your Nemesis")
+                        .whenHand().add(CHIPS, new Value.RunVar(Value.Var.OPP_LIVES_BEHIND, 0, 125)).build(),
+                Jokers.rare("j_conjoined", "Conjoined Joker").cost(8).atlas(4, 17)
+                        .desc("In a PvP blind, x0.5 Mult per hand your Nemesis has left (max x3)")
+                        .whenHand(new Condition.InPvpBlind())
+                        .multiply(MULT, new Value.Clamp(new Value.RunVar(Value.Var.OPP_HANDS_LEFT, 1, 0.5), 1, 3)).build(),
+                Jokers.uncommon("j_taxes", "Taxes").cost(6).atlas(5, 17)
+                        .desc("+4 Mult per card your Nemesis has sold since the last PvP blind")
+                        .whenHand().add(MULT, new Value.RunVar(Value.Var.OPP_CARDS_SOLD, 0, 4)).build(),
 
                 // --- batch 38: blind-skipping (Throwback) ---
-                new JokerDef("j_throwback", "Throwback", "x0.25 Mult for each blind skipped this run",
-                        "Uncommon", 6, 9, 16, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.RunVar(Value.Var.BLINDS_SKIPPED, 1, 0.25))))),
+                Jokers.uncommon("j_throwback", "Throwback").cost(6).atlas(9, 16)
+                        .desc("x0.25 Mult for each blind skipped this run")
+                        .whenHand().multiply(MULT, new Value.RunVar(Value.Var.BLINDS_SKIPPED, 1, 0.25)).build(),
 
                 // --- batch 37: "since acquired" jokers via acquire-stamp (Turtle Bean, Seltzer) ---
-                new JokerDef("j_turtle_bean", "Turtle Bean",
-                        "+5 hand size, which decreases by 1 each round",
-                        "Uncommon", 6, 7, 16, null, null, true, List.of(), List.of(),
-                        List.of(), RunMod.decayingHandSize(5)),
-                new JokerDef("j_seltzer", "Seltzer",
-                        "Retrigger all played cards for the first 10 hands after it is acquired",
-                        "Uncommon", 6, 8, 16, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.HandsSinceAcquire(10),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+                Jokers.uncommon("j_turtle_bean", "Turtle Bean").cost(6).atlas(7, 16)
+                        .desc("+5 hand size, which decreases by 1 each round")
+                        .runMod(RunMod.decayingHandSize(5)).build(),
+                Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(8, 16)
+                        .desc("Retrigger all played cards for the first 10 hands after it is acquired")
+                        .on(Trigger.REPETITION_PLAYED).when(new Condition.HandsSinceAcquire(10)).retrigger().build(),
 
                 // --- batch 36: Obelisk (consecutive non-most-played streak; shipped, preview-accurate) ---
-                new JokerDef("j_obelisk", "Obelisk",
-                        "x0.2 Mult per consecutive hand played that is not your most-played hand",
-                        "Legendary", 20, 6, 16, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.RunVar(Value.Var.OBELISK_STREAK, 1, 0.2))))),
+                Jokers.legendary("j_obelisk", "Obelisk").cost(20).atlas(6, 16)
+                        .desc("x0.2 Mult per consecutive hand played that is not your most-played hand")
+                        .whenHand().multiply(MULT, new Value.RunVar(Value.Var.OBELISK_STREAK, 1, 0.2)).build(),
 
                 // --- batch 35: Loyalty Card (every-6-hands xMult; preview-accurate via shipped counter) ---
-                new JokerDef("j_loyalty_card", "Loyalty Card", "x4 Mult every 6 hands played",
-                        "Uncommon", 5, 5, 16, null, null, true, List.of(),
-                        // hands-played is incremented AFTER scoring, so this hand is play #(total+1);
-                        // x4 on the 6th, 12th, ... -> total % 6 == 5. Shipped counter -> previews exactly.
-                        List.of(new Rule(Trigger.JOKER_MAIN,
-                                new Condition.RunVarModulo(Value.Var.HANDS_PLAYED_TOTAL, 6, 5),
-                                new EffectTemplate(Op.XMULT, new Value.Const(4))))),
+                // hands-played is incremented AFTER scoring, so this hand is play #(total+1);
+                // x4 on the 6th, 12th, ... -> total % 6 == 5. Shipped counter -> previews exactly.
+                Jokers.uncommon("j_loyalty_card", "Loyalty Card").cost(5).atlas(5, 16)
+                        .desc("x4 Mult every 6 hands played")
+                        .whenHand(new Condition.RunVarModulo(Value.Var.HANDS_PLAYED_TOTAL, 6, 5)).multiply(MULT, 4).build(),
 
                 // --- batch 34: Trading Card (discard-destroy for money) ---
-                new JokerDef("j_trading", "Trading Card",
-                        "If the first discard of a round is a single card, destroy it and earn $3",
-                        "Uncommon", 6, 4, 16, null, null, true, List.of(), List.of()),
+                Jokers.uncommon("j_trading", "Trading Card").cost(6).atlas(4, 16)
+                        .desc("If the first discard of a round is a single card, destroy it and earn $3")
+                        .behaviorInCode().build(),
 
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
-                new JokerDef("j_perkeo", "Perkeo",
-                        "Creates a copy of a random held consumable when you leave the shop",
-                        "Legendary", 20, 1, 16, null, null, true, List.of(), List.of(),
-                        List.of(), RunMod.consumableDuplicator()),
-                new JokerDef("j_invisible", "Invisible Joker",
-                        "After 2 rounds, sell this to create a copy of a random Joker",
-                        "Rare", 8, 2, 16, null, null, true,
-                        List.of(new Mutation(Trigger.END_OF_ROUND, new Condition.Always(),
-                                "rounds", Mutation.Op.ADD, 1)),
-                        List.of(), List.of(), RunMod.duplicatesJokerOnSell(2)),
-                new JokerDef("j_luchador", "Luchador", "Sell this to disable the current Boss Blind",
-                        "Uncommon", 5, 3, 16, null, null, true, List.of(), List.of(),
-                        List.of(), RunMod.disablesBossOnSell()),
+                Jokers.legendary("j_perkeo", "Perkeo").cost(20).atlas(1, 16)
+                        .desc("Creates a copy of a random held consumable when you leave the shop")
+                        .runMod(RunMod.consumableDuplicator()).build(),
+                Jokers.rare("j_invisible", "Invisible Joker").cost(8).atlas(2, 16)
+                        .desc("After 2 rounds, sell this to create a copy of a random Joker")
+                        .mutate(Trigger.END_OF_ROUND).when(always()).gain("rounds", 1)
+                        .runMod(RunMod.duplicatesJokerOnSell(2)).build(),
+                Jokers.uncommon("j_luchador", "Luchador").cost(5).atlas(3, 16)
+                        .desc("Sell this to disable the current Boss Blind")
+                        .runMod(RunMod.disablesBossOnSell()).build(),
 
                 // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
-                new JokerDef("j_ceremonial", "Ceremonial Dagger",
-                        "When a blind is selected, destroys the Joker to the right and gains 2x its sell value as Mult",
-                        "Uncommon", 6, 9, 15, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("mult", Cmp.GTE, 1),
-                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1)))),
-                        List.of(), RunMod.ceremonialDagger()),
-                new JokerDef("j_madness", "Madness",
-                        "On Small/Big blind select, gains x0.5 Mult and destroys a random Joker",
-                        "Uncommon", 7, 0, 16, null, null, true,
-                        // ×0.5 Mult is a Mutation; eating a random joker is the jokerEater() capability.
-                        List.of(new Mutation(Trigger.BLIND_SELECTED,
-                                new Condition.Not(new Condition.BossBlindSelected()), "xm", Mutation.Op.ADD, 0.5)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("xm", Cmp.GTE, 0.5),
-                                new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0)))),
-                        List.of(), RunMod.jokerEater()),
+                Jokers.uncommon("j_ceremonial", "Ceremonial Dagger").cost(6).atlas(9, 15)
+                        .desc("When a blind is selected, destroys the Joker to the right and gains 2x its sell value as Mult")
+                        .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult"))
+                        .runMod(RunMod.ceremonialDagger()).build(),
+                // x0.5 Mult is a Mutation; eating a random joker is the jokerEater() capability.
+                Jokers.uncommon("j_madness", "Madness").cost(7).atlas(0, 16)
+                        .desc("On Small/Big blind select, gains x0.5 Mult and destroys a random Joker")
+                        .mutate(Trigger.BLIND_SELECTED).when(not(new Condition.BossBlindSelected())).gain("xm", 0.5)
+                        .whenHand(state("xm").atLeast(0.5)).multiply(MULT, new Value.State("xm", 1.0, 1.0))
+                        .runMod(RunMod.jokerEater()).build(),
 
                 // --- batch 31: Satellite (unique-planet economy) ---
-                new JokerDef("j_satellite", "Satellite",
-                        "Earn $1 at end of round per unique Planet card used this run",
-                        "Uncommon", 6, 8, 15, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.END_OF_ROUND, new Condition.Always(),
-                                new EffectTemplate(Op.DOLLARS, new Value.RunVar(Value.Var.UNIQUE_PLANETS, 0, 1))))),
+                Jokers.uncommon("j_satellite", "Satellite").cost(6).atlas(8, 15)
+                        .desc("Earn $1 at end of round per unique Planet card used this run")
+                        .atEndOfRound().add(DOLLARS, new Value.RunVar(Value.Var.UNIQUE_PLANETS, 0, 1)).build(),
 
                 // --- batch 30: Oops! All 6s (probability doubler) + Reserved Parking ---
-                new JokerDef("j_oops", "Oops! All 6s", "Doubles all listed probabilities",
-                        "Uncommon", 4, 6, 15, null, null, true, List.of(), List.of(),
-                        List.of(), RunMod.probabilityDoubler()),
-                new JokerDef("j_reserved_parking", "Reserved Parking",
-                        "Each face card held in hand has a 1 in 2 chance to give $1",
-                        "Common", 5, 7, 15, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_HELD,
-                                new Condition.And(List.of(new Condition.ScoredIsFace(),
-                                        new Condition.Chance(1, 2, "reserved_parking"))),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(1))))),
+                Jokers.uncommon("j_oops", "Oops! All 6s").cost(4).atlas(6, 15)
+                        .desc("Doubles all listed probabilities")
+                        .runMod(RunMod.probabilityDoubler()).build(),
+                Jokers.common("j_reserved_parking", "Reserved Parking").cost(5).atlas(7, 15)
+                        .desc("Each face card held in hand has a 1 in 2 chance to give $1")
+                        .forEachHeld(Cond.all(card().isFace(), new Condition.Chance(1, 2, "reserved_parking"))).add(DOLLARS, 1).build(),
 
                 // --- batch 29: boss-ability disable (Chicot) — a passive capability, expressed as data ---
                 runModJoker("j_chicot", "Chicot", "Disables the effect of every Boss Blind",
