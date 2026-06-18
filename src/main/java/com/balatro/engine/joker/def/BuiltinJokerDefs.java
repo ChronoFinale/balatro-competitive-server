@@ -782,8 +782,9 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 37: "since acquired" jokers via acquire-stamp (Turtle Bean, Seltzer) ---
                 new JokerDef("j_turtle_bean", "Turtle Bean",
-                        "+5 hand size, which decreases by 1 each round (handled in Run.applyJokerRunMods)",
-                        "Uncommon", 6, 7, 16, null, null, true, List.of(), List.of()),
+                        "+5 hand size, which decreases by 1 each round",
+                        "Uncommon", 6, 7, 16, null, null, true, List.of(), List.of(),
+                        List.of(), RunMod.decayingHandSize(5)),
                 new JokerDef("j_seltzer", "Seltzer",
                         "Retrigger all played cards for the first 10 hands after it is acquired",
                         "Uncommon", 6, 8, 16, null, null, true, List.of(),
@@ -830,7 +831,8 @@ public final class BuiltinJokerDefs {
                         "When a blind is selected, destroys the Joker to the right and gains 2x its sell value as Mult",
                         "Uncommon", 6, 9, 15, null, null, true, List.of(),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("mult", 1),
-                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
+                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1)))),
+                        List.of(), RunMod.ceremonialDagger()),
                 new JokerDef("j_madness", "Madness",
                         "On Small/Big blind select, gains x0.5 Mult and destroys a random Joker",
                         "Uncommon", 7, 0, 16, null, null, true,
@@ -850,7 +852,8 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 30: Oops! All 6s (probability doubler) + Reserved Parking ---
                 new JokerDef("j_oops", "Oops! All 6s", "Doubles all listed probabilities",
-                        "Uncommon", 4, 6, 15, null, null, true, List.of(), List.of()),
+                        "Uncommon", 4, 6, 15, null, null, true, List.of(), List.of(),
+                        List.of(), RunMod.probabilityDoubler()),
                 new JokerDef("j_reserved_parking", "Reserved Parking",
                         "Each face card held in hand has a 1 in 2 chance to give $1",
                         "Common", 5, 7, 15, null, null, true, List.of(),

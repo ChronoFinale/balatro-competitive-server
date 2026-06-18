@@ -5,14 +5,21 @@ package com.balatro.engine.joker.def;
  * data. Most are per-blind stat deltas applied when a blind starts (Juggler +1 hand size, Drunkard
  * +1 discard, Burglar +3 hands / no discards). The rest are capabilities the run checks at the right
  * moment: {@code disablesBoss} (Chicot), {@code survivesLostBlindFraction} (Mr Bones),
- * {@code consumesRandomJokerOnBlindSelect} (Madness), and the {@link OnSell} group (Luchador / Diet
- * Cola / Invisible). None affect the per-hand score, so none are part of the client preview.
+ * {@code blindSelectConsume} (Madness / Ceremonial), {@code doublesProbability} (Oops! All 6s),
+ * {@code handSizeDecayStart} (Turtle Bean), and the {@link OnSell} group (Luchador / Diet Cola /
+ * Invisible). None affect the per-hand score, so none are part of the client preview.
  */
 public record RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boolean noDiscards,
                      boolean disablesBoss, double survivesLostBlindFraction,
-                     boolean consumesRandomJokerOnBlindSelect, OnSell onSell) {
+                     BlindSelectConsume blindSelectConsume, OnSell onSell,
+                     boolean doublesProbability, int handSizeDecayStart) {
 
-    public static final RunMod NONE = new RunMod(0, 0, 0, false, false, 0, false, OnSell.NONE);
+    public static final RunMod NONE =
+            new RunMod(0, 0, 0, false, false, 0, BlindSelectConsume.NONE, OnSell.NONE, false, 0);
+
+    /** On selecting a blind, this joker eats a Joker — a random other one (Madness, Small/Big only)
+     *  or its right neighbour (Ceremonial Dagger, any blind). */
+    public enum BlindSelectConsume { NONE, RANDOM_OTHER, RIGHT_NEIGHBOR }
 
     /** What happens when THIS joker is sold (a SELL_SELF reaction, expressed as data). */
     public record OnSell(boolean disablesBoss, int duplicatesJokerAfterRounds, String createsTag) {
@@ -24,43 +31,68 @@ public record RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boole
         }
     }
 
-    /** Canonical constructor: defaults the {@link OnSell} group to NONE so existing call-sites stand. */
+    /** Canonical constructor: null-safes the {@link OnSell} / {@link BlindSelectConsume} groups. */
     public RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boolean noDiscards,
                   boolean disablesBoss, double survivesLostBlindFraction,
-                  boolean consumesRandomJokerOnBlindSelect, OnSell onSell) {
+                  BlindSelectConsume blindSelectConsume, OnSell onSell,
+                  boolean doublesProbability, int handSizeDecayStart) {
         this.handsDelta = handsDelta;
         this.discardsDelta = discardsDelta;
         this.handSizeDelta = handSizeDelta;
         this.noDiscards = noDiscards;
         this.disablesBoss = disablesBoss;
         this.survivesLostBlindFraction = survivesLostBlindFraction;
-        this.consumesRandomJokerOnBlindSelect = consumesRandomJokerOnBlindSelect;
+        this.blindSelectConsume = blindSelectConsume == null ? BlindSelectConsume.NONE : blindSelectConsume;
         this.onSell = onSell == null ? OnSell.NONE : onSell;
+        this.doublesProbability = doublesProbability;
+        this.handSizeDecayStart = handSizeDecayStart;
     }
 
     /** A pure stat modifier (the common case) — no special capability. */
     public RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boolean noDiscards) {
-        this(handsDelta, discardsDelta, handSizeDelta, noDiscards, false, 0, false, OnSell.NONE);
+        this(handsDelta, discardsDelta, handSizeDelta, noDiscards, false, 0,
+                BlindSelectConsume.NONE, OnSell.NONE, false, 0);
+    }
+
+    private static RunMod capability(boolean disablesBoss, double survivesFraction,
+            BlindSelectConsume consume, OnSell sell, boolean doublesProbability, int handSizeDecayStart) {
+        return new RunMod(0, 0, 0, false, disablesBoss, survivesFraction, consume, sell,
+                doublesProbability, handSizeDecayStart);
     }
 
     /** Chicot: while owned, every Boss Blind's ability is disabled. */
     public static RunMod bossDisabler() {
-        return new RunMod(0, 0, 0, false, true, 0, false, OnSell.NONE);
+        return capability(true, 0, BlindSelectConsume.NONE, OnSell.NONE, false, 0);
     }
 
     /** Mr Bones: survive a lost blind (and be consumed) if you scored at least {@code fraction} of it. */
     public static RunMod survivesLostBlind(double fraction) {
-        return new RunMod(0, 0, 0, false, false, fraction, false, OnSell.NONE);
+        return capability(false, fraction, BlindSelectConsume.NONE, OnSell.NONE, false, 0);
     }
 
     /** Madness: on selecting a Small/Big blind, destroy a random other (non-eternal) Joker. */
     public static RunMod jokerEater() {
-        return new RunMod(0, 0, 0, false, false, 0, true, OnSell.NONE);
+        return capability(false, 0, BlindSelectConsume.RANDOM_OTHER, OnSell.NONE, false, 0);
+    }
+
+    /** Ceremonial Dagger: on selecting any blind, destroy the right-neighbour Joker. */
+    public static RunMod ceremonialDagger() {
+        return capability(false, 0, BlindSelectConsume.RIGHT_NEIGHBOR, OnSell.NONE, false, 0);
+    }
+
+    /** Oops! All 6s: doubles every listed probability while owned (stacks per copy). */
+    public static RunMod probabilityDoubler() {
+        return capability(false, 0, BlindSelectConsume.NONE, OnSell.NONE, true, 0);
+    }
+
+    /** Turtle Bean: +{@code start} hand size, decaying by 1 each round since acquired (floors at 0). */
+    public static RunMod decayingHandSize(int start) {
+        return capability(false, 0, BlindSelectConsume.NONE, OnSell.NONE, false, start);
     }
 
     /** Build from a single {@link OnSell} reaction (Luchador / Diet Cola / Invisible). */
     public static RunMod onSell(OnSell sell) {
-        return new RunMod(0, 0, 0, false, false, 0, false, sell);
+        return capability(false, 0, BlindSelectConsume.NONE, sell, false, 0);
     }
 
     /** Luchador: sold during a boss blind, disable that boss's ability for the rest of the blind. */
@@ -81,7 +113,8 @@ public record RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boole
     @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isNone() {
         return handsDelta == 0 && discardsDelta == 0 && handSizeDelta == 0 && !noDiscards
-                && !disablesBoss && survivesLostBlindFraction == 0 && !consumesRandomJokerOnBlindSelect
-                && onSell.isNone();
+                && !disablesBoss && survivesLostBlindFraction == 0
+                && blindSelectConsume == BlindSelectConsume.NONE && onSell.isNone()
+                && !doublesProbability && handSizeDecayStart == 0;
     }
 }

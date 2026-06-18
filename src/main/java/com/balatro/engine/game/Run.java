@@ -227,8 +227,9 @@ public final class Run {
         requirement *= deckType.blindSizeMult();
         applyJokerRunMods(); // passive hand/discard/hand-size deltas from owned jokers
         applyJokerDestroyers(); // Ceremonial Dagger / Madness eat a joker at blind select
-        // Oops! All 6s doubles every listed probability (numerator) per copy owned.
-        long oops = state.jokers().stream().filter(j -> j.key().equals("j_oops")).count();
+        // Oops! All 6s doubles every listed probability (numerator) per copy owned (a data capability).
+        long oops = state.jokers().stream()
+                .filter(j -> j instanceof DataJoker dj && dj.def().runMod().doublesProbability()).count();
         state.probabilityNumerator = 1 << Math.min((int) oops, 8);
         rollRoundTargets();  // The Idol / Ancient targets, re-rolled each blind
         int deckBefore = composition.size();
@@ -276,17 +277,18 @@ public final class Run {
      *  +Mult from 2x its sell value) and Madness (a random other joker -> +x0.5 Mult, non-boss only). */
     private void applyJokerDestroyers() {
         List<Joker> js = state.jokers();
+        // Ceremonial Dagger (RIGHT_NEIGHBOR): any blind; eats its right neighbour, gains 2x its sell value as Mult.
         for (int i = 0; i < js.size(); i++) {
-            if (!js.get(i).key().equals("j_ceremonial") || i + 1 >= js.size()) continue;
+            if (blindSelectConsume(js.get(i)) != RunMod.BlindSelectConsume.RIGHT_NEIGHBOR || i + 1 >= js.size()) continue;
             if (state.jokerFlag(js.get(i + 1), "eternal")) continue; // eternal can't be eaten
             Joker victim = js.remove(i + 1);
             int gain = 2 * Math.max(1, victim.info().cost() / 2);
             state.addJokerInt(js.get(i), "mult", gain);
         }
-        if (blind == BlindType.BOSS) return; // joker-eaters (Madness) don't trigger on boss blinds
+        if (blind == BlindType.BOSS) return; // random joker-eaters (Madness) don't trigger on boss blinds
+        // Madness (RANDOM_OTHER): Small/Big only; the ×0.5 Mult rides a Mutation, this is just "eat a joker".
         for (int i = 0; i < js.size(); i++) {
-            // Madness: a data capability (the ×0.5 Mult rides a Mutation; this is just "eat a joker").
-            if (!(js.get(i) instanceof DataJoker dj) || !dj.def().runMod().consumesRandomJokerOnBlindSelect()) continue;
+            if (blindSelectConsume(js.get(i)) != RunMod.BlindSelectConsume.RANDOM_OTHER) continue;
             List<Joker> others = new ArrayList<>();
             for (int k = 0; k < js.size(); k++) { // eternal jokers can't be destroyed -> excluded as targets
                 if (k != i && !state.jokerFlag(js.get(k), "eternal")) others.add(js.get(k));
@@ -298,6 +300,11 @@ public final class Run {
             js.remove(vidx);
             if (vidx < i) i--; // a joker before us was removed; stay aligned
         }
+    }
+
+    /** A joker's blind-select consume capability (NONE if it isn't a data joker). */
+    private static RunMod.BlindSelectConsume blindSelectConsume(Joker j) {
+        return (j instanceof DataJoker dj) ? dj.def().runMod().blindSelectConsume() : RunMod.BlindSelectConsume.NONE;
     }
 
     /** Whether the active boss has an ability (a debuff or a hand/discard/size override). */
@@ -570,9 +577,10 @@ public final class Run {
         }
         // Turtle Bean: +5 hand size, decaying by 1 each round since it was acquired (floors at 0).
         for (Joker j : state.jokers()) {
-            if (!j.key().equals("j_turtle_bean")) continue;
+            if (!(j instanceof DataJoker dj) || dj.def().runMod().handSizeDecayStart() <= 0) continue;
+            int start = dj.def().runMod().handSizeDecayStart();
             int acq = state.jokerInt(j, "acqRounds", 0);
-            state.handSize += Math.max(0, 5 - (state.roundsPlayedTotal - acq));
+            state.handSize += Math.max(0, start - (state.roundsPlayedTotal - acq));
         }
         // Vouchers: permanent per-blind hand / discard / hand-size upgrades (base + Tier 2).
         if (state.vouchers.contains("v_grabber")) state.handsLeft += 1;
