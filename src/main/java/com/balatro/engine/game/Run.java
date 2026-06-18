@@ -306,7 +306,7 @@ public final class Run {
     /** Whether the active boss has an ability (a debuff or a hand/discard/size override). */
     private boolean bossHasAbility() {
         return boss != null && (boss.debuff() != null || boss.halveBase()
-                || boss.handsOverride() >= 0 || boss.discardsOverride() >= 0 || boss.handSizeDelta() != 0
+                || !boss.mods().isEmpty() // hand/discard/size resource modifiers
                 || boss.dollarsPerCardPlayed() != 0 || boss.zeroMoneyOnMostPlayed() || boss.delevelPlayedHand()
                 || boss.requires() != null || boss.faceDown() != null
                 || boss.drawOnRefill() > 0 || boss.discardAfterPlay() > 0
@@ -568,12 +568,16 @@ public final class Run {
         return Math.max(0, ruleset.discards() + stake.discardDelta());
     }
 
+    /** Copy every {@code source} modifier that targets {@code var} into {@code mods}. */
+    private static void addMatching(List<Modify> mods, List<Modify> source, Value.Var var) {
+        for (Modify m : source) if (m.variable() == var) mods.add(m);
+    }
+
     /** Add every owned voucher's {@link Modify}s for {@code var} (Grabber/Wasteful/Paint Brush…). */
     private void addVoucherMods(List<Modify> mods, Value.Var var) {
         for (String v : state.vouchers) {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
-            if (def == null) continue;
-            for (Modify m : def.mods()) if (m.variable() == var) mods.add(m);
+            if (def != null) addMatching(mods, def.mods(), var);
         }
     }
 
@@ -597,9 +601,7 @@ public final class Run {
     private int computeHands() {
         List<Modify> mods = new ArrayList<>();
         mods.add(Modify.add(Value.Var.HANDS_LEFT, deckType.handsDelta()));            // Blue Deck: +1
-        if (boss != null && !bossDisabled() && boss.handsOverride() >= 0) {
-            mods.add(Modify.set(Value.Var.HANDS_LEFT, boss.handsOverride()));         // The Needle: 1
-        }
+        if (boss != null && !bossDisabled()) addMatching(mods, boss.mods(), Value.Var.HANDS_LEFT); // Needle: set 1
         addJokerDeltas(mods, Value.Var.HANDS_LEFT, RunMod::handsDelta);               // Burglar: +3
         addVoucherMods(mods, Value.Var.HANDS_LEFT);                                   // Grabber / Nacho Tong
         addSkipOff(mods, Value.Var.HANDS_LEFT);
@@ -610,9 +612,7 @@ public final class Run {
     private int computeDiscards() {
         List<Modify> mods = new ArrayList<>();
         mods.add(Modify.add(Value.Var.DISCARDS_LEFT, deckType.discardsDelta()));      // Red Deck: +1
-        if (boss != null && !bossDisabled() && boss.discardsOverride() >= 0) {
-            mods.add(Modify.set(Value.Var.DISCARDS_LEFT, boss.discardsOverride()));   // The Water: 0
-        }
+        if (boss != null && !bossDisabled()) addMatching(mods, boss.mods(), Value.Var.DISCARDS_LEFT); // Water: set 0
         addJokerDeltas(mods, Value.Var.DISCARDS_LEFT, RunMod::discardsDelta);         // Drunkard: +1
         addVoucherMods(mods, Value.Var.DISCARDS_LEFT);                                // Wasteful / Recyclomancy
         addSkipOff(mods, Value.Var.DISCARDS_LEFT);
@@ -633,9 +633,7 @@ public final class Run {
     private int computeHandSize() {
         List<Modify> mods = new ArrayList<>();
         mods.add(Modify.add(Value.Var.HAND_SIZE, deckType.handSizeDelta()));          // Painted Deck: +2
-        if (boss != null && !bossDisabled()) {
-            mods.add(Modify.add(Value.Var.HAND_SIZE, boss.handSizeDelta()));          // The Manacle: -1
-        }
+        if (boss != null && !bossDisabled()) addMatching(mods, boss.mods(), Value.Var.HAND_SIZE); // Manacle: add -1
         addJokerDeltas(mods, Value.Var.HAND_SIZE, RunMod::handSizeDelta);             // Juggler: +1
         for (Joker j : state.jokers()) {                                             // Turtle Bean: +N decaying
             if (!(j instanceof DataJoker dj) || dj.def().runMod().handSizeDecayStart() <= 0) continue;

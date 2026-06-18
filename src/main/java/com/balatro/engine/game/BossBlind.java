@@ -1,6 +1,7 @@
 package com.balatro.engine.game;
 
 import com.balatro.engine.joker.def.Condition;
+import java.util.List;
 
 /**
  * A boss blind as DATA — built via the fluent {@link Bosses} builder. A boss is mostly a set of
@@ -19,9 +20,10 @@ public record BossBlind(
         boolean finisher,
         double reqMult,                // score requirement = blind amount × this
         int reward,
-        int handsOverride,             // -1 = ruleset default
-        int discardsOverride,          // -1 = ruleset default
-        int handSizeDelta,
+        // --- resource modifiers, as data: the boss's hand/discard/hand-size changes are Modifys on the
+        //     same game variables a joker/deck/voucher touch (Needle = set(HANDS_LEFT,1), Manacle =
+        //     add(HAND_SIZE,-1), Water = set(DISCARDS_LEFT,0)). Folded by Run alongside everyone else. ---
+        List<Modify> mods,
         Condition debuff,              // cards matching this don't score (Club/Goad/Window/Head/Plant); null = none
         boolean halveBase,             // The Flint: base chips & mult halved
         // --- per-hand event effects (Run.applyBossOnHandPlayed) ---
