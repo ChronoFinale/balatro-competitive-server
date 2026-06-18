@@ -290,111 +290,81 @@ public final class BuiltinJokerDefs {
                                 new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
 
                 // --- stateful: gains +2 Mult whenever the played hand contains a Two Pair ---
-                new JokerDef("j_trousers", "Spare Trousers", "Gains +2 Mult if the played hand contains a Two Pair",
-                        "Uncommon", 6, 4, 15, null, null, true,
-                        List.of(new Mutation(Trigger.BEFORE, new Condition.HandContains(HandType.TWO_PAIR),
-                                "mult", Mutation.Op.ADD, 2)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("mult", Cmp.GTE, 1),
-                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
+                Jokers.uncommon("j_trousers", "Spare Trousers").cost(6).atlas(4, 15)
+                        .desc("Gains +2 Mult if the played hand contains a Two Pair")
+                        .beforeScoring(playedHand().contains(HandType.TWO_PAIR)).gain("mult", 2)
+                        .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult")).build(),
 
                 // --- probabilistic (Chance / Random) ---
-                new JokerDef("j_misprint", "Misprint", "Adds +0 to +23 Mult (random each hand)",
-                        "Common", 4, 6, 2, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.Random(0, 23, "misprint"))))),
-                new JokerDef("j_bloodstone", "Bloodstone", "1 in 2 chance each played Heart gives x1.5 Mult",
-                        "Uncommon", 7, 0, 8, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED,
-                                new Condition.And(List.of(new Condition.ScoredSuit(Suit.HEARTS),
-                                        new Condition.Chance(1, 2, "bloodstone"))),
-                                new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
+                Jokers.common("j_misprint", "Misprint").cost(4).atlas(6, 2)
+                        .desc("Adds +0 to +23 Mult (random each hand)")
+                        .whenHand().add(MULT, new Value.Random(0, 23, "misprint")).build(),
+                Jokers.uncommon("j_bloodstone", "Bloodstone").cost(7).atlas(0, 8)
+                        .desc("1 in 2 chance each played Heart gives x1.5 Mult")
+                        .forEachScored(Cond.all(card().suit(Suit.HEARTS), new Condition.Chance(1, 2, "bloodstone")))
+                        .multiply(MULT, 1.5).build(),
 
                 // --- deck/run-stat scaling (Value.Stat) ---
-                new JokerDef("j_blue_joker", "Blue Joker", "+2 Chips for each card remaining in the deck",
-                        "Common", 5, 7, 10, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.CHIPS, new Value.Stat(Value.Which.DECK_REMAINING, 0, 2, null))))),
-                new JokerDef("j_abstract", "Abstract Joker", "+3 Mult for each Joker",
-                        "Common", 4, 3, 3, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.Stat(Value.Which.OWNED_JOKERS, 0, 3, null))))),
-                new JokerDef("j_stone", "Stone Joker", "+25 Chips for each Stone card in the deck",
-                        "Uncommon", 6, 9, 0, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.CHIPS,
-                                        new Value.Stat(Value.Which.DECK_ENH_COUNT, 0, 25, Enhancement.STONE))))),
-                new JokerDef("j_steel_joker", "Steel Joker", "x0.2 Mult for each Steel card in the deck",
-                        "Uncommon", 7, 7, 2, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT,
-                                        new Value.Stat(Value.Which.DECK_ENH_COUNT, 1.0, 0.2, Enhancement.STEEL))))),
+                Jokers.common("j_blue_joker", "Blue Joker").cost(5).atlas(7, 10)
+                        .desc("+2 Chips for each card remaining in the deck")
+                        .whenHand().add(CHIPS, new Value.Stat(Value.Which.DECK_REMAINING, 0, 2, null)).build(),
+                Jokers.common("j_abstract", "Abstract Joker").cost(4).atlas(3, 3)
+                        .desc("+3 Mult for each Joker")
+                        .whenHand().add(MULT, new Value.Stat(Value.Which.OWNED_JOKERS, 0, 3, null)).build(),
+                Jokers.uncommon("j_stone", "Stone Joker").cost(6).atlas(9, 0)
+                        .desc("+25 Chips for each Stone card in the deck")
+                        .whenHand().add(CHIPS, new Value.Stat(Value.Which.DECK_ENH_COUNT, 0, 25, Enhancement.STONE)).build(),
+                Jokers.uncommon("j_steel_joker", "Steel Joker").cost(7).atlas(7, 2)
+                        .desc("x0.2 Mult for each Steel card in the deck")
+                        .whenHand().multiply(MULT, new Value.Stat(Value.Which.DECK_ENH_COUNT, 1.0, 0.2, Enhancement.STEEL)).build(),
 
                 // --- MUTATE_CARD: Hiker permanently adds chips to each played card ---
-                new JokerDef("j_hiker", "Hiker", "Each played card permanently gains +5 Chips",
-                        "Uncommon", 5, 0, 11, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.Always(),
-                                EffectTemplate.mutate(CardMod.addChips(5))))),
+                Jokers.uncommon("j_hiker", "Hiker").cost(5).atlas(0, 11)
+                        .desc("Each played card permanently gains +5 Chips")
+                        .forEachScored(always()).effect(EffectTemplate.mutate(CardMod.addChips(5))).build(),
 
                 // --- MUTATE_CARD: Midas Mask turns played face cards into Gold cards ---
-                new JokerDef("j_midas_mask", "Midas Mask", "Played face cards become Gold cards when scored",
-                        "Uncommon", 7, 0, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredIsFace(),
-                                EffectTemplate.mutate(CardMod.setEnhancement(Enhancement.GOLD))))),
+                Jokers.uncommon("j_midas_mask", "Midas Mask").cost(7).atlas(0, 13)
+                        .desc("Played face cards become Gold cards when scored")
+                        .forEachScored(card().isFace()).effect(EffectTemplate.mutate(CardMod.setEnhancement(Enhancement.GOLD))).build(),
 
                 // --- MUTATE_CARD + stateful xMult: Vampire strips enhancements and grows ---
-                new JokerDef("j_vampire", "Vampire", "Gains x0.1 Mult per enhanced card played, removing its enhancement",
-                        "Uncommon", 7, 2, 12, null, null, true,
-                        List.of(new Mutation(Trigger.ON_SCORED,
-                                new Condition.Not(new Condition.ScoredEnhancement(Enhancement.NONE)),
-                                "xm", Mutation.Op.ADD, 0.1)),
-                        List.of(
-                                new Rule(Trigger.ON_SCORED,
-                                        new Condition.Not(new Condition.ScoredEnhancement(Enhancement.NONE)),
-                                        EffectTemplate.mutate(CardMod.removeEnhancement())),
-                                new Rule(Trigger.JOKER_MAIN, new Condition.Compare("xm", Cmp.GTE, 0.1),
-                                        new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0))))),
+                Jokers.uncommon("j_vampire", "Vampire").cost(7).atlas(2, 12)
+                        .desc("Gains x0.1 Mult per enhanced card played, removing its enhancement")
+                        .mutate(Trigger.ON_SCORED).when(not(card().enhancement(Enhancement.NONE))).gain("xm", 0.1)
+                        .forEachScored(not(card().enhancement(Enhancement.NONE)))
+                        .effect(EffectTemplate.mutate(CardMod.removeEnhancement()))
+                        .whenHand(state("xm").atLeast(0.1)).multiply(MULT, new Value.State("xm", 1.0, 1.0)).build(),
 
                 // --- economy-during-scoring: money earned mid-hand (credited at end) ---
-                new JokerDef("j_rough_gem", "Rough Gem", "Each played Diamond gives $1 when scored",
-                        "Uncommon", 7, 5, 9, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredSuit(Suit.DIAMONDS),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(1))))),
-                new JokerDef("j_business_card", "Business Card", "Played face cards have a 1 in 2 chance to give $2",
-                        "Common", 4, 1, 9, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED,
-                                new Condition.And(List.of(new Condition.ScoredIsFace(),
-                                        new Condition.Chance(1, 2, "business_card"))),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(2))))),
+                Jokers.uncommon("j_rough_gem", "Rough Gem").cost(7).atlas(5, 9)
+                        .desc("Each played Diamond gives $1 when scored")
+                        .forEachScored(card().suit(Suit.DIAMONDS)).add(DOLLARS, 1).build(),
+                Jokers.common("j_business_card", "Business Card").cost(4).atlas(1, 9)
+                        .desc("Played face cards have a 1 in 2 chance to give $2")
+                        .forEachScored(Cond.all(card().isFace(), new Condition.Chance(1, 2, "business_card")))
+                        .add(DOLLARS, 2).build(),
 
                 // --- flat / xMult jokers expressible with the existing algebra ---
-                new JokerDef("j_gros_michel", "Gros Michel", "+15 Mult",
-                        "Common", 5, 8, 2, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.Const(15))))),
-                new JokerDef("j_cavendish", "Cavendish", "x3 Mult",
-                        "Common", 5, 9, 2, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
-                new JokerDef("j_acrobat", "Acrobat", "x3 Mult on the final hand of the round",
-                        "Uncommon", 7, 8, 3, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.HANDS_LEFT, Condition.Cmp.LTE, 1),
-                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
-                new JokerDef("j_joker_stencil", "Joker Stencil",
-                        "x1 Mult for each empty Joker slot (Joker Stencil included)",
-                        "Uncommon", 7, 0, 4, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT,
-                                        new Value.Stat(Value.Which.EMPTY_JOKER_SLOTS, 1.0, 1.0, null))))),
-                new JokerDef("j_triboulet", "Triboulet", "Played Kings and Queens each give x2 Mult",
-                        "Legendary", 20, 4, 15, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredRankBetween(12, 13),
-                                new EffectTemplate(Op.XMULT, new Value.Const(2))))),
+                Jokers.common("j_gros_michel", "Gros Michel").cost(5).atlas(8, 2)
+                        .desc("+15 Mult").whenHand().add(MULT, 15).build(),
+                Jokers.common("j_cavendish", "Cavendish").cost(5).atlas(9, 2)
+                        .desc("x3 Mult").whenHand().multiply(MULT, 3).build(),
+                Jokers.uncommon("j_acrobat", "Acrobat").cost(7).atlas(8, 3)
+                        .desc("x3 Mult on the final hand of the round")
+                        .whenHand(runVar(Value.Var.HANDS_LEFT).atMost(1)).multiply(MULT, 3).build(),
+                Jokers.uncommon("j_joker_stencil", "Joker Stencil").cost(7).atlas(0, 4)
+                        .desc("x1 Mult for each empty Joker slot (Joker Stencil included)")
+                        .whenHand().multiply(MULT, new Value.Stat(Value.Which.EMPTY_JOKER_SLOTS, 1.0, 1.0, null)).build(),
+                Jokers.legendary("j_triboulet", "Triboulet").cost(20).atlas(4, 15)
+                        .desc("Played Kings and Queens each give x2 Mult")
+                        .forEachScored(card().rankBetween(12, 13)).multiply(MULT, 2).build(),
 
                 // --- ScoredFirst: retrigger the first scored card (Hanging Chad) ---
-                new JokerDef("j_hanging_chad", "Hanging Chad", "Retrigger the first played card 2 additional times",
-                        "Common", 4, 1, 5, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredFirst(),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(2))))),
+                Jokers.common("j_hanging_chad", "Hanging Chad").cost(4).atlas(1, 5)
+                        .desc("Retrigger the first played card 2 additional times")
+                        .on(Trigger.REPETITION_PLAYED).when(new Condition.ScoredFirst())
+                        .gives(Op.REPETITIONS, new Value.Const(2)).build(),
 
                 // --- ScoringContainsSuit: suit-coverage xMult jokers ---
                 new JokerDef("j_flower_pot", "Flower Pot",
