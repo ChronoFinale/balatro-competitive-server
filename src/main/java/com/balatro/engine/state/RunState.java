@@ -38,6 +38,7 @@ public final class RunState {
     // Per-poker-hand play tracking (Supernova counts run-long; Card Sharp checks this round).
     public final Map<HandType, Integer> handTypePlays = new EnumMap<>(HandType.class);
     public final java.util.Set<HandType> handTypesThisRound = java.util.EnumSet.noneOf(HandType.class);
+    public HandType lastPlayedHandType = null; // Blue Seal: the Planet it creates is for this round's last hand
     /** Per-round dynamic targets (Idol/Ancient/Castle/To Do/Rebate), re-rolled each blind and shipped to
      *  the client. A generic bag keyed by {@link RoundTargets.Spec#id} — values are Suit / Integer rank id /
      *  HandType. See {@link RoundTargets}; matched in scoring by the generic {@code *IsTarget} conditions. */

@@ -220,6 +220,7 @@ public final class Run {
         state.discardsUsedThisRound = 0;
         state.handsPlayedThisRound = 0;
         state.handTypesThisRound.clear();
+        state.lastPlayedHandType = null;
         luchadorDisabledBoss = false; // a fresh blind re-arms the boss (Luchador must be re-sold)
         pvpActive = false;
         state.bossHalveBase = false; // re-armed below only for The Flint
@@ -761,8 +762,16 @@ public final class Run {
         // Snapshot the hand so we can tell which cards the upcoming refill freshly drew (boss face-down).
         java.util.Set<java.util.UUID> handBefore = new java.util.HashSet<>();
         for (Card c : state.hand) handBefore.add(c.uid);
+        // Purple Seal: count the sealed cards in this discard before they leave the hand.
+        int purpleDiscards = 0;
+        if (intent instanceof Intent.Discard dscP) {
+            for (int i : dscP.cardIndices()) {
+                if (i >= 0 && i < state.hand.size() && state.hand.get(i).seal == Seal.PURPLE) purpleDiscards++;
+            }
+        }
         IntentResult result = intents.handle(state, rng, intent);
         if (!result.ok()) return result;
+        if (purpleDiscards > 0) applyPurpleSeals(purpleDiscards); // each makes a Tarot
         // Destroyed cards (Glass break, etc.) leave the deck permanently — raise
         // CARD_DESTROYED per card (Glass Joker / Canio count these), then purge from
         // the persistent composition + hand so they don't return next blind.
@@ -898,12 +907,7 @@ public final class Run {
     /** The Planet card key for your most-played hand (Telescope), or null if nothing's been played. */
     private String mostPlayedPlanetKey() {
         com.balatro.engine.hand.HandType mp = mostPlayedHand();
-        if (mp == null) return null;
-        for (String k : PlanetCatalog.keys()) {
-            PlanetCatalog.Planet p = PlanetCatalog.get(k);
-            if (p != null && p.hand() == mp) return k;
-        }
-        return null;
+        return mp == null ? null : PlanetCatalog.forHand(mp);
     }
 
     /** True while this run is in a Nemesis (PvP) blind, whether still playing or locked. */
@@ -988,12 +992,35 @@ public final class Run {
         state.lastBlindReward = reward; // cash-out breakdown for the end-of-round screen
         state.lastInterest = bonus;     // the non-reward bonus (per-hand/discard money + interest)
         if (boss != null) applyBossDefeatTags(); // Investment Tag pays out after a boss
+        applyBlueSeals(); // Blue Seal: held cards create the Planet for this round's last hand
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
         applyJokerStickerEffects(); // perishable countdown + rental rent (stakes)
         applyPennyPincher();
         phase = Phase.SHOP;
         refreshShopStock();
+    }
+
+    /** Blue Seal: each card still held at end of round creates the Planet for the round's last-played
+     *  hand, if there's a consumable slot free (Balatro's "Must have room"). */
+    private void applyBlueSeals() {
+        if (state.lastPlayedHandType == null) return; // nothing played this round (can't clear a blind anyway)
+        String planet = PlanetCatalog.forHand(state.lastPlayedHandType);
+        if (planet == null) return;
+        for (Card c : state.hand) {
+            if (c.seal != Seal.BLUE) continue;
+            if (state.consumables.size() >= state.consumableSlots) return; // out of room: the rest fizzle
+            state.consumables.add(planet);
+        }
+    }
+
+    /** Purple Seal: each purple-sealed card discarded creates a random Tarot, room permitting. */
+    private void applyPurpleSeals(int count) {
+        for (int i = 0; i < count; i++) {
+            com.balatro.engine.consumable.Creation.apply(state,
+                    new com.balatro.engine.joker.def.CreateSpec(
+                            com.balatro.engine.joker.def.CreateSpec.Kind.TAROT), state.queues);
+        }
     }
 
     /**

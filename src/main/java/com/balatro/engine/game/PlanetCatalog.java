@@ -52,6 +52,14 @@ public final class PlanetCatalog {
         return new ArrayList<>(BY_KEY.keySet());
     }
 
+    /** The Planet key that levels {@code hand} (Blue Seal / Telescope), or null if none maps to it. */
+    public static String forHand(HandType hand) {
+        for (Planet p : BY_KEY.values()) {
+            if (p.hand() == hand) return p.key();
+        }
+        return null;
+    }
+
     /**
      * The "secret" planets (Planet X / Ceres / Eris) for the hidden hands. BMP gates these behind having
      * played their hand at least once — they are UNAVAILABLE in pools until then (get_current_pool

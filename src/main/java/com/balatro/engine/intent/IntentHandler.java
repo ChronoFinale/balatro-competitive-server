@@ -60,6 +60,7 @@ public final class IntentHandler {
         else run.obeliskStreak++;
         run.handTypePlays.merge(score.handType(), 1, Integer::sum);
         run.handTypesThisRound.add(score.handType());
+        run.lastPlayedHandType = score.handType(); // Blue Seal reads this at end of round
         for (Card c : played) c.playedThisAnte = true; // The Pillar: a played card is debuffed if replayed this ante
         run.hand.removeAll(played);
         refill(run);
