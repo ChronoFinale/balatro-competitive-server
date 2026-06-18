@@ -9,11 +9,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.joker.def.Cond;
+import com.balatro.engine.joker.def.Condition;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.joker.def.JokerDef;
 import com.balatro.engine.joker.def.Jokers;
 import com.balatro.engine.joker.def.Target;
 import com.balatro.engine.joker.def.Val;
+import com.balatro.engine.joker.def.Value;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,35 @@ class JsonRulesetTest {
         // +5 per Diamond x2 -> 30 x (2 + 10) = 360, and the loaded copy is bit-identical in score.
         assertThat(scoreOf(built)).isEqualTo(30.0 * (2 + 5 + 5));
         assertThat(scoreOf(loaded)).isEqualTo(scoreOf(built));
+    }
+
+    @Test
+    void theUnifiedCompareConditionSerializesAsOneTypeAndRoundTrips() throws Exception {
+        // Guards the read-side cleanup: MoneyAtLeast/HandsLeft/Ante/... collapsed into one Compare,
+        // so the serialized form is a single "compare" type, not six bespoke ones.
+        JokerDef built = Jokers.common("j_rich_test", "Rich Test").cost(3)
+                .desc("+10 Mult if you have $20 or more")
+                .whenHand(Cond.runVar(Value.Var.MONEY).atLeast(20)).add(Target.MULT, 10)
+                .build();
+
+        String asJson = json.writeValueAsString(built);
+        assertThat(asJson).contains("\"type\":\"compare\"");
+        JokerDef loaded = json.readValue(asJson, JokerDef.class);
+        assertThat(loaded.rules().get(0).condition()).isInstanceOf(Condition.Compare.class);
+    }
+
+    @Test
+    void theSuitTargetTwinSerializesAsScoredSuitWithATargetKey() throws Exception {
+        // Guards the twin merge: ScoredSuitIsTarget folded into ScoredSuit(suit=null, targetKey=...).
+        JokerDef built = Jokers.uncommon("j_ancient_test", "Ancient Test").cost(8)
+                .desc("Each played card of the round's suit gives x1.5 Mult")
+                .forEachScored(Cond.card().suitIsTarget("ancientSuit")).multiply(Target.MULT, 1.5)
+                .build();
+
+        JokerDef loaded = json.readValue(json.writeValueAsString(built), JokerDef.class);
+        Condition.ScoredSuit ss = (Condition.ScoredSuit) loaded.rules().get(0).condition();
+        assertThat(ss.suit()).isNull();
+        assertThat(ss.targetKey()).isEqualTo("ancientSuit");
     }
 
     @Test
