@@ -1,11 +1,16 @@
 package com.balatro.engine.joker.def;
 
+import static com.balatro.engine.joker.def.Cond.card;
+import static com.balatro.engine.joker.def.Cond.discard;
+import static com.balatro.engine.joker.def.Cond.playedHand;
+import static com.balatro.engine.joker.def.Cond.state;
+import static com.balatro.engine.joker.def.Target.CHIPS;
+import static com.balatro.engine.joker.def.Target.DOLLARS;
+import static com.balatro.engine.joker.def.Target.MULT;
+
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Condition.Cmp;
-import com.balatro.engine.joker.def.EffectTemplate.Op;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,73 +30,47 @@ public final class JokerDefLibrary {
     private static final Map<String, JokerDef> DEFS = new LinkedHashMap<>();
 
     static {
-        // joker_main: flat +mult
-        put(new JokerDef("j_joker", "Joker", "+4 Mult", "Common", 2, 0, 0, null, null, true,
-                List.of(),
-                List.of(rule(Trigger.JOKER_MAIN, new Condition.Always(), Op.MULT, 4))));
+        put(Jokers.common("j_joker", "Joker").cost(2).atlas(0, 0).desc("+4 Mult")
+                .whenHand().add(MULT, 4).build());
 
-        // on_scored: per played Diamond, +3 mult
-        put(new JokerDef("j_greedy_joker", "Greedy Joker",
-                "Each played Diamond gives +3 Mult", "Common", 5, 6, 1, null, null, true,
-                List.of(),
-                List.of(rule(Trigger.ON_SCORED, new Condition.ScoredSuit(Suit.DIAMONDS), Op.MULT, 3))));
+        put(Jokers.common("j_greedy_joker", "Greedy Joker").cost(5).atlas(6, 1)
+                .desc("Each played Diamond gives +3 Mult")
+                .forEachScored(card().suit(Suit.DIAMONDS)).add(MULT, 3).build());
 
-        // joker_main: +50 chips if hand contains a pair
-        put(new JokerDef("j_sly_joker", "Sly Joker",
-                "+50 Chips if the played hand contains a Pair", "Common", 3, 0, 14, null, null, true,
-                List.of(),
-                List.of(rule(Trigger.JOKER_MAIN, new Condition.HandContainsPair(), Op.CHIPS, 50))));
+        put(Jokers.common("j_sly_joker", "Sly Joker").cost(3).atlas(0, 14)
+                .desc("+50 Chips if the played hand contains a Pair")
+                .whenHand(playedHand().containsPair()).add(CHIPS, 50).build());
 
-        // joker_main: +20 mult if 3 or fewer cards played
-        put(new JokerDef("j_half", "Half Joker",
-                "+20 Mult if 3 or fewer cards are played", "Common", 5, 7, 0, null, null, true,
-                List.of(),
-                List.of(rule(Trigger.JOKER_MAIN, new Condition.PlayedCount(Cmp.LTE, 3), Op.MULT, 20))));
+        put(Jokers.common("j_half", "Half Joker").cost(5).atlas(7, 0)
+                .desc("+20 Mult if 3 or fewer cards are played")
+                .whenHand(playedHand().sizeAtMost(3)).add(MULT, 20).build());
 
-        // on_scored: per played even-rank card, +4 mult
-        put(new JokerDef("j_even_steven", "Even Steven",
-                "Each played even-rank card gives +4 Mult", "Common", 4, 8, 3, null, null, true,
-                List.of(),
-                List.of(rule(Trigger.ON_SCORED, new Condition.ScoredParity(true), Op.MULT, 4))));
+        put(Jokers.common("j_even_steven", "Even Steven").cost(4).atlas(8, 3)
+                .desc("Each played even-rank card gives +4 Mult")
+                .forEachScored(card().even()).add(MULT, 4).build());
 
-        // stateful: +1 mult per consecutive faceless hand
-        put(new JokerDef("j_ride_the_bus", "Ride the Bus",
-                "+1 Mult per consecutive hand with no face card", "Common", 6, 1, 6, null, null, true,
-                List.of(
-                        // streak breaks to 0 on a face card, else advances by 1 (checked at BEFORE)
-                        new Mutation(Trigger.BEFORE, new Condition.ScoringAnyFace(), "streak", Mutation.Op.RESET, 0),
-                        new Mutation(Trigger.BEFORE, new Condition.Not(new Condition.ScoringAnyFace()), "streak", Mutation.Op.ADD, 1)),
-                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                        new EffectTemplate(Op.MULT, new Value.State("streak", 0, 1))))));
+        // streak breaks to 0 on a face card, else advances by 1 (checked at BEFORE)
+        put(Jokers.common("j_ride_the_bus", "Ride the Bus").cost(6).atlas(1, 6)
+                .desc("+1 Mult per consecutive hand with no face card")
+                .beforeScoring(playedHand().hasFace()).reset("streak")
+                .beforeScoring(playedHand().hasNoFace()).gain("streak", 1)
+                .whenHand().add(MULT, Val.state("streak")).build());
 
-        // retrigger: each played 2-5 retriggers once
-        put(new JokerDef("j_hack", "Hack",
-                "Retrigger each played 2, 3, 4, and 5", "Uncommon", 6, 5, 2, null, null, true,
-                List.of(),
-                List.of(rule(Trigger.REPETITION_PLAYED, new Condition.ScoredRankBetween(2, 5), Op.REPETITIONS, 1))));
+        put(Jokers.uncommon("j_hack", "Hack").cost(6).atlas(5, 2)
+                .desc("Retrigger each played 2, 3, 4, and 5")
+                .retriggerEachScored(card().rankBetween(2, 5)).build());
 
-        // lifecycle: +$4 at end of round
-        put(new JokerDef("j_golden", "Golden Joker", "+$4 at end of round", "Common", 6, 9, 2, null, null, true,
-                List.of(),
-                List.of(rule(Trigger.END_OF_ROUND, new Condition.Always(), Op.DOLLARS, 4))));
+        put(Jokers.common("j_golden", "Golden Joker").cost(6).atlas(9, 2).desc("+$4 at end of round")
+                .atEndOfRound().add(DOLLARS, 4).build());
 
-        // lifecycle: +$5 if 3+ face cards discarded at once
-        put(new JokerDef("j_faceless", "Faceless Joker",
-                "+$5 if 3 or more face cards are discarded at once", "Common", 4, 1, 11, null, null, true,
-                List.of(),
-                List.of(rule(Trigger.PRE_DISCARD, new Condition.DiscardedFaceCount(3), Op.DOLLARS, 5))));
+        put(Jokers.common("j_faceless", "Faceless Joker").cost(4).atlas(1, 11)
+                .desc("+$5 if 3 or more face cards are discarded at once")
+                .whenDiscarding(discard().faces(3)).add(DOLLARS, 5).build());
 
-        // stateful: gains x0.1 mult per Planet used
-        put(new JokerDef("j_constellation", "Constellation",
-                "Gains x0.1 Mult per Planet card used", "Uncommon", 6, 9, 10, null, null, true,
-                List.of(new Mutation(Trigger.USE_CONSUMABLE, new Condition.ConsumableType("Planet"),
-                        "planets", Mutation.Op.ADD, 1)),
-                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("planets", Condition.Cmp.GTE, 1),
-                        new EffectTemplate(Op.XMULT, new Value.State("planets", 1.0, 0.1))))));
-    }
-
-    private static Rule rule(Trigger when, Condition cond, Op op, double amount) {
-        return new Rule(when, cond, new EffectTemplate(op, new Value.Const(amount)));
+        put(Jokers.uncommon("j_constellation", "Constellation").cost(6).atlas(9, 10)
+                .desc("Gains x0.1 Mult per Planet card used")
+                .whenUsing("Planet").gain("planets", 1)
+                .whenHand(state("planets").atLeast(1)).multiply(MULT, new Value.State("planets", 1.0, 0.1)).build());
     }
 
     private static void put(JokerDef def) {
