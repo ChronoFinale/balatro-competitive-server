@@ -1,156 +1,163 @@
-# 42 — Effects: the Rule/Action model (v3)
+# 42 — The instruction set (effects, selectors, and where the line is)
 
-> Status: **proposed.** Refines the "effect-op" design of doc 40 and completes the read/write
-> unification of doc 41. The read side (`Condition`) and the standing-write side (`Modify`/`Value.Var`)
-> are already sealed/clean; this brings the **triggered-effect** side up to the same bar.
+> Status: **foundation spec.** Completes the read/write unification of doc 41 (variables) and replaces
+> the "effect-op" sketch of doc 40. This is the *model* the content layer is built to. It also draws an
+> explicit line: **data for content, code for the engine** — and documents the deepest generalizations
+> as understood-but-deliberately-not-built.
 
-## The problem (what's stupid today)
+## The grammar (the whole game)
 
-A data joker carries two parallel triggered concepts plus a god-record:
+Every piece of Balatro content is a **Source** — a joker, a card, a held planet, a boss, a deck, a
+voucher, a tag, a hand-type definition. There is **no privileged source.** A source contributes:
 
-```java
-record Rule(Trigger when, Condition condition, EffectTemplate effect)
-record Mutation(Trigger when, Condition condition, String var, Op op, double by, Condition perCard, Scope scope)
-record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod cardMod, CreateSpec create)
-enum EffectTemplate.Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT,
-                         MUTATE_CARD, CREATE, DESTROY_SCORED, DESTROY_DISCARDED, LEVEL_UP_HAND, COPY_SCORED }
-```
+- **Rules** — `(Trigger, Condition, [Effect])` — "at this moment, if this holds, do these."
+- **Standing modifiers** — effects with a *while-present* trigger, resolved by folding (the doc-41 model).
 
-Three concrete smells:
+The engine, at each moment, gathers rules from every active source matching the trigger and runs their
+effects in order. It never asks "is this a joker?"
 
-1. **`EffectTemplate` is a tagged union faked with nulls.** A 12-arm `Op` enum decides which of
-   `{value, extra, cardMod, create}` is meaningful; at any use ~3 are null. `MUTATE_CARD` isn't an
-   *operator*, it's a *kind of effect*. This is the exact shape we deleted for `Condition`.
-2. **`Rule` and `Mutation` are the same shape** — `(trigger, condition, <action>)` — kept in two
-   lists and evaluated in two loops in `DataJoker`. The only difference is the action *kind*.
-3. **Three overlapping `Op` enums** — `EffectTemplate.Op`, `Mutation.Op {ADD,SET,RESET}`,
-   `Modify.Op {ADD,SET,MULTIPLY,MAX,MIN}` — one of which (`EffectTemplate.Op`) is really a kind-tag.
+## The collapse: there is basically one effect
 
-## Principle
-
-> Every triggered effect is **`Rule(trigger, condition, [Action…])`**. `Action` is a closed sum of the
-> things a joker can *do*. There is no separate `Mutation` type and no `EffectTemplate` null-bag.
-
-This is the same move that made `Condition` clean (sealed sum, not tag+nulls), applied to the do-side.
-
-## Target model
-
-```java
-record Rule(Trigger when, Condition condition, List<Action> actions) {}
-
-sealed interface Action {
-    // --- scoring contributions (the numeric algebra) ---
-    record Score(ScoreOp op, Value value) implements Action {}     // +chips/+mult/xmult/^mult/+$/retrigger/held-mult
-    record Swap()    implements Action {}                          // swap running chips & mult
-    record Balance() implements Action {}                          // average chips & mult
-
-    // --- card actions ---
-    record MutateCard(CardMod mod) implements Action {}            // Hiker / Midas / Vampire
-    record CopyScored()            implements Action {}            // DNA
-    record Destroy(Target target)  implements Action {}            // SCORED | DISCARDED
-
-    // --- world actions ---
-    record Create(CreateSpec spec) implements Action {}            // 8 Ball / Cartomancer / Riff-Raff / Sixth Sense
-    record LevelUpHand(Value levels) implements Action {}          // Space / Burnt
-
-    // --- persistent state (was Mutation) ---
-    record MutateState(String var, StateOp op, Value by,           // Square / Ride the Bus / Yorick / Gift Card
-                       Condition perCard, Scope scope) implements Action {}
-
-    enum Target { SCORED, DISCARDED }
-}
-
-enum ScoreOp { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT }
-enum StateOp { ADD, SET, RESET }          // was Mutation.Op
-// Modify.Op { ADD, SET, MULTIPLY, MAX, MIN } stays — different domain (the variable fold).
-```
-
-**The chain goes away.** `EffectTemplate.extra` existed only to express "do A *and* B in one rule"
-(Scholar = +20 chips and +4 mult). That is now just a longer `actions` list:
-
-```java
-Rule(ON_SCORED, isAce, [Score(CHIPS, 20), Score(MULT, 4)])
-Rule(ON_SCORED, single6, [Destroy(SCORED), Create(spec(SPECTRAL))])   // Sixth Sense
-```
-
-### The three Op enums, now justified
-
-| Enum | Domain | Verbs |
-|---|---|---|
-| `ScoreOp` | a hand's running score | CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT |
-| `Modify.Op` | a `Value.Var` fold (while-owned) | ADD, SET, MULTIPLY, MAX, MIN |
-| `StateOp` | a per-joker state counter | ADD, SET, RESET |
-
-They overlap in name (ADD/SET) but operate on genuinely different things; each is now *only* its own
-operators, with no kind-tags mixed in. That's the acceptable end state — three small, single-purpose
-enums instead of one overloaded one.
-
-## What does NOT change
-
-- **`JokerEffect` (runtime).** Still the computed accumulator the scoring engine reads
-  (chips/mult/…/destroyScored/create/…). `Action.apply(ctx)` populates it. Data→runtime stays a real
-  boundary (preview computes a `JokerEffect` without committing). Only the *data* side changes.
-- **Standing modifiers** — `JokerDef.mods()` (Value.Var), `handMods` (hand-eval), `runMod`
-  (capabilities). These are "while owned," not triggered, so they are out of scope here. (`RunMod`'s
-  clumsy positional capability bag is a *separate* cleanup — see Open items.)
-- **`CardMod`, `CreateSpec`, `Value`, `Condition`, `Trigger`** — reused verbatim as Action payloads.
-
-## Evaluation semantics
-
-`DataJoker.calculate(ctx)` collapses two loops into one:
+The move that makes the model small: the running **chips / mult** of a hand are just **variables**
+(transient, reset each hand). So a "score contribution" is a variable write, and once you see that, most
+effects are the same instruction:
 
 ```
-for each Rule r where r.when == ctx.phase && r.condition.test(ctx):
-    for each Action a in r.actions:
-        a.apply(ctx, effect)        // Score → accumulate into the returned JokerEffect chain
-                                    // MutateState/MutateCard/Create/Destroy/… → perform (state skipped in preview/blueprint)
+joker "+4 Mult"        Add( scoring.mult, 4 )
+Bonus card "+30 Chips"  Add( scoring.chips, 30 )
+Polychrome "x1.5"       Mul( scoring.mult, 1.5 )
+Flint "halve base"      Mul( scoring.chips, 0.5 ); Mul( scoring.mult, 0.5 )
+Juggler "+1 hand size"  Add( run.handSize, 1 )           (standing → folded)
+Burglar "no discards"   Set( run.discards, 0 )
+Four Fingers            Set( hands[flush].size, 4 ); Set( hands[straight].length, 4 )
+Pluto                   Add( hands[highCard].level, 1 )
+Hiker "+5 chips a card" Add( card[focus].chips, 5 )       ("mutate a card" is a slot write)
+Midas                   Set( card[focus].enhancement, GOLD )
+final score             scoring.chips x scoring.mult
 ```
 
-**Decision — accumulate, don't first-match.** Today rules "first match for a trigger wins" (return on
-first), while mutations "all apply." Unified, **all matching rules contribute**; score actions
-accumulate into one effect chain. For the ~all jokers with one rule per trigger this is identical.
-*Migration must verify* no joker relies on exclusive first-match (a later rule being suppressed by an
-earlier match on the same trigger) — grep for jokers with ≥2 rules on the same `Trigger` and confirm.
+`Score` was never its own thing; neither was `MutateCard`. They are **`Modify(selector.slot, value)`**.
 
-**Preview / blueprint gating** stays per-action, not per-list: `MutateState` and other world-mutating
-actions are skipped when `ctx.preview` or `ctx.blueprintDepth > 0`; `Score`/`MutateCard` previews run.
+## The primitives
 
-## Serialization & the preview mirror (the real cost)
+Eight, orthogonal:
 
-- **`Action` gets `@JsonTypeInfo`/`@JsonSubTypes`** exactly like `Condition`. The on-the-wire shape of
-  an effect changes from `{ "op": "MULT", "value": {…} }` to `{ "type": "score", "op": "MULT",
-  "value": {…} }`, and a rule's `effect` object becomes an `actions` array. **This is a breaking JSON
-  format change** for any hand-authored ruleset; update `JsonRulesetTest`'s raw-JSON joker.
-- **`preview.js` must mirror `Action`.** It currently switches on `effect.op` and walks `effect.extra`;
-  it will switch on `action.type` over the `actions` array. The preview-mirror invariant (doc 36)
-  holds: every new Action kind needs a `preview.js` arm + a fixture.
+1. **Entity** — a thing with slots: `run`, a `card`, a `joker`, a hand-type **definition**, `scoring`,
+   `shop`, `boss`.
+2. **Slot** — a named, **typed** property of an entity. Numeric (`chips`, `money`, `size`, `level`) or
+   categorical (`suit`, `enhancement`). *This is what "variable" actually is — qualified by its owner.*
+3. **Registry** — a named catalog of definitions (the hand types; also the joker pool, vouchers, …).
+   Registry entries are entities you can select and modify (that is the "somewhere" Four Fingers needs).
+4. **Value** — how to compute a number: literal · read `selector.slot` · `count(Selector)` · scale
+   (`base + per·X`) · random. *(have it: `Value`)*
+5. **Condition** — a boolean over Values/slots; and/or/not; plus the set-shape predicates below. *(have it)*
+6. **Selector** — which entities a thing refers to (see vocabulary below). *(the genuinely new primitive)*
+7. **Effect** — the verbs. Score folded into the first, so the list is tiny:
+   - `Modify(Selector.slot, Op, Value)` — resources, **score**, hand-eval knobs, card stats, joker state
+   - `Create(spec)` · `Destroy(Selector)` · `Copy(Selector → dest)` — change the *set* of entities
+   - `Retrigger(Selector, n)` — the one control-flow verb
+8. **Rule** = `(Trigger, Condition, [Effect])`; a **Source** = identity + `[Rule]` + its state.
 
-## Authoring (the builder barely moves)
+### The `Selector` vocabulary (closed set)
 
-The fluent `Jokers` builder already speaks this language; the terminals just emit `Action`s instead of
-`EffectTemplate`s. `.add(MULT, 4)` → `Score(MULT, …)`; `.create(kind)` → `Create`; `.mutateCard(mod)`
-→ `MutateCard`; `.gain(var, by)` → `MutateState`. Compound `of(CHIPS,20).and(MULT,4)` becomes "append
-two actions." Net: authoring reads the same; the data underneath is type-safe.
+The "what does this act on" that kept reappearing as `Target`/`Scope`/hardcoded keys. One vocabulary,
+reused by `Modify`/`Destroy`/`Copy`/`Create`:
 
-## Migration stages (each its own green commit)
+```
+focus            the entity this moment is about (the scored card, the discarded set, the sold joker)
+self             this source
+run | scoring | shop | boss      the singleton entities
+selected         player-chosen cards (consumables)
+cardsMatching(Condition)         e.g. held Kings, scoring Hearts
+jokers(which)    self | others | neighbor | random | all
+registry[key]    a definition, e.g. hands[flush]
+randomInHand(n)
+```
 
-1. **Introduce `Action` (sealed) + `ScoreOp`/`StateOp`** alongside the old types; write `Action.apply`.
-2. **Re-point `Rule`** to `List<Action>`; make `EffectTemplate` a thin adapter that emits actions
-   (keeps every existing def compiling) — or migrate defs directly via the builder (defs already go
-   through the builder, so this is mostly internal).
-3. **Fold `Mutation` into `Action.MutateState`**; merge `rules`+`mutations` into the single loop;
-   delete `Mutation` and the second list from `JokerDef`.
-4. **Delete `EffectTemplate`** once nothing references it; update JSON subtypes + `preview.js` + the
-   round-trip/fixture tests.
-5. Verify against the full suite + the golden scoring fixtures at every stage.
+Cardinality and existence of `focus` come from the **Trigger** (no `focus` on a whole-hand moment).
 
-## Open items (decide before stage 1)
+### The set-shape predicate library (engine primitives, parameters are data)
 
-- **First-match vs accumulate** (above) — confirm by audit; pick accumulate unless a joker breaks.
-- **`Swap`/`Balance`** — keep as distinct `Action`s, or are they really `Score`-adjacent? (Plasma's
-  balance is a deck flag today, not a joker action — likely leave `Balance` out of `Action`.)
-- **`RunMod` capability bag** — out of scope here, but it's the *next* "tag+positional-bag" smell: a
-  flat record of ~10 booleans where adding a capability touches ~10 sites. Same medicine (an open
-  `Set<Capability>` / sealed capability records) should follow this work.
-- **JSON back-compat** — do we need to read old `{op,…}` effect JSON, or is a clean break fine? (No
-  external rulesets ship yet → clean break is fine.)
+A poker hand is **not** a primitive — it is a registry row whose `match` is built from two predicates:
+
+```
+groupSizes(attribute) ⊇ pattern     pair {2} · two pair {2,2} · full house {3,2} · flush {size}
+isRun(length, maxGap)               straights
+```
+
+over a **resolved** attribute (Wild → every suit-group, Smeared → merged, Stone → none; Pareidolia →
+all face). The same library powers jokers (Flower Pot = `distinctCount(suit)==4`). Hand definitions
+live in the registry; their thresholds (`size`, `length`, `gap`) are **slots** modifiers can write.
+
+## The two structural facts (not "just effects")
+
+1. **Per-variable resolution mode.** Many effects hit one slot — how do they combine?
+   - **sequential** — transient scoring slots (`scoring.chips/mult`): apply in pipeline order; order matters.
+   - **fold** — persistent slots (`run.handSize`, caps): order-independent by op precedence
+     `SET → ADD → MUL → MAX → MIN` (the existing `Modify.fold`).
+   The **slot declares** its mode. Same `Modify` instruction.
+2. **Trigger → focus.** The moment sets the focus entity (and whether one exists), which then constrains
+   which effects are even legal (`Modify(card[focus]…)` is meaningless on a whole-hand moment).
+
+## THE LINE — data for content, code for the engine
+
+This is the most important section. Pushing "everything is `Modify` data" *into the engine* builds an
+inner platform: a slow, hard-to-debug interpreter re-implementing programming. The heuristic that keeps
+us out of it is **count the instances**:
+
+- **Many instances of a pattern → data.** Jokers (~150), consumables (~40), vouchers (32), tags, seals,
+  enhancements, editions. These are content. Express them as `Rule`/`Effect` data over the primitives.
+- **One fixed mechanic → code.** The scorer, the hand evaluator, the fold resolver. 12 hand types and
+  one pipeline, forever. This is the **interpreter**, and an interpreter being *code is correct.*
+
+### Built (the content altitude)
+
+- The variable/slot space — **including** the hand-eval knobs (`hands[flush].size`, `STRAIGHT_GAP`) and
+  the scoring accumulators — so modifiers and score are uniform.
+- **One `Effect` vocabulary** (`Modify`/`Create`/`Destroy`/`Copy`/`Retrigger`) over a `Selector`, shared
+  across jokers, consumables, vouchers, decks, bosses.
+- `Rule(trigger, condition, [Effect])` — sealed `Effect`, no `EffectTemplate` null-bag, no separate
+  `Mutation` type (state writes are `Modify(self.state.X, …)`).
+- Helpers on top: the fluent builder, the catalogs, families, coverage nets, JSON schema, preview mirror.
+
+### Deliberately NOT built (the deep turtles — understood, not implemented)
+
+- **Data-driven hand evaluator.** The hand *registry rows + thresholds* are data (so Four Fingers is a
+  `Modify`); the *match interpreter* (`groupSizes`/`isRun`) stays code. We do **not** turn the evaluator
+  into interpreted match predicates — its entire payoff would be ~2 jokers, against a bit-exact,
+  golden-fixture-tested core.
+- **Generic-interpreted scoring spine.** The scorer stays direct arithmetic that *gathers* effect
+  contributions and reads modifiable knobs. We do **not** route every base-chip through a `Modify`
+  interpreter in the hot path (hands score thousands of times in tests/autoplay).
+- **Enhancements/editions/seals as data rules.** Conceptually they *are* `ON_SCORED → Modify(scoring…)`;
+  pragmatically they stay fast code contributing to the same scoring slots. Revisit only if a content
+  reason (not purity) appears.
+
+> Rule of thumb: **make the knob a variable, not the mechanic a program.** Four Fingers needs
+> `hands[flush].size` to be a readable slot — it does **not** need the flush *checker* to be data.
+
+## What this replaces
+
+`EffectTemplate` (the `(Op, Value, extra, CardMod, CreateSpec)` null-bag), `Mutation` (now
+`Modify(self.state…)`), `Consumable.Effect`'s parallel vocabulary, and the per-`Target`/`Scope` enums —
+all become `Rule(trigger, condition, [Effect])` + the one `Selector`. `JokerEffect` (runtime
+accumulator) stays; preview still mirrors it.
+
+## Bounded next build (the only thing to actually code next)
+
+1. Introduce sealed **`Effect`** + the **`Selector`** vocabulary; write the interpreter (`apply`).
+2. Re-point **`Rule`** to `[Effect]`; migrate the builder terminals (they already speak this).
+3. Fold **`Mutation`** into `Modify(self.state…)`; merge `rules`+`mutations`; delete `Mutation`.
+4. Delete `EffectTemplate`; update JSON `@JsonSubTypes` + `preview.js` + round-trip/fixture tests.
+5. Unify `Consumable.Effect` onto the same `Effect`+`Selector` (selected-target instead of focus).
+
+Each stage its own green commit; verify against the golden scoring fixtures throughout. The hand
+evaluator and scoring arithmetic are **out of scope** by the line above — they stay code, exposing slots.
+
+## Open items (small, decide at stage 1)
+
+- **Accumulate vs first-match** for multiple rules on one trigger — audit for any joker with ≥2 rules on
+  the same trigger; default to *accumulate* unless one breaks.
+- **Clean JSON break** (no external rulesets ship yet) — no back-compat deserializer.
+- **`RunMod` capability bag** — the residual: capabilities that aren't `Modify` (disablesBoss, survives,
+  sell-hooks). Out of scope here; its positional-bag clumsiness is the *next* cleanup, not this one.
