@@ -52,6 +52,29 @@ class GameVarModifierTest {
     }
 
     @Test
+    void everySourceFoldsTogetherOnTheSameVariables() {
+        // The whole point: a deck, a boss, jokers and a voucher all modify the same game variables
+        // through one fold. Painted (+2 size), Juggler (+1 size), Grabber (+1 hand), Burglar (+3 hands,
+        // no discards), forced Needle (set hands 1). Hands: set 1 then +3 (Burglar) +1 (Grabber) = 5.
+        Run run = new Run(Ruleset.standard(), "ALL", stoneDeck(300),
+                jokers("j_juggler", "j_burglar", "j_joker", "j_joker", "j_joker"),
+                Stake.WHITE, DeckCatalog.get("d_painted"));
+        run.state.vouchers.add("v_grabber");
+        run.forcedBoss = Bosses.of("bl_needle", "The Needle").desc("one hand")
+                .requirement(100).hands(1).build();
+
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // clear Small
+        run.proceed();
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4))); // clear Big
+        run.proceed();
+        assertThat(run.blind).isEqualTo(BlindType.BOSS);
+
+        assertThat(run.state.handsLeft).isEqualTo(1 + 3 + 1);        // Needle SET 1, then Burglar +3, Grabber +1
+        assertThat(run.state.discardsLeft).isZero();                 // Burglar: no discards (final override)
+        assertThat(run.state.handSize).isEqualTo(8 + 2 + 1);         // base + Painted + Juggler
+    }
+
+    @Test
     void aVoucherFoldsIntoTheResourceLikeAnyOtherModifier() {
         // A voucher is no longer a key-string in Run; it carries Modify(HANDS_LEFT/DISCARDS_LEFT, ...)
         // as data and folds in with the deck/boss/joker modifiers.
