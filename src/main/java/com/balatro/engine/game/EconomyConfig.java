@@ -1,6 +1,7 @@
 package com.balatro.engine.game;
 
 import com.balatro.engine.joker.Joker;
+import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.joker.def.Modify;
 import com.balatro.engine.joker.def.Value;
 import java.util.ArrayList;
@@ -33,11 +34,14 @@ public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInt
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) mods.addAll(def.mods());
         }
+        for (Joker j : jokers) {                             // jokers contribute the same Modify vocabulary
+            if (j instanceof DataJoker dj) mods.addAll(dj.def().mods());
+        }
         int cap = (int) Modify.fold(BASE_INTEREST_CAP, Value.Var.INTEREST_CAP, mods);
         boolean noInterest = cap <= 0;                       // derived — Green caps interest at 0
-        boolean moon = jokers.stream().anyMatch(j -> "j_to_the_moon".equals(j.key())); // +$1/$5, uncapped
-        boolean credit = jokers.stream().anyMatch(j -> "j_credit_card".equals(j.key())); // debt floor of -$20
-        return new EconomyConfig(green ? 2 : 1, green ? 1 : 0, noInterest, cap, moon, credit ? -20 : 0);
+        int minMoney = (int) Modify.fold(0, Value.Var.MIN_MONEY, mods); // Credit Card: min(MIN_MONEY, -20)
+        boolean moon = jokers.stream().anyMatch(j -> "j_to_the_moon".equals(j.key())); // +$1/$5, uncapped (formula-coupled)
+        return new EconomyConfig(green ? 2 : 1, green ? 1 : 0, noInterest, cap, moon, minMoney);
     }
 
     /** $ from remaining hands + remaining discards. */

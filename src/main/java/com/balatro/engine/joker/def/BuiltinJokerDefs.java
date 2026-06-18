@@ -702,7 +702,7 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 27: shop/economy hooks (Credit Card, Chaos, Astronomer) ---
                 Jokers.common("j_credit_card", "Credit Card").cost(1).atlas(0, 15)
-                        .desc("Go up to -$20 in debt").behaviorInCode().build(),
+                        .desc("Go up to -$20 in debt").mods(Modify.min(Value.Var.MIN_MONEY, -20)).build(),
                 Jokers.common("j_chaos", "Chaos the Clown").cost(4).atlas(1, 15)
                         .desc("1 free reroll each shop")
                         .mods(Modify.add(Value.Var.FREE_REROLLS, 1)).build(),
