@@ -358,6 +358,13 @@ public sealed interface Condition {
         }
     }
 
+    /** The blind just selected is a Boss blind (BLIND_SELECTED; Madness skips bosses). */
+    record BossBlindSelected() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.bossBlind;
+        }
+    }
+
     /** The consumable in play is of this category ("Tarot" | "Planet" | "Spectral"). */
     record ConsumableType(String consumable) implements Condition {
         public boolean test(EvaluationContext ctx) {

@@ -41,6 +41,8 @@ public final class EvaluationContext {
     public boolean allFaces;
     /** END_OF_ROUND: true when the round just won was a Boss blind (Rocket). */
     public boolean bossDefeated;
+    /** BLIND_SELECTED: true when the blind just selected is a Boss blind (Madness skips bosses). */
+    public boolean bossBlind;
 
     public Joker self() {
         return jokers.get(selfIndex);

@@ -232,7 +232,8 @@ public final class Run {
         state.probabilityNumerator = 1 << Math.min((int) oops, 8);
         rollRoundTargets();  // The Idol / Ancient targets, re-rolled each blind
         int deckBefore = composition.size();
-        GameEvents.raise(Trigger.BLIND_SELECTED, state, rng, null); // Cartomancer, Marble, ...
+        boolean bossNow = blind == BlindType.BOSS;
+        GameEvents.raise(Trigger.BLIND_SELECTED, state, rng, ctx -> ctx.bossBlind = bossNow); // Cartomancer, Marble, Madness
         // Cards added to the deck (Marble/Certificate) raise CARD_ADDED so Hologram counts them.
         for (int i = composition.size() - deckBefore; i > 0; i--) {
             GameEvents.raise(Trigger.CARD_ADDED, state, rng, null);
@@ -282,10 +283,10 @@ public final class Run {
             int gain = 2 * Math.max(1, victim.info().cost() / 2);
             state.addJokerInt(js.get(i), "mult", gain);
         }
-        if (blind == BlindType.BOSS) return; // Madness doesn't trigger on boss blinds
+        if (blind == BlindType.BOSS) return; // joker-eaters (Madness) don't trigger on boss blinds
         for (int i = 0; i < js.size(); i++) {
-            if (!js.get(i).key().equals("j_madness")) continue;
-            state.addJokerDouble(js.get(i), "xm", 0.5);
+            // Madness: a data capability (the ×0.5 Mult rides a Mutation; this is just "eat a joker").
+            if (!(js.get(i) instanceof DataJoker dj) || !dj.def().runMod().consumesRandomJokerOnBlindSelect()) continue;
             List<Joker> others = new ArrayList<>();
             for (int k = 0; k < js.size(); k++) { // eternal jokers can't be destroyed -> excluded as targets
                 if (k != i && !state.jokerFlag(js.get(k), "eternal")) others.add(js.get(k));
@@ -312,14 +313,25 @@ public final class Run {
 
     /** The boss blind's ability is off — Chicot (always) or Luchador (sold this blind). */
     private boolean bossDisabled() {
-        return luchadorDisabledBoss || state.jokers().stream().anyMatch(j -> j.key().equals("j_chicot"));
+        return luchadorDisabledBoss || anyOwnedRunMod(m -> m.disablesBoss()); // Chicot: a data capability
+    }
+
+    /** True if any owned (data) joker grants a passive {@link RunMod} capability matching {@code test}. */
+    private boolean anyOwnedRunMod(java.util.function.Predicate<RunMod> test) {
+        for (Joker j : state.jokers()) {
+            if (j instanceof DataJoker dj && test.test(dj.def().runMod())) return true;
+        }
+        return false;
     }
 
     /** Mr Bones: survive a failed blind (and self-destruct) if at least 25% of the requirement was scored. */
     private boolean mrBonesSaves() {
-        if (requirement <= 0 || state.roundScore < requirement / 4) return false;
+        if (requirement <= 0) return false;
+        // Mr Bones (data capability): survive — and self-destruct — if you reached its score fraction.
         for (int i = 0; i < state.jokers().size(); i++) {
-            if (state.jokers().get(i).key().equals("j_mr_bones")) {
+            if (!(state.jokers().get(i) instanceof DataJoker dj)) continue;
+            double fraction = dj.def().runMod().survivesLostBlindFraction();
+            if (fraction > 0 && state.roundScore >= requirement * fraction) {
                 state.jokers().remove(i);
                 return true;
             }

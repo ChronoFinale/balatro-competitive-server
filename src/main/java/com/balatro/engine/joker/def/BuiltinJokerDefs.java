@@ -831,9 +831,13 @@ public final class BuiltinJokerDefs {
                                 new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
                 new JokerDef("j_madness", "Madness",
                         "On Small/Big blind select, gains x0.5 Mult and destroys a random Joker",
-                        "Uncommon", 7, 0, 16, null, null, true, List.of(),
+                        "Uncommon", 7, 0, 16, null, null, true,
+                        // ×0.5 Mult is a Mutation; eating a random joker is the jokerEater() capability.
+                        List.of(new Mutation(Trigger.BLIND_SELECTED,
+                                new Condition.Not(new Condition.BossBlindSelected()), "xm", Mutation.Op.ADD, 0.5)),
                         List.of(new Rule(Trigger.JOKER_MAIN, new Condition.StateAtLeast("xm", 0.5),
-                                new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0))))),
+                                new EffectTemplate(Op.XMULT, new Value.State("xm", 1.0, 1.0)))),
+                        List.of(), RunMod.jokerEater()),
 
                 // --- batch 31: Satellite (unique-planet economy) ---
                 new JokerDef("j_satellite", "Satellite",
@@ -853,9 +857,9 @@ public final class BuiltinJokerDefs {
                                         new Condition.Chance(1, 2, "reserved_parking"))),
                                 new EffectTemplate(Op.DOLLARS, new Value.Const(1))))),
 
-                // --- batch 29: boss-ability disable (Chicot) ---
-                new JokerDef("j_chicot", "Chicot", "Disables the effect of every Boss Blind",
-                        "Legendary", 20, 5, 15, null, null, true, List.of(), List.of()),
+                // --- batch 29: boss-ability disable (Chicot) — a passive capability, expressed as data ---
+                runModJoker("j_chicot", "Chicot", "Disables the effect of every Boss Blind",
+                        "Legendary", 20, 5, 15, RunMod.bossDisabler()),
 
                 // --- batch 28: sell-value bonus (Egg, Gift Card) ---
                 new JokerDef("j_egg", "Egg", "Gains $3 of sell value at the end of each round",
@@ -878,10 +882,10 @@ public final class BuiltinJokerDefs {
                 new JokerDef("j_astronomer", "Astronomer", "All Planet cards in the shop are free",
                         "Uncommon", 8, 2, 15, null, null, true, List.of(), List.of()),
 
-                // --- batch 26: Run-level hooks (Mr Bones death-save, To the Moon interest) ---
-                new JokerDef("j_mr_bones", "Mr. Bones",
+                // --- batch 26: Run-level hooks (To the Moon interest); Mr Bones is a passive capability ---
+                runModJoker("j_mr_bones", "Mr. Bones",
                         "Prevents death if at least 25% of the required score was reached (then self-destructs)",
-                        "Uncommon", 5, 8, 14, null, null, true, List.of(), List.of()),
+                        "Uncommon", 5, 8, 14, RunMod.survivesLostBlind(0.25)),
                 new JokerDef("j_to_the_moon", "To the Moon",
                         "Earn an extra $1 of interest per $5 at end of round",
                         "Uncommon", 5, 9, 14, null, null, true, List.of(), List.of()),
