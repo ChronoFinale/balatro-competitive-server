@@ -25,7 +25,6 @@ public final class Decks {
     private int jokerSlotsDelta = 0;
     private boolean greenEconomy = false;
     private Composition composition = Composition.STANDARD;
-    private int consumableSlotDelta = 0;
     private final List<String> vouchers = new ArrayList<>();
     private final List<String> consumables = new ArrayList<>();
     private int spectralRate = 0;
@@ -52,7 +51,7 @@ public final class Decks {
 
     public Decks handSize(int n) { resourceMods.add(Modify.add(Value.Var.HAND_SIZE, n)); return this; }
 
-    public Decks consumableSlots(int n) { this.consumableSlotDelta = n; return this; }
+    public Decks consumableSlots(int n) { resourceMods.add(Modify.add(Value.Var.CONSUMABLE_SLOTS, n)); return this; }
 
     public Decks greenEconomy() { this.greenEconomy = true; return this; }
 
@@ -81,7 +80,7 @@ public final class Decks {
 
     public DeckType build() {
         return new DeckType(key, name, desc, List.copyOf(resourceMods), jokerSlotsDelta,
-                greenEconomy, composition, consumableSlotDelta,
+                greenEconomy, composition,
                 List.copyOf(vouchers), List.copyOf(consumables),
                 spectralRate, balanceChipsMult, blindSizeMult, List.copyOf(onBossDefeatTags));
     }

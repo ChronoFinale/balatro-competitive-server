@@ -85,6 +85,8 @@ public final class VoucherCatalog {
         addMods("v_recyclomancy", Modify.add(Value.Var.DISCARDS_LEFT, 1));
         addMods("v_paint_brush", Modify.add(Value.Var.HAND_SIZE, 1));     // +1 hand size
         addMods("v_palette", Modify.add(Value.Var.HAND_SIZE, 1));
+        addMods("v_crystal_ball", Modify.add(Value.Var.CONSUMABLE_SLOTS, 1)); // +1 consumable slot
+        addMods("v_omen_globe", Modify.add(Value.Var.CONSUMABLE_SLOTS, 1));
     }
 
     private static void addMods(String key, Modify... mods) {

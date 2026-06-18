@@ -32,7 +32,7 @@ public final class DeckCatalog {
                            // add(HAND_SIZE,2), Black = add(HANDS_LEFT,-1) — folded by Run with everyone else.
                            List<Modify> resourceMods,
                            int jokerSlotsDelta, boolean greenEconomy,
-                           Composition composition, int consumableSlotDelta,
+                           Composition composition,
                            List<String> startingVouchers, List<String> startingConsumables,
                            // special-behaviour data (de-hardcoded from Run/ScoringEngine):
                            int spectralRate,            // Ghost: Spectral cards appear in the shop at this weight

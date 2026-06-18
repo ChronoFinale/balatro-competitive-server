@@ -128,9 +128,9 @@ public sealed interface Value {
     }
 
     /** Which live run-state quantity a {@link RunVar} reads. */
-    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, ANTE, DISCARDS_USED, HANDS_PLAYED,
-        HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS, UNIQUE_PLANETS,
-        OBELISK_STREAK, BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD }
+    enum Var { MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, CONSUMABLE_SLOTS, ANTE, DISCARDS_USED,
+        HANDS_PLAYED, HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS,
+        UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD }
 
     /** Read a live run-state quantity. Shared by {@link RunVar}, {@link RunVarStep}, and
      *  {@code Condition.RunVarModulo} so the {@link Var}→{@code RunState} mapping lives in one place. */
@@ -140,6 +140,7 @@ public sealed interface Value {
             case HANDS_LEFT -> ctx.run.handsLeft;
             case DISCARDS_LEFT -> ctx.run.discardsLeft;
             case HAND_SIZE -> ctx.run.handSize;
+            case CONSUMABLE_SLOTS -> ctx.run.consumableSlots;
             case ANTE -> ctx.run.ante;
             case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
             case HANDS_PLAYED -> ctx.run.handsPlayedThisRound;

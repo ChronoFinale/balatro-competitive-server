@@ -143,11 +143,22 @@ public final class Run {
         startBlind();
     }
 
-    /** Grant a deck's starting vouchers/consumables + consumable-slot delta (game.lua:633-638). */
+    /** Grant a deck's starting vouchers/consumables (game.lua:633-638); consumable slots are derived. */
     private void applyDeckStartingItems() {
-        state.consumableSlots += deckType.consumableSlotDelta();
         for (String v : deckType.startingVouchers()) grantVoucher(v);
         state.consumables.addAll(deckType.startingConsumables());
+        recomputeConsumableSlots();
+    }
+
+    /** Consumable slots = base 2 + every CONSUMABLE_SLOTS Modify owned (deck + Crystal Ball/Omen Globe),
+     *  folded fresh — a pure function of what you own, recomputed whenever that changes. */
+    private void recomputeConsumableSlots() {
+        List<Modify> mods = new ArrayList<>(deckType.mods());
+        for (String v : state.vouchers) {
+            VoucherCatalog.Voucher def = VoucherCatalog.get(v);
+            if (def != null) mods.addAll(def.mods());
+        }
+        state.consumableSlots = (int) Modify.fold(2, Value.Var.CONSUMABLE_SLOTS, mods);
     }
 
     /** Reshape the starting composition for decks that change it (game.lua:636-642). */
@@ -977,12 +988,9 @@ public final class Run {
     /** Add a voucher to the owned set and apply its immediate effect (passive ones are read reactively). */
     private void grantVoucher(String key) {
         state.vouchers.add(key);
-        switch (key) {
-            case "v_crystal_ball", "v_omen_globe" -> state.consumableSlots += 1;
-            // v_seed_money / v_money_tree raise the interest cap — now derived from ownership in EconomyConfig.
-            case "v_antimatter" -> state.jokerSlots += 1;
-            default -> { /* passive — read in generateShop / startBlind / price / reroll / EconomyConfig */ }
-        }
+        recomputeConsumableSlots(); // Crystal Ball / Omen Globe: +1 consumable slot, derived from ownership
+        // v_seed_money / v_money_tree raise the interest cap — derived in EconomyConfig.
+        if (key.equals("v_antimatter")) state.jokerSlots += 1; // joker slots are still incrementally mutated
     }
 
     /** Apply the Clearance Sale (25% off) / Liquidation (50% off) shop discount, rounded down.
