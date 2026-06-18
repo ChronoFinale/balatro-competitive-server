@@ -98,6 +98,9 @@ public final class VoucherCatalog {
         addMods("v_reroll_glut", Modify.add(Value.Var.REROLL_DISCOUNT, 2));        // -$2 more
         addMods("v_hone", Modify.max(Value.Var.EDITION_MULTIPLIER, 2), Modify.max(Value.Var.POLY_MULTIPLIER, 3));
         addMods("v_glow_up", Modify.max(Value.Var.EDITION_MULTIPLIER, 4), Modify.max(Value.Var.POLY_MULTIPLIER, 7));
+        // Interest cap (folded by EconomyConfig): Seed Money $10, Money Tree $20 — highest tier wins.
+        addMods("v_seed_money", Modify.max(Value.Var.INTEREST_CAP, 10));
+        addMods("v_money_tree", Modify.max(Value.Var.INTEREST_CAP, 20));
     }
 
     private static void addMods(String key, Modify... mods) {
