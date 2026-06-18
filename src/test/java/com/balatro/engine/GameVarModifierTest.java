@@ -75,6 +75,18 @@ class GameVarModifierTest {
     }
 
     @Test
+    void consumableSlotsAreDerivedFromDeckAndVoucherModifiers() {
+        // CONSUMABLE_SLOTS is a real read/write variable: base 2, folded with deck + voucher Modifys.
+        Run nebula = new Run(Ruleset.standard(), "NB", stoneDeck(300), jokers("j_joker"),
+                Stake.WHITE, DeckCatalog.get("d_nebula")); // Nebula: -1 consumable slot
+        assertThat(nebula.state.consumableSlots).isEqualTo(2 - 1);
+
+        Run magic = new Run(Ruleset.standard(), "MG", stoneDeck(300), jokers("j_joker"),
+                Stake.WHITE, DeckCatalog.get("d_magic")); // Magic: starts with the Crystal Ball voucher (+1)
+        assertThat(magic.state.consumableSlots).isEqualTo(2 + 1);
+    }
+
+    @Test
     void aVoucherFoldsIntoTheResourceLikeAnyOtherModifier() {
         // A voucher is no longer a key-string in Run; it carries Modify(HANDS_LEFT/DISCARDS_LEFT, ...)
         // as data and folds in with the deck/boss/joker modifiers.

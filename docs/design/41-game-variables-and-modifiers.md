@@ -61,6 +61,11 @@ for resources. `MONEY` is folded once at run init (Yellow Deck); the per-blind f
 fold filters by variable, so a `MONEY` modifier in a deck's list is simply not seen by the `HANDS_LEFT`
 fold).
 
+`CONSUMABLE_SLOTS` is on the model too, but as a **derived recompute** rather than a per-blind fold:
+`recomputeConsumableSlots()` = `fold(2, CONSUMABLE_SLOTS, deck.mods() + owned voucher mods)`, run at
+init and on each voucher grant. It's a pure function of what you own (deck + Crystal Ball/Omen Globe),
+so it's idempotent — no incremental `+=`.
+
 ## Sibling: derived configs for things that aren't per-blind folds
 
 Some state isn't reset-and-recomputed each blind; it's a pure function of *what you own*, resolved on
@@ -79,9 +84,10 @@ demand. These use the same "derived, no mutation" pattern, not the fold:
    joker's `add(MULT, 3)` is the same shape as `add(HAND_SIZE, 1)`, just on a transient per-hand
    variable. Unifying `EffectTemplate` with `Modify` is the deep prize, but the scoring engine's
    accumulator + ordering + replay make it a large, careful refactor — not a rename.
-2. **Joker slots / consumable slots** — derivable from owned (deck + vouchers + negative jokers) but
-   currently *incrementally mutated* on voucher buy / edition change, so folding them is a behaviour
-   change, not a representation change.
+2. **Joker slots** — derivable from owned (deck + Antimatter + negative jokers) but *incrementally
+   mutated* on edition change (a negative joker grants a slot), and the recompute would need `deck`
+   (on `Run`) at every joker-mutation point, so it's a behaviour change with many touch-points. Left
+   incremental. (Consumable slots — no negative-joker entanglement — are already derived; see above.)
 3. **`BLIND_REQUIREMENT`** — boss `reqMult` × deck `blindSizeMult`. Foldable, but the requirement
    isn't a `RunState` field conditions read (it lives on `Run`), so adding it to the read vocabulary
    would break the read/write symmetry; and folding `reqMult` into `boss.mods()` makes every boss's
