@@ -70,7 +70,7 @@ public final class JokerDefLibrary {
         put(Jokers.uncommon("j_constellation", "Constellation").cost(6).atlas(9, 10)
                 .desc("Gains x0.1 Mult per Planet card used")
                 .whenUsing("Planet").gain("planets", 1)
-                .whenHand(state("planets").atLeast(1)).multiply(MULT, new Value.State("planets", 1.0, 0.1)).build());
+                .whenHand(state("planets").atLeast(1)).multiply(MULT, Val.state("planets", 1.0, 0.1)).build());
     }
 
     private static void put(JokerDef def) {
