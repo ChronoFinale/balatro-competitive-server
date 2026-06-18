@@ -33,6 +33,7 @@ public final class Jokers {
     private final List<Rule> rules = new ArrayList<>();
     private final List<Mutation> mutations = new ArrayList<>();
     private final List<HandMod> handMods = new ArrayList<>();
+    private final List<Modify> varMods = new ArrayList<>();
     private RunMod runMod = RunMod.NONE;
     private boolean behaviorInCode;
     private final java.util.Map<String, Object> props = new java.util.LinkedHashMap<>();
@@ -120,6 +121,10 @@ public final class Jokers {
     /** Attach passive hand modifiers (Four Fingers, Shortcut, Splash, Pareidolia, Smeared). */
     public Jokers handMod(HandMod... mods) { java.util.Collections.addAll(handMods, mods); return this; }
 
+    /** Standing variable modifiers while owned — {@code mods(add(HAND_SIZE,1))} (Juggler), {@code
+     *  add(FREE_REROLLS,1)} (Chaos). The SAME {@link Modify} vocabulary decks/vouchers use, folded by Run. */
+    public Jokers mods(Modify... mods) { java.util.Collections.addAll(varMods, mods); return this; }
+
     /** Attach the run-capability bag (boss disabler, probability doubler, hand-size decay, sell hooks…). */
     public Jokers runMod(RunMod mod) { this.runMod = mod; return this; }
 
@@ -143,8 +148,8 @@ public final class Jokers {
         if (desc == null || desc.isBlank()) missing.add("description (.desc)");
         if (!costSet) missing.add("cost (.cost)");
         if (rules.isEmpty() && mutations.isEmpty() && copy == null && handMods.isEmpty()
-                && runMod.isNone() && !behaviorInCode) {
-            missing.add("behavior (.on / .mutate / .copies / .handMod / .runMod / .behaviorInCode)");
+                && varMods.isEmpty() && runMod.isNone() && !behaviorInCode) {
+            missing.add("behavior (.on / .mutate / .copies / .handMod / .mods / .runMod / .behaviorInCode)");
         }
         if (!missing.isEmpty()) {
             throw new IllegalStateException(
@@ -152,7 +157,7 @@ public final class Jokers {
         }
         return new JokerDef(key, name, desc, rarity, cost, atlasX, atlasY, null, null,
                 blueprintCompatible, List.copyOf(mutations), List.copyOf(rules),
-                List.copyOf(handMods), runMod, copy,
+                List.copyOf(handMods), List.copyOf(varMods), runMod, copy,
                 java.util.Map.copyOf(props), java.util.Map.copyOf(state));
     }
 

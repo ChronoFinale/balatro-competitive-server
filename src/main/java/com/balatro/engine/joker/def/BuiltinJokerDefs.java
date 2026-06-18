@@ -429,23 +429,22 @@ public final class BuiltinJokerDefs {
                         .desc("+4 Mult for each card below 52 in your full deck")
                         .whenHand().add(MULT, Val.stat(Value.Which.CARDS_BELOW_FULL, 0, 4, null)).build(),
 
-                // --- batch 6: passive run modifiers (applied at blind start) ---
-                runModJoker("j_juggler", "Juggler", "+1 hand size", "Common", 4, 0, 9,
-                        RunMod.stats(Modify.add(Value.Var.HAND_SIZE, 1))),
-                runModJoker("j_drunkard", "Drunkard", "+1 discard each round", "Common", 4, 1, 10,
-                        RunMod.stats(Modify.add(Value.Var.DISCARDS_LEFT, 1))),
-                runModJoker("j_troubadour", "Troubadour", "+2 hand size, -1 hand each round",
-                        "Uncommon", 6, 2, 10,
-                        RunMod.stats(Modify.add(Value.Var.HANDS_LEFT, -1), Modify.add(Value.Var.HAND_SIZE, 2))),
-                runModJoker("j_merry_andy", "Merry Andy", "+1 discard, -1 hand size",
-                        "Uncommon", 7, 3, 10,
-                        RunMod.stats(Modify.add(Value.Var.DISCARDS_LEFT, 1), Modify.add(Value.Var.HAND_SIZE, -1))),
-                runModJoker("j_burglar", "Burglar", "+3 hands this round, but no discards",
-                        "Uncommon", 6, 4, 10, RunMod.stats(true, Modify.add(Value.Var.HANDS_LEFT, 3))),
+                // --- batch 6: passive standing modifiers (folded at blind start, like deck/voucher mods) ---
+                modJoker("j_juggler", "Juggler", "+1 hand size", "Common", 4, 0, 9,
+                        Modify.add(Value.Var.HAND_SIZE, 1)),
+                modJoker("j_drunkard", "Drunkard", "+1 discard each round", "Common", 4, 1, 10,
+                        Modify.add(Value.Var.DISCARDS_LEFT, 1)),
+                modJoker("j_troubadour", "Troubadour", "+2 hand size, -1 hand each round", "Uncommon", 6, 2, 10,
+                        Modify.add(Value.Var.HANDS_LEFT, -1), Modify.add(Value.Var.HAND_SIZE, 2)),
+                modJoker("j_merry_andy", "Merry Andy", "+1 discard, -1 hand size", "Uncommon", 7, 3, 10,
+                        Modify.add(Value.Var.DISCARDS_LEFT, 1), Modify.add(Value.Var.HAND_SIZE, -1)),
+                Jokers.uncommon("j_burglar", "Burglar").cost(6).atlas(4, 10)
+                        .desc("+3 hands this round, but no discards")
+                        .mods(Modify.add(Value.Var.HANDS_LEFT, 3)).runMod(RunMod.locksDiscards()).build(),
                 Jokers.rare("j_stuntman", "Stuntman").cost(7).atlas(5, 10)
                         .desc("+250 Chips, -2 hand size")
                         .whenHand().add(CHIPS, 250)
-                        .runMod(RunMod.stats(Modify.add(Value.Var.HAND_SIZE, -2))).build(),
+                        .mods(Modify.add(Value.Var.HAND_SIZE, -2)).build(),
 
                 // --- batch 7: held-card extreme value ---
                 Jokers.common("j_raised_fist", "Raised Fist").cost(5).atlas(7, 9)
@@ -706,7 +705,7 @@ public final class BuiltinJokerDefs {
                         .desc("Go up to -$20 in debt").behaviorInCode().build(),
                 Jokers.common("j_chaos", "Chaos the Clown").cost(4).atlas(1, 15)
                         .desc("1 free reroll each shop")
-                        .runMod(RunMod.stats(Modify.add(Value.Var.FREE_REROLLS, 1))).build(),
+                        .mods(Modify.add(Value.Var.FREE_REROLLS, 1)).build(),
                 Jokers.uncommon("j_astronomer", "Astronomer").cost(8).atlas(2, 15)
                         .desc("All Planet cards in the shop are free").behaviorInCode().build(),
 
@@ -776,10 +775,16 @@ public final class BuiltinJokerDefs {
                                 Val.runVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01), 1, 1e9)).build());
     }
 
-    /** A joker whose only effect is a passive per-blind {@link RunMod}. */
+    /** A joker whose only effect is a passive per-blind capability {@link RunMod} (Chicot, Mr Bones). */
     private static JokerDef runModJoker(String key, String name, String desc, String rarity,
             int cost, int ax, int ay, RunMod mod) {
         return builderFor(rarity, key, name).cost(cost).atlas(ax, ay).desc(desc).runMod(mod).build();
+    }
+
+    /** A joker whose only effect is standing variable {@link Modify}s (Juggler, Drunkard, Troubadour…). */
+    private static JokerDef modJoker(String key, String name, String desc, String rarity,
+            int cost, int ax, int ay, Modify... mods) {
+        return builderFor(rarity, key, name).cost(cost).atlas(ax, ay).desc(desc).mods(mods).build();
     }
 
     /** The {@link Jokers} factory for a rarity name (the data form carries rarity as a String). */

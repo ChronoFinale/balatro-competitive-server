@@ -1,26 +1,24 @@
 package com.balatro.engine.joker.def;
 
-import java.util.List;
-
 /**
- * The static, non-scoring capabilities a joker has — its "while owned" / "when sold" behaviour, as
- * data. The common case is per-blind stat changes, now stored as {@code statMods} (Juggler =
- * add(HAND_SIZE,1), Burglar = add(HANDS_LEFT,3)) so the joker contributes through the same
- * {@link Modify} vocabulary as decks/bosses/vouchers. The rest are capabilities the run checks at the
- * right moment: {@code noDiscards} (Burglar), {@code disablesBoss} (Chicot),
- * {@code survivesLostBlindFraction} (Mr Bones), {@code blindSelectConsume} (Madness / Ceremonial),
- * {@code doublesProbability} (Oops! All 6s), {@code handSizeDecayStart} (Turtle Bean),
- * {@code duplicatesConsumableOnShopExit} (Perkeo), {@code pvpShopSpendDenominator} (Penny Pincher),
- * {@code pvpSkipBonus} (Skip Off), and the {@link OnSell} group. None affect the per-hand score.
+ * The static, non-scoring <b>capabilities</b> a joker has — behavioural switches the run checks at the
+ * right moment, which are NOT expressible as a number on a game variable (those live in
+ * {@link JokerDef#mods()} now, the same {@link Modify} vocabulary decks/bosses/vouchers use). These are:
+ * {@code noDiscards} (Burglar), {@code disablesBoss} (Chicot), {@code survivesLostBlindFraction}
+ * (Mr Bones), {@code blindSelectConsume} (Madness / Ceremonial), {@code doublesProbability}
+ * (Oops! All 6s), {@code handSizeDecayStart} (Turtle Bean — a <i>dynamic</i> HAND_SIZE contribution that
+ * decays by round, so it can't be a static Modify), {@code duplicatesConsumableOnShopExit} (Perkeo),
+ * {@code pvpShopSpendDenominator} (Penny Pincher), {@code pvpSkipBonus} (Skip Off), and the
+ * {@link OnSell} group. None affect the per-hand score.
  */
-public record RunMod(List<Modify> statMods, boolean noDiscards,
+public record RunMod(boolean noDiscards,
                      boolean disablesBoss, double survivesLostBlindFraction,
                      BlindSelectConsume blindSelectConsume, OnSell onSell,
                      boolean doublesProbability, int handSizeDecayStart,
                      boolean duplicatesConsumableOnShopExit, int pvpShopSpendDenominator,
                      boolean pvpSkipBonus) {
 
-    public static final RunMod NONE = new RunMod(List.of(), false, false, 0,
+    public static final RunMod NONE = new RunMod(false, false, 0,
             BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
 
     /** On selecting a blind, this joker eats a Joker — a random other one (Madness, Small/Big only)
@@ -37,14 +35,13 @@ public record RunMod(List<Modify> statMods, boolean noDiscards,
         }
     }
 
-    /** Canonical constructor: null-safes the list / sub-records. */
-    public RunMod(List<Modify> statMods, boolean noDiscards,
+    /** Canonical constructor: null-safes the sub-records. */
+    public RunMod(boolean noDiscards,
                   boolean disablesBoss, double survivesLostBlindFraction,
                   BlindSelectConsume blindSelectConsume, OnSell onSell,
                   boolean doublesProbability, int handSizeDecayStart,
                   boolean duplicatesConsumableOnShopExit, int pvpShopSpendDenominator,
                   boolean pvpSkipBonus) {
-        this.statMods = statMods == null ? List.of() : List.copyOf(statMods);
         this.noDiscards = noDiscards;
         this.disablesBoss = disablesBoss;
         this.survivesLostBlindFraction = survivesLostBlindFraction;
@@ -57,20 +54,15 @@ public record RunMod(List<Modify> statMods, boolean noDiscards,
         this.pvpSkipBonus = pvpSkipBonus;
     }
 
-    /** Per-blind stat changes as Modifys — Juggler {@code stats(add(HAND_SIZE,1))}, Troubadour two of them. */
-    public static RunMod stats(Modify... mods) {
-        return new RunMod(List.of(mods), false, false, 0, BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
-    }
-
-    /** Burglar: stat Modifys plus the "no discards this round" final override. */
-    public static RunMod stats(boolean noDiscards, Modify... mods) {
-        return new RunMod(List.of(mods), noDiscards, false, 0, BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
+    /** Burglar: no discards this round (a final override, not a Modify — the +3 hands is a {@code mods()}). */
+    public static RunMod locksDiscards() {
+        return new RunMod(true, false, 0, BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
     }
 
     private static RunMod capability(boolean disablesBoss, double survivesFraction, BlindSelectConsume consume,
             OnSell sell, boolean doublesProbability, int handSizeDecayStart,
             boolean dupConsumableOnShopExit, int pvpShopSpendDenominator, boolean pvpSkipBonus) {
-        return new RunMod(List.of(), false, disablesBoss, survivesFraction, consume, sell, doublesProbability,
+        return new RunMod(false, disablesBoss, survivesFraction, consume, sell, doublesProbability,
                 handSizeDecayStart, dupConsumableOnShopExit, pvpShopSpendDenominator, pvpSkipBonus);
     }
 
@@ -139,14 +131,9 @@ public record RunMod(List<Modify> statMods, boolean noDiscards,
         return onSell(new OnSell(false, -1, tag));
     }
 
-    /** This joker's per-blind stat changes — folded by Run with the deck/boss/voucher modifiers. */
-    public List<Modify> mods() {
-        return statMods;
-    }
-
     @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isNone() {
-        return statMods.isEmpty() && !noDiscards
+        return !noDiscards
                 && !disablesBoss && survivesLostBlindFraction == 0
                 && blindSelectConsume == BlindSelectConsume.NONE && onSell.isNone()
                 && !doublesProbability && handSizeDecayStart == 0

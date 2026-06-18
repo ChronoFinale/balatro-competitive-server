@@ -34,6 +34,9 @@ public record JokerDef(
         List<Mutation> mutations,
         List<Rule> rules,
         List<HandMod> handMods,
+        // standing variable modifiers — "+1 hand size / +1 free reroll while owned" — the SAME Modify
+        // vocabulary decks/vouchers/bosses use. Folded by Run alongside them; not a RunMod capability.
+        List<Modify> mods,
         RunMod runMod,
         CopySpec copy,
         java.util.Map<String, Object> props,
@@ -56,6 +59,7 @@ public record JokerDef(
             @JsonProperty("mutations") List<Mutation> mutations,
             @JsonProperty("rules") List<Rule> rules,
             @JsonProperty("handMods") List<HandMod> handMods,
+            @JsonProperty("mods") List<Modify> mods,
             @JsonProperty("runMod") RunMod runMod,
             @JsonProperty("copy") CopySpec copy,
             @JsonProperty("props") java.util.Map<String, Object> props,
@@ -74,6 +78,7 @@ public record JokerDef(
         this.mutations = mutations == null ? List.of() : List.copyOf(mutations);
         this.rules = rules == null ? List.of() : List.copyOf(rules);
         this.handMods = handMods == null ? List.of() : List.copyOf(handMods);
+        this.mods = mods == null ? List.of() : List.copyOf(mods);
         this.runMod = runMod == null ? RunMod.NONE : runMod;
         this.copy = copy;
         this.props = normalizeEnums(props);
@@ -95,7 +100,7 @@ public record JokerDef(
             int atlasX, int atlasY, String spriteUrl, String spriteUrl2x,
             boolean blueprintCompatible, List<Mutation> mutations, List<Rule> rules) {
         this(key, name, description, rarity, cost, atlasX, atlasY, spriteUrl, spriteUrl2x,
-                blueprintCompatible, mutations, rules, List.of(), RunMod.NONE, null,
+                blueprintCompatible, mutations, rules, List.of(), List.of(), RunMod.NONE, null,
                 java.util.Map.of(), java.util.Map.of());
     }
 
@@ -105,7 +110,7 @@ public record JokerDef(
             boolean blueprintCompatible, List<Mutation> mutations, List<Rule> rules,
             List<HandMod> handMods) {
         this(key, name, description, rarity, cost, atlasX, atlasY, spriteUrl, spriteUrl2x,
-                blueprintCompatible, mutations, rules, handMods, RunMod.NONE, null,
+                blueprintCompatible, mutations, rules, handMods, List.of(), RunMod.NONE, null,
                 java.util.Map.of(), java.util.Map.of());
     }
 
@@ -115,7 +120,7 @@ public record JokerDef(
             boolean blueprintCompatible, List<Mutation> mutations, List<Rule> rules,
             List<HandMod> handMods, RunMod runMod) {
         this(key, name, description, rarity, cost, atlasX, atlasY, spriteUrl, spriteUrl2x,
-                blueprintCompatible, mutations, rules, handMods, runMod, null,
+                blueprintCompatible, mutations, rules, handMods, List.of(), runMod, null,
                 java.util.Map.of(), java.util.Map.of());
     }
 

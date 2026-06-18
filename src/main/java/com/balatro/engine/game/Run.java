@@ -639,7 +639,7 @@ public final class Run {
         if (boss != null && !bossDisabled()) all.addAll(boss.mods());      // boss: Needle/Water/Manacle (SET/add)
         for (Joker j : state.jokers()) {                                   // jokers: flat deltas + Turtle decay
             if (!(j instanceof DataJoker dj)) continue;
-            all.addAll(dj.def().runMod().mods());
+            all.addAll(dj.def().mods());                                   // standing var modifiers (Juggler/Chaos/…)
             int start = dj.def().runMod().handSizeDecayStart();            // Turtle Bean (dynamic, by rounds owned)
             if (start > 0) {
                 int acq = state.jokerInt(j, "acqRounds", 0);

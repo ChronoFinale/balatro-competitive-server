@@ -35,7 +35,7 @@ class JokerCoverageTest {
             if (!(j instanceof DataJoker dj)) continue; // native joker — wired in code
             JokerDef d = dj.def();
             boolean hasEffect = !d.rules().isEmpty() || !d.mutations().isEmpty()
-                    || !d.handMods().isEmpty() || !d.runMod().isNone() || d.copy() != null;
+                    || !d.handMods().isEmpty() || !d.mods().isEmpty() || !d.runMod().isNone() || d.copy() != null;
             if (!hasEffect && !HANDLED_ELSEWHERE.contains(key)) emptyNoOp.add(key);
         }
         assertThat(emptyNoOp).as("data jokers with no wired effect — wire them or add to HANDLED_ELSEWHERE").isEmpty();
