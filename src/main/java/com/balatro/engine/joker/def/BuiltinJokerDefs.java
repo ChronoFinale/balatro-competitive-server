@@ -49,23 +49,17 @@ public final class BuiltinJokerDefs {
     public static java.util.Map<String, List<JokerDef>> variants() {
         return java.util.Map.of("multiplayer", List.of(
                 // MP Hanging Chad: retrigger the first AND second scored card 1 additional time each.
-                new JokerDef("j_hanging_chad", "Hanging Chad",
-                        "Retrigger the first and second played cards 1 additional time each (multiplayer)",
-                        "Common", 4, 1, 5, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredAmongFirst(2),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+                Jokers.common("j_hanging_chad", "Hanging Chad").cost(4).atlas(1, 5)
+                        .desc("Retrigger the first and second played cards 1 additional time each (multiplayer)")
+                        .on(Trigger.REPETITION_PLAYED).when(new Condition.ScoredAmongFirst(2)).retrigger().build(),
                 // MP Seltzer: retrigger window is 8 hands (vanilla 10).
-                new JokerDef("j_seltzer", "Seltzer",
-                        "Retrigger all played cards for the first 8 hands after it is acquired (multiplayer)",
-                        "Uncommon", 6, 8, 16, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.HandsSinceAcquire(8),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+                Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(8, 16)
+                        .desc("Retrigger all played cards for the first 8 hands after it is acquired (multiplayer)")
+                        .on(Trigger.REPETITION_PLAYED).when(new Condition.HandsSinceAcquire(8)).retrigger().build(),
                 // MP Golden Ticket: $3 per scored Gold card (vanilla $4), Uncommon.
-                new JokerDef("j_golden_ticket", "Golden Ticket",
-                        "Played Gold cards give $3 when scored (multiplayer)",
-                        "Uncommon", 5, 6, 7, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.GOLD),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(3)))))));
+                Jokers.uncommon("j_golden_ticket", "Golden Ticket").cost(5).atlas(6, 7)
+                        .desc("Played Gold cards give $3 when scored (multiplayer)")
+                        .forEachScored(card().enhancement(Enhancement.GOLD)).add(DOLLARS, 3).build()));
     }
 
     /** Suit → +3 Mult per played card of that suit (Greedy/Lusty/Wrathful/Gluttonous family). */
@@ -278,18 +272,15 @@ public final class BuiltinJokerDefs {
                 gem("j_onyx_agate", "Onyx Agate", Suit.CLUBS, Op.MULT, 7, 2, 8),
 
                 // --- retrigger: played face cards trigger again ---
-                new JokerDef("j_sock_and_buskin", "Sock and Buskin", "Retrigger all played face cards",
-                        "Uncommon", 6, 3, 1, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.REPETITION_PLAYED, new Condition.ScoredIsFace(),
-                                new EffectTemplate(Op.REPETITIONS, new Value.Const(1))))),
+                Jokers.uncommon("j_sock_and_buskin", "Sock and Buskin").cost(6).atlas(3, 1)
+                        .desc("Retrigger all played face cards")
+                        .retriggerEachScored(card().isFace()).build(),
 
                 // --- stateful: gains +2 Mult per shop reroll ---
-                new JokerDef("j_flash", "Flash Card", "Gains +2 Mult per shop reroll",
-                        "Uncommon", 5, 0, 15, null, null, true,
-                        List.of(new Mutation(Trigger.REROLL_SHOP, new Condition.Always(),
-                                "mult", Mutation.Op.ADD, 2)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("mult", Cmp.GTE, 1),
-                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
+                Jokers.uncommon("j_flash", "Flash Card").cost(5).atlas(0, 15)
+                        .desc("Gains +2 Mult per shop reroll")
+                        .mutate(Trigger.REROLL_SHOP).when(always()).gain("mult", 2)
+                        .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult")).build(),
 
                 // --- stateful: gains +2 Mult whenever the played hand contains a Two Pair ---
                 Jokers.uncommon("j_trousers", "Spare Trousers").cost(6).atlas(4, 15)
@@ -709,125 +700,103 @@ public final class BuiltinJokerDefs {
                         "Legendary", 20, 5, 15, RunMod.bossDisabler()),
 
                 // --- batch 28: sell-value bonus (Egg, Gift Card) ---
-                new JokerDef("j_egg", "Egg", "Gains $3 of sell value at the end of each round",
-                        "Common", 4, 3, 15, null, null, true,
-                        List.of(new Mutation(Trigger.END_OF_ROUND, new Condition.Always(),
-                                "sellBonus", Mutation.Op.ADD, 3)),
-                        List.of()),
-                new JokerDef("j_gift_card", "Gift Card",
-                        "Adds $1 of sell value to every owned Joker at end of round",
-                        "Uncommon", 6, 4, 15, null, null, true,
-                        List.of(new Mutation(Trigger.END_OF_ROUND, new Condition.Always(),
-                                "sellBonus", Mutation.Op.ADD, 1, Mutation.Scope.ALL_JOKERS)),
-                        List.of()),
+                Jokers.common("j_egg", "Egg").cost(4).atlas(3, 15)
+                        .desc("Gains $3 of sell value at the end of each round")
+                        .mutate(Trigger.END_OF_ROUND).when(always()).gain("sellBonus", 3).build(),
+                Jokers.uncommon("j_gift_card", "Gift Card").cost(6).atlas(4, 15)
+                        .desc("Adds $1 of sell value to every owned Joker at end of round")
+                        .mutation(new Mutation(Trigger.END_OF_ROUND, new Condition.Always(),
+                                "sellBonus", Mutation.Op.ADD, 1, Mutation.Scope.ALL_JOKERS)).build(),
 
                 // --- batch 27: shop/economy hooks (Credit Card, Chaos, Astronomer) ---
-                new JokerDef("j_credit_card", "Credit Card", "Go up to -$20 in debt",
-                        "Common", 1, 0, 15, null, null, true, List.of(), List.of()),
-                new JokerDef("j_chaos", "Chaos the Clown", "1 free reroll each shop",
-                        "Common", 4, 1, 15, null, null, true, List.of(), List.of()),
-                new JokerDef("j_astronomer", "Astronomer", "All Planet cards in the shop are free",
-                        "Uncommon", 8, 2, 15, null, null, true, List.of(), List.of()),
+                Jokers.common("j_credit_card", "Credit Card").cost(1).atlas(0, 15)
+                        .desc("Go up to -$20 in debt").behaviorInCode().build(),
+                Jokers.common("j_chaos", "Chaos the Clown").cost(4).atlas(1, 15)
+                        .desc("1 free reroll each shop").behaviorInCode().build(),
+                Jokers.uncommon("j_astronomer", "Astronomer").cost(8).atlas(2, 15)
+                        .desc("All Planet cards in the shop are free").behaviorInCode().build(),
 
                 // --- batch 26: Run-level hooks (To the Moon interest); Mr Bones is a passive capability ---
                 runModJoker("j_mr_bones", "Mr. Bones",
                         "Prevents death if at least 25% of the required score was reached (then self-destructs)",
                         "Uncommon", 5, 8, 14, RunMod.survivesLostBlind(0.25)),
-                new JokerDef("j_to_the_moon", "To the Moon",
-                        "Earn an extra $1 of interest per $5 at end of round",
-                        "Uncommon", 5, 9, 14, null, null, true, List.of(), List.of()),
+                Jokers.uncommon("j_to_the_moon", "To the Moon").cost(5).atlas(9, 14)
+                        .desc("Earn an extra $1 of interest per $5 at end of round").behaviorInCode().build(),
 
                 // --- batch 25: Mail-In Rebate (event-count money) ---
-                new JokerDef("j_mail_in_rebate", "Mail-In Rebate",
-                        "Earn $3 for each discarded card of this round's rank",
-                        "Common", 4, 7, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.PRE_DISCARD, new Condition.Always(),
-                                new EffectTemplate(Op.DOLLARS, new Value.Count(Value.Source.EVENT,
-                                        new Condition.ScoredRankIsTarget("rebateRankId"), 0, 3))))),
+                Jokers.common("j_mail_in_rebate", "Mail-In Rebate").cost(4).atlas(7, 14)
+                        .desc("Earn $3 for each discarded card of this round's rank")
+                        .whenDiscarding(always()).add(DOLLARS, new Value.Count(Value.Source.EVENT,
+                                new Condition.ScoredRankIsTarget("rebateRankId"), 0, 3)).build(),
 
                 // --- batch 24: more dynamic targets (Castle chips, To Do List money) ---
-                new JokerDef("j_castle", "Castle",
-                        "Gains +3 Chips per discarded card of this round's suit",
-                        "Uncommon", 6, 5, 14, null, null, true,
-                        List.of(new Mutation(Trigger.BLIND_SELECTED, new Condition.Always(),
-                                        "chips", Mutation.Op.RESET, 0),
-                                new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "chips",
-                                        Mutation.Op.ADD, 3, new Condition.ScoredSuit(null, "castleSuit"))),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("chips", Cmp.GTE, 1),
-                                new EffectTemplate(Op.CHIPS, new Value.State("chips", 0, 1))))),
-                new JokerDef("j_todo_list", "To Do List",
-                        "Earn $4 if the played poker hand is this round's hand",
-                        "Common", 4, 6, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandIs(null, "todoHand"),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(4))))),
+                Jokers.uncommon("j_castle", "Castle").cost(6).atlas(5, 14)
+                        .desc("Gains +3 Chips per discarded card of this round's suit")
+                        .mutate(Trigger.BLIND_SELECTED).when(always()).reset("chips")
+                        .mutation(new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "chips",
+                                Mutation.Op.ADD, 3, new Condition.ScoredSuit(null, "castleSuit")))
+                        .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
+                Jokers.common("j_todo_list", "To Do List").cost(4).atlas(6, 14)
+                        .desc("Earn $4 if the played poker hand is this round's hand")
+                        .whenHand(playedHand().isTarget("todoHand")).add(DOLLARS, 4).build(),
 
                 // --- batch 23: per-round dynamic targets (The Idol, Ancient Joker) ---
-                new JokerDef("j_idol", "The Idol",
-                        "Each played card matching this round's Idol card gives x2 Mult",
-                        "Uncommon", 6, 3, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.And(List.of(
-                                        new Condition.ScoredRankIsTarget("idolRankId"),
-                                        new Condition.ScoredSuit(null, "idolSuit"))),
-                                new EffectTemplate(Op.XMULT, new Value.Const(2))))),
-                new JokerDef("j_ancient_joker", "Ancient Joker",
-                        "Each played card of this round's Ancient suit gives x1.5 Mult",
-                        "Rare", 8, 4, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.ScoredSuit(null, "ancientSuit"),
-                                new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
+                Jokers.uncommon("j_idol", "The Idol").cost(6).atlas(3, 14)
+                        .desc("Each played card matching this round's Idol card gives x2 Mult")
+                        .forEachScored(Cond.all(new Condition.ScoredRankIsTarget("idolRankId"),
+                                card().suitIsTarget("idolSuit"))).multiply(MULT, 2).build(),
+                Jokers.rare("j_ancient_joker", "Ancient Joker").cost(8).atlas(4, 14)
+                        .desc("Each played card of this round's Ancient suit gives x1.5 Mult")
+                        .forEachScored(card().suitIsTarget("ancientSuit")).multiply(MULT, 1.5).build(),
 
                 // --- batch 22: joker-on-joker reads (Baseball Card, Swashbuckler) ---
-                new JokerDef("j_baseball_card", "Baseball Card", "Each Uncommon Joker gives x1.5 Mult",
-                        "Rare", 8, 1, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_OTHER_JOKER, new Condition.OtherJokerRarity("Uncommon"),
-                                new EffectTemplate(Op.XMULT, new Value.Const(1.5))))),
-                new JokerDef("j_swashbuckler", "Swashbuckler",
-                        "Adds the sell value of all other owned Jokers to Mult",
-                        "Common", 4, 2, 14, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.OtherJokersSellSum(0, 1))))),
+                Jokers.rare("j_baseball_card", "Baseball Card").cost(8).atlas(1, 14)
+                        .desc("Each Uncommon Joker gives x1.5 Mult")
+                        .on(Trigger.ON_OTHER_JOKER).when(new Condition.OtherJokerRarity("Uncommon")).multiply(MULT, 1.5).build(),
+                Jokers.common("j_swashbuckler", "Swashbuckler").cost(4).atlas(2, 14)
+                        .desc("Adds the sell value of all other owned Jokers to Mult")
+                        .whenHand().add(MULT, new Value.OtherJokersSellSum(0, 1)).build(),
 
                 // --- batch 21: per-hand-type play tracking (Supernova, Card Sharp) ---
-                new JokerDef("j_supernova", "Supernova",
-                        "Adds the number of times the played hand has been played this run to Mult",
-                        "Common", 5, 8, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.HandTypePlays(1, 1))))),
-                new JokerDef("j_card_sharp", "Card Sharp",
-                        "x3 Mult if the played poker hand was already played this round",
-                        "Uncommon", 6, 9, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandPlayedThisRound(),
-                                new EffectTemplate(Op.XMULT, new Value.Const(3))))),
+                Jokers.common("j_supernova", "Supernova").cost(5).atlas(8, 13)
+                        .desc("Adds the number of times the played hand has been played this run to Mult")
+                        .whenHand().add(MULT, new Value.HandTypePlays(1, 1)).build(),
+                Jokers.uncommon("j_card_sharp", "Card Sharp").cost(6).atlas(9, 13)
+                        .desc("x3 Mult if the played poker hand was already played this round")
+                        .whenHand(new Condition.HandPlayedThisRound()).multiply(MULT, 3).build(),
 
                 // --- batch 20: Lucky Cat (counts Lucky triggers) ---
-                new JokerDef("j_lucky_cat", "Lucky Cat",
-                        "Gains x0.25 Mult each time a Lucky card successfully triggers",
-                        "Uncommon", 6, 6, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT,
-                                        new Value.RunVar(Value.Var.LUCKY_TRIGGERS, 1, 0.25))))),
+                Jokers.uncommon("j_lucky_cat", "Lucky Cat").cost(6).atlas(6, 13)
+                        .desc("Gains x0.25 Mult each time a Lucky card successfully triggers")
+                        .whenHand().multiply(MULT, new Value.RunVar(Value.Var.LUCKY_TRIGGERS, 1, 0.25)).build(),
 
                 // --- batch 19: sell action (Campfire) ---
-                new JokerDef("j_campfire", "Campfire",
-                        "Gains x0.25 Mult per card sold; resets when a Boss Blind is defeated",
-                        "Rare", 9, 5, 13, null, null, true,
-                        List.of(new Mutation(Trigger.SELL_CARD, new Condition.Always(),
-                                        "x", Mutation.Op.ADD, 0.25),
-                                new Mutation(Trigger.END_OF_ROUND, new Condition.BossDefeated(),
-                                        "x", Mutation.Op.RESET, 0)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
+                Jokers.rare("j_campfire", "Campfire").cost(9).atlas(5, 13)
+                        .desc("Gains x0.25 Mult per card sold; resets when a Boss Blind is defeated")
+                        .mutate(Trigger.SELL_CARD).when(always()).gain("x", 0.25)
+                        .mutate(Trigger.END_OF_ROUND).when(new Condition.BossDefeated()).reset("x")
+                        .whenHand().multiply(MULT, new Value.State("x", 1.0, 1.0)).build(),
 
-                new JokerDef("j_ramen", "Ramen", "x2 Mult, loses x0.01 per card discarded",
-                        "Uncommon", 6, 4, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.Clamp(
-                                        new Value.RunVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01), 1, 1e9))))));
+                Jokers.uncommon("j_ramen", "Ramen").cost(6).atlas(4, 13)
+                        .desc("x2 Mult, loses x0.01 per card discarded")
+                        .whenHand().multiply(MULT, new Value.Clamp(
+                                new Value.RunVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01), 1, 1e9)).build());
     }
 
     /** A joker whose only effect is a passive per-blind {@link RunMod}. */
     private static JokerDef runModJoker(String key, String name, String desc, String rarity,
             int cost, int ax, int ay, RunMod mod) {
-        return new JokerDef(key, name, desc, rarity, cost, ax, ay, null, null, true,
-                List.of(), List.of(), List.of(), mod);
+        return builderFor(rarity, key, name).cost(cost).atlas(ax, ay).desc(desc).runMod(mod).build();
+    }
+
+    /** The {@link Jokers} factory for a rarity name (the data form carries rarity as a String). */
+    private static Jokers builderFor(String rarity, String key, String name) {
+        return switch (rarity) {
+            case "Common" -> Jokers.common(key, name);
+            case "Uncommon" -> Jokers.uncommon(key, name);
+            case "Rare" -> Jokers.rare(key, name);
+            case "Legendary" -> Jokers.legendary(key, name);
+            default -> throw new IllegalArgumentException("unknown rarity: " + rarity);
+        };
     }
 }
