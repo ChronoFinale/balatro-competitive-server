@@ -80,6 +80,7 @@ public final class Run {
     public int pvpFromAnte = 0;  // Attrition: boss blinds at/after this ante are PvP (0 = never)
     private boolean pvpActive = false;
     private boolean freeRerollUsed = false; // Chaos the Clown: one free reroll per shop visit
+    private int rerollsThisShop = 0;        // reroll cost escalates +$1 per reroll, reset each shop
     private final java.util.List<PackCatalog.Pack> shopPacks = new ArrayList<>(); // 2 packs/shop, kept across rerolls
     private java.util.List<RevealedItem> openPack = null; // the currently-open pack's revealed cards (null = none open)
     private int packPicksLeft = 0;
@@ -978,6 +979,7 @@ public final class Run {
     private void refreshShopStock() {
         shop = generateShop();
         freeRerollUsed = false;
+        rerollsThisShop = 0; // reroll cost escalation resets each new shop
         rollShopPacks();
         enterShopTags();
     }
@@ -1145,10 +1147,11 @@ public final class Run {
         return null;
     }
 
-    /** Current reroll cost: base $5, reduced $2 by Reroll Surplus and a further $2 by Reroll Glut (floor $0). */
+    /** Current reroll cost: a base ($5, or $0 under the D6 Tag), reduced $2 each by Reroll Surplus/Glut
+     *  (floor $0), then escalated +$1 for every reroll already done this shop (game.lua's inc_reroll_cost). */
     private int rerollCost() {
-        if (d6Active) return 0; // D6 Tag: first reroll is free this shop
-        return Math.max(0, Shop.REROLL_COST - shopEconomy().rerollDiscount()); // Reroll Surplus/Glut, derived
+        int base = d6Active ? 0 : Shop.REROLL_COST; // D6 Tag: $0 base for the shop (still escalates)
+        return Math.max(0, base - shopEconomy().rerollDiscount()) + rerollsThisShop;
     }
 
     /** Reroll the shop offerings. Returns null on success, else a reason. */
@@ -1159,10 +1162,13 @@ public final class Run {
         int cost = free ? 0 : rerollCost();
         if (!canAfford(cost)) return "not enough money";
         spend(cost);
-        if (free) freeRerollUsed = true;
-        couponActive = false; // the free "initial" cards are gone once you reroll
-        d6Active = false;     // the free reroll is consumed
-        shop = generateShop(); // advances the same game-long queue, skipping owned
+        if (free) {
+            freeRerollUsed = true; // Chaos's free reroll does NOT escalate the next cost
+        } else {
+            rerollsThisShop++;     // each PAID reroll raises the next one's cost by $1 (D6's $0 rerolls included)
+        }
+        couponActive = false;      // the free "initial" cards are gone once you reroll
+        shop = generateShop();     // advances the same game-long queue, skipping owned
         return null;
     }
 

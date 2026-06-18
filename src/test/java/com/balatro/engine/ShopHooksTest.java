@@ -32,11 +32,28 @@ class ShopHooksTest {
     @Test
     void chaosGivesOneFreeRerollPerShop() {
         Run run = wonRun("j_chaos");
+        run.state.money = 100; // headroom for the escalating rerolls
         int money = run.state.money;
         assertThat(run.reroll()).isNull();
-        assertThat(run.state.money).as("first reroll free").isEqualTo(money);
+        assertThat(run.state.money).as("first reroll free (Chaos)").isEqualTo(money);
         assertThat(run.reroll()).isNull();
-        assertThat(run.state.money).as("second reroll costs").isEqualTo(money - Shop.REROLL_COST);
+        assertThat(run.state.money).as("second reroll: base, free reroll didn't escalate").isEqualTo(money - Shop.REROLL_COST);
+        assertThat(run.reroll()).isNull();
+        assertThat(run.state.money).as("third reroll: base + $1 escalation")
+                .isEqualTo(money - Shop.REROLL_COST - (Shop.REROLL_COST + 1));
+    }
+
+    @Test
+    void rerollCostEscalatesByADollarEachPaidRerollAndResetsNextShop() {
+        Run run = wonRun(); // no jokers
+        run.state.money = 100;
+        int m0 = run.state.money;
+        run.reroll(); // $5
+        assertThat(m0 - run.state.money).isEqualTo(5);
+        run.reroll(); // $6
+        assertThat(m0 - run.state.money).isEqualTo(11);
+        run.reroll(); // $7
+        assertThat(m0 - run.state.money).isEqualTo(18);
     }
 
     @Test
