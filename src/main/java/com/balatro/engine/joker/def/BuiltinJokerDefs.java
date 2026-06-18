@@ -454,115 +454,85 @@ public final class BuiltinJokerDefs {
                         RunMod.stats(Modify.add(Value.Var.DISCARDS_LEFT, 1), Modify.add(Value.Var.HAND_SIZE, -1))),
                 runModJoker("j_burglar", "Burglar", "+3 hands this round, but no discards",
                         "Uncommon", 6, 4, 10, RunMod.stats(true, Modify.add(Value.Var.HANDS_LEFT, 3))),
-                new JokerDef("j_stuntman", "Stuntman", "+250 Chips, -2 hand size",
-                        "Rare", 7, 5, 10, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.CHIPS, new Value.Const(250)))),
-                        List.of(), RunMod.stats(Modify.add(Value.Var.HAND_SIZE, -2))),
+                Jokers.rare("j_stuntman", "Stuntman").cost(7).atlas(5, 10)
+                        .desc("+250 Chips, -2 hand size")
+                        .whenHand().add(CHIPS, 250)
+                        .runMod(RunMod.stats(Modify.add(Value.Var.HAND_SIZE, -2))).build(),
 
                 // --- batch 7: held-card extreme value ---
-                new JokerDef("j_raised_fist", "Raised Fist",
-                        "Adds double the rank of the lowest card held in hand to Mult",
-                        "Common", 5, 7, 9, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.HeldExtreme(true, 0, 2))))),
+                Jokers.common("j_raised_fist", "Raised Fist").cost(5).atlas(7, 9)
+                        .desc("Adds double the rank of the lowest card held in hand to Mult")
+                        .whenHand().add(MULT, new Value.HeldExtreme(true, 0, 2)).build(),
 
                 // --- batch 8: end-of-round economy (END_OF_ROUND credits DOLLARS) ---
-                new JokerDef("j_cloud_9", "Cloud 9", "Earn $1 for each 9 in your full deck at end of round",
-                        "Uncommon", 7, 1, 11, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.END_OF_ROUND, new Condition.Always(),
-                                new EffectTemplate(Op.DOLLARS, new Value.DeckRankCount(9, 0, 1))))),
-                new JokerDef("j_rocket", "Rocket",
-                        "Earn $1 at end of round; payout grows by $2 each Boss defeated",
-                        "Uncommon", 6, 2, 11, null, null, true,
-                        List.of(new Mutation(Trigger.END_OF_ROUND, new Condition.BossDefeated(),
-                                "bosses", Mutation.Op.ADD, 1)),
-                        List.of(new Rule(Trigger.END_OF_ROUND, new Condition.Always(),
-                                new EffectTemplate(Op.DOLLARS, new Value.State("bosses", 1, 2))))),
-                new JokerDef("j_delayed_gratification", "Delayed Gratification",
-                        "Earn $2 per remaining discard at end of round if no discards were used",
-                        "Common", 4, 3, 11, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.END_OF_ROUND,
-                                new Condition.Not(new Condition.Compare(
-                                        new Value.RunVar(Value.Var.DISCARDS_USED, 0, 1), Cmp.GTE, 1)),
-                                new EffectTemplate(Op.DOLLARS,
-                                        new Value.RunVar(Value.Var.DISCARDS_LEFT, 0, 2))))),
+                Jokers.uncommon("j_cloud_9", "Cloud 9").cost(7).atlas(1, 11)
+                        .desc("Earn $1 for each 9 in your full deck at end of round")
+                        .atEndOfRound().add(DOLLARS, new Value.DeckRankCount(9, 0, 1)).build(),
+                Jokers.uncommon("j_rocket", "Rocket").cost(6).atlas(2, 11)
+                        .desc("Earn $1 at end of round; payout grows by $2 each Boss defeated")
+                        .mutate(Trigger.END_OF_ROUND).when(new Condition.BossDefeated()).gain("bosses", 1)
+                        .atEndOfRound().add(DOLLARS, new Value.State("bosses", 1, 2)).build(),
+                Jokers.common("j_delayed_gratification", "Delayed Gratification").cost(4).atlas(3, 11)
+                        .desc("Earn $2 per remaining discard at end of round if no discards were used")
+                        .atEndOfRound().when(not(runVar(Value.Var.DISCARDS_USED).atLeast(1)))
+                        .add(DOLLARS, new Value.RunVar(Value.Var.DISCARDS_LEFT, 0, 2)).build(),
 
                 // --- batch 9: consumable creation ---
-                new JokerDef("j_8_ball", "8 Ball",
-                        "1 in 4 chance for each played 8 to create a Tarot card (if room)",
-                        "Common", 5, 1, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED,
-                                new Condition.And(List.of(new Condition.ScoredRankBetween(8, 8),
-                                        new Condition.Chance(1, 4, "8ball"))),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
-                new JokerDef("j_cartomancer", "Cartomancer", "Create a Tarot card when a blind is selected",
-                        "Uncommon", 6, 2, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
-                new JokerDef("j_vagabond", "Vagabond", "Create a Tarot if a hand is played with $4 or less",
-                        "Rare", 8, 3, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN,
-                                new Condition.Not(new Condition.Compare(Value.Var.MONEY, Cmp.GTE, 5)),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
-                new JokerDef("j_superposition", "Superposition",
-                        "Create a Tarot if a played hand contains an Ace and a Straight",
-                        "Common", 5, 4, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.And(List.of(
-                                new Condition.HandContains(HandType.STRAIGHT),
-                                new Condition.Compare(new Value.Count(Value.Source.SCORING,
-                                        new Condition.ScoredRankBetween(14, 14), 0, 1), Cmp.GTE, 1))),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
-                new JokerDef("j_seance", "Seance", "Create a Spectral if the played hand is a Straight Flush",
-                        "Uncommon", 6, 5, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.HandIs(HandType.STRAIGHT_FLUSH),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL))))),
+                Jokers.common("j_8_ball", "8 Ball").cost(5).atlas(1, 12)
+                        .desc("1 in 4 chance for each played 8 to create a Tarot card (if room)")
+                        .forEachScored(Cond.all(card().rankBetween(8, 8), new Condition.Chance(1, 4, "8ball")))
+                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                Jokers.uncommon("j_cartomancer", "Cartomancer").cost(6).atlas(2, 12)
+                        .desc("Create a Tarot card when a blind is selected")
+                        .on(Trigger.BLIND_SELECTED).effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                Jokers.rare("j_vagabond", "Vagabond").cost(8).atlas(3, 12)
+                        .desc("Create a Tarot if a hand is played with $4 or less")
+                        .whenHand(not(runVar(Value.Var.MONEY).atLeast(5)))
+                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                Jokers.common("j_superposition", "Superposition").cost(5).atlas(4, 12)
+                        .desc("Create a Tarot if a played hand contains an Ace and a Straight")
+                        .whenHand(Cond.all(playedHand().contains(HandType.STRAIGHT),
+                                value(new Value.Count(Value.Source.SCORING,
+                                        new Condition.ScoredRankBetween(14, 14), 0, 1)).atLeast(1)))
+                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                Jokers.uncommon("j_seance", "Seance").cost(6).atlas(5, 12)
+                        .desc("Create a Spectral if the played hand is a Straight Flush")
+                        .whenHand(playedHand().is(HandType.STRAIGHT_FLUSH))
+                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL))).build(),
 
                 // --- batch 11: joker / playing-card creation + card destruction ---
-                new JokerDef("j_marble", "Marble Joker", "Adds a Stone card to your deck when a blind is selected",
-                        "Uncommon", 6, 6, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null,
-                                        Enhancement.STONE))))),
-                new JokerDef("j_riff_raff", "Riff-Raff", "Create 2 Common jokers when a blind is selected (if room)",
-                        "Common", 6, 7, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.JOKER, 2, "Common", null))))),
-                new JokerDef("j_sixth_sense", "Sixth Sense",
-                        "Play a single 6: destroy it and create a Spectral",
-                        "Uncommon", 6, 8, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED,
-                                new Condition.And(List.of(new Condition.PlayedCount(Condition.Cmp.EQ, 1),
-                                        new Condition.ScoredRankBetween(6, 6))),
-                                new EffectTemplate(Op.DESTROY_SCORED, null,
-                                        EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL)))))),
+                Jokers.uncommon("j_marble", "Marble Joker").cost(6).atlas(6, 12)
+                        .desc("Adds a Stone card to your deck when a blind is selected")
+                        .on(Trigger.BLIND_SELECTED)
+                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, Enhancement.STONE))).build(),
+                Jokers.common("j_riff_raff", "Riff-Raff").cost(6).atlas(7, 12)
+                        .desc("Create 2 Common jokers when a blind is selected (if room)")
+                        .on(Trigger.BLIND_SELECTED)
+                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.JOKER, 2, "Common", null))).build(),
+                Jokers.uncommon("j_sixth_sense", "Sixth Sense").cost(6).atlas(8, 12)
+                        .desc("Play a single 6: destroy it and create a Spectral")
+                        .forEachScored(Cond.all(playedHand().sizeExactly(1), card().rankBetween(6, 6)))
+                        .effect(new EffectTemplate(Op.DESTROY_SCORED, null,
+                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL)))).build(),
 
                 // --- batch 12: hand level-up ---
-                new JokerDef("j_space", "Space Joker", "1 in 4 chance to upgrade the level of the played hand",
-                        "Uncommon", 5, 0, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Chance(1, 4, "space"),
-                                EffectTemplate.levelUpHand(1)))),
+                Jokers.uncommon("j_space", "Space Joker").cost(5).atlas(0, 13)
+                        .desc("1 in 4 chance to upgrade the level of the played hand")
+                        .whenHand(new Condition.Chance(1, 4, "space")).effect(EffectTemplate.levelUpHand(1)).build(),
                 // --- batch 13: destruction-counting xMult (CARD_DESTROYED) ---
-                new JokerDef("j_glass_joker", "Glass Joker",
-                        "Gains x0.75 Mult for every Glass card that is destroyed",
-                        "Uncommon", 6, 5, 13, null, null, true,
-                        List.of(new Mutation(Trigger.CARD_DESTROYED,
-                                new Condition.ScoredEnhancement(Enhancement.GLASS), "x", Mutation.Op.ADD, 0.75)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
-                new JokerDef("j_canio", "Canio",
-                        "Gains x1 Mult when a face card is destroyed",
-                        "Legendary", 20, 6, 15, null, null, true,
-                        List.of(new Mutation(Trigger.CARD_DESTROYED, new Condition.ScoredIsFace(),
-                                "x", Mutation.Op.ADD, 1)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
-                new JokerDef("j_yorick", "Yorick", "Gains x1 Mult for every 23 cards discarded",
-                        "Legendary", 20, 7, 15, null, null, true,
-                        List.of(new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "d",
-                                Mutation.Op.ADD, 1, new Condition.Always())),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.StateStep("d", 1.0, 1.0, 23))))),
+                Jokers.uncommon("j_glass_joker", "Glass Joker").cost(6).atlas(5, 13)
+                        .desc("Gains x0.75 Mult for every Glass card that is destroyed")
+                        .whenCardDestroyed(card().enhancement(Enhancement.GLASS)).gain("x", 0.75)
+                        .whenHand().multiply(MULT, new Value.State("x", 1.0, 1.0)).build(),
+                Jokers.legendary("j_canio", "Canio").cost(20).atlas(6, 15)
+                        .desc("Gains x1 Mult when a face card is destroyed")
+                        .whenCardDestroyed(card().isFace()).gain("x", 1)
+                        .whenHand().multiply(MULT, new Value.State("x", 1.0, 1.0)).build(),
+                Jokers.legendary("j_yorick", "Yorick").cost(20).atlas(7, 15)
+                        .desc("Gains x1 Mult for every 23 cards discarded")
+                        .mutation(new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "d",
+                                Mutation.Op.ADD, 1, new Condition.Always()))
+                        .whenHand().multiply(MULT, new Value.StateStep("d", 1.0, 1.0, 23)).build(),
                 new JokerDef("j_hit_the_road", "Hit the Road",
                         "Gains x0.5 Mult for every Jack discarded this round",
                         "Rare", 8, 7, 13, null, null, true,
