@@ -533,127 +533,99 @@ public final class BuiltinJokerDefs {
                         .mutation(new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "d",
                                 Mutation.Op.ADD, 1, new Condition.Always()))
                         .whenHand().multiply(MULT, new Value.StateStep("d", 1.0, 1.0, 23)).build(),
-                new JokerDef("j_hit_the_road", "Hit the Road",
-                        "Gains x0.5 Mult for every Jack discarded this round",
-                        "Rare", 8, 7, 13, null, null, true,
-                        List.of(new Mutation(Trigger.BLIND_SELECTED, new Condition.Always(),
-                                        "x", Mutation.Op.RESET, 0),
-                                // +0.5 per Jack in the discarded set (count-mutation)
-                                new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "x",
-                                        Mutation.Op.ADD, 0.5, new Condition.ScoredRankBetween(11, 11))),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
+                Jokers.rare("j_hit_the_road", "Hit the Road").cost(8).atlas(7, 13)
+                        .desc("Gains x0.5 Mult for every Jack discarded this round")
+                        .mutate(Trigger.BLIND_SELECTED).when(always()).reset("x")
+                        // +0.5 per Jack in the discarded set (count-mutation, 6-arg via passthrough)
+                        .mutation(new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "x",
+                                Mutation.Op.ADD, 0.5, new Condition.ScoredRankBetween(11, 11)))
+                        .whenHand().multiply(MULT, new Value.State("x", 1.0, 1.0)).build(),
 
-                new JokerDef("j_burnt", "Burnt Joker", "Upgrade the level of the first discarded poker hand each round",
-                        "Rare", 8, 1, 13, null, null, true,
-                        // count discards this round (reset at blind select); mutations run before rules,
-                        // so on the first discard the counter is exactly 1 when the rule is checked.
-                        List.of(new Mutation(Trigger.BLIND_SELECTED, new Condition.Always(),
-                                        "discards", Mutation.Op.RESET, 0),
-                                new Mutation(Trigger.PRE_DISCARD, new Condition.Always(),
-                                        "discards", Mutation.Op.ADD, 1)),
-                        List.of(new Rule(Trigger.PRE_DISCARD,
-                                new Condition.And(List.of(new Condition.Compare("discards", Cmp.GTE, 1),
-                                        new Condition.Not(new Condition.Compare("discards", Cmp.GTE, 2)))),
-                                EffectTemplate.levelUpHand(1)))),
+                // count discards this round (reset at blind select); mutations run before rules,
+                // so on the first discard the counter is exactly 1 when the rule is checked.
+                Jokers.rare("j_burnt", "Burnt Joker").cost(8).atlas(1, 13)
+                        .desc("Upgrade the level of the first discarded poker hand each round")
+                        .mutate(Trigger.BLIND_SELECTED).when(always()).reset("discards")
+                        .mutate(Trigger.PRE_DISCARD).when(always()).gain("discards", 1)
+                        .whenDiscarding(Cond.all(state("discards").atLeast(1), not(state("discards").atLeast(2))))
+                        .effect(EffectTemplate.levelUpHand(1)).build(),
 
                 // --- batch 16: card copy (DNA) + sealed card creation (Certificate) ---
-                new JokerDef("j_dna", "DNA",
-                        "If the first hand of the round is a single card, add a permanent copy to your deck",
-                        "Rare", 8, 9, 12, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.ON_SCORED, new Condition.And(List.of(
-                                new Condition.PlayedCount(Condition.Cmp.EQ, 1),
-                                new Condition.Not(new Condition.Compare(
-                                        new Value.RunVar(Value.Var.HANDS_PLAYED, 0, 1), Cmp.GTE, 1)))),
-                                EffectTemplate.copyScored()))),
-                new JokerDef("j_hologram", "Hologram",
-                        "Gains x0.25 Mult for every playing card added to your deck",
-                        "Uncommon", 7, 8, 13, null, null, true,
-                        List.of(new Mutation(Trigger.CARD_ADDED, new Condition.Always(),
-                                "x", Mutation.Op.ADD, 0.25)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.XMULT, new Value.State("x", 1.0, 1.0))))),
-                new JokerDef("j_certificate", "Certificate",
-                        "When a blind is selected, add a random playing card with a random seal to your deck",
-                        "Uncommon", 6, 0, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.BLIND_SELECTED, new Condition.Always(),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1,
-                                        null, null, null, true))))),
+                Jokers.rare("j_dna", "DNA").cost(8).atlas(9, 12)
+                        .desc("If the first hand of the round is a single card, add a permanent copy to your deck")
+                        .forEachScored(Cond.all(playedHand().sizeExactly(1),
+                                not(runVar(Value.Var.HANDS_PLAYED).atLeast(1))))
+                        .effect(EffectTemplate.copyScored()).build(),
+                Jokers.uncommon("j_hologram", "Hologram").cost(7).atlas(8, 13)
+                        .desc("Gains x0.25 Mult for every playing card added to your deck")
+                        .mutate(Trigger.CARD_ADDED).when(always()).gain("x", 0.25)
+                        .whenHand().multiply(MULT, new Value.State("x", 1.0, 1.0)).build(),
+                Jokers.uncommon("j_certificate", "Certificate").cost(6).atlas(0, 13)
+                        .desc("When a blind is selected, add a random playing card with a random seal to your deck")
+                        .on(Trigger.BLIND_SELECTED)
+                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, null, true))).build(),
 
                 // --- batch 18: decay jokers (run-long counters + clamped values) ---
-                new JokerDef("j_ice_cream", "Ice Cream", "+100 Chips, -5 Chips per hand played",
-                        "Common", 5, 2, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.CHIPS, new Value.Clamp(
-                                        new Value.RunVar(Value.Var.HANDS_PLAYED_TOTAL, 100, -5), 0, 1e9))))),
-                new JokerDef("j_popcorn", "Popcorn", "+20 Mult, -4 Mult per round played",
-                        "Common", 5, 3, 13, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                                new EffectTemplate(Op.MULT, new Value.Clamp(
-                                        new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))))),
+                Jokers.common("j_ice_cream", "Ice Cream").cost(5).atlas(2, 13)
+                        .desc("+100 Chips, -5 Chips per hand played")
+                        .whenHand().add(CHIPS, new Value.Clamp(new Value.RunVar(Value.Var.HANDS_PLAYED_TOTAL, 100, -5), 0, 1e9)).build(),
+                Jokers.common("j_popcorn", "Popcorn").cost(5).atlas(3, 13)
+                        .desc("+20 Mult, -4 Mult per round played")
+                        .whenHand().add(MULT, new Value.Clamp(new Value.RunVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9)).build(),
                 // --- batch 42: Matador (boss-ability interaction) ---
-                new JokerDef("j_matador", "Matador",
-                        "Earn $8 if the played hand triggers the Boss Blind's ability",
-                        "Uncommon", 7, 1, 18, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.BossAbilityActive(),
-                                new EffectTemplate(Op.DOLLARS, new Value.Const(8))))),
+                Jokers.uncommon("j_matador", "Matador").cost(7).atlas(1, 18)
+                        .desc("Earn $8 if the played hand triggers the Boss Blind's ability")
+                        .whenHand(Cond.bossAbilityActive()).add(DOLLARS, 8).build(),
 
                 // --- batch 41: tags (Diet Cola) ---
-                new JokerDef("j_diet_cola", "Diet Cola", "Sell this to create a free Double Tag",
-                        "Uncommon", 6, 0, 18, null, null, true, List.of(), List.of(),
-                        List.of(), RunMod.createsTagOnSell("tag_double")),
+                Jokers.uncommon("j_diet_cola", "Diet Cola").cost(6).atlas(0, 18)
+                        .desc("Sell this to create a free Double Tag")
+                        .runMod(RunMod.createsTagOnSell("tag_double")).build(),
 
                 // --- batch 40: booster packs (Hallucination, Red Card) ---
-                new JokerDef("j_hallucination", "Hallucination",
-                        "1 in 2 chance to create a Tarot card when a booster pack is opened",
-                        "Common", 4, 1, 17, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.OPEN_BOOSTER, new Condition.Chance(1, 2, "hallucination"),
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))))),
-                new JokerDef("j_red_card", "Red Card", "Gains +3 Mult when a booster pack is skipped",
-                        "Common", 5, 2, 17, null, null, true,
-                        List.of(new Mutation(Trigger.SKIP_BOOSTER, new Condition.Always(),
-                                "mult", Mutation.Op.ADD, 3)),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Compare("mult", Cmp.GTE, 1),
-                                new EffectTemplate(Op.MULT, new Value.State("mult", 0, 1))))),
+                Jokers.common("j_hallucination", "Hallucination").cost(4).atlas(1, 17)
+                        .desc("1 in 2 chance to create a Tarot card when a booster pack is opened")
+                        .on(Trigger.OPEN_BOOSTER).when(new Condition.Chance(1, 2, "hallucination"))
+                        .effect(EffectTemplate.create(new CreateSpec(CreateSpec.Kind.TAROT))).build(),
+                Jokers.common("j_red_card", "Red Card").cost(5).atlas(2, 17)
+                        .desc("Gains +3 Mult when a booster pack is skipped")
+                        .mutate(Trigger.SKIP_BOOSTER).when(always()).gain("mult", 3)
+                        .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult")).build(),
 
                 // --- batch 39: Showman (allow duplicate shop offerings; disables the skip-if-owned rule) ---
-                new JokerDef("j_showman", "Showman",
-                        "Joker and Consumable cards may appear multiple times in the shop",
-                        "Uncommon", 5, 0, 17, null, null, true, List.of(), List.of()),
+                Jokers.uncommon("j_showman", "Showman").cost(5).atlas(0, 17)
+                        .desc("Joker and Consumable cards may appear multiple times in the shop")
+                        .behaviorInCode().build(),
 
                 // --- batch 47: Pizza (consumed at PvP end -> temporary discards) ---
-                new JokerDef("j_pizza", "Pizza",
-                        "At the end of the next PvP blind, consumed for +1 discard to you and +2 to your Nemesis",
-                        "Uncommon", 5, 0, 18, null, null, true, List.of(), List.of()),
+                Jokers.uncommon("j_pizza", "Pizza").cost(5).atlas(0, 18)
+                        .desc("At the end of the next PvP blind, consumed for +1 discard to you and +2 to your Nemesis")
+                        .behaviorInCode().build(),
 
                 // --- batch 46: Speedrun (reach PvP first -> Spectral; match-coordinated) ---
-                new JokerDef("j_speedrun", "Speedrun",
-                        "If you reach a PvP blind before your Nemesis, create a random Spectral",
-                        "Uncommon", 6, 9, 17, null, null, true, List.of(), List.of()),
+                Jokers.uncommon("j_speedrun", "Speedrun").cost(6).atlas(9, 17)
+                        .desc("If you reach a PvP blind before your Nemesis, create a random Spectral")
+                        .behaviorInCode().build(),
 
                 // --- batch 45: Penny Pincher (Nemesis shop-spend economy) ---
-                new JokerDef("j_penny_pincher", "Penny Pincher",
-                        "On entering the shop, gain $1 for every $3 your Nemesis spent last ante",
-                        "Uncommon", 6, 8, 17, null, null, true, List.of(), List.of(),
-                        List.of(), RunMod.pvpShopSpendShare(3)),
+                Jokers.uncommon("j_penny_pincher", "Penny Pincher").cost(6).atlas(8, 17)
+                        .desc("On entering the shop, gain $1 for every $3 your Nemesis spent last ante")
+                        .runMod(RunMod.pvpShopSpendShare(3)).build(),
 
                 // --- batch 44: more Nemesis jokers (Skip-Off, Let's Go Gambling) ---
-                new JokerDef("j_skip_off", "Skip-Off",
-                        "+1 Hand and +1 Discard per additional blind skipped vs your Nemesis",
-                        "Uncommon", 6, 6, 17, null, null, true, List.of(), List.of(),
-                        List.of(), RunMod.skipBonus()),
-                new JokerDef("j_lets_go_gambling", "Let's Go Gambling",
-                        "1 in 4 chance for x4 Mult and $10",
-                        "Uncommon", 6, 7, 17, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Chance(1, 4, "gambling"),
-                                new EffectTemplate(Op.XMULT, new Value.Const(4),
-                                        new EffectTemplate(Op.DOLLARS, new Value.Const(10)))))),
+                Jokers.uncommon("j_skip_off", "Skip-Off").cost(6).atlas(6, 17)
+                        .desc("+1 Hand and +1 Discard per additional blind skipped vs your Nemesis")
+                        .runMod(RunMod.skipBonus()).build(),
+                Jokers.uncommon("j_lets_go_gambling", "Let's Go Gambling").cost(6).atlas(7, 17)
+                        .desc("1 in 4 chance for x4 Mult and $10")
+                        .whenHand(new Condition.Chance(1, 4, "gambling"))
+                        .effect(new EffectTemplate(Op.XMULT, new Value.Const(4),
+                                new EffectTemplate(Op.DOLLARS, new Value.Const(10)))).build(),
 
                 // --- batch 43: multiplayer-exclusive "Nemesis" jokers (read opponent state) ---
-                new JokerDef("j_pacifist", "Pacifist", "x10 Mult while not in a PvP blind",
-                        "Uncommon", 6, 2, 17, null, null, true, List.of(),
-                        List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Not(new Condition.InPvpBlind()),
-                                new EffectTemplate(Op.XMULT, new Value.Const(10))))),
+                Jokers.uncommon("j_pacifist", "Pacifist").cost(6).atlas(2, 17)
+                        .desc("x10 Mult while not in a PvP blind")
+                        .whenHand(not(new Condition.InPvpBlind())).multiply(MULT, 10).build(),
                 new JokerDef("j_defensive_joker", "Defensive Joker",
                         "+125 Chips for every life you are behind your Nemesis",
                         "Uncommon", 6, 3, 17, null, null, true, List.of(),
