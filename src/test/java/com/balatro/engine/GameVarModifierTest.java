@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.balatro.engine.game.Blinds.BlindType;
 import com.balatro.engine.game.Bosses;
 import com.balatro.engine.game.DeckCatalog;
-import com.balatro.engine.game.Modify;
+import com.balatro.engine.joker.def.Modify;
 import com.balatro.engine.game.Run;
 import com.balatro.engine.intent.Intent;
 import com.balatro.engine.joker.def.Value;

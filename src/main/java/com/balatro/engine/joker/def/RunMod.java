@@ -136,6 +136,17 @@ public record RunMod(int handsDelta, int discardsDelta, int handSizeDelta, boole
         return onSell(new OnSell(false, -1, tag));
     }
 
+    /** This joker's per-blind stat deltas as {@link Modify}s — folded by Run with the deck/boss/voucher
+     *  modifiers (Juggler = add(HAND_SIZE,1), Burglar = add(HANDS_LEFT,3)). "No discards" is a separate
+     *  final-override capability, not a Modify (a SET-to-0 that beats later adds). */
+    public java.util.List<Modify> mods() {
+        java.util.List<Modify> m = new java.util.ArrayList<>();
+        if (handsDelta != 0) m.add(Modify.add(Value.Var.HANDS_LEFT, handsDelta));
+        if (discardsDelta != 0) m.add(Modify.add(Value.Var.DISCARDS_LEFT, discardsDelta));
+        if (handSizeDelta != 0) m.add(Modify.add(Value.Var.HAND_SIZE, handSizeDelta));
+        return m;
+    }
+
     @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isNone() {
         return handsDelta == 0 && discardsDelta == 0 && handSizeDelta == 0 && !noDiscards

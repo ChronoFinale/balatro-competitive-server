@@ -1,5 +1,7 @@
 package com.balatro.engine.game;
 
+import com.balatro.engine.joker.def.Modify;
+import com.balatro.engine.joker.def.Value;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,15 @@ public final class DeckCatalog {
             if (blindSizeMult == 0) blindSizeMult = 1;
         }
         // Authored via the fluent Decks builder (Decks.of(...).build()); this canonical ctor is the only one.
+
+        /** This deck's per-blind resource changes as {@link Modify}s — folded by Run with everyone else's. */
+        public List<Modify> mods() {
+            List<Modify> m = new java.util.ArrayList<>();
+            if (handsDelta != 0) m.add(Modify.add(Value.Var.HANDS_LEFT, handsDelta));        // Blue: +1
+            if (discardsDelta != 0) m.add(Modify.add(Value.Var.DISCARDS_LEFT, discardsDelta)); // Red: +1
+            if (handSizeDelta != 0) m.add(Modify.add(Value.Var.HAND_SIZE, handSizeDelta));    // Painted: +2
+            return m;
+        }
     }
 
     private static final Map<String, DeckType> BY_KEY = new LinkedHashMap<>();
