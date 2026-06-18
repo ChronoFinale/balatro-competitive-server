@@ -518,15 +518,13 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
                 Jokers.legendary("j_yorick", "Yorick").cost(20).atlas(7, 15)
                         .desc("Gains x1 Mult for every 23 cards discarded")
-                        .mutation(new Mutation(Trigger.PRE_DISCARD, always(), "d",
-                                Mutation.Op.ADD, 1, always()))
+                        .mutate(Trigger.PRE_DISCARD).when(always()).gainPerCard("d", 1, always())
                         .whenHand().multiply(MULT, Val.stateStep("d", 1.0, 1.0, 23)).build(),
                 Jokers.rare("j_hit_the_road", "Hit the Road").cost(8).atlas(7, 13)
                         .desc("Gains x0.5 Mult for every Jack discarded this round")
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("x")
-                        // +0.5 per Jack in the discarded set (count-mutation, 6-arg via passthrough)
-                        .mutation(new Mutation(Trigger.PRE_DISCARD, always(), "x",
-                                Mutation.Op.ADD, 0.5, card().rankBetween(11, 11)))
+                        // +0.5 per Jack in the discarded set
+                        .mutate(Trigger.PRE_DISCARD).when(always()).gainPerCard("x", 0.5, card().rankBetween(11, 11))
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
 
                 // count discards this round (reset at blind select); mutations run before rules,
@@ -701,8 +699,7 @@ public final class BuiltinJokerDefs {
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("sellBonus", 3).build(),
                 Jokers.uncommon("j_gift_card", "Gift Card").cost(6).atlas(4, 15)
                         .desc("Adds $1 of sell value to every owned Joker at end of round")
-                        .mutation(new Mutation(Trigger.END_OF_ROUND, always(),
-                                "sellBonus", Mutation.Op.ADD, 1, Mutation.Scope.ALL_JOKERS)).build(),
+                        .mutate(Trigger.END_OF_ROUND).when(always()).gainEveryJoker("sellBonus", 1).build(),
 
                 // --- batch 27: shop/economy hooks (Credit Card, Chaos, Astronomer) ---
                 Jokers.common("j_credit_card", "Credit Card").cost(1).atlas(0, 15)
@@ -729,8 +726,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_castle", "Castle").cost(6).atlas(5, 14)
                         .desc("Gains +3 Chips per discarded card of this round's suit")
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("chips")
-                        .mutation(new Mutation(Trigger.PRE_DISCARD, always(), "chips",
-                                Mutation.Op.ADD, 3, card().suitIsTarget("castleSuit")))
+                        .mutate(Trigger.PRE_DISCARD).when(always()).gainPerCard("chips", 3, card().suitIsTarget("castleSuit"))
                         .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
                 Jokers.common("j_todo_list", "To Do List").cost(4).atlas(6, 14)
                         .desc("Earn $4 if the played poker hand is this round's hand")

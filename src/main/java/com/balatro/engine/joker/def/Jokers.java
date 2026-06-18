@@ -247,6 +247,18 @@ public final class Jokers {
             return Jokers.this;
         }
 
+        /** Add {@code by} per event-card matching {@code perCard} (Hit the Road: +0.5 per Jack discarded). */
+        public Jokers gainPerCard(String var, double by, Condition perCard) {
+            mutations.add(new Mutation(trigger, condition, var, Mutation.Op.ADD, by, perCard));
+            return Jokers.this;
+        }
+
+        /** Add {@code by} to this var on EVERY owned joker, not just self (Gift Card). */
+        public Jokers gainEveryJoker(String var, double by) {
+            mutations.add(new Mutation(trigger, condition, var, Mutation.Op.ADD, by, Mutation.Scope.ALL_JOKERS));
+            return Jokers.this;
+        }
+
         /** Set a state counter to {@code value}. */
         public Jokers set(String var, double value) {
             mutations.add(new Mutation(trigger, condition, var, Mutation.Op.SET, value));
