@@ -5,7 +5,6 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Condition.Cmp;
 import com.balatro.engine.joker.def.EffectTemplate.Op;
 import static com.balatro.engine.joker.def.Cond.always;
 import static com.balatro.engine.joker.def.Cond.all;
@@ -51,11 +50,11 @@ public final class BuiltinJokerDefs {
                 // MP Hanging Chad: retrigger the first AND second scored card 1 additional time each.
                 Jokers.common("j_hanging_chad", "Hanging Chad").cost(4).atlas(1, 5)
                         .desc("Retrigger the first and second played cards 1 additional time each (multiplayer)")
-                        .on(Trigger.REPETITION_PLAYED).when(new Condition.ScoredAmongFirst(2)).retrigger().build(),
+                        .on(Trigger.REPETITION_PLAYED).when(card().amongFirst(2)).retrigger().build(),
                 // MP Seltzer: retrigger window is 8 hands (vanilla 10).
                 Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(8, 16)
                         .desc("Retrigger all played cards for the first 8 hands after it is acquired (multiplayer)")
-                        .on(Trigger.REPETITION_PLAYED).when(new Condition.HandsSinceAcquire(8)).retrigger().build(),
+                        .on(Trigger.REPETITION_PLAYED).when(Cond.handsSinceAcquired(8)).retrigger().build(),
                 // MP Golden Ticket: $3 per scored Gold card (vanilla $4), Uncommon.
                 Jokers.uncommon("j_golden_ticket", "Golden Ticket").cost(5).atlas(6, 7)
                         .desc("Played Gold cards give $3 when scored (multiplayer)")
@@ -292,7 +291,7 @@ public final class BuiltinJokerDefs {
                         .whenHand().add(MULT, Val.random(0, 23, "misprint")).build(),
                 Jokers.uncommon("j_bloodstone", "Bloodstone").cost(7).atlas(0, 8)
                         .desc("1 in 2 chance each played Heart gives x1.5 Mult")
-                        .forEachScored(Cond.all(card().suit(Suit.HEARTS), new Condition.Chance(1, 2, "bloodstone")))
+                        .forEachScored(Cond.all(card().suit(Suit.HEARTS), Cond.chance(1, 2, "bloodstone")))
                         .multiply(MULT, 1.5).build(),
 
                 // --- deck/run-stat scaling (Value.Stat) ---
@@ -333,7 +332,7 @@ public final class BuiltinJokerDefs {
                         .forEachScored(card().suit(Suit.DIAMONDS)).add(DOLLARS, 1).build(),
                 Jokers.common("j_business_card", "Business Card").cost(4).atlas(1, 9)
                         .desc("Played face cards have a 1 in 2 chance to give $2")
-                        .forEachScored(Cond.all(card().isFace(), new Condition.Chance(1, 2, "business_card")))
+                        .forEachScored(Cond.all(card().isFace(), Cond.chance(1, 2, "business_card")))
                         .add(DOLLARS, 2).build(),
 
                 // --- flat / xMult jokers expressible with the existing algebra ---
@@ -354,7 +353,7 @@ public final class BuiltinJokerDefs {
                 // --- ScoredFirst: retrigger the first scored card (Hanging Chad) ---
                 Jokers.common("j_hanging_chad", "Hanging Chad").cost(4).atlas(1, 5)
                         .desc("Retrigger the first played card 2 additional times")
-                        .on(Trigger.REPETITION_PLAYED).when(new Condition.ScoredFirst())
+                        .on(Trigger.REPETITION_PLAYED).when(card().isFirst())
                         .gives(Op.REPETITIONS, Val.of(2)).build(),
 
                 // --- ScoringContainsSuit: suit-coverage xMult jokers ---
@@ -396,14 +395,14 @@ public final class BuiltinJokerDefs {
                 // --- batch 2: first-face / stat-threshold / held-suit conditions ---
                 Jokers.common("j_photograph", "Photograph").cost(5).atlas(4, 7)
                         .desc("The first scored face card gives x2 Mult")
-                        .forEachScored(new Condition.ScoredFirstFace()).multiply(MULT, 2).build(),
+                        .forEachScored(card().firstFace()).multiply(MULT, 2).build(),
                 Jokers.rare("j_drivers_license", "Driver's License").cost(7).atlas(6, 13)
                         .desc("x3 Mult if you have at least 16 enhanced cards in your deck")
                         .whenHand(value(Val.stat(Value.Which.ENHANCED_CARD_COUNT, 0, 1, null)).atLeast(16))
                         .multiply(MULT, 3).build(),
                 Jokers.uncommon("j_blackboard", "Blackboard").cost(6).atlas(0, 7)
                         .desc("x3 Mult if all cards held in hand are Spades or Clubs")
-                        .whenHand(new Condition.HeldAllSuits(List.of(Suit.SPADES, Suit.CLUBS))).multiply(MULT, 3).build(),
+                        .whenHand(held().allSuits(Suit.SPADES, Suit.CLUBS)).multiply(MULT, 3).build(),
 
                 // --- batch 3: global scoring modifiers ---
                 Jokers.uncommon("j_pareidolia", "Pareidolia").cost(5).atlas(5, 6)
@@ -459,7 +458,7 @@ public final class BuiltinJokerDefs {
                         .atEndOfRound().add(DOLLARS, Val.deckRankCount(9, 0, 1)).build(),
                 Jokers.uncommon("j_rocket", "Rocket").cost(6).atlas(2, 11)
                         .desc("Earn $1 at end of round; payout grows by $2 each Boss defeated")
-                        .mutate(Trigger.END_OF_ROUND).when(new Condition.BossDefeated()).gain("bosses", 1)
+                        .mutate(Trigger.END_OF_ROUND).when(Cond.bossDefeated()).gain("bosses", 1)
                         .atEndOfRound().add(DOLLARS, Val.state("bosses", 1, 2)).build(),
                 Jokers.common("j_delayed_gratification", "Delayed Gratification").cost(4).atlas(3, 11)
                         .desc("Earn $2 per remaining discard at end of round if no discards were used")
@@ -469,7 +468,7 @@ public final class BuiltinJokerDefs {
                 // --- batch 9: consumable creation ---
                 Jokers.common("j_8_ball", "8 Ball").cost(5).atlas(1, 12)
                         .desc("1 in 4 chance for each played 8 to create a Tarot card (if room)")
-                        .forEachScored(Cond.all(card().rankBetween(8, 8), new Condition.Chance(1, 4, "8ball")))
+                        .forEachScored(Cond.all(card().rankBetween(8, 8), Cond.chance(1, 4, "8ball")))
                         .create(CreateSpec.Kind.TAROT).build(),
                 Jokers.uncommon("j_cartomancer", "Cartomancer").cost(6).atlas(2, 12)
                         .desc("Create a Tarot card when a blind is selected")
@@ -482,7 +481,7 @@ public final class BuiltinJokerDefs {
                         .desc("Create a Tarot if a played hand contains an Ace and a Straight")
                         .whenHand(Cond.all(playedHand().contains(HandType.STRAIGHT),
                                 value(Val.count(Value.Source.SCORING,
-                                        new Condition.ScoredRankBetween(14, 14), 0, 1)).atLeast(1)))
+                                        card().rankBetween(14, 14), 0, 1)).atLeast(1)))
                         .create(CreateSpec.Kind.TAROT).build(),
                 Jokers.uncommon("j_seance", "Seance").cost(6).atlas(5, 12)
                         .desc("Create a Spectral if the played hand is a Straight Flush")
@@ -507,7 +506,7 @@ public final class BuiltinJokerDefs {
                 // --- batch 12: hand level-up ---
                 Jokers.uncommon("j_space", "Space Joker").cost(5).atlas(0, 13)
                         .desc("1 in 4 chance to upgrade the level of the played hand")
-                        .whenHand(new Condition.Chance(1, 4, "space")).levelUpHand(1).build(),
+                        .whenHand(Cond.chance(1, 4, "space")).levelUpHand(1).build(),
                 // --- batch 13: destruction-counting xMult (CARD_DESTROYED) ---
                 Jokers.uncommon("j_glass_joker", "Glass Joker").cost(6).atlas(5, 13)
                         .desc("Gains x0.75 Mult for every Glass card that is destroyed")
@@ -519,15 +518,15 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
                 Jokers.legendary("j_yorick", "Yorick").cost(20).atlas(7, 15)
                         .desc("Gains x1 Mult for every 23 cards discarded")
-                        .mutation(new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "d",
-                                Mutation.Op.ADD, 1, new Condition.Always()))
+                        .mutation(new Mutation(Trigger.PRE_DISCARD, always(), "d",
+                                Mutation.Op.ADD, 1, always()))
                         .whenHand().multiply(MULT, Val.stateStep("d", 1.0, 1.0, 23)).build(),
                 Jokers.rare("j_hit_the_road", "Hit the Road").cost(8).atlas(7, 13)
                         .desc("Gains x0.5 Mult for every Jack discarded this round")
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("x")
                         // +0.5 per Jack in the discarded set (count-mutation, 6-arg via passthrough)
-                        .mutation(new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "x",
-                                Mutation.Op.ADD, 0.5, new Condition.ScoredRankBetween(11, 11)))
+                        .mutation(new Mutation(Trigger.PRE_DISCARD, always(), "x",
+                                Mutation.Op.ADD, 0.5, card().rankBetween(11, 11)))
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
 
                 // count discards this round (reset at blind select); mutations run before rules,
@@ -574,7 +573,7 @@ public final class BuiltinJokerDefs {
                 // --- batch 40: booster packs (Hallucination, Red Card) ---
                 Jokers.common("j_hallucination", "Hallucination").cost(4).atlas(1, 17)
                         .desc("1 in 2 chance to create a Tarot card when a booster pack is opened")
-                        .on(Trigger.OPEN_BOOSTER).when(new Condition.Chance(1, 2, "hallucination"))
+                        .on(Trigger.OPEN_BOOSTER).when(Cond.chance(1, 2, "hallucination"))
                         .create(CreateSpec.Kind.TAROT).build(),
                 Jokers.common("j_red_card", "Red Card").cost(5).atlas(2, 17)
                         .desc("Gains +3 Mult when a booster pack is skipped")
@@ -607,19 +606,19 @@ public final class BuiltinJokerDefs {
                         .runMod(RunMod.skipBonus()).build(),
                 Jokers.uncommon("j_lets_go_gambling", "Let's Go Gambling").cost(6).atlas(7, 17)
                         .desc("1 in 4 chance for x4 Mult and $10")
-                        .whenHand(new Condition.Chance(1, 4, "gambling"))
+                        .whenHand(Cond.chance(1, 4, "gambling"))
                         .effect(EffectTemplate.of(Op.XMULT, 4).and(Op.DOLLARS, 10)).build(),
 
                 // --- batch 43: multiplayer-exclusive "Nemesis" jokers (read opponent state) ---
                 Jokers.uncommon("j_pacifist", "Pacifist").cost(6).atlas(2, 17)
                         .desc("x10 Mult while not in a PvP blind")
-                        .whenHand(not(new Condition.InPvpBlind())).multiply(MULT, 10).build(),
+                        .whenHand(not(Cond.inPvpBlind())).multiply(MULT, 10).build(),
                 Jokers.uncommon("j_defensive_joker", "Defensive Joker").cost(6).atlas(3, 17)
                         .desc("+125 Chips for every life you are behind your Nemesis")
                         .whenHand().add(CHIPS, Val.runVar(Value.Var.OPP_LIVES_BEHIND, 0, 125)).build(),
                 Jokers.rare("j_conjoined", "Conjoined Joker").cost(8).atlas(4, 17)
                         .desc("In a PvP blind, x0.5 Mult per hand your Nemesis has left (max x3)")
-                        .whenHand(new Condition.InPvpBlind())
+                        .whenHand(Cond.inPvpBlind())
                         .multiply(MULT, Val.clamp(Val.runVar(Value.Var.OPP_HANDS_LEFT, 1, 0.5), 1, 3)).build(),
                 Jokers.uncommon("j_taxes", "Taxes").cost(6).atlas(5, 17)
                         .desc("+4 Mult per card your Nemesis has sold since the last PvP blind")
@@ -636,7 +635,7 @@ public final class BuiltinJokerDefs {
                         .runMod(RunMod.decayingHandSize(5)).build(),
                 Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(8, 16)
                         .desc("Retrigger all played cards for the first 10 hands after it is acquired")
-                        .on(Trigger.REPETITION_PLAYED).when(new Condition.HandsSinceAcquire(10)).retrigger().build(),
+                        .on(Trigger.REPETITION_PLAYED).when(Cond.handsSinceAcquired(10)).retrigger().build(),
 
                 // --- batch 36: Obelisk (consecutive non-most-played streak; shipped, preview-accurate) ---
                 Jokers.legendary("j_obelisk", "Obelisk").cost(20).atlas(6, 16)
@@ -648,7 +647,7 @@ public final class BuiltinJokerDefs {
                 // x4 on the 6th, 12th, ... -> total % 6 == 5. Shipped counter -> previews exactly.
                 Jokers.uncommon("j_loyalty_card", "Loyalty Card").cost(5).atlas(5, 16)
                         .desc("x4 Mult every 6 hands played")
-                        .whenHand(new Condition.RunVarModulo(Value.Var.HANDS_PLAYED_TOTAL, 6, 5)).multiply(MULT, 4).build(),
+                        .whenHand(Cond.runVarModulo(Value.Var.HANDS_PLAYED_TOTAL, 6, 5)).multiply(MULT, 4).build(),
 
                 // --- batch 34: Trading Card (discard-destroy for money) ---
                 Jokers.uncommon("j_trading", "Trading Card").cost(6).atlas(4, 16)
@@ -675,7 +674,7 @@ public final class BuiltinJokerDefs {
                 // x0.5 Mult is a Mutation; eating a random joker is the jokerEater() capability.
                 Jokers.uncommon("j_madness", "Madness").cost(7).atlas(0, 16)
                         .desc("On Small/Big blind select, gains x0.5 Mult and destroys a random Joker")
-                        .mutate(Trigger.BLIND_SELECTED).when(not(new Condition.BossBlindSelected())).gain("xm", 0.5)
+                        .mutate(Trigger.BLIND_SELECTED).when(not(Cond.bossBlind())).gain("xm", 0.5)
                         .whenHand(state("xm").atLeast(0.5)).multiply(MULT, Val.state("xm", 1.0, 1.0))
                         .runMod(RunMod.jokerEater()).build(),
 
@@ -690,7 +689,7 @@ public final class BuiltinJokerDefs {
                         .runMod(RunMod.probabilityDoubler()).build(),
                 Jokers.common("j_reserved_parking", "Reserved Parking").cost(5).atlas(7, 15)
                         .desc("Each face card held in hand has a 1 in 2 chance to give $1")
-                        .forEachHeld(Cond.all(card().isFace(), new Condition.Chance(1, 2, "reserved_parking"))).add(DOLLARS, 1).build(),
+                        .forEachHeld(Cond.all(card().isFace(), Cond.chance(1, 2, "reserved_parking"))).add(DOLLARS, 1).build(),
 
                 // --- batch 29: boss-ability disable (Chicot) — a passive capability, expressed as data ---
                 runModJoker("j_chicot", "Chicot", "Disables the effect of every Boss Blind",
@@ -702,7 +701,7 @@ public final class BuiltinJokerDefs {
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("sellBonus", 3).build(),
                 Jokers.uncommon("j_gift_card", "Gift Card").cost(6).atlas(4, 15)
                         .desc("Adds $1 of sell value to every owned Joker at end of round")
-                        .mutation(new Mutation(Trigger.END_OF_ROUND, new Condition.Always(),
+                        .mutation(new Mutation(Trigger.END_OF_ROUND, always(),
                                 "sellBonus", Mutation.Op.ADD, 1, Mutation.Scope.ALL_JOKERS)).build(),
 
                 // --- batch 27: shop/economy hooks (Credit Card, Chaos, Astronomer) ---
@@ -724,14 +723,14 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_mail_in_rebate", "Mail-In Rebate").cost(4).atlas(7, 14)
                         .desc("Earn $3 for each discarded card of this round's rank")
                         .whenDiscarding(always()).add(DOLLARS, Val.count(Value.Source.EVENT,
-                                new Condition.ScoredRankIsTarget("rebateRankId"), 0, 3)).build(),
+                                card().rankIsTarget("rebateRankId"), 0, 3)).build(),
 
                 // --- batch 24: more dynamic targets (Castle chips, To Do List money) ---
                 Jokers.uncommon("j_castle", "Castle").cost(6).atlas(5, 14)
                         .desc("Gains +3 Chips per discarded card of this round's suit")
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("chips")
-                        .mutation(new Mutation(Trigger.PRE_DISCARD, new Condition.Always(), "chips",
-                                Mutation.Op.ADD, 3, new Condition.ScoredSuit(null, "castleSuit")))
+                        .mutation(new Mutation(Trigger.PRE_DISCARD, always(), "chips",
+                                Mutation.Op.ADD, 3, card().suitIsTarget("castleSuit")))
                         .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
                 Jokers.common("j_todo_list", "To Do List").cost(4).atlas(6, 14)
                         .desc("Earn $4 if the played poker hand is this round's hand")
@@ -740,7 +739,7 @@ public final class BuiltinJokerDefs {
                 // --- batch 23: per-round dynamic targets (The Idol, Ancient Joker) ---
                 Jokers.uncommon("j_idol", "The Idol").cost(6).atlas(3, 14)
                         .desc("Each played card matching this round's Idol card gives x2 Mult")
-                        .forEachScored(Cond.all(new Condition.ScoredRankIsTarget("idolRankId"),
+                        .forEachScored(Cond.all(card().rankIsTarget("idolRankId"),
                                 card().suitIsTarget("idolSuit"))).multiply(MULT, 2).build(),
                 Jokers.rare("j_ancient_joker", "Ancient Joker").cost(8).atlas(4, 14)
                         .desc("Each played card of this round's Ancient suit gives x1.5 Mult")
@@ -749,7 +748,7 @@ public final class BuiltinJokerDefs {
                 // --- batch 22: joker-on-joker reads (Baseball Card, Swashbuckler) ---
                 Jokers.rare("j_baseball_card", "Baseball Card").cost(8).atlas(1, 14)
                         .desc("Each Uncommon Joker gives x1.5 Mult")
-                        .on(Trigger.ON_OTHER_JOKER).when(new Condition.OtherJokerRarity("Uncommon")).multiply(MULT, 1.5).build(),
+                        .on(Trigger.ON_OTHER_JOKER).when(Cond.otherJokerRarity("Uncommon")).multiply(MULT, 1.5).build(),
                 Jokers.common("j_swashbuckler", "Swashbuckler").cost(4).atlas(2, 14)
                         .desc("Adds the sell value of all other owned Jokers to Mult")
                         .whenHand().add(MULT, Val.otherJokersSellSum(0, 1)).build(),
@@ -760,7 +759,7 @@ public final class BuiltinJokerDefs {
                         .whenHand().add(MULT, Val.handTypePlays(1, 1)).build(),
                 Jokers.uncommon("j_card_sharp", "Card Sharp").cost(6).atlas(9, 13)
                         .desc("x3 Mult if the played poker hand was already played this round")
-                        .whenHand(new Condition.HandPlayedThisRound()).multiply(MULT, 3).build(),
+                        .whenHand(playedHand().repeatedThisRound()).multiply(MULT, 3).build(),
 
                 // --- batch 20: Lucky Cat (counts Lucky triggers) ---
                 Jokers.uncommon("j_lucky_cat", "Lucky Cat").cost(6).atlas(6, 13)
@@ -771,7 +770,7 @@ public final class BuiltinJokerDefs {
                 Jokers.rare("j_campfire", "Campfire").cost(9).atlas(5, 13)
                         .desc("Gains x0.25 Mult per card sold; resets when a Boss Blind is defeated")
                         .mutate(Trigger.SELL_CARD).when(always()).gain("x", 0.25)
-                        .mutate(Trigger.END_OF_ROUND).when(new Condition.BossDefeated()).reset("x")
+                        .mutate(Trigger.END_OF_ROUND).when(Cond.bossDefeated()).reset("x")
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
 
                 Jokers.uncommon("j_ramen", "Ramen").cost(6).atlas(4, 13)

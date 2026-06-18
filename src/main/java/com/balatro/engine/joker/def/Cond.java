@@ -35,6 +35,28 @@ public final class Cond {
     /** A non-disabled Boss Blind ability is in play right now (Matador). */
     public static Condition bossAbilityActive() { return new Condition.BossAbilityActive(); }
 
+    /** The round just won was a Boss blind (END_OF_ROUND; Rocket, Campfire reset). */
+    public static Condition bossDefeated() { return new Condition.BossDefeated(); }
+
+    /** Currently in a PvP (Nemesis) boss blind (Conjoined; {@code not(inPvpBlind())} = Pacifist). */
+    public static Condition inPvpBlind() { return new Condition.InPvpBlind(); }
+
+    /** A {@code numerator}-in-{@code denominator} probabilistic gate, popped from a queue keyed by {@code seed}. */
+    public static Condition chance(int numerator, int denominator, String seed) {
+        return new Condition.Chance(numerator, denominator, seed);
+    }
+
+    /** Fewer than {@code max} hands have been played since this joker was acquired (Seltzer). */
+    public static Condition handsSinceAcquired(int max) { return new Condition.HandsSinceAcquire(max); }
+
+    /** The reacted-to joker (ON_OTHER_JOKER) is of {@code rarity} (Baseball Card). */
+    public static Condition otherJokerRarity(String rarity) { return new Condition.OtherJokerRarity(rarity); }
+
+    /** A run variable modulo {@code mod} equals {@code remainder} (Loyalty Card: every 6 hands). */
+    public static Condition runVarModulo(Value.Var which, int mod, int remainder) {
+        return new Condition.RunVarModulo(which, mod, remainder);
+    }
+
     /** The single current card (which card depends on the moment: scored / held / discarded). */
     public static CardC card() { return CardC.I; }
 
@@ -66,6 +88,12 @@ public final class Cond {
         public Condition odd() { return new Condition.ScoredParity(false); }
         public Condition rankBetween(int lo, int hi) { return new Condition.ScoredRankBetween(lo, hi); }
         public Condition isFace() { return new Condition.ScoredIsFace(); }
+        /** This card is first in scoring order (Photograph, Hanging Chad). */
+        public Condition isFirst() { return new Condition.ScoredFirst(); }
+        /** This card is among the first {@code n} scored (MP Hanging Chad). */
+        public Condition amongFirst(int n) { return new Condition.ScoredAmongFirst(n); }
+        /** This card is the first scored FACE card (Photograph). */
+        public Condition firstFace() { return new Condition.ScoredFirstFace(); }
         public Condition enhancement(Enhancement e) { return new Condition.ScoredEnhancement(e); }
         /** This card has already been played at some point this ante (The Pillar). */
         public Condition playedThisAnte() { return new Condition.ScoredPlayedThisAnte(); }
@@ -91,11 +119,14 @@ public final class Cond {
         public Condition firstTimeThisRound() { return new Condition.Not(new Condition.HandPlayedThisRound()); }
         /** This poker hand matches the round's single established type, or none played yet (The Mouth's legality). */
         public Condition matchesRoundType() { return new Condition.RoundHandTypeConsistent(); }
+        /** This poker hand has already been played earlier this round (Card Sharp). */
+        public Condition repeatedThisRound() { return new Condition.HandPlayedThisRound(); }
     }
 
     public static final class HeldC {
         static final HeldC I = new HeldC();
-        // (held-card predicates plug in here as the language grows)
+        /** Every card held in hand is one of {@code suits} (empty hand counts true; Blackboard). */
+        public Condition allSuits(Suit... suits) { return new Condition.HeldAllSuits(List.of(suits)); }
     }
 
     public static final class DiscardC {
