@@ -53,7 +53,11 @@ public final class Decks {
 
     public Decks consumableSlots(int n) { resourceMods.add(Modify.add(Value.Var.CONSUMABLE_SLOTS, n)); return this; }
 
-    public Decks greenEconomy() { this.greenEconomy = true; return this; }
+    public Decks greenEconomy() {
+        this.greenEconomy = true;                                      // $2/hand, $1/discard payout rates
+        resourceMods.add(Modify.min(Value.Var.INTEREST_CAP, 0));      // ...and no interest (caps it at 0, MIN beats any voucher MAX)
+        return this;
+    }
 
     // composition shortcuts (read nicer than .composition(Composition.X))
     public Decks noFaces() { this.composition = Composition.NO_FACES; return this; }

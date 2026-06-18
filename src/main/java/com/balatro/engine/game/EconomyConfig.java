@@ -25,16 +25,19 @@ public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInt
 
     /** Fold the currently-owned sources into the effective economy. Pure — no side effects. */
     public static EconomyConfig resolve(DeckCatalog.DeckType deck, Set<String> vouchers, List<Joker> jokers) {
-        boolean green = deck.greenEconomy();                 // Green Deck: hand/discard money, no interest
-        List<Modify> voucherMods = new ArrayList<>();        // interest cap is folded from voucher data
+        boolean green = deck.greenEconomy();                 // Green Deck: $2/hand, $1/discard payout rates
+        // Interest cap is folded from the deck + voucher data: Seed Money/Money Tree raise it (MAX),
+        // Green Deck's no-interest lowers it to 0 (MIN, which runs after MAX so no voucher can claw it back).
+        List<Modify> mods = new ArrayList<>(deck.mods());
         for (String v : vouchers) {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
-            if (def != null) voucherMods.addAll(def.mods());
+            if (def != null) mods.addAll(def.mods());
         }
-        int cap = (int) Modify.fold(BASE_INTEREST_CAP, Value.Var.INTEREST_CAP, voucherMods);
+        int cap = (int) Modify.fold(BASE_INTEREST_CAP, Value.Var.INTEREST_CAP, mods);
+        boolean noInterest = cap <= 0;                       // derived — Green caps interest at 0
         boolean moon = jokers.stream().anyMatch(j -> "j_to_the_moon".equals(j.key())); // +$1/$5, uncapped
         boolean credit = jokers.stream().anyMatch(j -> "j_credit_card".equals(j.key())); // debt floor of -$20
-        return new EconomyConfig(green ? 2 : 1, green ? 1 : 0, green, cap, moon, credit ? -20 : 0);
+        return new EconomyConfig(green ? 2 : 1, green ? 1 : 0, noInterest, cap, moon, credit ? -20 : 0);
     }
 
     /** $ from remaining hands + remaining discards. */
