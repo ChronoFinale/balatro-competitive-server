@@ -719,7 +719,8 @@ public final class BuiltinJokerDefs {
                         "Prevents death if at least 25% of the required score was reached (then self-destructs)",
                         "Uncommon", 5, 8, 14, RunMod.survivesLostBlind(0.25)),
                 Jokers.uncommon("j_to_the_moon", "To the Moon").cost(5).atlas(9, 14)
-                        .desc("Earn an extra $1 of interest per $5 at end of round").behaviorInCode().build(),
+                        .desc("Earn an extra $1 of interest per $5 at end of round")
+                        .mods(Modify.max(Value.Var.UNCAPPED_INTEREST, 1)).build(),
 
                 // --- batch 25: Mail-In Rebate (event-count money) ---
                 Jokers.common("j_mail_in_rebate", "Mail-In Rebate").cost(4).atlas(7, 14)

@@ -28,6 +28,20 @@ class EconomyConfigTest {
     }
 
     @Test
+    void toTheMoonAddsAnUncappedInterestTier() {
+        // To the Moon is now data — its UNCAPPED_INTEREST policy folds from the owned joker's mods,
+        // and the formula adds an extra $1/$5 with NO cap. At $100 held: base interest = min($5 cap, $20) =
+        // $5; with To the Moon = $5 + $20 (uncapped) = $25.
+        var base = EconomyConfig.resolve(DeckCatalog.get("d_base"), Set.of(), List.of());
+        assertThat(base.interest(100)).isEqualTo(5); // capped at $5
+
+        var moon = EconomyConfig.resolve(DeckCatalog.get("d_base"), Set.of(),
+                List.of(JokerLibrary.create("j_to_the_moon")));
+        assertThat(moon.interest(100)).isEqualTo(25); // $5 capped + $20 uncapped tier
+        assertThat(moon.interest(40)).isEqualTo(13);  // min(5, 8) + 8 = 13
+    }
+
+    @Test
     void greenDeckZeroesInterestAndBeatsAnyVoucherOrJoker() {
         assertThat(cap("d_green", Set.of())).isZero();                                 // Green Deck: no interest
         assertThat(cap("d_green", Set.of("v_money_tree"))).isZero();                   // MIN(0) beats Money Tree's MAX(20)

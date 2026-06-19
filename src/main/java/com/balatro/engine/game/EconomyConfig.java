@@ -40,7 +40,7 @@ public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInt
         int cap = (int) Modify.fold(BASE_INTEREST_CAP, Value.Var.INTEREST_CAP, mods);
         boolean noInterest = cap <= 0;                       // derived — Green caps interest at 0
         int minMoney = (int) Modify.fold(0, Value.Var.MIN_MONEY, mods); // Credit Card: min(MIN_MONEY, -20)
-        boolean moon = jokers.stream().anyMatch(j -> "j_to_the_moon".equals(j.key())); // +$1/$5, uncapped (formula-coupled)
+        boolean moon = Modify.fold(0, Value.Var.UNCAPPED_INTEREST, mods) >= 1; // To the Moon: +$1/$5 uncapped
         return new EconomyConfig(green ? 2 : 1, green ? 1 : 0, noInterest, cap, moon, minMoney);
     }
 
