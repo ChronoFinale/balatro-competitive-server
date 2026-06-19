@@ -129,7 +129,7 @@
     return [];
   }
 
-  // --- algebra interpreter (Condition / Value / EffectTemplate / DataJoker) --
+  // --- algebra interpreter (Condition / Value / Effect / DataJoker) --
   function condTest(cond, ctx) {
     const c = ctx.scoredCard;
     switch (cond.type) {

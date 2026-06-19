@@ -38,7 +38,7 @@ class BuilderApiTest {
                     4, 0, 0, null, null, true, java.util.List.of(),
                     java.util.List.of(new Rule(
                             com.balatro.engine.joker.Trigger.JOKER_MAIN, new Condition.Always(),
-                            new EffectTemplate(EffectTemplate.Op.MULT, new Value.Const(11)))));
+                            new Effect.Score(Effect.Op.MULT, new Value.Const(11)))));
             HttpResponse<String> created = post(port, "/jokers", JSON.writeValueAsString(def));
             assertThat(created.statusCode()).isEqualTo(200);
             assertThat(JSON.readTree(created.body()).path("key").asText()).isEqualTo("j_custom_wire");

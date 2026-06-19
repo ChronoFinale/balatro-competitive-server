@@ -22,7 +22,7 @@ class CustomJokerStoreTest {
         return new JokerDef(key, "Custom " + key, "+9 Mult", "Common", 4, 0, 0, null, null, true,
                 List.of(),
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                        new EffectTemplate(EffectTemplate.Op.MULT, new Value.Const(9)))));
+                        new Effect.Score(Effect.Op.MULT, new Value.Const(9)))));
     }
 
     @Test

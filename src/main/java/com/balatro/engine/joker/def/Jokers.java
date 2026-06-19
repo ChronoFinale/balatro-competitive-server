@@ -170,9 +170,8 @@ public final class Jokers {
 
         public RuleBuilder when(Condition c) { this.condition = c; return this; }
 
-        private Jokers commit(EffectTemplate.Op op, Value v) {
-            rules.add(new Rule(trigger, condition, new EffectTemplate(op, v).toEffects()));
-            return Jokers.this;
+        private Jokers commit(Effect.Op op, Value v) {
+            return effect(new Effect.Score(op, v));
         }
 
         // The scoring algebra: add / times / lose to a Target (Mult, Chips, Dollars). The value can be a
@@ -193,46 +192,46 @@ public final class Jokers {
         public Jokers subtract(Target t, double v) { return commit(addOp(t), new Value.Const(-v)); }
 
         /** Retrigger the matching card once (reads "for each … retrigger"). */
-        public Jokers retrigger() { return commit(EffectTemplate.Op.REPETITIONS, new Value.Const(1)); }
+        public Jokers retrigger() { return commit(Effect.Op.REPETITIONS, new Value.Const(1)); }
 
         /** Effect with an explicit {@link Value} (per-card counts, run vars, ...). */
-        public Jokers gives(EffectTemplate.Op op, Value v) { return commit(op, v); }
+        public Jokers gives(Effect.Op op, Value v) { return commit(op, v); }
 
-        // --- non-numeric effect terminals: read as verbs instead of .effect(EffectTemplate.x(...)) ---
+        // --- non-numeric effect terminals: read as verbs ---
 
         /** Create cards/consumables/jokers (8 Ball, Cartomancer, Riff-Raff, ...). */
-        public Jokers create(CreateSpec spec) { return effect(EffectTemplate.create(spec)); }
+        public Jokers create(CreateSpec spec) { return effect(new Effect.Create(spec)); }
 
         /** Create one of {@code kind} (the common single-card case). */
-        public Jokers create(CreateSpec.Kind kind) { return effect(EffectTemplate.create(new CreateSpec(kind))); }
+        public Jokers create(CreateSpec.Kind kind) { return effect(new Effect.Create(new CreateSpec(kind))); }
 
         /** Permanently mutate each matching card — enhance/convert/add-chips (Hiker, Midas Mask, Vampire). */
-        public Jokers mutateCard(CardMod mod) { return effect(EffectTemplate.mutate(mod)); }
+        public Jokers mutateCard(CardMod mod) { return effect(new Effect.MutateCard(mod)); }
 
         /** Level up the played poker hand by {@code levels} (Space, Burnt). */
-        public Jokers levelUpHand(int levels) { return effect(EffectTemplate.levelUpHand(levels)); }
+        public Jokers levelUpHand(int levels) { return effect(new Effect.LevelUpHand(new Value.Const(levels))); }
 
         /** Add a permanent copy of the scored card to the deck (DNA). */
-        public Jokers copyScored() { return effect(EffectTemplate.copyScored()); }
+        public Jokers copyScored() { return effect(new Effect.CopyScored()); }
 
-        private static EffectTemplate.Op addOp(Target t) {
+        private static Effect.Op addOp(Target t) {
             return switch (t) {
-                case MULT -> EffectTemplate.Op.MULT;
-                case CHIPS -> EffectTemplate.Op.CHIPS;
-                case DOLLARS -> EffectTemplate.Op.DOLLARS;
+                case MULT -> Effect.Op.MULT;
+                case CHIPS -> Effect.Op.CHIPS;
+                case DOLLARS -> Effect.Op.DOLLARS;
             };
         }
 
-        private static EffectTemplate.Op multiplyOp(Target t) {
+        private static Effect.Op multiplyOp(Target t) {
             if (t != Target.MULT) {
                 throw new IllegalArgumentException("multiply only supports MULT (x Mult); got " + t);
             }
-            return EffectTemplate.Op.XMULT;
+            return Effect.Op.XMULT;
         }
 
-        /** Fully-specified effect (escape hatch for ops without a fluent terminal yet). */
-        public Jokers effect(EffectTemplate e) {
-            rules.add(new Rule(trigger, condition, e.toEffects()));
+        /** Commit a rule with one or more {@link Effect}s (compound effects = several in order). */
+        public Jokers effect(Effect... effects) {
+            rules.add(new Rule(trigger, condition, java.util.List.of(effects)));
             return Jokers.this;
         }
     }

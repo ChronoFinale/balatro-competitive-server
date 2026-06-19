@@ -10,12 +10,12 @@ import java.util.List;
 /**
  * One thing a rule does — the sealed sum derived in docs 42/44 ({@code Modify} family + structural verbs).
  * Each {@link #apply} contributes a runtime {@link JokerEffect}; a rule carries an ordered {@code List<Effect>}
- * (the old {@code EffectTemplate.extra} chain is just a longer list). This is the closed authoring set;
+ * (a rules effect chain is just an ordered list). This is the closed authoring set;
  * {@code Score}'s ops are the numeric writes (conceptually {@code Modify(scoring.slot)}), the rest are the
  * structural/control verbs. Serialized to JSON with a {@code "type"} discriminator like {@link Condition}.
  *
- * <p>Operates on the implicit context focus (scored card / hand) exactly as the old code did; an explicit
- * {@code Selector} arrives when {@code MutateCard}/{@code Destroy} need to target something other than focus.
+ * <p>Operates on the implicit context focus (scored card / hand); an explicit {@code Selector} arrives
+ * when {@code MutateCard}/{@code Destroy} need to target something other than the focus.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({

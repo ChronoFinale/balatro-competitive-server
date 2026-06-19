@@ -15,7 +15,7 @@ import java.util.Map;
  * value lists are derived from the real engine enums, so the UI can never offer a
  * suit, hand type, trigger, condition, or effect the interpreter doesn't
  * understand — the form stays in lockstep with {@link Condition}/{@link Value}/
- * {@link EffectTemplate} automatically. The UI knows how to render each
+ * {@link Effect} automatically. The UI knows how to render each
  * condition/value type's parameters; this just enumerates the choices.
  */
 public final class BuilderSchema {
@@ -30,7 +30,9 @@ public final class BuilderSchema {
                 "scoredEnhancement", "scoredEdition", "scoredSeal", "handContainsPair", "handIs",
                 "playedCount", "discardedFaceCount", "scoringAnyFace", "consumableType",
                 "stateAtLeast", "moneyAtLeast", "handsLeft", "discardsLeft", "ante", "and", "or", "not"));
-        s.put("effectOps", names(EffectTemplate.Op.values()));
+        s.put("effectOps", names(Effect.Op.values()));      // numeric Score ops
+        s.put("effectTypes", List.of(                        // the sealed Effect kinds
+                "score", "mutateCard", "create", "destroyScored", "destroyDiscarded", "levelUpHand", "copyScored"));
         s.put("valueTypes", List.of("const", "state", "count", "runVar"));
         s.put("mutationOps", names(Mutation.Op.values()));
 

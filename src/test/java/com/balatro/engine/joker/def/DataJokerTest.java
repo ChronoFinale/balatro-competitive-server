@@ -14,7 +14,7 @@ import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerEffect;
 import com.balatro.engine.joker.JokerLibrary;
 import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.EffectTemplate.Op;
+import com.balatro.engine.joker.def.Effect.Op;
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.scoring.ScoreResult;
 import com.balatro.engine.scoring.ScoringEngine;
@@ -198,7 +198,7 @@ class DataJokerTest {
         JokerDef custom = new JokerDef("j_test_custom", "Tester", "+7 Mult", "Common",
                 3, 0, 0, null, null, true, List.of(),
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                        new EffectTemplate(EffectTemplate.Op.MULT, new Value.Const(7)))));
+                        new Effect.Score(Effect.Op.MULT, new Value.Const(7)))));
         JokerLibrary.registerDef(custom);
 
         Joker made = JokerLibrary.create("j_test_custom");
@@ -305,12 +305,12 @@ class DataJokerTest {
 
     private static DataJoker oneRule(Trigger when, Condition cond, Op op, double amount) {
         return new DataJoker(new JokerDef("j_unit", "Unit", "test", "Common", 1, 0, 0, null, null, true,
-                List.of(), List.of(new Rule(when, cond, new EffectTemplate(op, new Value.Const(amount))))));
+                List.of(), List.of(new Rule(when, cond, new Effect.Score(op, new Value.Const(amount))))));
     }
 
     private static JokerDef scalingDef(String key, Op op, Value value) {
         return new JokerDef(key, key, "test", "Common", 1, 0, 0, null, null, true, List.of(),
-                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(), new EffectTemplate(op, value))));
+                List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(), new Effect.Score(op, value))));
     }
 
     private static ScoreResult scoreWith(Joker j, List<Card> played, List<Card> held) {

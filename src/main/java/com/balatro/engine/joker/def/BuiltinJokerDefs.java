@@ -5,7 +5,7 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.EffectTemplate.Op;
+import com.balatro.engine.joker.def.Effect.Op;
 import static com.balatro.engine.joker.def.Cond.always;
 import static com.balatro.engine.joker.def.Cond.all;
 import static com.balatro.engine.joker.def.Cond.any;
@@ -215,7 +215,7 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_scholar", "Scholar").cost(4).atlas(0, 4)
                         .desc("Played Aces give +20 Chips and +4 Mult")
                         .forEachScored(card().rankBetween(14, 14))
-                        .effect(EffectTemplate.of(Op.CHIPS, 20).and(Op.MULT, 4)).build(),
+                        .effect(new Effect.Score(Op.CHIPS, Val.of(20)), new Effect.Score(Op.MULT, Val.of(4))).build(),
 
                 // --- per-card mult ---
                 Jokers.common("j_smiley", "Smiley Face").cost(4).atlas(6, 15)
@@ -226,7 +226,7 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_walkie_talkie", "Walkie Talkie").cost(4).atlas(8, 15)
                         .desc("Each played 10 or 4 gives +10 Chips and +4 Mult")
                         .forEachScored(any(card().rankBetween(10, 10), card().rankBetween(4, 4)))
-                        .effect(EffectTemplate.of(Op.CHIPS, 10).and(Op.MULT, 4)).build(),
+                        .effect(new Effect.Score(Op.CHIPS, Val.of(10)), new Effect.Score(Op.MULT, Val.of(4))).build(),
 
                 // --- rank-set via any(): each played A, 2, 3, 5, 8 gives +8 Mult ---
                 Jokers.uncommon("j_fibonacci", "Fibonacci").cost(8).atlas(1, 5)
@@ -499,8 +499,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_sixth_sense", "Sixth Sense").cost(6).atlas(8, 12)
                         .desc("Play a single 6: destroy it and create a Spectral")
                         .forEachScored(Cond.all(playedHand().sizeExactly(1), card().rankBetween(6, 6)))
-                        .effect(EffectTemplate.destroyScored().andThen(
-                                EffectTemplate.create(new CreateSpec(CreateSpec.Kind.SPECTRAL)))).build(),
+                        .effect(new Effect.DestroyScored(), new Effect.Create(new CreateSpec(CreateSpec.Kind.SPECTRAL))).build(),
 
                 // --- batch 12: hand level-up ---
                 Jokers.uncommon("j_space", "Space Joker").cost(5).atlas(0, 13)
@@ -604,7 +603,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_lets_go_gambling", "Let's Go Gambling").cost(6).atlas(7, 17)
                         .desc("1 in 4 chance for x4 Mult and $10")
                         .whenHand(Cond.chance(1, 4, "gambling"))
-                        .effect(EffectTemplate.of(Op.XMULT, 4).and(Op.DOLLARS, 10)).build(),
+                        .effect(new Effect.Score(Op.XMULT, Val.of(4)), new Effect.Score(Op.DOLLARS, Val.of(10))).build(),
 
                 // --- batch 43: multiplayer-exclusive "Nemesis" jokers (read opponent state) ---
                 Jokers.uncommon("j_pacifist", "Pacifist").cost(6).atlas(2, 17)
@@ -653,7 +652,7 @@ public final class BuiltinJokerDefs {
                         .desc("If the first discard of a round is a single card, destroy it and earn $3")
                         .whenDiscarding(Cond.all(runVar(Value.Var.DISCARDS_USED).exactly(0),
                                 value(Val.count(Value.Source.EVENT, always(), 0, 1)).exactly(1)))
-                        .effect(EffectTemplate.of(Op.DOLLARS, 3).andThen(EffectTemplate.destroyDiscarded()))
+                        .effect(new Effect.Score(Op.DOLLARS, Val.of(3)), new Effect.DestroyDiscarded())
                         .build(),
 
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
