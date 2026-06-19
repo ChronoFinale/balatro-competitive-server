@@ -251,10 +251,11 @@ function ruleEditor() {
     elt('div', { class:'inline' }, [elt('label', {}, 'effect'), op]),
     val.el,
   ]);
-  return { el, read: () => ({ when: when.value, condition: cond.read(), effect: { op: op.value, value: val.read() } }) };
+  // A rule carries an ordered effect list; the form authors one score effect (compounds are server/code-authored).
+  return { el, read: () => ({ when: when.value, condition: cond.read(), effects: [{ type:'score', op: op.value, value: val.read() }] }) };
 }
 
-// A state mutation: trigger + condition + var/op/by.
+// A state mutation is just a rule whose one effect is a mutateState write: trigger + condition + var/op/by.
 function mutationEditor() {
   const when = select(SCHEMA.triggers, 'BEFORE');
   const cond = conditionEditor();
@@ -271,7 +272,8 @@ function mutationEditor() {
       elt('div', { class:'field' }, [elt('label', {}, 'by'), by]),
     ]),
   ]);
-  return { el, read: () => ({ when: when.value, condition: cond.read(), var: varName.value, op: op.value, by: Number(by.value||'0') }) };
+  return { el, read: () => ({ when: when.value, condition: cond.read(),
+    effects: [{ type:'mutateState', var: varName.value, op: op.value, by: Number(by.value||'0') }] }) };
 }
 
 const rules = [], mutations = [];
@@ -288,8 +290,8 @@ function buildDef() {
     rarity: v('rarity'), cost: parseInt(v('cost')||'0', 10),
     atlasX: 0, atlasY: 0, spriteUrl: null, spriteUrl2x: null,
     blueprintCompatible: document.getElementById('blueprintCompatible').checked,
-    mutations: liveMuts().map(m => m.read()),
-    rules: liveDefs().map(r => r.read()),
+    // State-write rules go first so a write is visible to a later rule's condition on the same trigger.
+    rules: [...liveMuts().map(m => m.read()), ...liveDefs().map(r => r.read())],
   };
 }
 

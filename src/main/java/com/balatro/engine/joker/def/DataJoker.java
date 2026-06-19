@@ -12,9 +12,10 @@ import com.balatro.engine.joker.JokerInfo;
  * hand-coded one. One instance per joker in a run, so per-joker state is keyed by
  * identity just like the hand-coded jokers.
  *
- * <p>Dispatch per call: apply any matching state {@link Mutation}s first (only at
- * {@code blueprintDepth == 0}), then return the effect of the first matching
- * {@link Rule} for the current trigger.
+ * <p>Dispatch per call: every rule whose trigger and condition match contributes, in authoring order —
+ * their effects are concatenated and chained into one result. A state-write effect ({@link
+ * Effect.MutateState}) self-gates to {@code blueprintDepth == 0 && !preview} and contributes nothing
+ * (so it neither scores nor blocks later rules); two scoring rules on one trigger both apply.
  */
 public final class DataJoker implements Joker {
 
@@ -57,21 +58,21 @@ public final class DataJoker implements Joker {
             if (e != null) e.source = name() + " -> " + target.name();
             return e;
         }
-        // Skip state mutations during a preview dry-run: previewing a hand must not
-        // advance scaling counters (Ride the Bus's streak, etc.).
-        if (ctx.blueprintDepth == 0 && !ctx.preview) {
-            for (Mutation m : def.mutations()) {
-                if (m.when() == ctx.phase && m.condition().test(ctx)) {
-                    m.apply(ctx);
-                }
-            }
-        }
+        // Accumulate, rule by rule in authoring order: every rule matching this trigger contributes, and its
+        // contributions chain onto the result. Each rule is fully applied before the next rule's condition is
+        // evaluated — so a state write (Burnt's discard counter) is visible to a later rule's condition (its
+        // "first discard?" check), and a condition is evaluated exactly once (no double chance/RNG draw). A
+        // state write contributes null and is simply skipped; two scoring rules on one trigger both chain on.
+        JokerEffect head = null;
+        JokerEffect tail = null;
         for (Rule r : def.rules()) {
-            if (r.when() == ctx.phase && r.condition().test(ctx)) {
-                JokerEffect e = Effect.applyAll(r.effects(), ctx);
-                if (e != null) return e;
-            }
+            if (r.when() != ctx.phase || !r.condition().test(ctx)) continue;
+            JokerEffect e = Effect.applyAll(r.effects(), ctx);
+            if (e == null) continue;
+            if (head == null) head = e; else tail.extra = e;
+            tail = e;
+            while (tail.extra != null) tail = tail.extra; // a contribution may already carry its own chain
         }
-        return null;
+        return head;
     }
 }

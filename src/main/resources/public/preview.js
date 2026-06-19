@@ -321,17 +321,21 @@
     return true;
   }
 
-  // DataJoker.calculate for a phase: first matching rule's effect (mutations skipped in preview).
+  // DataJoker.calculate for a phase: every rule matching this trigger contributes, in order. A pure
+  // state-write rule (mutateState only) contributes nothing and is skipped in preview — same as the server.
   function jokerEffect(joker, ctx) {
     if (!joker.def) return { ok: false };
     if (joker.def.copy) return { ok: false }; // copiers (Blueprint/Brainstorm): defer to server preview
+    const active = [];
     for (const r of joker.def.rules || []) {
       if (r.when !== ctx.phase) continue;
+      const effects = r.effects || [];
+      if (effects.length && effects.every((e) => e.type === 'mutateState')) continue; // state write: no score
       const t = condTest(r.condition, ctx);
       if (t === null) return { ok: false }; // unsupported condition (e.g. chance)
-      if (t) return { ok: true, effects: r.effects };
+      if (t) active.push(...effects);
     }
-    return { ok: true, effects: null };
+    return { ok: true, effects: active.length ? active : null };
   }
   function repetitions(joker, ctx) {
     if (!joker.def) return { reps: 0, ok: true };

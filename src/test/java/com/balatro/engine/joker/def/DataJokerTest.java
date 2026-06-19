@@ -196,7 +196,7 @@ class DataJokerTest {
     @Test
     void registerDefFlowsThroughTheNormalCreatePath() {
         JokerDef custom = new JokerDef("j_test_custom", "Tester", "+7 Mult", "Common",
-                3, 0, 0, null, null, true, List.of(),
+                3, 0, 0, null, null, true,
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                         new Effect.Score(Effect.Op.MULT, new Value.Const(7)))));
         JokerLibrary.registerDef(custom);
@@ -305,11 +305,11 @@ class DataJokerTest {
 
     private static DataJoker oneRule(Trigger when, Condition cond, Op op, double amount) {
         return new DataJoker(new JokerDef("j_unit", "Unit", "test", "Common", 1, 0, 0, null, null, true,
-                List.of(), List.of(new Rule(when, cond, new Effect.Score(op, new Value.Const(amount))))));
+                List.of(new Rule(when, cond, new Effect.Score(op, new Value.Const(amount))))));
     }
 
     private static JokerDef scalingDef(String key, Op op, Value value) {
-        return new JokerDef(key, key, "test", "Common", 1, 0, 0, null, null, true, List.of(),
+        return new JokerDef(key, key, "test", "Common", 1, 0, 0, null, null, true,
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(), new Effect.Score(op, value))));
     }
 

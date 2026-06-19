@@ -9,9 +9,10 @@ import java.util.List;
 /**
  * A fully data-driven joker definition — pure data that {@link DataJoker} turns
  * into a live joker. This is the source-of-truth the builder UI produces and the
- * server validates and persists: you define a joker (metadata + state mutations +
- * scoring rules) without writing any code, and it flows through the same
- * authoritative pipeline as the hand-coded set.
+ * server validates and persists: you define a joker (metadata + scoring rules, where
+ * a state write is just a rule whose effect is {@link Effect.MutateState}) without
+ * writing any code, and it flows through the same authoritative pipeline as the
+ * hand-coded set.
  *
  * <p>{@code spriteUrl}/{@code spriteUrl2x} point at uploaded custom art (1x/2x);
  * when both are null the client falls back to the Balatro atlas cell
@@ -31,7 +32,6 @@ public record JokerDef(
         // Boxed so "omitted in JSON" (null) is distinguishable from explicit false; the canonical
         // constructor coerces null ⇒ true, so the stored value is never null.
         Boolean blueprintCompatible,
-        List<Mutation> mutations,
         List<Rule> rules,
         List<HandMod> handMods,
         // standing variable modifiers — "+1 hand size / +1 free reroll while owned" — the SAME Modify
@@ -56,7 +56,6 @@ public record JokerDef(
             @JsonProperty("spriteUrl") String spriteUrl,
             @JsonProperty("spriteUrl2x") String spriteUrl2x,
             @JsonProperty("blueprintCompatible") Boolean blueprintCompatible,
-            @JsonProperty("mutations") List<Mutation> mutations,
             @JsonProperty("rules") List<Rule> rules,
             @JsonProperty("handMods") List<HandMod> handMods,
             @JsonProperty("mods") List<Modify> mods,
@@ -75,7 +74,6 @@ public record JokerDef(
         this.spriteUrl2x = spriteUrl2x;
         // Omitted in authored JSON ⇒ blueprint-compatible (the common case); explicit false stays false.
         this.blueprintCompatible = blueprintCompatible == null || blueprintCompatible;
-        this.mutations = mutations == null ? List.of() : List.copyOf(mutations);
         this.rules = rules == null ? List.of() : List.copyOf(rules);
         this.handMods = handMods == null ? List.of() : List.copyOf(handMods);
         this.mods = mods == null ? List.of() : List.copyOf(mods);
@@ -98,29 +96,29 @@ public record JokerDef(
     /** Back-compat: no global hand modifiers, no passive run modifiers (the common case). */
     public JokerDef(String key, String name, String description, String rarity, int cost,
             int atlasX, int atlasY, String spriteUrl, String spriteUrl2x,
-            boolean blueprintCompatible, List<Mutation> mutations, List<Rule> rules) {
+            boolean blueprintCompatible, List<Rule> rules) {
         this(key, name, description, rarity, cost, atlasX, atlasY, spriteUrl, spriteUrl2x,
-                blueprintCompatible, mutations, rules, List.of(), List.of(), RunMod.NONE, null,
+                blueprintCompatible, rules, List.of(), List.of(), RunMod.NONE, null,
                 java.util.Map.of(), java.util.Map.of());
     }
 
     /** Hand-modifier joker with no passive run modifiers. */
     public JokerDef(String key, String name, String description, String rarity, int cost,
             int atlasX, int atlasY, String spriteUrl, String spriteUrl2x,
-            boolean blueprintCompatible, List<Mutation> mutations, List<Rule> rules,
+            boolean blueprintCompatible, List<Rule> rules,
             List<HandMod> handMods) {
         this(key, name, description, rarity, cost, atlasX, atlasY, spriteUrl, spriteUrl2x,
-                blueprintCompatible, mutations, rules, handMods, List.of(), RunMod.NONE, null,
+                blueprintCompatible, rules, handMods, List.of(), RunMod.NONE, null,
                 java.util.Map.of(), java.util.Map.of());
     }
 
     /** Hand-modifier + passive run-modifier joker (no copy). */
     public JokerDef(String key, String name, String description, String rarity, int cost,
             int atlasX, int atlasY, String spriteUrl, String spriteUrl2x,
-            boolean blueprintCompatible, List<Mutation> mutations, List<Rule> rules,
+            boolean blueprintCompatible, List<Rule> rules,
             List<HandMod> handMods, RunMod runMod) {
         this(key, name, description, rarity, cost, atlasX, atlasY, spriteUrl, spriteUrl2x,
-                blueprintCompatible, mutations, rules, handMods, List.of(), runMod, null,
+                blueprintCompatible, rules, handMods, List.of(), runMod, null,
                 java.util.Map.of(), java.util.Map.of());
     }
 

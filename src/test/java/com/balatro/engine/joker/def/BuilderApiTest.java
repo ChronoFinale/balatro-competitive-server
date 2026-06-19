@@ -35,7 +35,7 @@ class BuilderApiTest {
             assertThat(schema.path("enums").path("suit").size()).isEqualTo(4);
 
             JokerDef def = new JokerDef("j_custom_wire", "Wire Joker", "+11 Mult", "Common",
-                    4, 0, 0, null, null, true, java.util.List.of(),
+                    4, 0, 0, null, null, true,
                     java.util.List.of(new Rule(
                             com.balatro.engine.joker.Trigger.JOKER_MAIN, new Condition.Always(),
                             new Effect.Score(Effect.Op.MULT, new Value.Const(11)))));

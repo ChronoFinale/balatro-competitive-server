@@ -26,6 +26,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.DestroyDiscarded.class, name = "destroyDiscarded"),
     @JsonSubTypes.Type(value = Effect.LevelUpHand.class, name = "levelUpHand"),
     @JsonSubTypes.Type(value = Effect.CopyScored.class, name = "copyScored"),
+    @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
 })
 public sealed interface Effect {
 
@@ -135,6 +136,64 @@ public sealed interface Effect {
             JokerEffect e = new JokerEffect();
             e.copyScored = true;
             return e;
+        }
+    }
+
+    /**
+     * Persistently write a scaling counter — Ride the Bus's streak, Constellation's planet count. This is
+     * {@code Modify(self.state)}: the old {@code Mutation}, now just an effect. It self-gates to {@code
+     * blueprintDepth == 0 && !preview} so a Blueprint copy or a scoring preview re-reads the counter without
+     * advancing it twice, and contributes no score (returns {@code null}, so the rules loop falls through to
+     * the next rule). {@code perCard} ⇒ an {@code ADD} adds {@code by} per matching {@code eventCard} (Hit the
+     * Road: +0.5 per Jack discarded); {@code scope} writes to self (Egg) or every owned joker (Gift Card).
+     */
+    record MutateState(String var, Op op, double by, Condition perCard, Scope scope) implements Effect {
+
+        public enum Op { ADD, SET, RESET }
+
+        /** Whose state bag the write targets: the joker itself, or every owned joker (Gift Card). */
+        public enum Scope { SELF, ALL_JOKERS }
+
+        public MutateState {
+            scope = scope == null ? Scope.SELF : scope; // omitted in JSON ⇒ writes to self
+        }
+
+        public JokerEffect apply(EvaluationContext ctx) {
+            // Previewing a hand or running a Blueprint copy must not advance scaling counters.
+            if (ctx.blueprintDepth != 0 || ctx.preview) return null;
+            double amount = by;
+            if (perCard != null && ctx.eventCards != null) {
+                int count = 0;
+                var prev = ctx.scoredCard;
+                for (var c : ctx.eventCards) {
+                    ctx.scoredCard = c;
+                    if (perCard.test(ctx)) count++;
+                }
+                ctx.scoredCard = prev;
+                amount = by * count;
+            }
+            if (scope == Scope.ALL_JOKERS && ctx.run != null) {
+                for (var j : ctx.run.jokers()) writeInto(ctx.run.jokerState(j), amount);
+            } else {
+                writeInto(ctx.selfState(), amount);
+            }
+            return null; // a write contributes nothing to the running score
+        }
+
+        /** Write {@code op} of {@code amount} into one joker's state bag, keeping whole numbers as ints. */
+        private void writeInto(java.util.Map<String, Object> state, double amount) {
+            Object cur = state.getOrDefault(var, 0);
+            double n = (cur instanceof Number num) ? num.doubleValue() : 0;
+            double next = switch (op) {
+                case ADD -> n + amount;
+                case SET -> amount;
+                case RESET -> 0;
+            };
+            if (next == Math.rint(next) && !Double.isInfinite(next)) {
+                state.put(var, (int) next);
+            } else {
+                state.put(var, next);
+            }
         }
     }
 

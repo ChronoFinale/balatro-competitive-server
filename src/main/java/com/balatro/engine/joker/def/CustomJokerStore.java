@@ -32,7 +32,6 @@ public final class CustomJokerStore {
     /** Custom keys must look like a joker key and be clearly namespaced. */
     private static final Pattern KEY = Pattern.compile("^j_[a-z0-9_]{3,48}$");
     private static final int MAX_RULES = 24;
-    private static final int MAX_MUTATIONS = 16;
     public static final int MAX_SPRITE_BYTES = 2 * 1024 * 1024;
 
     private final Path dir;
@@ -135,9 +134,6 @@ public final class CustomJokerStore {
         if (def.rules().size() > MAX_RULES) {
             throw new IllegalArgumentException("too many rules (max " + MAX_RULES + ")");
         }
-        if (def.mutations().size() > MAX_MUTATIONS) {
-            throw new IllegalArgumentException("too many mutations (max " + MAX_MUTATIONS + ")");
-        }
         for (Rule r : def.rules()) {
             if (r.when() == null || r.condition() == null || r.effects().isEmpty()) {
                 throw new IllegalArgumentException("each rule needs a trigger, condition, and effect");
@@ -152,7 +148,7 @@ public final class CustomJokerStore {
     private static JokerDef withSprites(JokerDef d, String url1x, String url2x) {
         return new JokerDef(d.key(), d.name(), d.description(), d.rarity(), d.cost(),
                 d.atlasX(), d.atlasY(), url1x, url2x, d.blueprintCompatible(),
-                d.mutations(), d.rules());
+                d.rules());
     }
 
     private static boolean isPng(byte[] b) {

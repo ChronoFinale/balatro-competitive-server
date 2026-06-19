@@ -31,7 +31,6 @@ public final class Jokers {
     private boolean blueprintCompatible = true;
     private CopySpec copy;
     private final List<Rule> rules = new ArrayList<>();
-    private final List<Mutation> mutations = new ArrayList<>();
     private final List<HandMod> handMods = new ArrayList<>();
     private final List<Modify> varMods = new ArrayList<>();
     private RunMod runMod = RunMod.NONE;
@@ -131,9 +130,6 @@ public final class Jokers {
     /** Escape hatch: append a fully-built {@link Rule} (a trigger/effect combination without a fluent verb). */
     public Jokers rule(Rule r) { rules.add(r); return this; }
 
-    /** Escape hatch: append a fully-built {@link Mutation}. */
-    public Jokers mutation(Mutation m) { mutations.add(m); return this; }
-
     /** This joker carries no def behavior — its effect lives in engine code (ShopConfig/Match/IntentHandler).
      *  A deliberate marker (Showman/Pizza/Speedrun); lets {@code build()} accept an otherwise-empty def. */
     public Jokers behaviorInCode() { this.behaviorInCode = true; return this; }
@@ -147,7 +143,7 @@ public final class Jokers {
         if (name == null || name.isBlank()) missing.add("name");
         if (desc == null || desc.isBlank()) missing.add("description (.desc)");
         if (!costSet) missing.add("cost (.cost)");
-        if (rules.isEmpty() && mutations.isEmpty() && copy == null && handMods.isEmpty()
+        if (rules.isEmpty() && copy == null && handMods.isEmpty()
                 && varMods.isEmpty() && runMod.isNone() && !behaviorInCode) {
             missing.add("behavior (.on / .mutate / .copies / .handMod / .mods / .runMod / .behaviorInCode)");
         }
@@ -156,7 +152,7 @@ public final class Jokers {
                     "Joker '" + key + "' is missing required: " + String.join(", ", missing));
         }
         return new JokerDef(key, name, desc, rarity, cost, atlasX, atlasY, null, null,
-                blueprintCompatible, List.copyOf(mutations), List.copyOf(rules),
+                blueprintCompatible, List.copyOf(rules),
                 List.copyOf(handMods), List.copyOf(varMods), runMod, copy,
                 java.util.Map.copyOf(props), java.util.Map.copyOf(state));
     }
@@ -236,7 +232,8 @@ public final class Jokers {
         }
     }
 
-    /** A state mutation under construction; {@code .add(...)} commits it. */
+    /** A state mutation under construction; {@code .gain/.set/.reset} commits it as a {@link Effect.MutateState}
+     *  rule — a write is just a rule whose one effect is {@code Modify(self.state)}. */
     public final class MutationBuilder {
         private final Trigger trigger;
         private Condition condition = new Condition.Always();
@@ -247,31 +244,33 @@ public final class Jokers {
 
         /** Add {@code by} to a state counter (Constellation: gain a planet; Canio: +1 xMult). */
         public Jokers gain(String var, double by) {
-            mutations.add(new Mutation(trigger, condition, var, Mutation.Op.ADD, by));
-            return Jokers.this;
+            return write(var, Effect.MutateState.Op.ADD, by, null, Effect.MutateState.Scope.SELF);
         }
 
         /** Add {@code by} per event-card matching {@code perCard} (Hit the Road: +0.5 per Jack discarded). */
         public Jokers gainPerCard(String var, double by, Condition perCard) {
-            mutations.add(new Mutation(trigger, condition, var, Mutation.Op.ADD, by, perCard));
-            return Jokers.this;
+            return write(var, Effect.MutateState.Op.ADD, by, perCard, Effect.MutateState.Scope.SELF);
         }
 
         /** Add {@code by} to this var on EVERY owned joker, not just self (Gift Card). */
         public Jokers gainEveryJoker(String var, double by) {
-            mutations.add(new Mutation(trigger, condition, var, Mutation.Op.ADD, by, Mutation.Scope.ALL_JOKERS));
-            return Jokers.this;
+            return write(var, Effect.MutateState.Op.ADD, by, null, Effect.MutateState.Scope.ALL_JOKERS);
         }
 
         /** Set a state counter to {@code value}. */
         public Jokers set(String var, double value) {
-            mutations.add(new Mutation(trigger, condition, var, Mutation.Op.SET, value));
-            return Jokers.this;
+            return write(var, Effect.MutateState.Op.SET, value, null, Effect.MutateState.Scope.SELF);
         }
 
         /** Reset the counter to 0 (Ride the Bus's streak breaking on a face card). */
         public Jokers reset(String var) {
-            mutations.add(new Mutation(trigger, condition, var, Mutation.Op.RESET, 0));
+            return write(var, Effect.MutateState.Op.RESET, 0, null, Effect.MutateState.Scope.SELF);
+        }
+
+        private Jokers write(String var, Effect.MutateState.Op op, double by, Condition perCard,
+                Effect.MutateState.Scope scope) {
+            rules.add(new Rule(trigger, condition,
+                    java.util.List.of(new Effect.MutateState(var, op, by, perCard, scope))));
             return Jokers.this;
         }
     }

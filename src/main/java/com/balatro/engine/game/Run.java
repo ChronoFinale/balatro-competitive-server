@@ -338,7 +338,7 @@ public final class Run {
             state.addJokerInt(js.get(i), "mult", gain);
         }
         if (blind == BlindType.BOSS) return; // random joker-eaters (Madness) don't trigger on boss blinds
-        // Madness (RANDOM_OTHER): Small/Big only; the ×0.5 Mult rides a Mutation, this is just "eat a joker".
+        // Madness (RANDOM_OTHER): Small/Big only; the ×0.5 Mult rides a state-write rule, this is just "eat a joker".
         for (int i = 0; i < js.size(); i++) {
             if (blindSelectConsume(js.get(i)) != RunMod.BlindSelectConsume.RANDOM_OTHER) continue;
             List<Joker> others = new ArrayList<>();

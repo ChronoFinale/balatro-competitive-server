@@ -32,9 +32,10 @@ public final class BuilderSchema {
                 "stateAtLeast", "moneyAtLeast", "handsLeft", "discardsLeft", "ante", "and", "or", "not"));
         s.put("effectOps", names(Effect.Op.values()));      // numeric Score ops
         s.put("effectTypes", List.of(                        // the sealed Effect kinds
-                "score", "mutateCard", "create", "destroyScored", "destroyDiscarded", "levelUpHand", "copyScored"));
+                "score", "mutateCard", "create", "destroyScored", "destroyDiscarded", "levelUpHand",
+                "copyScored", "mutateState"));
         s.put("valueTypes", List.of("const", "state", "count", "runVar"));
-        s.put("mutationOps", names(Mutation.Op.values()));
+        s.put("mutationOps", names(Effect.MutateState.Op.values()));
 
         Map<String, Object> enums = new LinkedHashMap<>();
         enums.put("suit", names(Suit.values()));

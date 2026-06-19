@@ -672,7 +672,7 @@ public final class BuiltinJokerDefs {
                         .desc("When a blind is selected, destroys the Joker to the right and gains 2x its sell value as Mult")
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult"))
                         .runMod(RunMod.ceremonialDagger()).build(),
-                // x0.5 Mult is a Mutation; eating a random joker is the jokerEater() capability.
+                // x0.5 Mult is a state-write rule; eating a random joker is the jokerEater() capability.
                 Jokers.uncommon("j_madness", "Madness").cost(7).atlas(0, 16)
                         .desc("On Small/Big blind select, gains x0.5 Mult and destroys a random Joker")
                         .mutate(Trigger.BLIND_SELECTED).when(not(Cond.bossBlind())).gain("xm", 0.5)
