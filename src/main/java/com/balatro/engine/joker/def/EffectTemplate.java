@@ -94,80 +94,29 @@ public record EffectTemplate(Op op, Value value, EffectTemplate extra, CardMod c
     }
 
     /**
-     * Build the effect: a numeric contribution (op + value) and/or a card mutation
-     * ({@link #cardMod}), chaining {@link #extra} so one rule can emit a compound
-     * effect (e.g. Scholar = +20 Chips and +4 Mult, or Vampire = xMult and strip
-     * enhancement). Numeric and mutation rides {@link JokerEffect#extra}/{@code cardMod},
-     * applied in order by the scoring engine.
+     * Apply by converting to the sealed {@link Effect} list and running the one interpreter — the
+     * serializable {@code EffectTemplate} is now a thin shim over {@link Effect} (doc-42 stage 2; the
+     * interpreter logic lives in {@code Effect}, no longer duplicated here).
      */
     public JokerEffect apply(EvaluationContext ctx) {
-        boolean nonNumeric = op == Op.MUTATE_CARD || op == Op.CREATE || op == Op.DESTROY_SCORED
-                || op == Op.DESTROY_DISCARDED || op == Op.LEVEL_UP_HAND || op == Op.COPY_SCORED;
-        JokerEffect head = nonNumeric ? null : build(value.resolve(ctx));
-        if (cardMod != null) {
-            if (head == null) head = new JokerEffect();
-            head.cardMod = cardMod;
-        }
-        if (create != null) {
-            if (head == null) head = new JokerEffect();
-            head.create = create;
-        }
-        if (op == Op.DESTROY_SCORED) {
-            if (head == null) head = new JokerEffect();
-            head.destroyScored = true;
-        }
-        if (op == Op.DESTROY_DISCARDED) {
-            if (head == null) head = new JokerEffect();
-            head.destroyEventCards = true;
-        }
-        if (op == Op.LEVEL_UP_HAND && ctx.handType != null) {
-            if (head == null) head = new JokerEffect();
-            head.levelUpHand = ctx.handType;
-            head.levelUpAmount = Math.max(1, (int) Math.round(value.resolve(ctx)));
-        }
-        if (op == Op.COPY_SCORED) {
-            if (head == null) head = new JokerEffect();
-            head.copyScored = true;
-        }
-        if (extra == null) {
-            return head;
-        }
-        JokerEffect tail = extra.apply(ctx);
-        if (head == null) {
-            return tail;
-        }
-        head.extra = tail;
-        return head;
+        return Effect.applyAll(toEffects(), ctx);
     }
 
-    private JokerEffect build(double v) {
-        return switch (op) {
-            case CHIPS -> v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips");
-            case MULT -> v == 0 ? null : JokerEffect.mult(v).msg("+" + fmt(v) + " Mult");
-            case XMULT -> v == 1.0 ? null : JokerEffect.xMult(v).msg("x" + fmt(v) + " Mult");
-            case POW_MULT -> {
-                if (v == 1.0) yield null;
-                JokerEffect e = new JokerEffect();
-                e.powMult = v;
-                yield e.msg("^" + fmt(v) + " Mult");
-            }
-            case DOLLARS -> v == 0 ? null : JokerEffect.dollars(Math.round(v)).msg("+$" + fmt(v));
-            case REPETITIONS -> {
-                int r = (int) Math.round(v);
-                yield r == 0 ? null : JokerEffect.repetitions(r).msg("Retrigger");
-            }
-            case HELD_MULT -> {
-                if (v == 0) yield null;
-                JokerEffect e = new JokerEffect();
-                e.hMult = v;
-                yield e.msg("+" + fmt(v) + " Mult");
-            }
-            case MUTATE_CARD, CREATE, DESTROY_SCORED, DESTROY_DISCARDED, LEVEL_UP_HAND, COPY_SCORED -> null; // in apply()
-        };
-    }
-
-    private static String fmt(double v) {
-        if (v == Math.rint(v) && !Double.isInfinite(v)) return Long.toString((long) v);
-        return Double.toString(v);
+    /** Decompose this template (op + payload + extra chain) into the equivalent ordered {@link Effect}s. */
+    public java.util.List<Effect> toEffects() {
+        java.util.List<Effect> out = new java.util.ArrayList<>();
+        switch (op) {
+            case CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT ->
+                    out.add(new Effect.Score(Effect.Op.valueOf(op.name()), value));
+            case DESTROY_SCORED -> out.add(new Effect.DestroyScored());
+            case DESTROY_DISCARDED -> out.add(new Effect.DestroyDiscarded());
+            case LEVEL_UP_HAND -> out.add(new Effect.LevelUpHand(value));
+            case COPY_SCORED -> out.add(new Effect.CopyScored());
+            case MUTATE_CARD, CREATE -> { } // carried by cardMod / create below
+        }
+        if (cardMod != null) out.add(new Effect.MutateCard(cardMod));
+        if (create != null) out.add(new Effect.Create(create));
+        if (extra != null) out.addAll(extra.toEffects());
+        return out;
     }
 }
