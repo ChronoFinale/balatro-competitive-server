@@ -61,9 +61,12 @@ real slots, and here is the **complete list** the content needs:
 hand)`; **discard** = `Modify(location, discard)` (temporary — returns next round); destroy = ③ (permanent).
 This is what makes Hook/Serpent and "first discard" fit. *Discard ≠ Destroy* — different target zone.
 
-**C. One genuine extra verb: `Reorder`.** Amber Acorn **shuffles the joker order** — a *permutation* of the
-joker row, which is not Modify/Create/Destroy/Copy. Used by exactly one boss. It's either a 6th verb or a
-capability/escape. Flagged, not hidden.
+**C. `Reorder` collapses too.** First take was "a 6th verb." It isn't: a joker's **`position` is a slot**
+(it has to be — slot order *is* scoring order), so Amber Acorn = `Modify(jokers.position, set, <shuffle>)`
++ `Modify(jokers.faceDown, set, true)`. The bijection invariant is an engine concern (the row is an
+ordered list), not a new instruction — and it's doubly confirmed because the **player** reorders jokers by
+drag-drop, which is the *same* `Modify(position)` via an intent. So: `position` joins the slot list, and
+the verb set stays **five**.
 
 **D. Two-slot ops: `Swap` / `Balance`.** Swap chips↔mult; average them (Plasma). Read two slots, write two.
 Not a single `Modify`. Treat as a `Modify`-family op (`swap(slotA, slotB)`) or sugar-with-a-temp — minor,
@@ -83,21 +86,24 @@ After bucketing every effect construct in the codebase:
 
 ```
 EFFECTS (state deltas, bound to a trigger):
-  ● Modify(selector.slot, op, value)      — score, resources, hand-eval knobs, card/joker props & status, zones
+  ● Modify(selector.slot, op, value)      — score, resources, hand-eval knobs, card/joker props & status,
+                                            zones (location), and position (Reorder collapses here)
   ● Create(spec)
   ● Destroy(selector)
   ● Copy(selector → dest)                  — incl. Overwrite (copy of slots)
   ● Retrigger(selector, n)
-  ◆ Reorder(selector, ordering)            — ONE card (Amber Acorn); 6th verb or escape
-  ◆ Swap/Balance                           — two-slot Modify variant; minor
+  ◆ Swap/Balance                           — two-slot (relational) Modify variant; minor; 2 cards
 
 REQUIRES (the commitment):
-  – a fixed status-slot list (A) + card.location zones (B)
+  – a fixed status-slot list (A) + card.location zones (B) + joker.position (C)
 
 NOT EFFECTS (second binding kind — not verbs):
-  – Constraints   : Condition bound to a player INTENT (boss legality, forced selection)
+  – Constraints   : Condition bound to a player INTENT (boss legality, forced selection, eternal-can't-sell)
   – Interceptions : a normal Modify/Destroy on a reactive TRIGGER (Mr Bones, Luchador)
 ```
+
+**Five verbs, derived.** The only thing that resists `Modify` is the relational two-slot `Swap/Balance`
+(2 cards) — a decision, not a discovery.
 
 So the honest answer to *"are we sure it's the closed set?"* — **five core verbs hold**, with two caveats
 the enumeration exposed: **`Reorder`** is a real one-off the five didn't cover, and **constraints** are a

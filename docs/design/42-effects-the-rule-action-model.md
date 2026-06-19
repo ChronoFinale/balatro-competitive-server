@@ -5,6 +5,36 @@
 > explicit line: **data for content, code for the engine** — and documents the deepest generalizations
 > as understood-but-deliberately-not-built.
 
+## What this model is for (and what it isn't)
+
+The game sorts into four piles; **only pile 4 is this DSL.** Drawing this line is the whole discipline.
+
+1. **Entities** — the nouns with typed slots: `run`, `card`, `joker`, `pokerHand[type]`, `scoring`,
+   `shop`, `blind/boss`, `pack`, `opponent`. *The slot space. Engine-maintained, content-modifiable.*
+2. **Intents** — the player's verbs: play · discard · buy · sell · reroll · use · pick/skip-pack ·
+   select/skip-blind · **reorder** · proceed. *The action surface; `Constraint`s gate these.*
+3. **Engine** — the clock & interpreters: run loop, scoring pipeline, hand-evaluator matcher, the
+   generators (shop/pack/boss = pools + RNG), fold resolver, PvP sync. **Code, by the line.**
+4. **Content** — jokers, consumables, vouchers, bosses, tags, decks, seals, enhancements, editions,
+   stakes. *Each is a `Source` emitting `Rule`s + `Constraint`s over piles 1–2. **This** is the DSL.*
+
+The DSL never models the loop, the generators, or RNG — those are the substrate it plugs into. "Pick K
+of N" (packs/shop) reduces to `Create(candidates)` + a pick-**intent** + `Modify(location)`; the choosing
+is pile 2, not a new effect.
+
+## Two binding kinds (derived in doc 44)
+
+A `Source` contributes **two** things, both over the one `Condition` vocabulary:
+
+```
+Rule       = (Trigger, Condition, [Effect])     reactive — "when X, do Y"
+Constraint = (Intent,  Condition [, message])   gating  — "you may do X only if Z"
+```
+
+`Constraint@Intent` is not an effect — it changes no state, it gates a move: boss legality ("must play
+5"), forced selection, **eternal** ("can't sell this" = `Constraint(sell, ≠self)`). The five `Effect`
+verbs (`Modify·Create·Destroy·Copy·Retrigger`) are the *reactive* half only.
+
 ## The grammar (the whole game)
 
 Every piece of Balatro content is a **Source** — a joker, a card, a held planet, a boss, a deck, a
