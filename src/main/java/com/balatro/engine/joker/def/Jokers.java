@@ -171,7 +171,7 @@ public final class Jokers {
         public RuleBuilder when(Condition c) { this.condition = c; return this; }
 
         private Jokers commit(EffectTemplate.Op op, Value v) {
-            rules.add(new Rule(trigger, condition, new EffectTemplate(op, v)));
+            rules.add(new Rule(trigger, condition, new EffectTemplate(op, v).toEffects()));
             return Jokers.this;
         }
 
@@ -232,7 +232,7 @@ public final class Jokers {
 
         /** Fully-specified effect (escape hatch for ops without a fluent terminal yet). */
         public Jokers effect(EffectTemplate e) {
-            rules.add(new Rule(trigger, condition, e));
+            rules.add(new Rule(trigger, condition, e.toEffects()));
             return Jokers.this;
         }
     }

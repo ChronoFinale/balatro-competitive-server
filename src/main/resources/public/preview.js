@@ -296,9 +296,11 @@
     }
   }
 
-  // Apply an EffectTemplate to the accumulator; returns false if unsupported (fall back).
+  // Apply a single sealed Effect to the accumulator; returns false if unsupported (fall back to server).
+  // Only 'score' effects change chips/mult; the structural verbs (mutateCard/create/destroy/levelUp/copy)
+  // happen server-side and don't move this hand's score.
   function effApply(acc, eff, ctx) {
-    if (eff.op === 'MUTATE_CARD') return applyExtra(acc, eff, ctx); // no numeric in preview
+    if (eff.type !== 'score') return true;
     const val = valResolve(eff.value, ctx);
     if (val === null) return false; // probabilistic value -> unsupported
     switch (eff.op) {
@@ -306,20 +308,17 @@
       case 'MULT': acc.mult += val; break;
       case 'HELD_MULT': acc.mult += val; break;
       case 'XMULT': if (val !== 1) acc.mult *= val; break;
-      case 'XCHIPS': if (val !== 1) acc.chips = Math.round(acc.chips * val); break;
       case 'POW_MULT': if (val !== 1) acc.mult = Math.pow(acc.mult, val); break;
-      case 'DOLLARS': break; // no money in scoring math
-      case 'CREATE': break; // server-side card creation; nothing to score
-      case 'DESTROY_SCORED': break; // card still scores this hand; destruction is post-score
-      case 'LEVEL_UP_HAND': break; // affects future hands, not this already-scored one
-      case 'COPY_SCORED': break; // adds a deck card server-side; nothing to score this hand
-      case 'REPETITIONS': break; // handled by the retrigger pass
+      case 'DOLLARS': break;           // no money in scoring math
+      case 'REPETITIONS': break;       // handled by the retrigger pass
       default: return false;
     }
-    return applyExtra(acc, eff, ctx);
+    return true;
   }
-  function applyExtra(acc, eff, ctx) {
-    return eff.extra ? effApply(acc, eff.extra, ctx) : true;
+  // Apply a rule's ordered effect list (the old extra chain is now a list).
+  function effApplyAll(acc, effects, ctx) {
+    for (const e of (effects || [])) if (!effApply(acc, e, ctx)) return false;
+    return true;
   }
 
   // DataJoker.calculate for a phase: first matching rule's effect (mutations skipped in preview).
@@ -330,18 +329,20 @@
       if (r.when !== ctx.phase) continue;
       const t = condTest(r.condition, ctx);
       if (t === null) return { ok: false }; // unsupported condition (e.g. chance)
-      if (t) return { ok: true, effect: r.effect };
+      if (t) return { ok: true, effects: r.effects };
     }
-    return { ok: true, effect: null };
+    return { ok: true, effects: null };
   }
   function repetitions(joker, ctx) {
     if (!joker.def) return { reps: 0, ok: true };
     let reps = 0;
     for (const r of joker.def.rules || []) {
-      if (r.when !== ctx.phase || r.effect.op !== 'REPETITIONS') continue;
+      if (r.when !== ctx.phase) continue;
+      const rep = (r.effects || []).find((e) => e.type === 'score' && e.op === 'REPETITIONS');
+      if (!rep) continue;
       const t = condTest(r.condition, ctx);
       if (t === null) return { reps: 0, ok: false };
-      if (t) { const v = valResolve(r.effect.value, ctx); reps += Math.round(v); }
+      if (t) { const v = valResolve(rep.value, ctx); reps += Math.round(v); }
     }
     return { reps, ok: true };
   }
@@ -382,7 +383,7 @@
         else if (ed === 'HOLOGRAPHIC') acc.mult += 10;
         const e = jokerEffect(j, ctx);
         if (!e.ok) { unsupported = true; return; }
-        if (e.effect && !effApply(acc, e.effect, ctx)) unsupported = true;
+        if (e.effects && !effApplyAll(acc, e.effects, ctx)) unsupported = true;
         if (ed === 'POLYCHROME') acc.mult *= 1.5;
       });
     };
@@ -432,7 +433,7 @@
         ctx.otherJoker = jokers[i];
         const e = jokerEffect(jokers[k], ctx);
         if (!e.ok) unsupported = true;
-        else if (e.effect && !effApply(acc, e.effect, ctx)) unsupported = true;
+        else if (e.effects && !effApplyAll(acc, e.effects, ctx)) unsupported = true;
       }
     }
     runJokerPass('FINAL_SCORING_STEP', null);

@@ -139,7 +139,7 @@ public final class CustomJokerStore {
             throw new IllegalArgumentException("too many mutations (max " + MAX_MUTATIONS + ")");
         }
         for (Rule r : def.rules()) {
-            if (r.when() == null || r.condition() == null || r.effect() == null) {
+            if (r.when() == null || r.condition() == null || r.effects().isEmpty()) {
                 throw new IllegalArgumentException("each rule needs a trigger, condition, and effect");
             }
         }

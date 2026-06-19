@@ -3,6 +3,8 @@ package com.balatro.engine.joker.def;
 import com.balatro.engine.card.CardMod;
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.JokerEffect;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.List;
 
 /**
@@ -10,13 +12,21 @@ import java.util.List;
  * Each {@link #apply} contributes a runtime {@link JokerEffect}; a rule carries an ordered {@code List<Effect>}
  * (the old {@code EffectTemplate.extra} chain is just a longer list). This is the closed authoring set;
  * {@code Score}'s ops are the numeric writes (conceptually {@code Modify(scoring.slot)}), the rest are the
- * structural/control verbs.
+ * structural/control verbs. Serialized to JSON with a {@code "type"} discriminator like {@link Condition}.
  *
- * <p>Stage 1 of the doc-42 migration: introduced alongside {@link EffectTemplate} with a byte-identical
- * interpreter (ported from {@code EffectTemplate.build}/{@code apply}), so the new model is proven before
- * anything is re-pointed onto it. Operates on the implicit context focus (scored card / hand) exactly as
- * the old code did; an explicit {@code Selector} arrives when {@code MutateCard}/{@code Destroy} need one.
+ * <p>Operates on the implicit context focus (scored card / hand) exactly as the old code did; an explicit
+ * {@code Selector} arrives when {@code MutateCard}/{@code Destroy} need to target something other than focus.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Effect.Score.class, name = "score"),
+    @JsonSubTypes.Type(value = Effect.MutateCard.class, name = "mutateCard"),
+    @JsonSubTypes.Type(value = Effect.Create.class, name = "create"),
+    @JsonSubTypes.Type(value = Effect.DestroyScored.class, name = "destroyScored"),
+    @JsonSubTypes.Type(value = Effect.DestroyDiscarded.class, name = "destroyDiscarded"),
+    @JsonSubTypes.Type(value = Effect.LevelUpHand.class, name = "levelUpHand"),
+    @JsonSubTypes.Type(value = Effect.CopyScored.class, name = "copyScored"),
+})
 public sealed interface Effect {
 
     /** Contribute a {@link JokerEffect} for this moment, or {@code null} for a no-op (identity-skip). */

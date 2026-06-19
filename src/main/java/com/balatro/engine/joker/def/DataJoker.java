@@ -68,7 +68,7 @@ public final class DataJoker implements Joker {
         }
         for (Rule r : def.rules()) {
             if (r.when() == ctx.phase && r.condition().test(ctx)) {
-                JokerEffect e = r.effect().apply(ctx);
+                JokerEffect e = Effect.applyAll(r.effects(), ctx);
                 if (e != null) return e;
             }
         }
