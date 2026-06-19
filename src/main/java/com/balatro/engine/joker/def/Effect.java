@@ -30,7 +30,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.CopyScored.class, name = "copyScored"),
     @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
     // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
-    @JsonSubTypes.Type(value = Effect.Enhance.class, name = "enhance"),
     @JsonSubTypes.Type(value = Effect.DestroyTargets.class, name = "destroyTargets"),
     @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
     @JsonSubTypes.Type(value = Effect.LevelAllHands.class, name = "levelAllHands"),
@@ -105,11 +104,23 @@ public sealed interface Effect {
         }
     }
 
-    /** Permanently mutate the card in focus (Hiker / Midas / Vampire). */
-    record MutateCard(CardMod mod) implements Effect {
+    /**
+     * Mutate cards: the {@link Selector} says which, the {@link CardMod} says how (enhance / convert suit /
+     * seal / edition / add-chips). With {@link Selector.Focus} this is a joker mutating the scored card — the
+     * scorer defers it onto {@code cardMod} and streams the change into the count-up (Hiker / Midas / Vampire);
+     * with {@link Selector.Selected} (etc.) it's a consumable mutating chosen cards, applied immediately by
+     * {@code Run}'s action interpreter (Magician / Star / Aura). One verb, two interpreters.
+     */
+    record MutateCard(Selector selector, CardMod mod) implements Effect {
+
+        /** A focus mutation (the joker default) — back-compat for {@code mutateCard(mod)} and selector-less JSON. */
+        public MutateCard {
+            selector = selector == null ? new Selector.Focus() : selector;
+        }
+
         public JokerEffect apply(EvaluationContext ctx) {
             JokerEffect e = new JokerEffect();
-            e.cardMod = mod;
+            e.cardMod = mod; // scoring path: defer to the scored focus, exactly as before
             return e;
         }
     }
@@ -164,10 +175,6 @@ public sealed interface Effect {
     // --- consumable / action effects: pure data, applied immediately to the run by Run's action
     //     interpreter (which resolves the Selector against the live hand / jokers / RNG). They are part of
     //     the one Effect vocabulary so a consumable is authored as a List<Effect>, exactly like a joker. ---
-
-    /** Apply a card mutation to the selector's targets — enhance / convert suit / seal / edition (Magician,
-     *  Star, Aura). The immediate sibling of {@link MutateCard} (which defers to the scored focus). */
-    record Enhance(Selector selector, CardMod mod) implements Effect {}
 
     /** Destroy the selector's targets, removing them from the deck permanently (Hanged Man). */
     record DestroyTargets(Selector selector) implements Effect {}

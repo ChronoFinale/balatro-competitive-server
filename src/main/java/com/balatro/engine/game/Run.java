@@ -1236,7 +1236,7 @@ public final class Run {
      *  against the live hand. The joker scoring verbs (Score/MutateState/…) never appear on a consumable. */
     private void applyConsumableEffect(Consumable c, Effect e, List<Card> targets) {
         switch (e) {
-            case Effect.Enhance en -> resolveTargets(c, en.selector(), targets).forEach(t -> en.mod().applyTo(t));
+            case Effect.MutateCard mc -> resolveTargets(c, mc.selector(), targets).forEach(t -> mc.mod().applyTo(t));
             case Effect.DestroyTargets dt -> {
                 resolveTargets(c, dt.selector(), targets).forEach(t -> t.destroyed = true);
                 composition.removeIf(x -> x.destroyed);
@@ -1298,6 +1298,8 @@ public final class Run {
     private List<Card> resolveTargets(Consumable c, Selector sel, List<Card> selected) {
         return switch (sel) {
             case Selector.Selected ignored -> selected;
+            case Selector.Focus ignored ->
+                    throw new IllegalStateException("Focus targets the scored card — meaningless outside scoring");
             case Selector.AllInHand ignored -> new ArrayList<>(state.hand);
             case Selector.RandomInHand r -> {
                 List<Card> out = new ArrayList<>();

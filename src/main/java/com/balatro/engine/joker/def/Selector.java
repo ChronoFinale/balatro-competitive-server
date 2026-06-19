@@ -12,12 +12,16 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
+    @JsonSubTypes.Type(value = Selector.Focus.class, name = "focus"),
     @JsonSubTypes.Type(value = Selector.Selected.class, name = "selected"),
     @JsonSubTypes.Type(value = Selector.AllInHand.class, name = "allInHand"),
     @JsonSubTypes.Type(value = Selector.RandomInHand.class, name = "randomInHand"),
     @JsonSubTypes.Type(value = Selector.RandomJoker.class, name = "randomJoker"),
 })
 public sealed interface Selector {
+
+    /** The scored card in focus — a joker's implicit target while a hand is counting up (Midas, Vampire). */
+    record Focus() implements Selector {}
 
     /** The cards the player chose as targets (resolved by uid) — Magician, Hanged Man, Death, Cryptid. */
     record Selected() implements Selector {}

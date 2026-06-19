@@ -55,7 +55,7 @@ public final class Consumables {
     // --- direct effects (set the effect outright) ---
 
     /** Apply a card mutation to each selected target — enhance/convert-suit/seal/edition (Magician, Star, Aura). */
-    public Consumables enhance(CardMod mod) { return direct(new Effect.Enhance(new Selector.Selected(), mod)); }
+    public Consumables enhance(CardMod mod) { return direct(new Effect.MutateCard(new Selector.Selected(), mod)); }
 
     /** Destroy each selected target (The Hanged Man). */
     public Consumables destroySelected() { return direct(new Effect.DestroyTargets(new Selector.Selected())); }

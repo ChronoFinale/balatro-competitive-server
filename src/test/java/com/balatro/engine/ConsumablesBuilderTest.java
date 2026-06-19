@@ -24,7 +24,7 @@ class ConsumablesBuilderTest {
                 .enhance(CardMod.setEnhancement(Enhancement.LUCKY)).build();
         assertThat(magician.type()).isEqualTo(ConsumableType.TAROT);
         assertThat(magician.maxTargets()).isEqualTo(2);
-        assertThat(magician.effects()).singleElement().isInstanceOf(Effect.Enhance.class);
+        assertThat(magician.effects()).singleElement().isInstanceOf(Effect.MutateCard.class);
     }
 
     @Test

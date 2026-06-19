@@ -202,7 +202,7 @@ public final class Jokers {
         public Jokers create(CreateSpec.Kind kind) { return effect(new Effect.Create(new CreateSpec(kind))); }
 
         /** Permanently mutate each matching card — enhance/convert/add-chips (Hiker, Midas Mask, Vampire). */
-        public Jokers mutateCard(CardMod mod) { return effect(new Effect.MutateCard(mod)); }
+        public Jokers mutateCard(CardMod mod) { return effect(new Effect.MutateCard(new Selector.Focus(), mod)); }
 
         /** Level up the played poker hand by {@code levels} (Space, Burnt). */
         public Jokers levelUpHand(int levels) { return effect(new Effect.LevelUpHand(new Value.Const(levels))); }
