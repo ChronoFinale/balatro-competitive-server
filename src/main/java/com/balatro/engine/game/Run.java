@@ -18,6 +18,8 @@ import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.Trigger;
 import com.balatro.engine.joker.JokerDisplay;
 import com.balatro.engine.joker.def.DataJoker;
+import com.balatro.engine.joker.def.Effect;
+import com.balatro.engine.joker.def.Selector;
 import com.balatro.engine.joker.def.Modify;
 import com.balatro.engine.joker.def.Value;
 import com.balatro.engine.joker.def.JokerDef;
@@ -1227,14 +1229,20 @@ public final class Run {
     }
 
     private void applyConsumable(Consumable c, List<Card> targets) {
-        switch (c.effect()) {
-            case Consumable.Enhance en -> targets.forEach(t -> en.mod().applyTo(t));
-            case Consumable.Destroy ignored -> {
-                targets.forEach(t -> t.destroyed = true);
+        for (Effect e : c.effects()) applyConsumableEffect(c, e, targets);
+    }
+
+    /** The action interpreter: apply one unified {@link Effect} to the run, resolving its {@link Selector}
+     *  against the live hand. The joker scoring verbs (Score/MutateState/…) never appear on a consumable. */
+    private void applyConsumableEffect(Consumable c, Effect e, List<Card> targets) {
+        switch (e) {
+            case Effect.Enhance en -> resolveTargets(c, en.selector(), targets).forEach(t -> en.mod().applyTo(t));
+            case Effect.DestroyTargets dt -> {
+                resolveTargets(c, dt.selector(), targets).forEach(t -> t.destroyed = true);
                 composition.removeIf(x -> x.destroyed);
                 state.hand.removeIf(x -> x.destroyed);
             }
-            case Consumable.Create cr -> {
+            case Effect.CreateCards cr -> {
                 var r = rng.stream("create:" + c.key());
                 Rank[] ranks = Rank.values();
                 Suit[] suits = Suit.values();
@@ -1247,13 +1255,13 @@ public final class Run {
                     state.hand.add(made);  // and usable now
                 }
             }
-            case Consumable.LevelAllHands ignored -> {
+            case Effect.LevelAllHands ignored -> {
                 for (HandType t : HandType.values()) state.levelUpHand(t); // Black Hole
             }
-            case Consumable.JokerEdition je -> applyJokerEdition(c, je);
-            case Consumable.Generate g -> applyGenerate(c, g);
-            case Consumable.ConvertHand ch -> applyConvertHand(c, ch);
-            case Consumable.CopySelected cs -> {
+            case Effect.JokerEdition je -> applyJokerEdition(c, je);
+            case Effect.Generate g -> applyGenerate(c, g);
+            case Effect.ConvertHand ch -> applyConvertHand(c, ch);
+            case Effect.CopySelected cs -> {
                 if (!targets.isEmpty()) {
                     Card src = targets.get(0);
                     for (int i = 0; i < cs.copies(); i++) {
@@ -1263,7 +1271,7 @@ public final class Run {
                     }
                 }
             }
-            case Consumable.OverwriteSelected ignored -> {
+            case Effect.OverwriteSelected ignored -> {
                 if (targets.size() == 2) { // Death: the left (first) card becomes a copy of the right
                     Card left = targets.get(0), right = targets.get(1);
                     left.rank = right.rank;
@@ -1273,19 +1281,41 @@ public final class Run {
                     left.seal = right.seal;
                 }
             }
-            case Consumable.CopyRandomJoker cj -> applyCopyRandomJoker(c, cj);
-            case Consumable.CopyLastConsumable ignored -> {
+            case Effect.CopyRandomJoker cj -> applyCopyRandomJoker(c, cj);
+            case Effect.CopyLastConsumable ignored -> {
                 String last = state.lastTarotPlanetUsed;
                 if (last != null && state.consumables.size() < state.consumableSlots) {
                     state.consumables.add(last);
                 }
             }
-            case Consumable.NemesisDelevel ignored -> state.nemesisDelevelPending++; // Match applies it to the opponent
+            case Effect.NemesisDelevel ignored -> state.nemesisDelevelPending++; // Match applies it to the opponent
+            default -> throw new IllegalStateException("not a consumable effect: " + e);
         }
     }
 
+    /** Resolve which held cards an effect targets. Selected = the player's chosen cards; the others let a
+     *  consumable reach the whole hand or a random subset without bespoke code. */
+    private List<Card> resolveTargets(Consumable c, Selector sel, List<Card> selected) {
+        return switch (sel) {
+            case Selector.Selected ignored -> selected;
+            case Selector.AllInHand ignored -> new ArrayList<>(state.hand);
+            case Selector.RandomInHand r -> {
+                List<Card> out = new ArrayList<>();
+                for (int i = 0; i < r.count(); i++) {
+                    List<Card> live = state.hand.stream().filter(x -> !x.destroyed && !out.contains(x)).toList();
+                    if (live.isEmpty()) break;
+                    out.add(state.queues.pick(live, RngSources.consumable(c.key()).sub("select:" + i).composition(),
+                            rngCtx(), Deck.CARD_GROUP, Deck.CARD_QUALITY));
+                }
+                yield out;
+            }
+            case Selector.RandomJoker ignored ->
+                    throw new IllegalStateException("RandomJoker selects jokers, not cards");
+        };
+    }
+
     /** Sigil (all cards to one random suit) / Ouija (all to one random rank, -1 hand size). */
-    private void applyConvertHand(Consumable c, Consumable.ConvertHand ch) {
+    private void applyConvertHand(Consumable c, Effect.ConvertHand ch) {
         // MP Ouija rework: destroy 3 random cards first, convert the rest to one rank, and DON'T
         // reduce hand size (vanilla Ouija converts the whole hand and loses 1 hand size).
         boolean mpOuija = "c_ouija".equals(c.key()) && ruleset.capabilities().ouijaRework();
@@ -1315,7 +1345,7 @@ public final class Run {
     }
 
     /** Ankh: copy a random owned joker (edition-free) and, if set, destroy all other jokers. */
-    private void applyCopyRandomJoker(Consumable c, Consumable.CopyRandomJoker cj) {
+    private void applyCopyRandomJoker(Consumable c, Effect.CopyRandomJoker cj) {
         if (state.jokers().isEmpty()) return;
         Joker chosen = state.queues.pick(state.jokers(), RngSources.consumable(c.key()).sub("joker").composition(),
                 rngCtx(), Joker::key, JOKER_QUALITY);
@@ -1335,7 +1365,7 @@ public final class Run {
      * Apply a generative consumable: destroy random hand cards, create
      * consumables/jokers/cards, add rank-class cards, then run a money op — in order.
      */
-    private void applyGenerate(Consumable c, Consumable.Generate g) {
+    private void applyGenerate(Consumable c, Effect.Generate g) {
         // 1. destroy N random hand cards (and the same objects from the persistent deck).
         for (int i = 0; i < g.destroyRandomInHand(); i++) {
             List<Card> live = state.hand.stream().filter(x -> !x.destroyed).toList();
@@ -1356,7 +1386,7 @@ public final class Run {
         if (g.money() != null) applyMoneyOp(g.money());
     }
 
-    private void addRankClassCards(Consumable c, Consumable.Generate.AddCards add) {
+    private void addRankClassCards(Consumable c, Effect.Generate.AddCards add) {
         Rank[] pool = switch (add.rankClass()) {
             case FACE -> new Rank[]{Rank.JACK, Rank.QUEEN, Rank.KING};
             case ACE -> new Rank[]{Rank.ACE};
@@ -1374,7 +1404,7 @@ public final class Run {
         }
     }
 
-    private void applyMoneyOp(Consumable.Generate.MoneyOp m) {
+    private void applyMoneyOp(Effect.Generate.MoneyOp m) {
         switch (m.kind()) {
             case FLAT -> state.money = Math.max(0, state.money + m.amount());
             case SET -> state.money = Math.max(0, m.amount());
@@ -1394,7 +1424,7 @@ public final class Run {
      * Wheel gates on a 1-in-N roll and picks a random Foil/Holo/Poly; Ectoplasm and
      * Hex always fire and carry their own side effects (hand-size / destroy-others).
      */
-    private void applyJokerEdition(Consumable c, Consumable.JokerEdition je) {
+    private void applyJokerEdition(Consumable c, Effect.JokerEdition je) {
         if (state.jokers().isEmpty()) return;
         if (je.chanceDenominator() > 1
                 && roll(RngSources.consumable(c.key()).sub("gate")) >= 1.0 / je.chanceDenominator()) {

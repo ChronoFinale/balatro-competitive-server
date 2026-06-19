@@ -1,6 +1,8 @@
 package com.balatro.engine.joker.def;
 
 import com.balatro.engine.card.CardMod;
+import com.balatro.engine.card.Edition;
+import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.JokerEffect;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -27,11 +29,31 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.LevelUpHand.class, name = "levelUpHand"),
     @JsonSubTypes.Type(value = Effect.CopyScored.class, name = "copyScored"),
     @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
+    // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
+    @JsonSubTypes.Type(value = Effect.Enhance.class, name = "enhance"),
+    @JsonSubTypes.Type(value = Effect.DestroyTargets.class, name = "destroyTargets"),
+    @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
+    @JsonSubTypes.Type(value = Effect.LevelAllHands.class, name = "levelAllHands"),
+    @JsonSubTypes.Type(value = Effect.JokerEdition.class, name = "jokerEdition"),
+    @JsonSubTypes.Type(value = Effect.Generate.class, name = "generate"),
+    @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
+    @JsonSubTypes.Type(value = Effect.CopySelected.class, name = "copySelected"),
+    @JsonSubTypes.Type(value = Effect.OverwriteSelected.class, name = "overwriteSelected"),
+    @JsonSubTypes.Type(value = Effect.CopyRandomJoker.class, name = "copyRandomJoker"),
+    @JsonSubTypes.Type(value = Effect.CopyLastConsumable.class, name = "copyLastConsumable"),
+    @JsonSubTypes.Type(value = Effect.NemesisDelevel.class, name = "nemesisDelevel"),
 })
 public sealed interface Effect {
 
-    /** Contribute a {@link JokerEffect} for this moment, or {@code null} for a no-op (identity-skip). */
-    JokerEffect apply(EvaluationContext ctx);
+    /**
+     * Contribute a {@link JokerEffect} for a scoring moment, or {@code null} for "nothing to score here".
+     * Scoring effects (the {@code Modify} family) override this; action effects (the consumable verbs below)
+     * inherit the {@code null} default — they never run in the scorer, only through {@code Run}'s action
+     * interpreter, so they contribute nothing to a played hand's count-up.
+     */
+    default JokerEffect apply(EvaluationContext ctx) {
+        return null;
+    }
 
     /** Apply effects in order, chaining the non-null contributions into one {@code extra} chain. */
     static JokerEffect applyAll(List<Effect> effects, EvaluationContext ctx) {
@@ -138,6 +160,68 @@ public sealed interface Effect {
             return e;
         }
     }
+
+    // --- consumable / action effects: pure data, applied immediately to the run by Run's action
+    //     interpreter (which resolves the Selector against the live hand / jokers / RNG). They are part of
+    //     the one Effect vocabulary so a consumable is authored as a List<Effect>, exactly like a joker. ---
+
+    /** Apply a card mutation to the selector's targets — enhance / convert suit / seal / edition (Magician,
+     *  Star, Aura). The immediate sibling of {@link MutateCard} (which defers to the scored focus). */
+    record Enhance(Selector selector, CardMod mod) implements Effect {}
+
+    /** Destroy the selector's targets, removing them from the deck permanently (Hanged Man). */
+    record DestroyTargets(Selector selector) implements Effect {}
+
+    /** Add {@code count} new numbered cards (random rank/suit) with an enhancement to the deck (Incantation). */
+    record CreateCards(int count, Enhancement enhancement) implements Effect {}
+
+    /** Level up every poker hand by 1 (Black Hole). */
+    record LevelAllHands() implements Effect {}
+
+    /**
+     * Add an edition to a random owned joker. {@code edition == NONE} means "a random Foil/Holo/Poly" (Wheel
+     * of Fortune). {@code chanceDenominator} gates the whole effect (Wheel = 4 → 1-in-4; others = 1 → always).
+     * {@code handSizeDelta} and {@code destroyOtherJokers} carry Ectoplasm's -1 hand size and Hex's wipe.
+     */
+    record JokerEdition(Edition edition, int chanceDenominator,
+                        int handSizeDelta, boolean destroyOtherJokers) implements Effect {}
+
+    /**
+     * The "generative" consumables (Emperor, High Priestess, Judgement, The Soul, Wraith, Hermit, Temperance,
+     * Immolate, Familiar, Grim). Applied in order, each part optional (null / 0 = skip): destroy N random hand
+     * cards, then create consumables/jokers/cards, then add rank-class cards, then run a money op.
+     */
+    record Generate(CreateSpec create, int destroyRandomInHand, AddCards add, MoneyOp money) implements Effect {
+
+        /** Add {@code count} cards of {@code rankClass}; {@code enhancement == null} = random per card. */
+        public record AddCards(RankClass rankClass, int count, Enhancement enhancement) {
+            public enum RankClass { FACE, ACE, NUMBER, ANY }
+        }
+
+        /** Double current money (capped), gain total joker sell value (capped), gain a flat amount, or set
+         *  money to a fixed value. {@code amount} is the cap / delta / target. */
+        public record MoneyOp(Kind kind, int amount) {
+            public enum Kind { DOUBLE_CAP, SELL_VALUE_CAP, FLAT, SET }
+        }
+    }
+
+    /** Convert EVERY card in hand to one random suit (Sigil) or rank (Ouija); Ouija also -1 hand size. */
+    record ConvertHand(boolean toRandomSuit, boolean toRandomRank, int handSizeDelta) implements Effect {}
+
+    /** Create {@code copies} exact copies of the single selected card (Cryptid). */
+    record CopySelected(int copies) implements Effect {}
+
+    /** Overwrite the first selected card with the attributes of the second (Death: left becomes right). */
+    record OverwriteSelected() implements Effect {}
+
+    /** Copy a random owned joker (edition-free); optionally destroy all others (Ankh). */
+    record CopyRandomJoker(boolean destroyOthers) implements Effect {}
+
+    /** Create a copy of the last Tarot or Planet used this run (The Fool). */
+    record CopyLastConsumable() implements Effect {}
+
+    /** Asteroid (MP): delevel the nemesis's highest poker hand (resolved by the Match). */
+    record NemesisDelevel() implements Effect {}
 
     /**
      * Persistently write a scaling counter — Ride the Bus's streak, Constellation's planet count. This is
