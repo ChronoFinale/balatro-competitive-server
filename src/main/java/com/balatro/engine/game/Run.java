@@ -732,36 +732,10 @@ public final class Run {
         if (intent instanceof Intent.PlayHand && state.inPvpBlind && state.queues != null) {
             state.queues.reset("pvp:" + state.ante + ":");
         }
-        // Hand-legality bosses (The Psychic): reject an illegal play before it scores. The boss's
-        // `requires` is a shared Cond predicate evaluated over the cards being played.
-        if (intent instanceof Intent.PlayHand ph2 && boss != null && !bossDisabled() && boss.requires() != null) {
-            java.util.List<Card> playedCards = new ArrayList<>();
-            for (int i : ph2.cardIndices()) {
-                if (i >= 0 && i < state.hand.size()) playedCards.add(state.hand.get(i));
-            }
-            com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
-            ctx.playedCards = playedCards;
-            ctx.run = state;
-            // Hand-type-aware legality (The Mouth / The Eye) needs the poker hand being played.
-            if (!playedCards.isEmpty()) {
-                ctx.handType = com.balatro.engine.hand.HandEvaluator.evaluate(playedCards).type();
-            }
-            if (!boss.requires().test(ctx)) {
-                return IntentResult.rejected(boss.effect()); // the boss's description is the reason
-            }
-        }
-        // Cerulean Bell: the force-selected card must be in every played hand, and can't be discarded.
-        if (boss != null && !bossDisabled() && boss.forcesCardSelection()) {
-            int fi = forcedCardIndex();
-            if (fi >= 0) {
-                if (intent instanceof Intent.PlayHand ph3 && !ph3.cardIndices().contains(fi)) {
-                    return IntentResult.rejected(boss.effect());
-                }
-                if (intent instanceof Intent.Discard dsc && dsc.cardIndices().contains(fi)) {
-                    return IntentResult.rejected(boss.effect());
-                }
-            }
-        }
+        // Boss legality: a constraint the active boss places on this intent (The Psychic/Mouth/Eye reject an
+        // illegal play; Cerulean Bell forces a card in/out). One checkpoint — the boss is the read-side source.
+        String illegal = bossLegality(intent);
+        if (illegal != null) return IntentResult.rejected(illegal);
         // Crimson Heart: disable one random Joker for this hand, before it scores.
         if (intent instanceof Intent.PlayHand) { applyBossPreScore(); resolveObservatory(); }
         // Snapshot the hand so we can tell which cards the upcoming refill freshly drew (boss face-down).
@@ -876,6 +850,40 @@ public final class Run {
     private int forcedCardIndex() {
         for (int i = 0; i < state.hand.size(); i++) if (state.hand.get(i).forcedSelected) return i;
         return -1;
+    }
+
+    /**
+     * The active boss's legality constraint on this intent: the rejection reason (the boss's description),
+     * or {@code null} if the intent is allowed. The read-side mirror of a scoring rule — the boss is the
+     * source, {@code requires()} is a {@link com.balatro.engine.joker.def.Condition} over the played hand,
+     * and Cerulean Bell forces its selected card into every play / out of every discard.
+     */
+    private String bossLegality(Intent intent) {
+        if (boss == null || bossDisabled()) return null;
+        // Hand-legality bosses (The Psychic / Mouth / Eye): the play must satisfy the boss's requires().
+        if (intent instanceof Intent.PlayHand ph && boss.requires() != null) {
+            java.util.List<Card> playedCards = new ArrayList<>();
+            for (int i : ph.cardIndices()) {
+                if (i >= 0 && i < state.hand.size()) playedCards.add(state.hand.get(i));
+            }
+            com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
+            ctx.playedCards = playedCards;
+            ctx.run = state;
+            // Hand-type-aware legality (The Mouth / The Eye) needs the poker hand being played.
+            if (!playedCards.isEmpty()) {
+                ctx.handType = com.balatro.engine.hand.HandEvaluator.evaluate(playedCards).type();
+            }
+            if (!boss.requires().test(ctx)) return boss.effect();
+        }
+        // Cerulean Bell: the force-selected card must be in every played hand, and can't be discarded.
+        if (boss.forcesCardSelection()) {
+            int fi = forcedCardIndex();
+            if (fi >= 0) {
+                if (intent instanceof Intent.PlayHand ph && !ph.cardIndices().contains(fi)) return boss.effect();
+                if (intent instanceof Intent.Discard dsc && dsc.cardIndices().contains(fi)) return boss.effect();
+            }
+        }
+        return null;
     }
 
     /** Crimson Heart: before a hand scores, switch off one random Joker for that hand (clearing any
