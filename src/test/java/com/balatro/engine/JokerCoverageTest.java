@@ -21,7 +21,7 @@ class JokerCoverageTest {
 
     /** Effect lives in a derived config or Run/Match/IntentHandler code, not the JokerDef. */
     private static final Set<String> HANDLED_ELSEWHERE = Set.of(
-            "j_showman", "j_astronomer",              // ShopConfig (shop rules); Chaos is now a FREE_REROLLS RunMod
+            // (Showman/Astronomer/Chaos are now wired in the def as folded policy mods — no longer here.)
             "j_to_the_moon",                          // EconomyConfig (interest formula; Credit Card is a MIN_MONEY mod)
             "j_penny_pincher",                        // Run (Nemesis shop-entry economy)
             "j_pizza", "j_speedrun");                 // Match (Nemesis/PvP)

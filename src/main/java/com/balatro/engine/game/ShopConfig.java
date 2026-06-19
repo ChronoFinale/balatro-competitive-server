@@ -1,6 +1,8 @@
 package com.balatro.engine.game;
 
 import com.balatro.engine.joker.Joker;
+import com.balatro.engine.joker.def.DataJoker;
+import com.balatro.engine.joker.def.Value;
 import java.util.List;
 
 /**
@@ -19,12 +21,11 @@ import java.util.List;
  */
 public record ShopConfig(boolean allowDuplicates, boolean planetsFree) {
 
-    /** Fold the currently-owned jokers into the effective shop rules. Pure — no side effects. */
+    /** Fold the currently-owned jokers into the effective shop rules. Pure — no side effects. Each rule is
+     *  a folded boolean policy var (Showman / Astronomer declare it via {@code mods}), not a key match. */
     public static ShopConfig resolve(List<Joker> jokers) {
-        return new ShopConfig(owns(jokers, "j_showman"), owns(jokers, "j_astronomer"));
-    }
-
-    private static boolean owns(List<Joker> jokers, String key) {
-        return jokers.stream().anyMatch(j -> key.equals(j.key()));
+        return new ShopConfig(
+                DataJoker.policyEnabled(jokers, Value.Var.ALLOW_SHOP_DUPLICATES),
+                DataJoker.policyEnabled(jokers, Value.Var.PLANETS_FREE));
     }
 }

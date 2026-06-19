@@ -579,7 +579,7 @@ public final class BuiltinJokerDefs {
                 // --- batch 39: Showman (allow duplicate shop offerings; disables the skip-if-owned rule) ---
                 Jokers.uncommon("j_showman", "Showman").cost(5).atlas(0, 17)
                         .desc("Joker and Consumable cards may appear multiple times in the shop")
-                        .behaviorInCode().build(),
+                        .mods(Modify.max(Value.Var.ALLOW_SHOP_DUPLICATES, 1)).build(),
 
                 // --- batch 47: Pizza (consumed at PvP end -> temporary discards) ---
                 Jokers.uncommon("j_pizza", "Pizza").cost(5).atlas(0, 18)
@@ -711,7 +711,8 @@ public final class BuiltinJokerDefs {
                         .desc("1 free reroll each shop")
                         .mods(Modify.add(Value.Var.FREE_REROLLS, 1)).build(),
                 Jokers.uncommon("j_astronomer", "Astronomer").cost(8).atlas(2, 15)
-                        .desc("All Planet cards in the shop are free").behaviorInCode().build(),
+                        .desc("All Planet cards in the shop are free")
+                        .mods(Modify.max(Value.Var.PLANETS_FREE, 1)).build(),
 
                 // --- batch 26: Run-level hooks (To the Moon interest); Mr Bones is a passive capability ---
                 runModJoker("j_mr_bones", "Mr. Bones",

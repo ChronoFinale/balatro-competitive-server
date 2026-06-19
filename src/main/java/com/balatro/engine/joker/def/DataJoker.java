@@ -44,6 +44,17 @@ public final class DataJoker implements Joker {
         return def.props().get(name);
     }
 
+    /**
+     * True if the owned jokers collectively enable a boolean shop policy — fold their standing {@code mods}
+     * for {@code var} and test {@code >= 1}. Lets a policy joker (Showman / Astronomer) declare its rule as
+     * data ({@code mods(Modify.max(var, 1))}) instead of being matched by key-string at the shop call-site.
+     */
+    public static boolean policyEnabled(java.util.List<com.balatro.engine.joker.Joker> jokers, Value.Var var) {
+        java.util.List<Modify> mods = new java.util.ArrayList<>();
+        for (var j : jokers) if (j instanceof DataJoker dj) mods.addAll(dj.def().mods());
+        return Modify.fold(0, var, mods) >= 1;
+    }
+
     @Override
     public JokerEffect calculate(EvaluationContext ctx) {
         // Copiers (Blueprint/Brainstorm) are the higher-order case: re-run the selected joker's whole

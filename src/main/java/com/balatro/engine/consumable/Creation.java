@@ -11,6 +11,8 @@ import com.balatro.engine.game.Shop;
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerLibrary;
 import com.balatro.engine.joker.def.CreateSpec;
+import com.balatro.engine.joker.def.DataJoker;
+import com.balatro.engine.joker.def.Value;
 import com.balatro.engine.rng.GameQueue;
 import com.balatro.engine.rng.QueueSet;
 import com.balatro.engine.rng.Rng;
@@ -63,7 +65,7 @@ public final class Creation {
         List<String> pool = run.capabilities.restrictedPools()
                 ? base.stream().filter(k -> !JokerLibrary.MP_BANNED.contains(k)).toList() : base;
         if (pool.isEmpty()) return;
-        boolean showman = run.jokers().stream().anyMatch(j -> j.key().equals("j_showman"));
+        boolean showman = DataJoker.policyEnabled(run.jokers(), Value.Var.ALLOW_SHOP_DUPLICATES);
         java.util.Set<String> used = new java.util.HashSet<>();
         for (Joker j : run.jokers()) used.add(j.key());
         GameQueue<String> q = queues.queue(RngSources.createJoker(spec.rarity()),

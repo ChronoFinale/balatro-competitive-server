@@ -138,7 +138,10 @@ public sealed interface Value {
         INTEREST_CAP, MONEY_PER_HAND, MONEY_PER_DISCARD, MIN_MONEY,
         SHOP_SLOTS, PRICE_MULTIPLIER, REROLL_DISCOUNT, EDITION_MULTIPLIER, POLY_MULTIPLIER,
         TAROT_RATE, PLANET_RATE, WIN_ANTE, BOSS_REROLLS_PER_ANTE, HELD_PLANET_MULT,
-        CELESTIAL_MOST_PLAYED, SHOP_PLAYING_CARD_RATE, SHOP_CARDS_ENHANCED, FREE_REROLLS, SPECTRAL_RATE }
+        CELESTIAL_MOST_PLAYED, SHOP_PLAYING_CARD_RATE, SHOP_CARDS_ENHANCED, FREE_REROLLS, SPECTRAL_RATE,
+        // Boolean shop policies (fold to >= 1 when any owner grants them): Showman lets owned cards
+        // reappear in shop/creation pools; Astronomer makes shop Planets free.
+        ALLOW_SHOP_DUPLICATES, PLANETS_FREE }
 
     /** Read a live run-state quantity. Shared by {@link RunVar}, {@link RunVarStep}, and
      *  {@code Condition.RunVarModulo} so the {@link Var}→{@code RunState} mapping lives in one place. */
