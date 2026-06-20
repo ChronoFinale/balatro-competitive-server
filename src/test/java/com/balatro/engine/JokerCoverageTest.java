@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 /**
  * The joker half of the safety net — and the guard on the DSL-completeness invariant. A data joker must
  * DO something; a JokerDef with no rules, hand-mods, var-mods, run-mod capability or copy spec is a silent
- * no-op (an empty {@code behaviorInCode()} def). The proven result of the expressiveness audit is that the
+ * no-op (an empty def — the builder now rejects these outright). The proven result of the audit is that the
  * ONLY built-in jokers with an empty def are the two PvP/Match holdouts — Pizza and Speedrun — whose effect
  * is genuinely match-coordinated plumbing, not rule-shaped content. {@link #BEHAVIOR_IN_CODE} pins exactly
  * that set, so a new empty-def joker (a DSL regression) or a stale whitelist entry fails the build.
@@ -25,9 +25,11 @@ import org.junit.jupiter.api.Test;
  */
 class JokerCoverageTest {
 
-    /** The complete set of built-in jokers whose def carries no DSL data — match-coordinated PvP plumbing.
-     *  (Speedrun is now data: on(PVP_BLIND_REACHED).when(reachedPvpFirst).create(SPECTRAL).) */
-    private static final Set<String> BEHAVIOR_IN_CODE = Set.of("j_pizza");
+    /** The complete set of built-in jokers whose def carries no DSL data. It is now EMPTY: every built-in
+     *  joker — including the PvP/Match ones (Speedrun, Pizza) — is expressed as data over the vocabulary,
+     *  with the Match supplying cross-player context (the opponent run, arrival order) just as the server
+     *  supplies RNG to a chance() condition. A new empty-def joker fails the build: express it as data. */
+    private static final Set<String> BEHAVIOR_IN_CODE = Set.of();
 
     private static boolean hasWiredEffect(JokerDef d) {
         return !d.rules().isEmpty() || !d.handMods().isEmpty() || !d.mods().isEmpty()

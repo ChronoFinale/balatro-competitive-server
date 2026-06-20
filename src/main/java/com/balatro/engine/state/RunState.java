@@ -67,6 +67,13 @@ public final class RunState {
     public int oppShopSpentLastAnte = 0;  // nemesis shop spend last ante (Penny Pincher)
     public int pizzaDiscardBonus = 0;     // temporary +discards from Pizza
     public int pizzaBlindsLeft = 0;       // blinds the Pizza discard bonus still applies for
+
+    /** Pizza: add a temporary discard bonus for the next {@code blinds} blinds (self or — via the Match —
+     *  the Nemesis). The single home for the mechanism; Run and the GameEvents action path both call it. */
+    public void grantTempDiscards(int amount, int blinds) {
+        pizzaDiscardBonus += amount;
+        pizzaBlindsLeft = Math.max(pizzaBlindsLeft, blinds);
+    }
     public final java.util.List<String> tags = new java.util.ArrayList<>(); // held tags (skip rewards, Diet Cola)
     public String offeredTag = null; // the tag offered for skipping the current (Small/Big) blind, else null
 

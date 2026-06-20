@@ -144,8 +144,10 @@ public final class Match {
         }
 
         if (loser != null) loser.lives--;
-        applyPizza(host, guest); // consume Pizza at PvP end -> +1 discard self, +2 to Nemesis
-        applyPizza(guest, host);
+        // Raise PVP_BLIND_ENDED on each run with the Nemesis as context, so jokers react as data
+        // (Pizza: consume self, +1 discard to me, +2 to the Nemesis). Each run sees the other as opponentRun.
+        host.run.pvpEnded(guest.run.state);
+        guest.run.pvpEnded(host.run.state);
         syncNemesis(); // lives changed -> refresh Defensive Joker's "lives behind", etc.
         announce(host, guest, h, g, loser);
         announce(guest, host, g, h, loser);
@@ -181,13 +183,6 @@ public final class Match {
         }
     }
 
-    /** Pizza (Nemesis): if {@code me} holds it, consume it for +1 discard and give opp +2, one ante. */
-    private static void applyPizza(Side me, Side opp) {
-        if (!me.run.ownsJoker("j_pizza")) return;
-        me.run.removeJoker("j_pizza");
-        me.run.grantPizzaDiscards(1, 3); // +1 discard for the next ante (Small/Big/Boss)
-        opp.run.grantPizzaDiscards(2, 3);
-    }
 
     private static void applyOpponent(Side me, Side opp) {
         me.run.state.myLives = me.lives;

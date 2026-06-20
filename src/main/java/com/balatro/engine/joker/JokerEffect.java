@@ -35,6 +35,13 @@ public final class JokerEffect {
     public int levelUpAmount;
     /** Add a permanent copy of the scoring card to the deck (DNA); real play only. */
     public boolean copyScored;
+    /** Consume this joker (remove it from the run) — Pizza on PvP end; the real model for Gros Michel etc. */
+    public boolean destroySelf;
+    /** Grant a temporary discard bonus (Pizza): {@code grantDiscards} for {@code grantDiscardBlinds} blinds,
+     *  to this run or — when {@code grantToOpponent} — the Nemesis (the Match supplies the opponent run). */
+    public int grantDiscards;
+    public int grantDiscardBlinds;
+    public boolean grantToOpponent;
     /** Swap the running chips and mult (Balatro {@code swap}). */
     public boolean swap;
     /** Balance chips and mult (Balatro {@code balance}); semantics TBD — no content uses it yet. */

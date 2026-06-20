@@ -34,7 +34,6 @@ public final class Jokers {
     private final List<HandMod> handMods = new ArrayList<>();
     private final List<Modify> varMods = new ArrayList<>();
     private RunMod runMod = RunMod.NONE;
-    private boolean behaviorInCode;
     private final java.util.Map<String, Object> props = new java.util.LinkedHashMap<>();
     private final java.util.Map<String, Object> state = new java.util.LinkedHashMap<>();
 
@@ -130,10 +129,6 @@ public final class Jokers {
     /** Escape hatch: append a fully-built {@link Rule} (a trigger/effect combination without a fluent verb). */
     public Jokers rule(Rule r) { rules.add(r); return this; }
 
-    /** This joker carries no def behavior — its effect lives in engine code (ShopConfig/Match/IntentHandler).
-     *  A deliberate marker (Showman/Pizza/Speedrun); lets {@code build()} accept an otherwise-empty def. */
-    public Jokers behaviorInCode() { this.behaviorInCode = true; return this; }
-
     public JokerDef build() {
         // Fail loud and COMPLETE: list every missing required field by name, so you never have to guess
         // what a joker needs (the error is the documentation). Identity (key/name/rarity) is enforced by
@@ -144,8 +139,9 @@ public final class Jokers {
         if (desc == null || desc.isBlank()) missing.add("description (.desc)");
         if (!costSet) missing.add("cost (.cost)");
         if (rules.isEmpty() && copy == null && handMods.isEmpty()
-                && varMods.isEmpty() && runMod.isNone() && !behaviorInCode) {
-            missing.add("behavior (.on / .mutate / .copies / .handMod / .mods / .runMod / .behaviorInCode)");
+                && varMods.isEmpty() && runMod.isNone()) {
+            // Every joker is data — there is no empty-def escape hatch. Express the effect as a rule/mod.
+            missing.add("behavior (.on / .mutate / .copies / .handMod / .mods / .runMod)");
         }
         if (!missing.isEmpty()) {
             throw new IllegalStateException(

@@ -34,7 +34,7 @@ public final class BuilderSchema {
         s.put("effectOps", names(Effect.Op.values()));      // numeric Score ops
         s.put("effectTypes", List.of(                        // the sealed Effect kinds
                 "score", "mutateCard", "create", "destroyScored", "destroyDiscarded", "levelUpHand",
-                "copyScored", "mutateState"));
+                "copyScored", "mutateState", "destroySelf", "grantDiscards"));
         s.put("valueTypes", List.of("const", "state", "count", "runVar"));
         s.put("mutationOps", names(Effect.MutateState.Op.values()));
 

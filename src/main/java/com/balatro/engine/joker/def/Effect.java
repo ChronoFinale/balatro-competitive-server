@@ -41,6 +41,8 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.CopyRandomJoker.class, name = "copyRandomJoker"),
     @JsonSubTypes.Type(value = Effect.CopyLastConsumable.class, name = "copyLastConsumable"),
     @JsonSubTypes.Type(value = Effect.NemesisDelevel.class, name = "nemesisDelevel"),
+    @JsonSubTypes.Type(value = Effect.DestroySelf.class, name = "destroySelf"),
+    @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
 })
 public sealed interface Effect {
 
@@ -229,6 +231,27 @@ public sealed interface Effect {
 
     /** Asteroid (MP): delevel the nemesis's highest poker hand (resolved by the Match). */
     record NemesisDelevel() implements Effect {}
+
+    /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
+    record DestroySelf() implements Effect {
+        public JokerEffect apply(EvaluationContext ctx) {
+            JokerEffect e = new JokerEffect();
+            e.destroySelf = true;
+            return e;
+        }
+    }
+
+    /** Grant a temporary discard bonus for {@code blinds} blinds, to this run or — when {@code toOpponent} —
+     *  the Nemesis (Pizza). The Match supplies the opponent run on the context; {@code GameEvents} applies it. */
+    record GrantDiscards(boolean toOpponent, int amount, int blinds) implements Effect {
+        public JokerEffect apply(EvaluationContext ctx) {
+            JokerEffect e = new JokerEffect();
+            e.grantDiscards = amount;
+            e.grantDiscardBlinds = blinds;
+            e.grantToOpponent = toOpponent;
+            return e;
+        }
+    }
 
     /**
      * Persistently write a scaling counter — Ride the Bus's streak, Constellation's planet count. This is

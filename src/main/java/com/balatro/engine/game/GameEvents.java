@@ -39,11 +39,18 @@ public final class GameEvents {
         ctx.phase = trigger;
         if (setup != null) setup.accept(ctx);
 
+        List<Joker> consumed = new ArrayList<>();
         for (int i = 0; i < jokers.size(); i++) {
             ctx.phase = trigger;
             ctx.selfIndex = i;
             ctx.blueprintDepth = 0;
-            applyEconomy(jokers.get(i).calculate(ctx), run, log, jokers.get(i).name(), ctx);
+            JokerEffect e = jokers.get(i).calculate(ctx);
+            applyEconomy(e, run, log, jokers.get(i).name(), ctx);
+            if (wantsSelfDestroy(e)) consumed.add(jokers.get(i)); // remove after the pass, never mid-iteration
+        }
+        for (Joker j : consumed) {
+            run.jokers().remove(j);
+            log.add(new ReplayEntry(j.name(), "destroy", "Consumed", 0, 0));
         }
         return log;
     }
@@ -105,6 +112,20 @@ public final class GameEvents {
                 for (int i = 0; i < cur.levelUpAmount; i++) run.levelUpHand(cur.levelUpHand);
                 log.add(new ReplayEntry(source, "levelup", "Level up " + cur.levelUpHand.display, 0, 0));
             }
+            if (cur.grantDiscards != 0) { // Pizza: temp discards to self, or to the Nemesis (Match-supplied)
+                RunState target = cur.grantToOpponent ? ctx.opponentRun : run;
+                if (target != null) {
+                    target.grantTempDiscards(cur.grantDiscards, cur.grantDiscardBlinds);
+                    log.add(new ReplayEntry(source, "discards",
+                            "+" + cur.grantDiscards + " discard" + (cur.grantToOpponent ? " (Nemesis)" : ""), 0, 0));
+                }
+            }
         }
+    }
+
+    /** True if any link in the chain asks to consume its joker (Pizza on PvP end). */
+    private static boolean wantsSelfDestroy(JokerEffect e) {
+        for (JokerEffect cur = e; cur != null; cur = cur.extra) if (cur.destroySelf) return true;
+        return false;
     }
 }

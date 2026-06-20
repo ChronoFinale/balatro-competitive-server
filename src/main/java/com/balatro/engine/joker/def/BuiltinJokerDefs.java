@@ -584,7 +584,11 @@ public final class BuiltinJokerDefs {
                 // --- batch 47: Pizza (consumed at PvP end -> temporary discards) ---
                 Jokers.uncommon("j_pizza", "Pizza").cost(5).atlas(0, 18)
                         .desc("At the end of the next PvP blind, consumed for +1 discard to you and +2 to your Nemesis")
-                        .behaviorInCode().build(),
+                        .on(Trigger.PVP_BLIND_ENDED).effect(
+                                new Effect.GrantDiscards(false, 1, 3),  // +1 discard to me, next 3 blinds
+                                new Effect.GrantDiscards(true, 2, 3),   // +2 discards to the Nemesis
+                                new Effect.DestroySelf())               // consumed
+                        .build(),
 
                 // --- batch 46: Speedrun (reach PvP first -> Spectral; match-coordinated) ---
                 Jokers.uncommon("j_speedrun", "Speedrun").cost(6).atlas(9, 17)

@@ -45,6 +45,8 @@ public final class EvaluationContext {
     public boolean bossBlind;
     /** PVP_BLIND_REACHED: true when this run entered the PvP blind before its Nemesis (Speedrun). */
     public boolean reachedPvpFirst;
+    /** PVP_BLIND_ENDED: the Nemesis's run, so a joker's effect can reach the opponent (Pizza). Match-supplied. */
+    public RunState opponentRun;
 
     public Joker self() {
         return jokers.get(selfIndex);

@@ -942,8 +942,13 @@ public final class Run {
 
     /** Pizza: add a temporary discard bonus that applies for the next {@code blinds} blinds. */
     public void grantPizzaDiscards(int amount, int blinds) {
-        state.pizzaDiscardBonus += amount;
-        state.pizzaBlindsLeft = Math.max(state.pizzaBlindsLeft, blinds);
+        state.grantTempDiscards(amount, blinds);
+    }
+
+    /** The Match raises this when a PvP blind resolves, with the Nemesis's run as context, so a joker reacts
+     *  as data (Pizza: {@code on(PVP_BLIND_ENDED).effect(DestroySelf, GrantDiscards(self), GrantDiscards(opp))}). */
+    public void pvpEnded(RunState opponent) {
+        GameEvents.raise(Trigger.PVP_BLIND_ENDED, state, rng, ctx -> ctx.opponentRun = opponent);
     }
 
     /** The Match raises this when the run enters a PvP blind; {@code first} = before the Nemesis arrived.
