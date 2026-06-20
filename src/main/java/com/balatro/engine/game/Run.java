@@ -946,11 +946,10 @@ public final class Run {
         state.pizzaBlindsLeft = Math.max(state.pizzaBlindsLeft, blinds);
     }
 
-    /** Create a random Spectral into this run if there's a consumable slot (Speedrun). */
-    public void grantSpectral() {
-        com.balatro.engine.consumable.Creation.apply(state,
-                new com.balatro.engine.joker.def.CreateSpec(
-                        com.balatro.engine.joker.def.CreateSpec.Kind.SPECTRAL), state.queues);
+    /** The Match raises this when the run enters a PvP blind; {@code first} = before the Nemesis arrived.
+     *  Jokers react as data (Speedrun: {@code on(PVP_BLIND_REACHED).when(reachedPvpFirst).create(SPECTRAL)}). */
+    public void pvpReached(boolean first) {
+        GameEvents.raise(Trigger.PVP_BLIND_REACHED, state, rng, ctx -> ctx.reachedPvpFirst = first);
     }
 
     /** Attrition: after the match deducts a life for a failed blind, continue to the shop. */

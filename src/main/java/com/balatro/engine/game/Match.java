@@ -90,9 +90,10 @@ public final class Match {
             pushView(opp); // the opponent's hand levels changed
         }
 
-        // Speedrun: reaching a PvP blind before your Nemesis creates a Spectral (once per arrival).
-        if (me.run.inPvpBlind() && !me.wasInPvp && !opp.run.inPvpBlind() && me.run.ownsJoker("j_speedrun")) {
-            me.run.grantSpectral();
+        // On entering a PvP blind, raise PVP_BLIND_REACHED so jokers react as data (Speedrun: create a
+        // Spectral if you arrived before your Nemesis). The Match supplies "first" — it alone sees both runs.
+        if (me.run.inPvpBlind() && !me.wasInPvp) {
+            me.run.pvpReached(!opp.run.inPvpBlind());
         }
         me.wasInPvp = me.run.inPvpBlind();
 

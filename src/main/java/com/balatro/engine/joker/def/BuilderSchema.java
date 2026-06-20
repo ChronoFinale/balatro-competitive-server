@@ -29,7 +29,8 @@ public final class BuilderSchema {
                 "always", "scoredSuit", "scoredParity", "scoredIsFace", "scoredRankBetween",
                 "scoredEnhancement", "scoredEdition", "scoredSeal", "handContainsPair", "handIs",
                 "playedCount", "discardedFaceCount", "scoringAnyFace", "consumableType",
-                "stateAtLeast", "moneyAtLeast", "handsLeft", "discardsLeft", "ante", "and", "or", "not"));
+                "stateAtLeast", "moneyAtLeast", "handsLeft", "discardsLeft", "ante",
+                "inPvpBlind", "reachedPvpFirst", "and", "or", "not"));
         s.put("effectOps", names(Effect.Op.values()));      // numeric Score ops
         s.put("effectTypes", List.of(                        // the sealed Effect kinds
                 "score", "mutateCard", "create", "destroyScored", "destroyDiscarded", "levelUpHand",

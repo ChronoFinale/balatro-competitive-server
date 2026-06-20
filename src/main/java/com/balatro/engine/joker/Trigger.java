@@ -45,5 +45,10 @@ public enum Trigger {
     OPEN_BOOSTER,       // a booster pack opened
     SKIP_BOOSTER,       // a booster pack skipped (Red Card)
     CARD_ADDED,         // a playing card added to the deck
-    CARD_DESTROYED      // a card destroyed
+    CARD_DESTROYED,     // a card destroyed
+
+    // PvP/Match moments — raised by the Match (which holds both runs), so a joker reacts to the two-player
+    // flow as data: Speedrun on arrival, Pizza on resolution. The cross-player half is supplied by the Match.
+    PVP_BLIND_REACHED,  // this run entered a PvP (Nemesis) blind
+    PVP_BLIND_ENDED     // a PvP blind resolved (consume / grant time)
 }

@@ -41,6 +41,9 @@ public final class Cond {
     /** Currently in a PvP (Nemesis) boss blind (Conjoined; {@code not(inPvpBlind())} = Pacifist). */
     public static Condition inPvpBlind() { return new Condition.InPvpBlind(); }
 
+    /** Entered the PvP blind before the Nemesis (Speedrun) — the Match supplies the answer on the context. */
+    public static Condition reachedPvpFirst() { return new Condition.ReachedPvpFirst(); }
+
     /** A {@code numerator}-in-{@code denominator} probabilistic gate, popped from a queue keyed by {@code seed}. */
     public static Condition chance(int numerator, int denominator, String seed) {
         return new Condition.Chance(numerator, denominator, seed);

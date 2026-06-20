@@ -49,6 +49,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.RunVarModulo.class, name = "runVarModulo"),
     @JsonSubTypes.Type(value = Condition.HandsSinceAcquire.class, name = "handsSinceAcquire"),
     @JsonSubTypes.Type(value = Condition.InPvpBlind.class, name = "inPvpBlind"),
+    @JsonSubTypes.Type(value = Condition.ReachedPvpFirst.class, name = "reachedPvpFirst"),
     @JsonSubTypes.Type(value = Condition.ConsumableType.class, name = "consumableType"),
     @JsonSubTypes.Type(value = Condition.Chance.class, name = "chance"),
     @JsonSubTypes.Type(value = Condition.And.class, name = "and"),
@@ -313,6 +314,14 @@ public sealed interface Condition {
     record InPvpBlind() implements Condition {
         public boolean test(EvaluationContext ctx) {
             return ctx.run != null && ctx.run.inPvpBlind;
+        }
+    }
+
+    /** Entered the PvP blind before the Nemesis — Speedrun. The Match supplies the answer on the context
+     *  (it alone knows the opponent's arrival), exactly as the server supplies RNG for a chance condition. */
+    record ReachedPvpFirst() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            return ctx.reachedPvpFirst;
         }
     }
 

@@ -25,8 +25,9 @@ import org.junit.jupiter.api.Test;
  */
 class JokerCoverageTest {
 
-    /** The complete set of built-in jokers whose def carries no DSL data — match-coordinated PvP plumbing. */
-    private static final Set<String> BEHAVIOR_IN_CODE = Set.of("j_pizza", "j_speedrun");
+    /** The complete set of built-in jokers whose def carries no DSL data — match-coordinated PvP plumbing.
+     *  (Speedrun is now data: on(PVP_BLIND_REACHED).when(reachedPvpFirst).create(SPECTRAL).) */
+    private static final Set<String> BEHAVIOR_IN_CODE = Set.of("j_pizza");
 
     private static boolean hasWiredEffect(JokerDef d) {
         return !d.rules().isEmpty() || !d.handMods().isEmpty() || !d.mods().isEmpty()

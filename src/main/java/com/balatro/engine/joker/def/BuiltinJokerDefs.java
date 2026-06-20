@@ -589,7 +589,8 @@ public final class BuiltinJokerDefs {
                 // --- batch 46: Speedrun (reach PvP first -> Spectral; match-coordinated) ---
                 Jokers.uncommon("j_speedrun", "Speedrun").cost(6).atlas(9, 17)
                         .desc("If you reach a PvP blind before your Nemesis, create a random Spectral")
-                        .behaviorInCode().build(),
+                        .on(Trigger.PVP_BLIND_REACHED).when(Cond.reachedPvpFirst())
+                        .create(CreateSpec.Kind.SPECTRAL).build(),
 
                 // --- batch 45: Penny Pincher (Nemesis shop-spend economy) ---
                 Jokers.uncommon("j_penny_pincher", "Penny Pincher").cost(6).atlas(8, 17)

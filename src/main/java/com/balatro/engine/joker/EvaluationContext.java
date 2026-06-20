@@ -43,6 +43,8 @@ public final class EvaluationContext {
     public boolean bossDefeated;
     /** BLIND_SELECTED: true when the blind just selected is a Boss blind (Madness skips bosses). */
     public boolean bossBlind;
+    /** PVP_BLIND_REACHED: true when this run entered the PvP blind before its Nemesis (Speedrun). */
+    public boolean reachedPvpFirst;
 
     public Joker self() {
         return jokers.get(selfIndex);
