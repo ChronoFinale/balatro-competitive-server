@@ -44,6 +44,11 @@ public final class Jokers {
         this.rarity = rarity;
     }
 
+    /** Author a built-in joker by key+name — rarity, cost, and sprite location are read from the ground-truth
+     *  metadata table (the def carries only its effect). The rarity-named factories below are kept for custom/
+     *  off-table jokers that set their own metadata. */
+    public static Jokers of(String key, String name) { return new Jokers(key, name, null); }
+
     public static Jokers common(String key, String name) { return new Jokers(key, name, "Common"); }
 
     public static Jokers uncommon(String key, String name) { return new Jokers(key, name, "Uncommon"); }
@@ -140,7 +145,7 @@ public final class Jokers {
         if (key == null || key.isBlank()) missing.add("key");
         if (name == null || name.isBlank()) missing.add("name");
         if (desc == null || desc.isBlank()) missing.add("description (.desc)");
-        if (!costSet) missing.add("cost (.cost)");
+        if (!costSet && !JokerMeta.has(key)) missing.add("cost (.cost, or be in the metadata table)");
         if (rules.isEmpty() && copy == null && handMods.isEmpty()
                 && varMods.isEmpty() && runMod.isNone()) {
             // Every joker is data — there is no empty-def escape hatch. Express the effect as a rule/mod.
@@ -155,7 +160,10 @@ public final class Jokers {
             atlasX = a[0];
             atlasY = a[1];
         }
-        return new JokerDef(key, name, desc, rarity, cost, atlasX, atlasY, null, null,
+        // rarity and cost are metadata too: a def with of(...) and no .cost() sources them from the table.
+        String resolvedRarity = (rarity != null) ? rarity : JokerMeta.rarity(key);
+        int resolvedCost = costSet ? cost : JokerMeta.cost(key);
+        return new JokerDef(key, name, desc, resolvedRarity, resolvedCost, atlasX, atlasY, null, null,
                 blueprintCompatible, List.copyOf(rules),
                 List.copyOf(handMods), List.copyOf(varMods), runMod, copy,
                 java.util.Map.copyOf(props), java.util.Map.copyOf(state));
