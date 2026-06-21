@@ -5,12 +5,24 @@
 > by a six-way audit (2026-06-21) of the implementation vs `game.lua`/`card.lua` + the design catalogues
 > (14–21). This is a living state record: as items are fixed/verified, update the status here.
 
-## ⚠️ The decision that gates everything: vanilla or BMP 0.4.0 ranked?
+## ✅ DECIDED: target is BMP 0.4.2 ranked
 
-Many "gaps" below are **BMP 0.4.0 ranked deltas** — values where BMP changes vanilla. Our code is currently
-**vanilla** in those spots; the design catalogues (10–21) target **BMP 0.4.0 ranked**. Until the target is
-decided, each BMP-delta item is *either* a bug *or* correct. **This needs an explicit call.** The lists below
-separate **target-independent bugs** (wrong regardless) from **BMP-delta gaps** (only wrong if target = BMP).
+The target ruleset is **Balatro Multiplayer (BMP) 0.4.2** (decided 2026-06-21). That makes the "BMP-delta
+gaps" below **real bugs to fix** — but toward **0.4.2** values, which may differ from the 0.4.0 numbers the
+audit agents pulled from changelogs. **Ground truth: `D:\BalatroMod\multiplayer-0.4.2`** — effective ranked
+values come from its `rulesets/` + `layers/` (active reworks; some are commented out, so read what actually
+loads), with `compatibility/Preview/Jokers/_Vanilla.lua` as the precise behavior reference. Verify each
+BMP-delta value against 0.4.2 before fixing — do **not** trust the 0.4.0 changelog numbers below.
+
+**Consequences for the test harness (must reconcile):**
+- The **cost/rarity gate** (`JokerStatsAuditTest`) diffs against *vanilla* `game.lua`. Under a BMP target it
+  must diff against BMP 0.4.2 effective values, or keep vanilla + a BMP-overlay/`INTENTIONAL_DEVIATIONS` map.
+- The **scoring goldens** (pair of kings = 60) are vanilla base-hand values — likely still valid (BMP mostly
+  reworks jokers/economy/pvp, not base hand chips), **except** the planet level deltas change leveled-hand
+  scoring. Re-anchor any leveled-hand fixture to 0.4.2.
+
+The lists below still separate **target-independent bugs** (wrong in any ruleset) from **BMP-delta gaps**
+(now confirmed bugs to fix toward 0.4.2).
 
 ## Coverage at a glance
 
