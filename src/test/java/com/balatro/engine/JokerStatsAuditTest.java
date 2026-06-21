@@ -58,9 +58,13 @@ class JokerStatsAuditTest {
             if (!wantRarity.equals(info.rarity())) {
                 mismatches.add(key + ": rarity " + info.rarity() + " but vanilla is " + wantRarity);
             }
+            if (v.has("x") && (info.atlasX() != v.path("x").asInt() || info.atlasY() != v.path("y").asInt())) {
+                mismatches.add(key + ": atlas (" + info.atlasX() + "," + info.atlasY()
+                        + ") but vanilla sprite is (" + v.path("x").asInt() + "," + v.path("y").asInt() + ")");
+            }
         }
         assertThat(mismatches)
-                .as("joker cost/rarity must match vanilla game.lua — fix the def or record a BMP deviation")
+                .as("joker cost/rarity/atlas must match vanilla game.lua — fix the def or record a BMP deviation")
                 .isEmpty();
     }
 
