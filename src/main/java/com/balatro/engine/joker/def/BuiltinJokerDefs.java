@@ -594,7 +594,7 @@ public final class BuiltinJokerDefs {
                         .mods(Modify.max(Value.Var.ALLOW_SHOP_DUPLICATES, 1)).build(),
 
                 // --- batch 47: Pizza (consumed at PvP end -> temporary discards) ---
-                Jokers.uncommon("j_pizza", "Pizza").cost(5).atlas(0, 18)
+                Jokers.common("j_pizza", "Pizza").cost(4).atlas(0, 18)
                         .desc("At the end of the next PvP blind, consumed for +1 discard to you and +2 to your Nemesis")
                         .on(Trigger.PVP_BLIND_ENDED).effect(
                                 new Effect.GrantDiscards(false, 1, 3),  // +1 discard to me, next 3 blinds
@@ -609,12 +609,12 @@ public final class BuiltinJokerDefs {
                         .create(CreateSpec.Kind.SPECTRAL).build(),
 
                 // --- batch 45: Penny Pincher (Nemesis shop-spend economy) ---
-                Jokers.uncommon("j_penny_pincher", "Penny Pincher").cost(6).atlas(8, 17)
+                Jokers.common("j_penny_pincher", "Penny Pincher").cost(4).atlas(8, 17)
                         .desc("On entering the shop, gain $1 for every $3 your Nemesis spent last ante")
                         .runMod(RunMod.pvpShopSpendShare(3)).build(),
 
                 // --- batch 44: more Nemesis jokers (Skip-Off, Let's Go Gambling) ---
-                Jokers.uncommon("j_skip_off", "Skip-Off").cost(6).atlas(6, 17)
+                Jokers.uncommon("j_skip_off", "Skip-Off").cost(5).atlas(6, 17)
                         .desc("+1 Hand and +1 Discard per additional blind skipped vs your Nemesis")
                         .runMod(RunMod.skipBonus()).build(),
                 Jokers.uncommon("j_lets_go_gambling", "Let's Go Gambling").cost(6).atlas(7, 17)
@@ -623,17 +623,17 @@ public final class BuiltinJokerDefs {
                         .effect(new Effect.Score(Op.XMULT, Val.of(4)), new Effect.Score(Op.DOLLARS, Val.of(10))).build(),
 
                 // --- batch 43: multiplayer-exclusive "Nemesis" jokers (read opponent state) ---
-                Jokers.uncommon("j_pacifist", "Pacifist").cost(6).atlas(2, 17)
+                Jokers.common("j_pacifist", "Pacifist").cost(4).atlas(2, 17)
                         .desc("x10 Mult while not in a PvP blind")
                         .whenHand(not(Cond.inPvpBlind())).multiply(MULT, 10).build(),
-                Jokers.uncommon("j_defensive_joker", "Defensive Joker").cost(6).atlas(3, 17)
+                Jokers.common("j_defensive_joker", "Defensive Joker").cost(4).atlas(3, 17)
                         .desc("+125 Chips for every life you are behind your Nemesis")
                         .whenHand().add(CHIPS, Val.runVar(Value.Var.OPP_LIVES_BEHIND, 0, 125)).build(),
-                Jokers.rare("j_conjoined", "Conjoined Joker").cost(8).atlas(4, 17)
+                Jokers.uncommon("j_conjoined", "Conjoined Joker").cost(6).atlas(4, 17)
                         .desc("In a PvP blind, x0.5 Mult per hand your Nemesis has left (max x3)")
                         .whenHand(Cond.inPvpBlind())
                         .multiply(MULT, Val.clamp(Val.runVar(Value.Var.OPP_HANDS_LEFT, 1, 0.5), 1, 3)).build(),
-                Jokers.uncommon("j_taxes", "Taxes").cost(6).atlas(5, 17)
+                Jokers.common("j_taxes", "Taxes").cost(5).atlas(5, 17)
                         .desc("+4 Mult per card your Nemesis has sold since the last PvP blind")
                         .whenHand().add(MULT, Val.runVar(Value.Var.OPP_CARDS_SOLD, 0, 4)).build(),
 

@@ -150,6 +150,17 @@
     "j_triboulet": {"rarity": 4, "cost": 20},
     "j_yorick": {"rarity": 4, "cost": 20},
     "j_chicot": {"rarity": 4, "cost": 20},
-    "j_perkeo": {"rarity": 4, "cost": 20}
+    "j_perkeo": {"rarity": 4, "cost": 20},
+
+    "_mp_note": "Below: BMP 0.4.2 Nemesis jokers (not in vanilla game.lua) — values from multiplayer-0.4.2/objects/jokers/*.lua, so the gate covers them too.",
+    "j_pizza": {"rarity": 1, "cost": 4},
+    "j_speedrun": {"rarity": 2, "cost": 6},
+    "j_penny_pincher": {"rarity": 1, "cost": 4},
+    "j_defensive_joker": {"rarity": 1, "cost": 4},
+    "j_conjoined": {"rarity": 2, "cost": 6},
+    "j_pacifist": {"rarity": 1, "cost": 4},
+    "j_lets_go_gambling": {"rarity": 2, "cost": 6},
+    "j_skip_off": {"rarity": 2, "cost": 5},
+    "j_taxes": {"rarity": 1, "cost": 5}
   }
 }
