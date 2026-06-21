@@ -82,10 +82,10 @@ class RunModTest {
     }
 
     @Test
-    void turtleBeanAddsFiveHandSizeWhenFreshlyAcquired() {
-        // Acquired at run start (round 0), so the +5 hasn't decayed yet.
+    void turtleBeanAddsFourHandSizeWhenFreshlyAcquired() {
+        // BMP 0.4.2: +4 (vanilla +5). Acquired at run start (round 0), so it hasn't decayed yet.
         Run run = new Run(std, "TB", stoneDeck(400), jokers("j_turtle_bean"));
-        assertThat(run.state.handSize).isEqualTo(std.handSize() + 5);
+        assertThat(run.state.handSize).isEqualTo(std.handSize() + 4);
     }
 
     @Test

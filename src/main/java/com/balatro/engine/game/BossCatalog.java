@@ -32,7 +32,7 @@ public final class BossCatalog {
             Bosses.of("bl_water", "The Water").desc("Start with 0 discards").minAnte(2).discards(0).build(),
             Bosses.of("bl_flint", "The Flint").desc("Base Chips and Mult are halved").minAnte(2).halvesBase().build(),
             // per-hand-effect bosses (onHandPlayed framework)
-            Bosses.of("bl_tooth", "The Tooth").desc("Lose $1 per card played").minAnte(2).dollarsPerCard(-1).build(),
+            Bosses.of("bl_tooth", "The Tooth").desc("Lose $1 per card played").minAnte(3).dollarsPerCard(-1).build(),
             Bosses.of("bl_ox", "The Ox").desc("Playing your most-played hand sets money to $0")
                     .minAnte(6).zeroMoneyOnMostPlayed().build(),
             Bosses.of("bl_arm", "The Arm").desc("Decrease level of played poker hand").minAnte(2).delevelsPlayedHand().build(),
@@ -54,7 +54,7 @@ public final class BossCatalog {
                     .minAnte(2).drawsFaceDownOneIn(7).build(),
             // per-card history debuff (same shared Cond vocabulary)
             Bosses.of("bl_pillar", "The Pillar").desc("Cards played this ante are debuffed")
-                    .minAnte(2).debuffs(card().playedThisAnte()).build(),
+                    .minAnte(1).debuffs(card().playedThisAnte()).build(),
             // draw-count override
             Bosses.of("bl_serpent", "The Serpent").desc("After each hand or discard, always draw 3 cards")
                     .minAnte(5).drawsExactly(3).build(),

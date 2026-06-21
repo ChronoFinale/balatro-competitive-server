@@ -644,8 +644,8 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 37: "since acquired" jokers via acquire-stamp (Turtle Bean, Seltzer) ---
                 Jokers.uncommon("j_turtle_bean", "Turtle Bean").cost(6).atlas(7, 16)
-                        .desc("+5 hand size, which decreases by 1 each round")
-                        .runMod(RunMod.decayingHandSize(5)).build(),
+                        .desc("+4 hand size, which decreases by 1 each round") // BMP 0.4.2: +4 (vanilla +5)
+                        .runMod(RunMod.decayingHandSize(4)).build(),
                 Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(8, 16)
                         .desc("Retrigger all played cards for the first 10 hands after it is acquired")
                         .on(Trigger.REPETITION_PLAYED).when(Cond.handsSinceAcquired(10)).retrigger().build(),

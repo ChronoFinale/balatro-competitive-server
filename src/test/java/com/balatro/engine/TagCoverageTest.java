@@ -19,13 +19,13 @@ class TagCoverageTest {
 
     /** Resolves the instant it's claimed — money/level effects computed in {@code Run.claimTag}. */
     private static final Set<String> IMMEDIATE = Set.of(
-            "tag_economy", "tag_speed", "tag_orbital", "tag_handy", "tag_garbage", "tag_top_up");
+            "tag_economy", "tag_skip", "tag_orbital", "tag_handy", "tag_garbage", "tag_top_up");
 
     /** Resolves when the next shop opens — free jokers/editions, packs, voucher, coupon, d6. */
     private static final Set<String> ON_SHOP = Set.of(
             "tag_uncommon", "tag_rare", "tag_negative", "tag_foil", "tag_holo", "tag_polychrome",
             "tag_voucher", "tag_standard", "tag_charm", "tag_meteor", "tag_buffoon", "tag_ethereal",
-            "tag_coupon", "tag_d6");
+            "tag_coupon", "tag_d_six");
 
     /** Resolves at a specific later moment in the run loop. */
     private static final Set<String> DEFERRED = Set.of(

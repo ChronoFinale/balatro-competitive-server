@@ -49,9 +49,9 @@ public final class TagCatalog {
         put("tag_coupon", "Coupon Tag", "Initial shop cards & packs are free", true, Timing.ON_SHOP);
         put("tag_double", "Double Tag", "Gives a copy of the next selected tag", true, Timing.HELD);
         put("tag_juggle", "Juggle Tag", "+3 hand size next round", true, Timing.NEXT_BLIND);
-        put("tag_d6", "D6 Tag", "Rerolls in the next shop start at $0", true, Timing.ON_SHOP);
+        put("tag_d_six", "D6 Tag", "Rerolls in the next shop start at $0", true, Timing.ON_SHOP);
         put("tag_economy", "Economy Tag", "Doubles your money (max $40 gain)", true, Timing.IMMEDIATE);
-        put("tag_speed", "Speed Tag", "$5 per blind skipped this run", true, Timing.IMMEDIATE);
+        put("tag_skip", "Speed Tag", "$5 per blind skipped this run", true, Timing.IMMEDIATE);
         put("tag_orbital", "Orbital Tag", "Upgrade your most-played hand by 3 levels", false, Timing.IMMEDIATE);
         put("tag_handy", "Handy Tag", "$1 per hand played this run", false, Timing.IMMEDIATE);
         put("tag_garbage", "Garbage Tag", "$1 per unused discard this run", false, Timing.IMMEDIATE);

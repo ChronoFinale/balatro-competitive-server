@@ -1754,7 +1754,7 @@ public final class Run {
     private void applyImmediateTag(String key) {
         switch (key) {
             case "tag_economy" -> state.money += Math.min(state.money, 40);   // double money, max +$40
-            case "tag_speed" -> state.money += 5 * state.blindsSkipped;        // $5 per blind skipped
+            case "tag_skip" -> state.money += 5 * state.blindsSkipped;        // $5 per blind skipped
             case "tag_handy" -> state.money += state.handsPlayedTotal;         // $1 per hand played
             case "tag_garbage" -> state.money += state.cardsDiscardedTotal;    // ~$1 per discard this run
             case "tag_orbital" -> {
@@ -1803,7 +1803,7 @@ public final class Run {
                 case "tag_ethereal" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.SPECTRAL, PackCatalog.Size.NORMAL));
                 case "tag_voucher" -> addTagVoucher();
                 case "tag_coupon" -> couponActive = true;
-                case "tag_d6" -> d6Active = true;
+                case "tag_d_six" -> d6Active = true;
                 default -> { /* unmodelled ON_SHOP tag */ }
             }
         }
