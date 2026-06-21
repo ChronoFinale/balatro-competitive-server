@@ -27,6 +27,7 @@ public final class Jokers {
     private boolean costSet;
     private int atlasX;
     private int atlasY;
+    private boolean atlasSet;
     private String desc = "";
     private boolean blueprintCompatible = true;
     private CopySpec copy;
@@ -53,7 +54,9 @@ public final class Jokers {
 
     public Jokers cost(int c) { this.cost = c; this.costSet = true; return this; }
 
-    public Jokers atlas(int x, int y) { this.atlasX = x; this.atlasY = y; return this; }
+    /** Override the sprite location (rarely needed — by default it's read from the ground-truth metadata
+     *  table by key, so effect defs don't hardcode sprite coords). */
+    public Jokers atlas(int x, int y) { this.atlasX = x; this.atlasY = y; this.atlasSet = true; return this; }
 
     public Jokers desc(String d) { this.desc = d; return this; }
 
@@ -146,6 +149,11 @@ public final class Jokers {
         if (!missing.isEmpty()) {
             throw new IllegalStateException(
                     "Joker '" + key + "' is missing required: " + String.join(", ", missing));
+        }
+        if (!atlasSet) { // sprite location is data, not code: read it from the ground-truth metadata table
+            int[] a = JokerMeta.atlas(key);
+            atlasX = a[0];
+            atlasY = a[1];
         }
         return new JokerDef(key, name, desc, rarity, cost, atlasX, atlasY, null, null,
                 blueprintCompatible, List.copyOf(rules),
