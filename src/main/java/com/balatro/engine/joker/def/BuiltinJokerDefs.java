@@ -551,8 +551,8 @@ public final class BuiltinJokerDefs {
                         .mutate(Trigger.CARD_ADDED).when(always()).gain("x", 0.25)
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
                 Jokers.uncommon("j_certificate", "Certificate").cost(6).atlas(0, 13)
-                        .desc("When a blind is selected, add a random playing card with a random seal to your deck")
-                        .on(Trigger.BLIND_SELECTED)
+                        .desc("On the first hand drawn each round, add a random playing card with a random seal")
+                        .on(Trigger.FIRST_HAND_DRAWN)
                         .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, null, true)).build(),
 
                 // --- batch 18: decay jokers (run-long counters + clamped values) ---

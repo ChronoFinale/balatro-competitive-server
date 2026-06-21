@@ -120,9 +120,9 @@ class CreationJokerTest {
     }
 
     @Test
-    void certificateAddsASealedCardAtBlindSelect() {
+    void certificateAddsASealedCardOnFirstHandDrawn() {
         Run run = new Run(Ruleset.standard(), "C", stoneDeck(400), jokers("j_certificate"));
-        // BLIND_SELECTED added one card; it should carry a (non-NONE) seal.
+        // The blind setup raised FIRST_HAND_DRAWN, so Certificate added one card; it carries a (non-NONE) seal.
         long sealed = run.state.deckComposition.stream()
                 .filter(cc -> cc.seal != com.balatro.engine.card.Seal.NONE).count();
         assertThat(sealed).isGreaterThanOrEqualTo(1);

@@ -293,6 +293,7 @@ public final class Run {
         applyAmberAcorn(); // flip + shuffle the Jokers (sets jokersHidden, reorders scoring)
         ensureForcedSelection(); // Cerulean Bell: lock one opening-hand card as force-selected
         refreshDebuffs();
+        GameEvents.raise(Trigger.FIRST_HAND_DRAWN, state, rng, null); // Certificate: add a sealed card on first draw
         // The blind is set up and dealt; the player now Selects it (play) or Skips it (Small/Big,
         // for a tag). Boss/PvP blinds can't be skipped. play() auto-selects for convenience.
         phase = Phase.BLIND_SELECT;
