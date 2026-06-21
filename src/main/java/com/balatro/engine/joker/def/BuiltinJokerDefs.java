@@ -341,7 +341,7 @@ public final class BuiltinJokerDefs {
                         .whenHand().add(MULT, 15)
                         .on(Trigger.END_OF_ROUND).when(Cond.chance(1, 6, "gros_michel"))
                         .effect(new Effect.DestroySelf()).build(),
-                Jokers.common("j_cavendish", "Cavendish").cost(5).atlas(9, 2)
+                Jokers.common("j_cavendish", "Cavendish").cost(4).atlas(9, 2)
                         .desc("x3 Mult; 1 in 1000 chance destroyed at end of round")
                         .whenHand().multiply(MULT, 3)
                         .on(Trigger.END_OF_ROUND).when(Cond.chance(1, 1000, "cavendish"))
@@ -428,7 +428,7 @@ public final class BuiltinJokerDefs {
                         .whenHand(state("tarots").atLeast(1)).add(MULT, Val.state("tarots")).build(),
 
                 // --- batch 5: stepwise / deck-size scaling values ---
-                Jokers.uncommon("j_bootstraps", "Bootstraps").cost(6).atlas(9, 8)
+                Jokers.uncommon("j_bootstraps", "Bootstraps").cost(7).atlas(9, 8)
                         .desc("+2 Mult for every $5 you have")
                         .whenHand().add(MULT, Val.runVarStep(Value.Var.MONEY, 0, 2, 5)).build(),
                 Jokers.uncommon("j_erosion", "Erosion").cost(6).atlas(7, 8)
@@ -482,7 +482,7 @@ public final class BuiltinJokerDefs {
                         .desc("Create a Tarot if a hand is played with $4 or less")
                         .whenHand(not(runVar(Value.Var.MONEY).atLeast(5)))
                         .create(CreateSpec.Kind.TAROT).build(),
-                Jokers.common("j_superposition", "Superposition").cost(5).atlas(4, 12)
+                Jokers.common("j_superposition", "Superposition").cost(4).atlas(4, 12)
                         .desc("Create a Tarot if a played hand contains an Ace and a Straight")
                         .whenHand(Cond.all(playedHand().contains(HandType.STRAIGHT),
                                 value(Val.count(Value.Source.SCORING,
@@ -651,7 +651,7 @@ public final class BuiltinJokerDefs {
                         .on(Trigger.REPETITION_PLAYED).when(Cond.handsSinceAcquired(10)).retrigger().build(),
 
                 // --- batch 36: Obelisk (consecutive non-most-played streak; shipped, preview-accurate) ---
-                Jokers.legendary("j_obelisk", "Obelisk").cost(20).atlas(6, 16)
+                Jokers.rare("j_obelisk", "Obelisk").cost(8).atlas(6, 16)
                         .desc("x0.2 Mult per consecutive hand played that is not your most-played hand")
                         .whenHand().multiply(MULT, Val.runVar(Value.Var.OBELISK_STREAK, 1, 0.2)).build(),
 
@@ -705,7 +705,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_oops", "Oops! All 6s").cost(4).atlas(6, 15)
                         .desc("Doubles all listed probabilities")
                         .runMod(RunMod.probabilityDoubler()).build(),
-                Jokers.common("j_reserved_parking", "Reserved Parking").cost(5).atlas(7, 15)
+                Jokers.common("j_reserved_parking", "Reserved Parking").cost(6).atlas(7, 15)
                         .desc("Each face card held in hand has a 1 in 2 chance to give $1")
                         .forEachHeld(Cond.all(card().isFace(), Cond.chance(1, 2, "reserved_parking"))).add(DOLLARS, 1).build(),
 
