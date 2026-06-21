@@ -337,9 +337,15 @@ public final class BuiltinJokerDefs {
 
                 // --- flat / xMult jokers expressible with the existing algebra ---
                 Jokers.common("j_gros_michel", "Gros Michel").cost(5).atlas(8, 2)
-                        .desc("+15 Mult").whenHand().add(MULT, 15).build(),
+                        .desc("+15 Mult; 1 in 6 chance destroyed at end of round")
+                        .whenHand().add(MULT, 15)
+                        .on(Trigger.END_OF_ROUND).when(Cond.chance(1, 6, "gros_michel"))
+                        .effect(new Effect.DestroySelf()).build(),
                 Jokers.common("j_cavendish", "Cavendish").cost(5).atlas(9, 2)
-                        .desc("x3 Mult").whenHand().multiply(MULT, 3).build(),
+                        .desc("x3 Mult; 1 in 1000 chance destroyed at end of round")
+                        .whenHand().multiply(MULT, 3)
+                        .on(Trigger.END_OF_ROUND).when(Cond.chance(1, 1000, "cavendish"))
+                        .effect(new Effect.DestroySelf()).build(),
                 Jokers.uncommon("j_acrobat", "Acrobat").cost(7).atlas(8, 3)
                         .desc("x3 Mult on the final hand of the round")
                         .whenHand(runVar(Value.Var.HANDS_LEFT).atMost(1)).multiply(MULT, 3).build(),
@@ -551,11 +557,17 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 18: decay jokers (run-long counters + clamped values) ---
                 Jokers.common("j_ice_cream", "Ice Cream").cost(5).atlas(2, 13)
-                        .desc("+100 Chips, -5 Chips per hand played")
-                        .whenHand().add(CHIPS, Val.clamp(Val.runVar(Value.Var.HANDS_PLAYED_TOTAL, 100, -5), 0, 1e9)).build(),
+                        .desc("+100 Chips, -5 Chips per hand played; consumed at 0")
+                        .whenHand().add(CHIPS, Val.clamp(Val.runVar(Value.Var.HANDS_PLAYED_TOTAL, 100, -5), 0, 1e9))
+                        .on(Trigger.END_OF_ROUND)
+                        .when(Cond.value(Val.runVar(Value.Var.HANDS_PLAYED_TOTAL, 100, -5)).atMost(0))
+                        .effect(new Effect.DestroySelf()).build(),
                 Jokers.common("j_popcorn", "Popcorn").cost(5).atlas(3, 13)
-                        .desc("+20 Mult, -4 Mult per round played")
-                        .whenHand().add(MULT, Val.clamp(Val.runVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9)).build(),
+                        .desc("+20 Mult, -4 Mult per round played; consumed at 0")
+                        .whenHand().add(MULT, Val.clamp(Val.runVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))
+                        .on(Trigger.END_OF_ROUND)
+                        .when(Cond.value(Val.runVar(Value.Var.ROUNDS_PLAYED, 20, -4)).atMost(0))
+                        .effect(new Effect.DestroySelf()).build(),
                 // --- batch 42: Matador (boss-ability interaction) ---
                 Jokers.uncommon("j_matador", "Matador").cost(7).atlas(1, 18)
                         .desc("Earn $8 if the played hand triggers the Boss Blind's ability")
@@ -781,9 +793,12 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
 
                 Jokers.uncommon("j_ramen", "Ramen").cost(6).atlas(4, 13)
-                        .desc("x2 Mult, loses x0.01 per card discarded")
+                        .desc("x2 Mult, loses x0.01 per card discarded; consumed at x1")
                         .whenHand().multiply(MULT, Val.clamp(
-                                Val.runVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01), 1, 1e9)).build());
+                                Val.runVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01), 1, 1e9))
+                        .on(Trigger.PRE_DISCARD)
+                        .when(Cond.value(Val.runVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01)).atMost(1))
+                        .effect(new Effect.DestroySelf()).build());
     }
 
     /** A joker whose only effect is a passive per-blind capability {@link RunMod} (Chicot, Mr Bones). */
