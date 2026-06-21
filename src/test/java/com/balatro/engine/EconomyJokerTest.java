@@ -62,12 +62,12 @@ class EconomyJokerTest {
         run.roundTargets.put("rebateRankId", 9); // nines this round
         run.queues = new com.balatro.engine.rng.QueueSet(rng);
         run.addJoker(JokerLibrary.create("j_mail_in_rebate"));
-        // Discard two 9s and a King -> $3 x 2 = $6.
+        // Discard two 9s and a King -> $5 x 2 = $10 (real Balatro pays $5/card).
         GameEvents.preDiscard(run, rng, java.util.List.of(c(NINE, HEARTS), c(NINE, SPADES),
                 new com.balatro.engine.card.Card(com.balatro.engine.card.Rank.KING, HEARTS,
                         com.balatro.engine.card.Enhancement.NONE, com.balatro.engine.card.Edition.NONE,
                         com.balatro.engine.card.Seal.NONE)));
-        assertThat(run.money).isEqualTo(6);
+        assertThat(run.money).isEqualTo(10);
     }
 
     @Test

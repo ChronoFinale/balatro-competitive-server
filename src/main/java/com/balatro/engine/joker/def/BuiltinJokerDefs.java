@@ -346,7 +346,7 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, 3)
                         .on(Trigger.END_OF_ROUND).when(Cond.chance(1, 1000, "cavendish"))
                         .effect(new Effect.DestroySelf()).build(),
-                Jokers.uncommon("j_acrobat", "Acrobat").cost(7).atlas(8, 3)
+                Jokers.uncommon("j_acrobat", "Acrobat").cost(6).atlas(8, 3)
                         .desc("x3 Mult on the final hand of the round")
                         .whenHand(runVar(Value.Var.HANDS_LEFT).atMost(1)).multiply(MULT, 3).build(),
                 Jokers.uncommon("j_joker_stencil", "Joker Stencil").cost(7).atlas(0, 4)
@@ -442,8 +442,8 @@ public final class BuiltinJokerDefs {
                         Modify.add(Value.Var.DISCARDS_LEFT, 1)),
                 modJoker("j_troubadour", "Troubadour", "+2 hand size, -1 hand each round", "Uncommon", 6, 2, 10,
                         Modify.add(Value.Var.HANDS_LEFT, -1), Modify.add(Value.Var.HAND_SIZE, 2)),
-                modJoker("j_merry_andy", "Merry Andy", "+1 discard, -1 hand size", "Uncommon", 7, 3, 10,
-                        Modify.add(Value.Var.DISCARDS_LEFT, 1), Modify.add(Value.Var.HAND_SIZE, -1)),
+                modJoker("j_merry_andy", "Merry Andy", "+3 discards, -1 hand size", "Uncommon", 7, 3, 10,
+                        Modify.add(Value.Var.DISCARDS_LEFT, 3), Modify.add(Value.Var.HAND_SIZE, -1)),
                 Jokers.uncommon("j_burglar", "Burglar").cost(6).atlas(4, 10)
                         .desc("+3 hands this round, but no discards")
                         .mods(Modify.add(Value.Var.HANDS_LEFT, 3)).runMod(RunMod.locksDiscards()).build(),
@@ -741,9 +741,9 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 25: Mail-In Rebate (event-count money) ---
                 Jokers.common("j_mail_in_rebate", "Mail-In Rebate").cost(4).atlas(7, 14)
-                        .desc("Earn $3 for each discarded card of this round's rank")
+                        .desc("Earn $5 for each discarded card of this round's rank")
                         .whenDiscarding(always()).add(DOLLARS, Val.count(Value.Source.EVENT,
-                                card().rankIsTarget("rebateRankId"), 0, 3)).build(),
+                                card().rankIsTarget("rebateRankId"), 0, 5)).build(),
 
                 // --- batch 24: more dynamic targets (Castle chips, To Do List money) ---
                 Jokers.uncommon("j_castle", "Castle").cost(6).atlas(5, 14)
