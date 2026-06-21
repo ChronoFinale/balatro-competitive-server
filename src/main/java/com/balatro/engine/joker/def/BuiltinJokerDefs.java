@@ -52,11 +52,11 @@ public final class BuiltinJokerDefs {
                         .desc("Retrigger the first and second played cards 1 additional time each (multiplayer)")
                         .on(Trigger.REPETITION_PLAYED).when(card().amongFirst(2)).retrigger().build(),
                 // MP Seltzer: retrigger window is 8 hands (vanilla 10).
-                Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(8, 16)
+                Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(3, 15)
                         .desc("Retrigger all played cards for the first 8 hands after it is acquired (multiplayer)")
                         .on(Trigger.REPETITION_PLAYED).when(Cond.handsSinceAcquired(8)).retrigger().build(),
                 // MP Golden Ticket: $3 per scored Gold card (vanilla $4), Uncommon.
-                Jokers.uncommon("j_golden_ticket", "Golden Ticket").cost(5).atlas(6, 7)
+                Jokers.uncommon("j_golden_ticket", "Golden Ticket").cost(5).atlas(5, 3)
                         .desc("Played Gold cards give $3 when scored (multiplayer)")
                         .forEachScored(card().enhancement(Enhancement.GOLD)).add(DOLLARS, 3).build()));
     }
@@ -330,7 +330,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_rough_gem", "Rough Gem").cost(7).atlas(9, 7)
                         .desc("Each played Diamond gives $1 when scored")
                         .forEachScored(card().suit(Suit.DIAMONDS)).add(DOLLARS, 1).build(),
-                Jokers.common("j_business_card", "Business Card").cost(4).atlas(1, 9)
+                Jokers.common("j_business_card", "Business Card").cost(4).atlas(1, 4)
                         .desc("Played face cards have a 1 in 2 chance to give $2")
                         .forEachScored(Cond.all(card().isFace(), Cond.chance(1, 2, "business_card")))
                         .add(DOLLARS, 2).build(),
@@ -349,7 +349,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_acrobat", "Acrobat").cost(6).atlas(2, 1)
                         .desc("x3 Mult on the final hand of the round")
                         .whenHand(runVar(Value.Var.HANDS_LEFT).atMost(1)).multiply(MULT, 3).build(),
-                Jokers.uncommon("j_joker_stencil", "Joker Stencil").cost(7).atlas(0, 4)
+                Jokers.uncommon("j_joker_stencil", "Joker Stencil").cost(8).atlas(2, 5)
                         .desc("x1 Mult for each empty Joker slot (Joker Stencil included)")
                         .whenHand().multiply(MULT, Val.stat(Value.Which.EMPTY_JOKER_SLOTS, 1.0, 1.0, null)).build(),
                 Jokers.legendary("j_triboulet", "Triboulet").cost(20).atlas(4, 9)
@@ -381,7 +381,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_shortcut", "Shortcut").cost(7).atlas(3, 12)
                         .desc("Allows Straights to be made with gaps of 1 rank")
                         .handMod(HandMod.SHORTCUT).build(),
-                Jokers.uncommon("j_smeared_joker", "Smeared Joker").cost(7).atlas(3, 6)
+                Jokers.uncommon("j_smeared_joker", "Smeared Joker").cost(7).atlas(4, 6)
                         .desc("Hearts and Diamonds count as the same suit, Spades and Clubs the same")
                         .handMod(HandMod.SMEARED).build(),
 
@@ -394,7 +394,7 @@ public final class BuiltinJokerDefs {
                         .on(Trigger.REPETITION_PLAYED).when(runVar(Value.Var.HANDS_LEFT).atMost(1)).retrigger().build(),
 
                 // --- Gold-card economy when scored ---
-                Jokers.common("j_golden_ticket", "Golden Ticket").cost(5).atlas(6, 7)
+                Jokers.common("j_golden_ticket", "Golden Ticket").cost(5).atlas(5, 3)
                         .desc("Played Gold cards give $4 when scored")
                         .forEachScored(card().enhancement(Enhancement.GOLD)).add(DOLLARS, 4).build(),
 
@@ -465,7 +465,7 @@ public final class BuiltinJokerDefs {
                         .desc("Earn $1 at end of round; payout grows by $2 each Boss defeated")
                         .mutate(Trigger.END_OF_ROUND).when(Cond.bossDefeated()).gain("bosses", 1)
                         .atEndOfRound().add(DOLLARS, Val.state("bosses", 1, 2)).build(),
-                Jokers.common("j_delayed_gratification", "Delayed Gratification").cost(4).atlas(3, 11)
+                Jokers.common("j_delayed_gratification", "Delayed Gratification").cost(4).atlas(4, 3)
                         .desc("Earn $2 per remaining discard at end of round if no discards were used")
                         .atEndOfRound().when(not(runVar(Value.Var.DISCARDS_USED).atLeast(1)))
                         .add(DOLLARS, Val.runVar(Value.Var.DISCARDS_LEFT, 0, 2)).build(),
@@ -512,11 +512,11 @@ public final class BuiltinJokerDefs {
                         .desc("1 in 4 chance to upgrade the level of the played hand")
                         .whenHand(Cond.chance(1, 4, "space")).levelUpHand(1).build(),
                 // --- batch 13: destruction-counting xMult (CARD_DESTROYED) ---
-                Jokers.uncommon("j_glass_joker", "Glass Joker").cost(6).atlas(5, 13)
+                Jokers.uncommon("j_glass_joker", "Glass Joker").cost(6).atlas(1, 3)
                         .desc("Gains x0.75 Mult for every Glass card that is destroyed")
                         .whenCardDestroyed(card().enhancement(Enhancement.GLASS)).gain("x", 0.75)
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
-                Jokers.legendary("j_canio", "Canio").cost(20).atlas(6, 15)
+                Jokers.legendary("j_canio", "Canio").cost(20).atlas(3, 8)
                         .desc("Gains x1 Mult when a face card is destroyed")
                         .whenCardDestroyed(card().isFace()).gain("x", 1)
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
@@ -589,7 +589,7 @@ public final class BuiltinJokerDefs {
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult")).build(),
 
                 // --- batch 39: Showman (allow duplicate shop offerings; disables the skip-if-owned rule) ---
-                Jokers.uncommon("j_showman", "Showman").cost(5).atlas(0, 17)
+                Jokers.uncommon("j_showman", "Showman").cost(5).atlas(6, 5)
                         .desc("Joker and Consumable cards may appear multiple times in the shop")
                         .mods(Modify.max(Value.Var.ALLOW_SHOP_DUPLICATES, 1)).build(),
 
@@ -646,7 +646,7 @@ public final class BuiltinJokerDefs {
                 Jokers.uncommon("j_turtle_bean", "Turtle Bean").cost(6).atlas(4, 13)
                         .desc("+4 hand size, which decreases by 1 each round") // BMP 0.4.2: +4 (vanilla +5)
                         .runMod(RunMod.decayingHandSize(4)).build(),
-                Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(8, 16)
+                Jokers.uncommon("j_seltzer", "Seltzer").cost(6).atlas(3, 15)
                         .desc("Retrigger all played cards for the first 10 hands after it is acquired")
                         .on(Trigger.REPETITION_PLAYED).when(Cond.handsSinceAcquired(10)).retrigger().build(),
 
@@ -717,7 +717,7 @@ public final class BuiltinJokerDefs {
                 Jokers.common("j_egg", "Egg").cost(4).atlas(0, 10)
                         .desc("Gains $3 of sell value at the end of each round")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("sellBonus", 3).build(),
-                Jokers.uncommon("j_gift_card", "Gift Card").cost(6).atlas(4, 15)
+                Jokers.uncommon("j_gift_card", "Gift Card").cost(6).atlas(3, 13)
                         .desc("Adds $1 of sell value to every owned Joker at end of round")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gainEveryJoker("sellBonus", 1).build(),
 
@@ -740,7 +740,7 @@ public final class BuiltinJokerDefs {
                         .mods(Modify.max(Value.Var.UNCAPPED_INTEREST, 1)).build(),
 
                 // --- batch 25: Mail-In Rebate (event-count money) ---
-                Jokers.common("j_mail_in_rebate", "Mail-In Rebate").cost(4).atlas(7, 14)
+                Jokers.common("j_mail_in_rebate", "Mail-In Rebate").cost(4).atlas(7, 13)
                         .desc("Earn $5 for each discarded card of this round's rank")
                         .whenDiscarding(always()).add(DOLLARS, Val.count(Value.Source.EVENT,
                                 card().rankIsTarget("rebateRankId"), 0, 5)).build(),
@@ -760,12 +760,12 @@ public final class BuiltinJokerDefs {
                         .desc("Each played card matching this round's Idol card gives x2 Mult")
                         .forEachScored(Cond.all(card().rankIsTarget("idolRankId"),
                                 card().suitIsTarget("idolSuit"))).multiply(MULT, 2).build(),
-                Jokers.rare("j_ancient_joker", "Ancient Joker").cost(8).atlas(4, 14)
+                Jokers.rare("j_ancient_joker", "Ancient Joker").cost(8).atlas(7, 15)
                         .desc("Each played card of this round's Ancient suit gives x1.5 Mult")
                         .forEachScored(card().suitIsTarget("ancientSuit")).multiply(MULT, 1.5).build(),
 
                 // --- batch 22: joker-on-joker reads (Baseball Card, Swashbuckler) ---
-                Jokers.rare("j_baseball_card", "Baseball Card").cost(8).atlas(1, 14)
+                Jokers.rare("j_baseball_card", "Baseball Card").cost(8).atlas(6, 14)
                         .desc("Each Uncommon Joker gives x1.5 Mult")
                         .on(Trigger.ON_OTHER_JOKER).when(Cond.otherJokerRarity("Uncommon")).multiply(MULT, 1.5).build(),
                 Jokers.common("j_swashbuckler", "Swashbuckler").cost(4).atlas(9, 5)
