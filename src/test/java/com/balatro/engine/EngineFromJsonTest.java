@@ -44,9 +44,8 @@ class EngineFromJsonTest {
                 .isEqualTo(com.balatro.engine.game.BossCatalog.authored());
         assertThat(com.balatro.engine.content.ContentStore.planets())
                 .isEqualTo(com.balatro.engine.game.PlanetCatalog.authored());
-        assertThat(com.balatro.engine.content.ContentStore.tags()).isEqualTo(
-                com.balatro.engine.game.TagCatalog.keys().stream()
-                        .map(com.balatro.engine.game.TagCatalog::get).toList());
+        assertThat(com.balatro.engine.content.ContentStore.tags())
+                .isEqualTo(com.balatro.engine.game.TagCatalog.authored());
         assertThat(com.balatro.engine.content.ContentStore.vouchers()).isEqualTo(
                 com.balatro.engine.game.VoucherCatalog.keys().stream()
                         .map(com.balatro.engine.game.VoucherCatalog::get).toList());

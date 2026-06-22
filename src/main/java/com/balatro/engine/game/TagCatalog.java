@@ -27,6 +27,7 @@ public final class TagCatalog {
     public record Tag(String key, String name, String description, boolean ante1, Timing timing) {}
 
     private static final Map<String, Tag> BY_KEY = new LinkedHashMap<>();
+    private static final List<Tag> AUTHORED = new ArrayList<>();   // built by put(); the DSL authoring source
 
     /** Banned in Standard Ranked multiplayer (PvP-blind interaction). */
     public static final Set<String> MP_BANNED = Set.of("tag_boss");
@@ -56,10 +57,24 @@ public final class TagCatalog {
         put("tag_handy", "Handy Tag", false, Timing.IMMEDIATE);
         put("tag_garbage", "Garbage Tag", false, Timing.IMMEDIATE);
         put("tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE);
+
+        // Runtime loads from /content/tags.json; the puts above are the DSL authoring (+ fallback).
+        List<Tag> tags;
+        try {
+            tags = com.balatro.engine.content.ContentStore.tags();
+        } catch (RuntimeException e) {
+            tags = AUTHORED;
+        }
+        for (Tag t : tags) BY_KEY.put(t.key(), t);
     }
 
     private static void put(String key, String name, boolean ante1, Timing timing) {
-        BY_KEY.put(key, new Tag(key, name, com.balatro.engine.i18n.Loc.text(key), ante1, timing));
+        AUTHORED.add(new Tag(key, name, com.balatro.engine.i18n.Loc.text(key), ante1, timing));
+    }
+
+    /** The DSL authoring source for {@code content/tags.json} (also the fallback). */
+    public static List<Tag> authored() {
+        return List.copyOf(AUTHORED);
     }
 
     public static Tag get(String key) {
