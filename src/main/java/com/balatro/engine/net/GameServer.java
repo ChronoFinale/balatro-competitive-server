@@ -548,6 +548,8 @@ public final class GameServer implements AutoCloseable {
                         conn.send(ok(seq, r)); // re-render the view in the new locale
                     }
                 }
+                case "joinQueue" -> joinQueue(conn, seq);
+                case "leaveQueue" -> leaveQueue(conn, seq);
                 case "createLobby" -> createLobby(conn, seq);
                 case "joinLobby" -> joinLobby(conn, seq, msg.path("code").asText());
                 case "proposeRuleset" -> {
@@ -656,6 +658,31 @@ public final class GameServer implements AutoCloseable {
         ServerUpdate up = run.apply(action);
         conn.send(WsResponse.of(seq, up));
         afterAction(conn.sessionId());
+    }
+
+    /** The one session waiting in the matchmaking queue (minimal 1-slot FIFO); null when empty. */
+    private volatile String queuedSession;
+
+    /** Join the match queue: pair with a waiting player into a Match (reusing the lobby flow), else wait. */
+    private synchronized void joinQueue(Connection conn, long seq) {
+        String me = conn.sessionId();
+        if (queuedSession != null && !queuedSession.equals(me) && conns.containsKey(queuedSession)) {
+            String host = queuedSession;
+            queuedSession = null;
+            Match match = new Match(newCode(), com.balatro.engine.rng.Seeds.random(), ruleset, rulesetStore, this::deliver);
+            match.setHost(host, players.get(host));
+            matchBySession.put(host, match);
+            matchBySession.put(me, match);
+            match.setGuestAndStart(me, players.get(me)); // both players matched -> ruleset agreement -> play
+        } else {
+            queuedSession = me;
+            conn.send(Map.of("type", "queued", "seq", seq, "status", "waiting for an opponent"));
+        }
+    }
+
+    private synchronized void leaveQueue(Connection conn, long seq) {
+        if (conn.sessionId().equals(queuedSession)) queuedSession = null;
+        conn.send(Map.of("type", "leftQueue", "seq", seq));
     }
 
     private void createLobby(Connection conn, long seq) {

@@ -5,7 +5,7 @@ import { Store } from "@tanstack/store";
 import * as bundled from "../../generated/content";
 import { syncContent, type ContentCache, type SyncResult } from "./contentSync";
 import type {
-  JokerDef, DeckType, BossBlind, Tag, Voucher, Consumable, Planet, HandScore, RulesetBundle,
+  JokerDef, DeckType, BossBlind, Tag, Voucher, Consumable, Planet, HandScore, RulesetBundle, UiScreen,
 } from "../../generated/content-types";
 
 export interface ContentData {
@@ -19,6 +19,7 @@ export interface ContentData {
   PLANETS: readonly Planet[];
   HAND_SCORES: readonly HandScore[];
   BUNDLES: readonly RulesetBundle[];
+  SCREENS: readonly UiScreen[]; // server-driven UI: lobby/selection/queue screens as data
   locales: Record<string, Record<string, string>>; // locale -> (content key -> text/template), synced from server
 }
 
@@ -40,7 +41,7 @@ const BUNDLED: ContentData = {
   version: "bundled",
   JOKERS: bundled.JOKERS, DECKS: bundled.DECKS, BOSSES: bundled.BOSSES, TAGS: bundled.TAGS,
   VOUCHERS: bundled.VOUCHERS, CONSUMABLES: bundled.CONSUMABLES, PLANETS: bundled.PLANETS,
-  HAND_SCORES: bundled.HAND_SCORES, BUNDLES: bundled.BUNDLES, locales: {},
+  HAND_SCORES: bundled.HAND_SCORES, BUNDLES: bundled.BUNDLES, SCREENS: bundled.SCREENS, locales: {},
 };
 
 const CACHE_KEY = "balatro.contentCache";
@@ -73,6 +74,7 @@ const FILE_TO_KEY: Record<string, keyof ContentData> = {
   "content/consumables.json": "CONSUMABLES",
   "content/planets.json": "PLANETS",
   "content/hand-scores.json": "HAND_SCORES",
+  "content/ui-screens.json": "SCREENS",
 };
 
 /**

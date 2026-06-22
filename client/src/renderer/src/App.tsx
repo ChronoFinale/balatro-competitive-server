@@ -3,6 +3,8 @@ import { useStore } from "@tanstack/react-store";
 import { store, connect, newRun, send, previewCards } from "./session";
 import type { CardView } from "./types";
 import Almanac from "./Almanac";
+import ScreenView from "./ScreenView";
+import { content } from "./content";
 // Generated from the server's own enums (see generateContent) — these maps are now exhaustive and
 // drift-proof: add a Suit/Rank on the server and the client fails to compile until it's handled.
 import type { Suit, Rank } from "../../generated/content-types";
@@ -53,23 +55,10 @@ function Login() {
 }
 
 function Menu() {
-  const rulesets = useStore(store, (s) => s.rulesets);
-  const [picked, setPicked] = useState("");
-  // default the selection to the first offered ruleset once they arrive
-  const choice = picked || rulesets[0] || "";
-  return (
-    <div className="panel row">
-      <label className="stat">Ruleset</label>
-      <select value={choice} onChange={(e) => setPicked(e.target.value)}>
-        {rulesets.length === 0 && <option value="">(server default)</option>}
-        {rulesets.map((r) => (
-          <option key={r} value={r}>{r}</option>
-        ))}
-      </select>
-      <button onClick={() => newRun(choice || undefined)}>Solo Run</button>
-      <span className="stat">{rulesets.length} rulesets offered by the server</span>
-    </div>
-  );
+  // The menu is now server-driven UI: render the "menu" screen (data) via the generic ScreenView.
+  const screens = useStore(content, (c) => c.SCREENS);
+  const menu = screens.find((s) => s.id === "menu");
+  return menu ? <ScreenView screen={menu} /> : <div className="panel row">Loading…</div>;
 }
 
 function Game() {

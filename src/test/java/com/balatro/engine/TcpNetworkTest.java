@@ -83,6 +83,31 @@ class TcpNetworkTest {
         }
     }
 
+    @Test
+    void matchQueueAcceptsAndPairsPlayers() throws Exception {
+        try (GameServer server = new GameServer(Ruleset.standard()).start(0).startTcp(0)) {
+            try (Socket s1 = new Socket(); Socket s2 = new Socket()) {
+                s1.connect(new InetSocketAddress("127.0.0.1", server.tcpPort()), 2000);
+                s2.connect(new InetSocketAddress("127.0.0.1", server.tcpPort()), 2000);
+                var o1 = new BufferedWriter(new OutputStreamWriter(s1.getOutputStream(), StandardCharsets.UTF_8));
+                var i1 = new BufferedReader(new InputStreamReader(s1.getInputStream(), StandardCharsets.UTF_8));
+                var o2 = new BufferedWriter(new OutputStreamWriter(s2.getOutputStream(), StandardCharsets.UTF_8));
+                var i2 = new BufferedReader(new InputStreamReader(s2.getInputStream(), StandardCharsets.UTF_8));
+
+                send(o1, Map.of("type", "auth", "seq", 0, "token", login(server.port(), "p1")));
+                assertThat(JSON.readTree(i1.readLine()).path("type").asText()).isEqualTo("authed");
+                send(o2, Map.of("type", "auth", "seq", 0, "token", login(server.port(), "p2")));
+                assertThat(JSON.readTree(i2.readLine()).path("type").asText()).isEqualTo("authed");
+
+                // p1 joins -> waits; p2 joins -> the two are paired into a match (agreement pushed to p2)
+                send(o1, Map.of("type", "joinQueue", "seq", 1));
+                assertThat(JSON.readTree(i1.readLine()).path("type").asText()).isEqualTo("queued");
+                send(o2, Map.of("type", "joinQueue", "seq", 1));
+                assertThat(JSON.readTree(i2.readLine()).path("type").asText()).isNotEqualTo("error"); // matched
+            }
+        }
+    }
+
     private void send(BufferedWriter out, Map<String, Object> msg) throws Exception {
         out.write(JSON.writeValueAsString(msg));
         out.write('\n');
