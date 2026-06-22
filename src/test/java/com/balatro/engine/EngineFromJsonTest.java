@@ -28,4 +28,31 @@ class EngineFromJsonTest {
         assertThat(sly.def().rules()).isNotEmpty();
         assertThat(JokerLibrary.builtinKeys()).contains("j_joker", "j_sly_joker");
     }
+
+    @Test void decksAreLoadedFromJsonAtRuntime() {
+        // DeckCatalog now populates from /content/decks.json; the JSON equals the DSL authoring source.
+        var fromJson = com.balatro.engine.content.ContentStore.decks();
+        assertThat(fromJson).isEqualTo(com.balatro.engine.game.DeckCatalog.authored());
+        // and that is what the live catalog serves
+        assertThat(com.balatro.engine.game.DeckCatalog.get("d_blue").description()).isEqualTo("+1 hand each round");
+    }
+
+    @Test void everyContentTypeIsJsonLoadableAndMatchesTheDsl() {
+        // The whole content surface round-trips from its compiled artifact equal to the DSL authoring —
+        // i.e. the engine could boot entirely from JSON.
+        assertThat(com.balatro.engine.content.ContentStore.bosses())
+                .isEqualTo(com.balatro.engine.game.BossCatalog.all());
+        assertThat(com.balatro.engine.content.ContentStore.planets()).isEqualTo(
+                com.balatro.engine.game.PlanetCatalog.keys().stream()
+                        .map(com.balatro.engine.game.PlanetCatalog::get).toList());
+        assertThat(com.balatro.engine.content.ContentStore.tags()).isEqualTo(
+                com.balatro.engine.game.TagCatalog.keys().stream()
+                        .map(com.balatro.engine.game.TagCatalog::get).toList());
+        assertThat(com.balatro.engine.content.ContentStore.vouchers()).isEqualTo(
+                com.balatro.engine.game.VoucherCatalog.keys().stream()
+                        .map(com.balatro.engine.game.VoucherCatalog::get).toList());
+        assertThat(com.balatro.engine.content.ContentStore.consumables()).isEqualTo(
+                com.balatro.engine.consumable.TarotCatalog.keys().stream()
+                        .map(com.balatro.engine.consumable.TarotCatalog::get).toList());
+    }
 }

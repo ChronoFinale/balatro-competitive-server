@@ -52,8 +52,7 @@ class RulesetArtifactsTest {
     private static final Path DECKS = Path.of("src/main/resources/content/decks.json");
 
     @Test void decksCompileToJsonAndRoundTrip() throws Exception {
-        var decks = com.balatro.engine.game.DeckCatalog.keys().stream()
-                .map(com.balatro.engine.game.DeckCatalog::get).toList();
+        var decks = com.balatro.engine.game.DeckCatalog.authored();  // DSL source (runtime loads from JSON)
         String json = JokerOverlays.writePretty(decks);
         gate(DECKS, json);
         var back = List.of(M.readValue(json, com.balatro.engine.game.DeckCatalog.DeckType[].class));

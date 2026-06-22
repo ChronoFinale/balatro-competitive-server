@@ -29,4 +29,37 @@ public final class ContentStore {
             throw new UncheckedIOException("loading /rulesets/vanilla.json", e);
         }
     }
+
+    public static List<com.balatro.engine.game.DeckCatalog.DeckType> decks() {
+        return load("/content/decks.json", com.balatro.engine.game.DeckCatalog.DeckType[].class);
+    }
+
+    public static List<com.balatro.engine.game.BossBlind> bosses() {
+        return load("/content/bosses.json", com.balatro.engine.game.BossBlind[].class);
+    }
+
+    public static List<com.balatro.engine.game.TagCatalog.Tag> tags() {
+        return load("/content/tags.json", com.balatro.engine.game.TagCatalog.Tag[].class);
+    }
+
+    public static List<com.balatro.engine.game.VoucherCatalog.Voucher> vouchers() {
+        return load("/content/vouchers.json", com.balatro.engine.game.VoucherCatalog.Voucher[].class);
+    }
+
+    public static List<com.balatro.engine.consumable.Consumable> consumables() {
+        return load("/content/consumables.json", com.balatro.engine.consumable.Consumable[].class);
+    }
+
+    public static List<com.balatro.engine.game.PlanetCatalog.Planet> planets() {
+        return load("/content/planets.json", com.balatro.engine.game.PlanetCatalog.Planet[].class);
+    }
+
+    private static <T> List<T> load(String path, Class<T[]> arrayType) {
+        try (var in = ContentStore.class.getResourceAsStream(path)) {
+            if (in == null) throw new IllegalStateException("missing content artifact " + path);
+            return List.of(JSON.readValue(in, arrayType));
+        } catch (IOException e) {
+            throw new UncheckedIOException("loading " + path, e);
+        }
+    }
 }
