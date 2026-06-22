@@ -81,7 +81,9 @@ public final class Decks {
     public Decks tagAfterBoss(String... tags) { this.onBossDefeatTags.addAll(List.of(tags)); return this; }
 
     public DeckType build() {
-        return new DeckType(key, name, desc, List.copyOf(resourceMods),
+        // Description is localization data: default from Loc keyed by deck key when not set explicitly.
+        String text = desc.isEmpty() ? com.balatro.engine.i18n.Loc.text(key) : desc;
+        return new DeckType(key, name, text, List.copyOf(resourceMods),
                 greenEconomy, composition,
                 List.copyOf(vouchers), List.copyOf(consumables),
                 balanceChipsMult, blindSizeMult, List.copyOf(onBossDefeatTags));

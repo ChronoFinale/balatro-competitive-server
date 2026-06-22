@@ -65,28 +65,28 @@ public final class DeckCatalog {
     private static final Map<String, DeckType> BY_KEY = new LinkedHashMap<>();
 
     static {
-        put(Decks.of("d_base", "Base Deck").desc("No modifiers").build());
-        put(Decks.of("d_red", "Red Deck").desc("+1 discard each round").discards(1).build());
-        put(Decks.of("d_blue", "Blue Deck").desc("+1 hand each round").hands(1).build());
-        put(Decks.of("d_yellow", "Yellow Deck").desc("Start with an extra $10").money(10).build());
-        put(Decks.of("d_black", "Black Deck").desc("+1 Joker slot, but -1 hand each round").jokerSlots(1).hands(-1).build());
-        put(Decks.of("d_green", "Green Deck").desc("No interest; $2 per remaining hand, $1 per discard").greenEconomy().build());
-        put(Decks.of("d_painted", "Painted Deck").desc("+2 hand size, -1 Joker slot").handSize(2).jokerSlots(-1).build());
-        put(Decks.of("d_abandoned", "Abandoned Deck").desc("No face cards (no Jacks/Queens/Kings)").noFaces().build());
-        put(Decks.of("d_checkered", "Checkered Deck").desc("26 Spades + 26 Hearts").checkered().build());
-        put(Decks.of("d_erratic", "Erratic Deck").desc("All ranks and suits are randomized").erratic().build());
+        put(Decks.of("d_base", "Base Deck").build());
+        put(Decks.of("d_red", "Red Deck").discards(1).build());
+        put(Decks.of("d_blue", "Blue Deck").hands(1).build());
+        put(Decks.of("d_yellow", "Yellow Deck").money(10).build());
+        put(Decks.of("d_black", "Black Deck").jokerSlots(1).hands(-1).build());
+        put(Decks.of("d_green", "Green Deck").greenEconomy().build());
+        put(Decks.of("d_painted", "Painted Deck").handSize(2).jokerSlots(-1).build());
+        put(Decks.of("d_abandoned", "Abandoned Deck").noFaces().build());
+        put(Decks.of("d_checkered", "Checkered Deck").checkered().build());
+        put(Decks.of("d_erratic", "Erratic Deck").erratic().build());
         // Starting-grant decks: the engine's shop-slot voucher key is "v_overstock" (b_zodiac names it v_overstock_norm).
-        put(Decks.of("d_magic", "Magic Deck").desc("Start with the Crystal Ball voucher and 2 The Fool tarots")
+        put(Decks.of("d_magic", "Magic Deck")
                 .startsWithVouchers("v_crystal_ball").startsWith("c_fool", "c_fool").build());
-        put(Decks.of("d_nebula", "Nebula Deck").desc("Start with the Telescope voucher, -1 consumable slot")
+        put(Decks.of("d_nebula", "Nebula Deck")
                 .startsWithVouchers("v_telescope").consumableSlots(-1).build());
-        put(Decks.of("d_zodiac", "Zodiac Deck").desc("Start with Tarot Merchant, Planet Merchant, and Overstock vouchers")
+        put(Decks.of("d_zodiac", "Zodiac Deck")
                 .startsWithVouchers("v_tarot_merchant", "v_planet_merchant", "v_overstock").build());
-        put(Decks.of("d_ghost", "Ghost Deck").desc("Spectral cards may appear in the shop; start with The Hex")
+        put(Decks.of("d_ghost", "Ghost Deck")
                 .spectralRate(2).startsWith("c_hex").build());
-        put(Decks.of("d_anaglyph", "Anaglyph Deck").desc("Double Tag after defeating each Boss Blind")
+        put(Decks.of("d_anaglyph", "Anaglyph Deck")
                 .tagAfterBoss("tag_double").build());
-        put(Decks.of("d_plasma", "Plasma Deck").desc("Balance chips and mult; blinds are 2x larger")
+        put(Decks.of("d_plasma", "Plasma Deck")
                 .balancesChipsAndMult().blindSizeMult(2).build());
     }
 

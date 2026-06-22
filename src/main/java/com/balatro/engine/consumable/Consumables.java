@@ -138,7 +138,9 @@ public final class Consumables {
             }
             effect = new Effect.Generate(create, destroyInHand, add, money);
         }
-        return new Consumable(key, name, desc, type, maxTargets, List.of(effect));
+        // Description is localization data: default from Loc keyed by consumable key when not set explicitly.
+        String text = desc.isEmpty() ? com.balatro.engine.i18n.Loc.text(key) : desc;
+        return new Consumable(key, name, text, type, maxTargets, List.of(effect));
     }
 
     private Consumables direct(Effect e) {
