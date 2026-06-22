@@ -21,3 +21,7 @@ Thumbs.db
 
 # Local-only Balatro atlases (extracted game assets — never commit; see README)
 /web-assets/
+
+# standalone Almanac demo build output
+client/demo/dist-almanac/
+client/almanac-static.html

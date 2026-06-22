@@ -9,7 +9,7 @@ const TABS = ["Jokers", "Decks", "Bosses", "Planets", "Hands", "Vouchers", "Tags
 type Tab = (typeof TABS)[number];
 
 export default function Almanac({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState<Tab>("Decks");
+  const [tab, setTab] = useState<Tab>("Jokers");
   return (
     <div className="panel almanac">
       <div className="row">
