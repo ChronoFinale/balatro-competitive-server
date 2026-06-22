@@ -29,6 +29,7 @@ public final class Jokers {
     private int atlasY;
     private boolean atlasSet;
     private String desc = "";
+    private boolean descSet;
     private boolean blueprintCompatible = true;
     private CopySpec copy;
     private final List<Rule> rules = new ArrayList<>();
@@ -63,7 +64,9 @@ public final class Jokers {
      *  table by key, so effect defs don't hardcode sprite coords). */
     public Jokers atlas(int x, int y) { this.atlasX = x; this.atlasY = y; this.atlasSet = true; return this; }
 
-    public Jokers desc(String d) { this.desc = d; return this; }
+    /** Override the description (rarely needed — by default it's read from the localization table by key, so
+     *  display text isn't hardcoded in the effect def). */
+    public Jokers desc(String d) { this.desc = d; this.descSet = true; return this; }
 
     /** Mark this joker un-copyable by Blueprint/Brainstorm (the copiers themselves). */
     public Jokers notCopyable() { this.blueprintCompatible = false; return this; }
@@ -144,7 +147,7 @@ public final class Jokers {
         List<String> missing = new ArrayList<>();
         if (key == null || key.isBlank()) missing.add("key");
         if (name == null || name.isBlank()) missing.add("name");
-        if (desc == null || desc.isBlank()) missing.add("description (.desc)");
+        if (!descSet && !JokerLoc.has(key)) missing.add("description (.desc, or be in the localization table)");
         if (!costSet && !JokerMeta.has(key)) missing.add("cost (.cost, or be in the metadata table)");
         if (rules.isEmpty() && copy == null && handMods.isEmpty()
                 && varMods.isEmpty() && runMod.isNone()) {
@@ -163,7 +166,8 @@ public final class Jokers {
         // rarity and cost are metadata too: a def with of(...) and no .cost() sources them from the table.
         String resolvedRarity = (rarity != null) ? rarity : JokerMeta.rarity(key);
         int resolvedCost = costSet ? cost : JokerMeta.cost(key);
-        return new JokerDef(key, name, desc, resolvedRarity, resolvedCost, atlasX, atlasY, null, null,
+        String resolvedDesc = descSet ? desc : JokerLoc.description(key); // text is localization data, not code
+        return new JokerDef(key, name, resolvedDesc, resolvedRarity, resolvedCost, atlasX, atlasY, null, null,
                 blueprintCompatible, List.copyOf(rules),
                 List.copyOf(handMods), List.copyOf(varMods), runMod, copy,
                 java.util.Map.copyOf(props), java.util.Map.copyOf(state));
