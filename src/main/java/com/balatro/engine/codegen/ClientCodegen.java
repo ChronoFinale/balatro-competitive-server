@@ -39,6 +39,8 @@ public final class ClientCodegen {
             "rulesets/vanilla.json",
             "rulesets/bmp-0.4.2-ranked.json",
             "content/decks.json",
+            "content/bosses.json",
+            "content/tags.json",
             "rulesets/bundles/vanilla-solo.json",
             "rulesets/bundles/vanilla-pvp.json",
             "rulesets/bundles/bmp-0.4.2-ranked.json");
@@ -70,8 +72,12 @@ public final class ClientCodegen {
         }
         sb.append("}\n\n");
 
+        // Content records: each compiles to a JSON table the client renders; the interface types it.
         record(sb, "RulesetBundle", RulesetBundle.class);
         record(sb, "DeckType", com.balatro.engine.game.DeckCatalog.DeckType.class);
+        record(sb, "BossBlind", com.balatro.engine.game.BossBlind.class);
+        record(sb, "Tag", com.balatro.engine.game.TagCatalog.Tag.class);
+        enumType(sb, "StakeName", com.balatro.engine.state.Stake.class);
 
         sb.append("export const CONTENT_MANIFEST = [\n");
         for (String m : MANIFEST) sb.append("  \"").append(m).append("\",\n");
@@ -90,6 +96,13 @@ public final class ClientCodegen {
         sb.append("/** ").append(Arrays.stream(st.value()).count())
           .append(" discriminators the server dispatches on — the client must handle exactly these. */\n");
         sb.append("export type ").append(tsName).append(" =\n  | ").append(members).append(";\n\n");
+    }
+
+    /** A string-literal union of an enum's constant names (e.g. the stake ladder). */
+    private static void enumType(StringBuilder sb, String tsName, Class<?> e) {
+        String members = Arrays.stream(e.getEnumConstants())
+                .map(c -> "\"" + c + "\"").collect(Collectors.joining(" | "));
+        sb.append("export type ").append(tsName).append(" = ").append(members).append(";\n\n");
     }
 
     /** A TS interface reflected from a record's components (scalars/lists/enums only). */
@@ -118,6 +131,10 @@ public final class ClientCodegen {
             if (c == int.class || c == long.class || c == double.class || c == float.class
                     || c == Integer.class || c == Long.class || c == Double.class) return "number";
             if (c == JsonNode.class) return "unknown";
+            // the generated discriminated-union envelopes, so a boss's debuff/requires types correctly
+            if (c == Condition.class) return "Condition";
+            if (c == Effect.class) return "Effect";
+            if (c == Value.class) return "Value";
             if (c.isEnum()) {
                 return Arrays.stream(c.getEnumConstants()).map(e -> "\"" + e + "\"")
                         .collect(Collectors.joining(" | "));

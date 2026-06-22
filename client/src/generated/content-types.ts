@@ -150,10 +150,46 @@ export interface DeckType {
   onBossDefeatTags: string[];
 }
 
+export interface BossBlind {
+  key: string;
+  name: string;
+  effect: string;
+  minAnte: number;
+  finisher: boolean;
+  reqMult: number;
+  reward: number;
+  mods: unknown[];
+  debuff: Condition;
+  halveBase: boolean;
+  dollarsPerCardPlayed: number;
+  zeroMoneyOnMostPlayed: boolean;
+  delevelPlayedHand: boolean;
+  requires: Condition;
+  faceDown: unknown;
+  drawOnRefill: number;
+  discardAfterPlay: number;
+  disableOnJokerSell: boolean;
+  disableRandomJokerPerHand: boolean;
+  flipAndShuffleJokers: boolean;
+  forcesCardSelection: boolean;
+}
+
+export interface Tag {
+  key: string;
+  name: string;
+  description: string;
+  ante1: boolean;
+  timing: "IMMEDIATE" | "ON_SHOP" | "ON_BOSS_DEFEAT" | "NEXT_BLIND" | "HELD";
+}
+
+export type StakeName = "WHITE" | "RED" | "GREEN" | "BLACK" | "BLUE" | "PURPLE" | "ORANGE" | "GOLD" | "PLANET" | "SPECTRAL" | "SPECTRAL_PLUS";
+
 export const CONTENT_MANIFEST = [
   "rulesets/vanilla.json",
   "rulesets/bmp-0.4.2-ranked.json",
   "content/decks.json",
+  "content/bosses.json",
+  "content/tags.json",
   "rulesets/bundles/vanilla-solo.json",
   "rulesets/bundles/vanilla-pvp.json",
   "rulesets/bundles/bmp-0.4.2-ranked.json",

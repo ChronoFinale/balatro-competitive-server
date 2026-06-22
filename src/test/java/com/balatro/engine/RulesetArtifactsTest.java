@@ -60,6 +60,22 @@ class RulesetArtifactsTest {
         assertThat(back).isEqualTo(decks);
     }
 
+    private static final Path BOSSES = Path.of("src/main/resources/content/bosses.json");
+    private static final Path TAGS = Path.of("src/main/resources/content/tags.json");
+
+    @Test void bossesCompileToJson() throws Exception {
+        // The client renders each boss's display `effect` + the rule shape (debuff/requires Conditions, mods).
+        gate(BOSSES, JokerOverlays.writePretty(com.balatro.engine.game.BossCatalog.all()));
+    }
+
+    @Test void tagsCompileToJsonAndRoundTrip() throws Exception {
+        var tags = com.balatro.engine.game.TagCatalog.keys().stream()
+                .map(com.balatro.engine.game.TagCatalog::get).toList();
+        String json = JokerOverlays.writePretty(tags);
+        gate(TAGS, json);
+        assertThat(List.of(M.readValue(json, com.balatro.engine.game.TagCatalog.Tag[].class))).isEqualTo(tags);
+    }
+
     @Test void baseCompilesToVanillaJson() throws Exception {
         String json = JokerOverlays.toJson(BuiltinJokerDefs.all());
         gate(VANILLA, json);
