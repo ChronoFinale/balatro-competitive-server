@@ -45,13 +45,19 @@ public final class JokerLibrary {
         return BUILTIN_KEYS;
     }
 
+    /** The MP content ruleset, authored as a data overlay ({@code /rulesets/bmp-0.4.2.json}). The variant
+     *  label a {@code Ruleset} carries ("multiplayer") resolves to this overlay. */
+    public static final String MP_OVERLAY = "bmp-0.4.2-ranked";
+    public static final String MP_VARIANT = "multiplayer";
+
     /**
      * Jokers banned in Standard Ranked multiplayer (boss-blind interactions: Mr. Bones, Luchador,
      * Matador, Chicot). Excluded from every pool the shop, packs, AND creation effects draw from — not
-     * merely skipped — so they can't be acquired at all in an MP run. The single source of truth.
+     * merely skipped — so they can't be acquired at all in an MP run. Sourced from the overlay's
+     * {@code remove} list, so the ban list and its documented reasons have one source of truth.
      */
     public static final java.util.Set<String> MP_BANNED =
-            java.util.Set.of("j_chicot", "j_matador", "j_mr_bones", "j_luchador");
+            java.util.Set.copyOf(com.balatro.engine.joker.def.Rulesets.removedKeys(MP_OVERLAY));
 
     /** Built-in joker keys of a given rarity (e.g. "Common") — Riff Raff's creation pool. */
     public static java.util.List<String> keysByRarity(String rarity) {
@@ -86,8 +92,11 @@ public final class JokerLibrary {
             new LinkedHashMap<>();
 
     static {
-        com.balatro.engine.joker.def.BuiltinJokerDefs.variants()
-                .forEach((variant, defs) -> defs.forEach(d -> registerVariant(variant, d)));
+        // The MP behaviour variants are the overlay's overrides, applied to the base: e.g. create("j_seltzer",
+        // "multiplayer") returns the reworked def. (Removals are enforced by MP_BANNED in the pools, not here.)
+        var eff = com.balatro.engine.joker.def.Rulesets.effective(MP_OVERLAY);
+        com.balatro.engine.joker.def.Rulesets.overlay(MP_OVERLAY).override()
+                .forEach(o -> registerVariant(MP_VARIANT, eff.get(o.key())));
     }
 
     /** Register an alternate behavior for an existing joker key under a named variant. */

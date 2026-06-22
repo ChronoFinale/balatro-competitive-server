@@ -33,34 +33,13 @@ import java.util.List;
  * ({@code localization/en.json}, via {@link JokerLoc}). So a joker reads as a few lines
  * of declarative rules — no transcribed numbers, no sprite coords, no text in code.
  *
- * <p>({@code variants()} jokers keep explicit metadata, since an MP rework may differ
- * from its base. Custom JSON jokers carry their own metadata directly.)
+ * <p>Behaviour variants for other rulesets (e.g. the MP reworks) are no longer authored here: a ruleset is a
+ * data {@link RulesetOverlay} ({@code /rulesets/*.json}) folded onto this base. Custom JSON jokers carry
+ * their own metadata directly.)
  */
 public final class BuiltinJokerDefs {
 
     private BuiltinJokerDefs() {}
-
-    /**
-     * Behavior variants of existing jokers, keyed by variant name. A match's ruleset
-     * picks the variant (e.g. single-player "default" vs "multiplayer"); the joker key
-     * stays the same, only the rules differ. Example: multiplayer Hanging Chad retriggers
-     * the first card once (2x) instead of twice (3x).
-     */
-    public static java.util.Map<String, List<JokerDef>> variants() {
-        return java.util.Map.of("multiplayer", List.of(
-                // MP Hanging Chad: retrigger the first AND second scored card 1 additional time each.
-                Jokers.common("j_hanging_chad", "Hanging Chad").cost(4)
-                        .desc("Retrigger the first and second played cards 1 additional time each (multiplayer)")
-                        .on(Trigger.REPETITION_PLAYED).when(card().amongFirst(2)).retrigger().build(),
-                // MP Seltzer: retrigger window is 8 hands (vanilla 10).
-                Jokers.uncommon("j_seltzer", "Seltzer").cost(6)
-                        .desc("Retrigger all played cards for the first 8 hands after it is acquired (multiplayer)")
-                        .on(Trigger.REPETITION_PLAYED).when(Cond.handsSinceAcquired(8)).retrigger().build(),
-                // MP Golden Ticket: $3 per scored Gold card (vanilla $4), Uncommon.
-                Jokers.uncommon("j_golden_ticket", "Golden Ticket").cost(5)
-                        .desc("Played Gold cards give $3 when scored (multiplayer)")
-                        .forEachScored(card().enhancement(Enhancement.GOLD)).add(DOLLARS, 3).build()));
-    }
 
     /** Suit → +3 Mult per played card of that suit (Greedy/Lusty/Wrathful/Gluttonous family). */
     private static JokerDef suitMult(String key, String name, Suit suit) {
