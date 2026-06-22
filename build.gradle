@@ -51,6 +51,20 @@ test {
     systemProperty 'regen', System.getProperty('regen', 'false')
 }
 
+// Regenerate every compiled content artifact (vanilla.json, overlays, bundles, decks/bosses/tags/vouchers/
+// consumables/planets/hand-scores, and the client TS lib) from the Java DSL. The plain `test` task gates
+// these for staleness; this task rewrites them. Usage: ./gradlew generateContent
+tasks.register('generateContent', Test) {
+    group = 'build'
+    description = 'Regenerate all DSL-compiled content artifacts + the client TypeScript library.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    systemProperty 'regen', 'true'
+    filter { includeTestsMatching 'com.balatro.engine.RulesetArtifactsTest' }
+    outputs.upToDateWhen { false }
+}
+
 // `dependencyUpdates`: only flag STABLE upgrades (skip alpha/RC/milestone).
 def isNonStable = { String v ->
     def stable = ['RELEASE', 'FINAL', 'GA'].any { v.toUpperCase().contains(it) }

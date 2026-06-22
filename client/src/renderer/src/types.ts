@@ -1,16 +1,18 @@
 // TypeScript mirror of the server's authoritative view contract
 // (com.balatro.engine.net.ClientView / CardView). The renderer's only knowledge
 // of game state — keep in sync with the Java records.
+import type { Rank, Suit, Enhancement, Edition, Seal } from "../../generated/content-types";
 
 export interface CardView {
   uid: string; // server card UUID (target handle)
   // Identity fields are null when faceDown (boss blinds: The House/Wheel/Mark/Fish). The server
   // withholds them so the player can't peek at what they're forced to play — render a card back.
-  rank: string | null;
-  suit: string | null;
-  enhancement: string | null;
-  edition: string | null;
-  seal: string | null;
+  // Typed with the generated card enums so the wire contract can't drift from the server.
+  rank: Rank | null;
+  suit: Suit | null;
+  enhancement: Enhancement | null;
+  edition: Edition | null;
+  seal: Seal | null;
   permaChips: number;
   permaMult: number;
   faceDown: boolean;
@@ -68,9 +70,9 @@ export interface PackItem {
   key?: string;
   name: string;
   description?: string;
-  rank?: string;
-  suit?: string;
-  enhancement?: string;
+  rank?: Rank;
+  suit?: Suit;
+  enhancement?: Enhancement;
 }
 
 export interface OpenPack {

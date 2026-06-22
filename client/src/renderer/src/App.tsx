@@ -2,18 +2,21 @@ import { useEffect, useState } from "react";
 import { useStore } from "@tanstack/react-store";
 import { store, connect, newRun, send, previewCards } from "./session";
 import type { CardView } from "./types";
+// Generated from the server's own enums (see generateContent) — these maps are now exhaustive and
+// drift-proof: add a Suit/Rank on the server and the client fails to compile until it's handled.
+import type { Suit, Rank } from "../../generated/content-types";
 
-const RANK: Record<string, string> = {
+const RANK: Record<Rank, string> = {
   TWO: "2", THREE: "3", FOUR: "4", FIVE: "5", SIX: "6", SEVEN: "7", EIGHT: "8",
   NINE: "9", TEN: "10", JACK: "J", QUEEN: "Q", KING: "K", ACE: "A",
 };
-const SUIT: Record<string, string> = { SPADES: "♠", HEARTS: "♥", CLUBS: "♣", DIAMONDS: "♦" };
-const RED = new Set(["HEARTS", "DIAMONDS"]);
-const RID: Record<string, number> = {
+const SUIT: Record<Suit, string> = { SPADES: "♠", HEARTS: "♥", CLUBS: "♣", DIAMONDS: "♦" };
+const RED = new Set<Suit>(["HEARTS", "DIAMONDS"]);
+const RID: Record<Rank, number> = {
   TWO: 2, THREE: 3, FOUR: 4, FIVE: 5, SIX: 6, SEVEN: 7, EIGHT: 8,
   NINE: 9, TEN: 10, JACK: 11, QUEEN: 12, KING: 13, ACE: 14,
 };
-const SUIT_ORDER: Record<string, number> = { SPADES: 0, HEARTS: 1, CLUBS: 2, DIAMONDS: 3 };
+const SUIT_ORDER: Record<Suit, number> = { SPADES: 0, HEARTS: 1, CLUBS: 2, DIAMONDS: 3 };
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : String(Math.round(n * 100) / 100));
 
 export default function App() {
@@ -173,10 +176,11 @@ function Game() {
       {inBlind && (() => {
         // Display order is client-side only; selection/play always use the original hand index.
         const order = v.hand.map((_, i) => i);
-        if (sort === "rank") order.sort((a, b) => RID[v.hand[b].rank] - RID[v.hand[a].rank]
-          || SUIT_ORDER[v.hand[a].suit] - SUIT_ORDER[v.hand[b].suit]);
-        else if (sort === "suit") order.sort((a, b) => SUIT_ORDER[v.hand[a].suit] - SUIT_ORDER[v.hand[b].suit]
-          || RID[v.hand[b].rank] - RID[v.hand[a].rank]);
+        // Face-down cards have null identity; sort them as 0 (they cluster, order is cosmetic anyway).
+        const rid = (i: number) => { const r = v.hand[i].rank; return r ? RID[r] : 0; };
+        const sord = (i: number) => { const s = v.hand[i].suit; return s ? SUIT_ORDER[s] : 0; };
+        if (sort === "rank") order.sort((a, b) => rid(b) - rid(a) || sord(a) - sord(b));
+        else if (sort === "suit") order.sort((a, b) => sord(a) - sord(b) || rid(b) - rid(a));
         const selecting = targeting !== null ? targets : sel;
         return (
           <div className="panel">
@@ -253,7 +257,7 @@ function PackOpening() {
           <div key={i} className="offer">
             <b>
               {it.type === "CARD"
-                ? (RANK[it.rank ?? ""] ?? "?") + (SUIT[it.suit ?? ""] ?? "?")
+                ? (it.rank ? RANK[it.rank] : "?") + (it.suit ? SUIT[it.suit] : "?")
                 : (it.type === "JOKER" ? "🃏 " : "🎴 ") + it.name}
             </b>
             {it.description && <span className="stat">{it.description}</span>}
@@ -267,10 +271,10 @@ function PackOpening() {
 
 function Card({ c, picked, onClick }: { c: CardView; picked: boolean; onClick: () => void }) {
   return (
-    <div className={"card" + (RED.has(c.suit) ? " red" : "") + (picked ? " sel" : "")} onClick={onClick}>
-      <div className="r">{RANK[c.rank] ?? "?"}</div>
-      <div className="s">{SUIT[c.suit] ?? "?"}</div>
-      {c.enhancement !== "NONE" && <div className="enh">{c.enhancement[0]}</div>}
+    <div className={"card" + (c.suit && RED.has(c.suit) ? " red" : "") + (picked ? " sel" : "")} onClick={onClick}>
+      <div className="r">{c.rank ? RANK[c.rank] : "?"}</div>
+      <div className="s">{c.suit ? SUIT[c.suit] : "?"}</div>
+      {c.enhancement && c.enhancement !== "NONE" && <div className="enh">{c.enhancement[0]}</div>}
     </div>
   );
 }
