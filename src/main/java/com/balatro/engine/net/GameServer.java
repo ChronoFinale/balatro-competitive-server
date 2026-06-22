@@ -175,6 +175,20 @@ public final class GameServer implements AutoCloseable {
                 }
             });
 
+            // Composable bundles (content overlays + capabilities + mode). GET lists; POST registers a
+            // custom mode at runtime (validated by resolving its content), joining the selectable rulesets.
+            cfg.routes.get("/bundles", ctx -> ctx.json(com.balatro.engine.state.BundleCatalog.names()));
+            cfg.routes.post("/bundles", ctx -> {
+                try {
+                    var b = json.readValue(ctx.body(), com.balatro.engine.state.RulesetBundle.class);
+                    b.content(); // validate it resolves (known base + every overlay exists)
+                    com.balatro.engine.state.BundleCatalog.register(b);
+                    ctx.json(Map.of("name", b.name(), "registered", true));
+                } catch (Exception e) {
+                    ctx.status(400).json(Map.of("error", "invalid bundle: " + e.getMessage()));
+                }
+            });
+
             // Create/replace a custom joker from a JokerDef JSON body.
             cfg.routes.post("/jokers", ctx -> {
                 try {
