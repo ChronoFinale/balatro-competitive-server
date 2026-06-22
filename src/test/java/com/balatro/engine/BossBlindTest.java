@@ -122,6 +122,23 @@ class BossBlindTest {
     }
 
     @Test
+    void bossEffectTextIsLocalizedPerRunLocale() {
+        Run run = new Run(Ruleset.standard(), "LOC", stoneDeck(300),
+                jokers("j_joker", "j_joker", "j_joker"));
+        run.forcedBoss = Bosses.of("bl_wall", "The Wall").requirement(4).build(); // effect from localization
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        run.proceed();
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        run.proceed();
+        assertThat(run.blind).isEqualTo(BlindType.BOSS);
+
+        run.viewLocale = "en";
+        assertThat(run.view().bossEffect()).isEqualTo("Very large blind (4x score)");
+        run.viewLocale = "fr"; // server renders the boss text in French, ${reqMult}=4 from data
+        assertThat(run.view().bossEffect()).isEqualTo("Très grande blinde (4× score)");
+    }
+
+    @Test
     void viewExposesBossKeyForTheClientAtTheBossBlind() {
         // The real-Balatro bridge faces G.P_BLINDS[view.bossKey] so the player meets the SERVER's boss;
         // bossKey must be the native bl_ key, and null while no boss is active (Small/Big).

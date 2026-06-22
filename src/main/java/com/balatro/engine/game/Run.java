@@ -1551,6 +1551,20 @@ public final class Run {
         return JokerDefLibrary.get(j.key()); // hand-coded jokers have data equivalents (except Blueprint)
     }
 
+    /** The locale the client wants its server-rendered text in (set per session); "en" by default. */
+    public String viewLocale = "en";
+
+    /** The boss's effect text in {@link #viewLocale}: the localized template filled with the boss's own data
+     *  (numbers single-sourced). For "en" this equals {@code boss.effect()}. */
+    private String bossText(BossBlind b) {
+        double rm = b.reqMult();
+        Object req = rm == Math.rint(rm) ? (Object) (long) rm : (Object) rm;
+        return com.balatro.engine.i18n.Loc.fill(viewLocale, b.key(), java.util.Map.of(
+                "reqMult", req, "minAnte", b.minAnte(), "reward", b.reward(),
+                "dollarsPerCardPlayed", b.dollarsPerCardPlayed(),
+                "drawOnRefill", b.drawOnRefill(), "discardAfterPlay", b.discardAfterPlay()));
+    }
+
     /** The safe projection of authoritative state the client may render (spec §8). */
     public ClientView view() {
         List<CardView> handView = new ArrayList<>();
@@ -1700,7 +1714,7 @@ public final class Run {
         return new ClientView(ante, blind.display, requirement, state.roundScore,
                 state.handsLeft, state.discardsLeft, state.money, state.handSize,
                 phase.name(), handView, jokerView, shopView, rerollCost,
-                boss != null ? boss.name() : null, boss != null ? boss.effect() : null,
+                boss != null ? boss.name() : null, boss != null ? bossText(boss) : null,
                 consumables, handLevels, deckStats, counters, shopVouchers, packsView, openPackView,
                 stake.display, deckType.name(), boss != null ? boss.key() : null);
     }

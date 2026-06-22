@@ -520,8 +520,16 @@ public final class GameServer implements AutoCloseable {
                     String seedArg = msg.path("seed").asText("");
                     String seed = seedArg.isEmpty() ? com.balatro.engine.rng.Seeds.random() : seedArg;
                     Run run = new Run(rs, seed, stake, deck);
+                    run.viewLocale = msg.path("locale").asText("en"); // server renders ClientView text in this locale
                     runs.put(players.get(conn.sessionId()), run); // keyed by identity, survives reconnect
                     conn.send(ok(seq, run));
+                }
+                case "setLocale" -> {
+                    Run r = runs.get(players.get(conn.sessionId()));
+                    if (r != null) {
+                        r.viewLocale = msg.path("locale").asText("en");
+                        conn.send(ok(seq, r)); // re-render the view in the new locale
+                    }
                 }
                 case "createLobby" -> createLobby(conn, seq);
                 case "joinLobby" -> joinLobby(conn, seq, msg.path("code").asText());
