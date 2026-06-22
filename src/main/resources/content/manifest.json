@@ -1,0 +1,70 @@
+{
+  "version" : "62ca1e04679bcb1b",
+  "files" : [
+    {
+      "path" : "rulesets/vanilla.json",
+      "sha256" : "0abfcac49aba8fdd9708e11a33513f52641e9511b21a0d303a9ae395c3cf2886",
+      "bytes" : 205812
+    },
+    {
+      "path" : "rulesets/bmp-0.4.2-ranked.json",
+      "sha256" : "023d6558f329ff9e0fb5a75024d185a1392f559ba2d35e6e767b6bb52e9ce3b4",
+      "bytes" : 16632
+    },
+    {
+      "path" : "content/decks.json",
+      "sha256" : "862542ff40c80c814f40eefe5278229eb84284b80e107aa115272c1fd7b4e90c",
+      "bytes" : 6919
+    },
+    {
+      "path" : "content/bosses.json",
+      "sha256" : "054b71d1070bef0b89537d76afeb25ba425266204f04caf2f869e6cb95b7b613",
+      "bytes" : 18103
+    },
+    {
+      "path" : "content/tags.json",
+      "sha256" : "56450a38b7638a06b92a11520a5adbc7d3eee276fbf3c05bacff4ae603fda420",
+      "bytes" : 3940
+    },
+    {
+      "path" : "content/vouchers.json",
+      "sha256" : "80dd9e29ec2b310650d21adc3d878c941c43f7b215e204d84fb945d53282d4ec",
+      "bytes" : 9701
+    },
+    {
+      "path" : "content/consumables.json",
+      "sha256" : "6f7095e64ce8689c3aa4e98cf1bdffba341347657172e29fe7d173a6fbce808b",
+      "bytes" : 17776
+    },
+    {
+      "path" : "content/planets.json",
+      "sha256" : "58a9a503d539c6c7a482d607b2d7caf7ba0528d8375d88d0b98a6d8d582a6898",
+      "bytes" : 983
+    },
+    {
+      "path" : "content/hand-scores.json",
+      "sha256" : "03d1072b44ee5ec442b802fd9835fda9bd992e3d6324f24f686e4b99a19c6087",
+      "bytes" : 1897
+    },
+    {
+      "path" : "rulesets/bundles/vanilla-solo.json",
+      "sha256" : "3d1cabc182bd7b811d7d044c5242b4c436360ccf0c0e06cc362916770538a1d2",
+      "bytes" : 383
+    },
+    {
+      "path" : "rulesets/bundles/vanilla-pvp.json",
+      "sha256" : "308ff54d1e594cf7c0576eec3b8803d9b9b7a759262963ae368ffb9e1b017c4d",
+      "bytes" : 381
+    },
+    {
+      "path" : "rulesets/bundles/bmp-0.4.2-ranked.json",
+      "sha256" : "06c2e274329828561aab0a058821442acf7a55444e815465dc1829c5264cb3f5",
+      "bytes" : 415
+    },
+    {
+      "path" : "localization/en.json",
+      "sha256" : "63de4b793a98b07130d7332d0c2a6f165e1e2ec1a2c9cef8711506b7a56fe9bf",
+      "bytes" : 18705
+    }
+  ]
+}

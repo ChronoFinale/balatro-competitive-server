@@ -142,6 +142,22 @@ public final class GameServer implements AutoCloseable {
             // Rulesets the lobby/builder can use (curated + custom).
             cfg.routes.get("/rulesets", ctx -> ctx.json(rulesetStore.all()));
 
+            // Content auto-update: the delta-sync manifest (version + per-file sha256) and the raw, hash-exact
+            // bytes of the files it lists. A client fetches the manifest, diffs vs its cache, downloads deltas.
+            cfg.routes.get("/content/manifest", ctx -> {
+                ctx.contentType("application/json");
+                ctx.result(resourceBytes("/content/manifest.json"));
+            });
+            cfg.routes.get("/content/file", ctx -> {
+                String p = ctx.queryParam("path");
+                if (p == null || !com.balatro.engine.codegen.ContentManifest.FILES.contains(p)) {
+                    ctx.status(404).result("unknown content file");
+                    return;
+                }
+                ctx.contentType("application/json");
+                ctx.result(resourceBytes("/" + p));   // path validated against the manifest list (no traversal)
+            });
+
             // Create a custom ruleset (a bundle that, with its joker pool, dictates a match).
             cfg.routes.post("/rulesets", ctx -> {
                 try {
@@ -556,6 +572,15 @@ public final class GameServer implements AutoCloseable {
     }
 
     /** Every joker selectable for a ruleset pool: curated built-ins + authored custom. */
+    /** Raw bytes of a classpath resource (for hash-exact content downloads); empty if absent. */
+    private static byte[] resourceBytes(String path) {
+        try (var in = GameServer.class.getResourceAsStream(path)) {
+            return in == null ? new byte[0] : in.readAllBytes();
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException("reading " + path, e);
+        }
+    }
+
     private List<Map<String, Object>> availableJokers() {
         List<Map<String, Object>> out = new ArrayList<>();
         for (String key : JokerLibrary.builtinKeys()) {

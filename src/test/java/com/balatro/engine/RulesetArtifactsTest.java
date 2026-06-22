@@ -49,6 +49,22 @@ class RulesetArtifactsTest {
         gate(CLIENT_TYPES, com.balatro.engine.codegen.ClientCodegen.generate());
     }
 
+    private static final Path MANIFEST = Path.of("src/main/resources/content/manifest.json");
+
+    @Test void contentManifestIsVersionedAndHashed() throws Exception {
+        // A delta-sync manifest: every shipped content file with its sha256 + size, and a version that is
+        // the hash of all of them. An auto-updater fetches this, diffs vs its cache, downloads only deltas.
+        var files = new java.util.ArrayList<com.balatro.engine.codegen.ContentManifest.FileEntry>();
+        for (String rel : com.balatro.engine.codegen.ContentManifest.FILES) {
+            byte[] bytes = Files.readAllBytes(Path.of("src/main/resources").resolve(rel));
+            files.add(new com.balatro.engine.codegen.ContentManifest.FileEntry(
+                    rel, com.balatro.engine.codegen.ContentManifest.sha256(bytes), bytes.length));
+        }
+        var manifest = new com.balatro.engine.codegen.ContentManifest(
+                com.balatro.engine.codegen.ContentManifest.versionOf(files), files);
+        gate(MANIFEST, JokerOverlays.writePretty(manifest));
+    }
+
     private static final Path DECKS = Path.of("src/main/resources/content/decks.json");
 
     @Test void decksCompileToJsonAndRoundTrip() throws Exception {
