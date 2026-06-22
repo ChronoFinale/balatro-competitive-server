@@ -80,7 +80,7 @@ class RulesetArtifactsTest {
 
     @Test void bossesCompileToJsonAndRoundTrip() throws Exception {
         // The client renders each boss's display `effect` + the rule shape (debuff/requires Conditions, mods).
-        var bosses = com.balatro.engine.game.BossCatalog.all();
+        var bosses = com.balatro.engine.game.BossCatalog.authored();  // DSL source (runtime loads from JSON)
         String json = JokerOverlays.writePretty(bosses);
         gate(BOSSES, json);
         assertThat(List.of(M.readValue(json, com.balatro.engine.game.BossBlind[].class))).isEqualTo(bosses);

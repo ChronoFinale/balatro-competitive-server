@@ -19,7 +19,21 @@ public final class BossCatalog {
 
     private BossCatalog() {}
 
-    private static final List<BossBlind> ALL = List.of(
+    // Runtime loads bosses from /content/bosses.json; authored() (the DSL) is the codegen source. Identical
+    // by the artifact gate; falls back to the DSL if the artifact is absent.
+    private static final List<BossBlind> ALL = load();
+
+    private static List<BossBlind> load() {
+        try {
+            return com.balatro.engine.content.ContentStore.bosses();
+        } catch (RuntimeException e) {
+            return authored();
+        }
+    }
+
+    /** The DSL authoring source for {@code content/bosses.json} — what the codegen serializes. */
+    public static List<BossBlind> authored() {
+        return List.of(
             // each boss declares only the effects it has — see Bosses (the fluent builder).
             Bosses.of("bl_club", "The Club").debuffs(card().suit(Suit.CLUBS)).build(),
             Bosses.of("bl_goad", "The Goad").debuffs(card().suit(Suit.SPADES)).build(),
@@ -71,7 +85,8 @@ public final class BossCatalog {
                     .finisher().debuffs(always()).disabledBySellingJoker().build(),
             Bosses.of("bl_final_acorn", "Amber Acorn")
                     .finisher().flipsAndShufflesJokers().build()
-    );
+        );
+    }
 
     public static boolean isFinisherAnte(int ante) {
         return ante % 8 == 0;
