@@ -30,6 +30,27 @@ public final class JokerOverlays {
     static final ObjectMapper JSON = new ObjectMapper()
             .configure(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
+    /** Pretty printer pinned to LF (not the platform line separator) so artifacts are byte-identical on
+     *  Windows and Linux CI — otherwise the gate flaps on the line endings. */
+    private static final com.fasterxml.jackson.core.PrettyPrinter LF_PRETTY = lfPrinter();
+
+    private static com.fasterxml.jackson.core.util.DefaultPrettyPrinter lfPrinter() {
+        var indenter = new com.fasterxml.jackson.core.util.DefaultIndenter("  ", "\n");
+        var pp = new com.fasterxml.jackson.core.util.DefaultPrettyPrinter();
+        pp.indentObjectsWith(indenter);
+        pp.indentArraysWith(indenter);
+        return pp;
+    }
+
+    /** Canonical pretty JSON for an authored artifact (LF, ordered map keys), with a trailing newline. */
+    public static String writePretty(Object value) {
+        try {
+            return JSON.writer(LF_PRETTY).writeValueAsString(value) + "\n";
+        } catch (Exception e) {
+            throw new IllegalStateException("serializing " + value, e);
+        }
+    }
+
     /**
      * Fold {@code overlay} onto {@code base}, returning the effective joker set keyed by joker key (insertion
      * order = base order, with adds appended). Validates that every remove/override names a base joker and
@@ -134,11 +155,7 @@ public final class JokerOverlays {
 
     /** Serialize a base joker set to canonical, pretty JSON — the compiled artifact authored via the DSL. */
     public static String toJson(List<JokerDef> defs) {
-        try {
-            return JSON.writerWithDefaultPrettyPrinter().writeValueAsString(defs) + "\n";
-        } catch (Exception e) {
-            throw new IllegalStateException("serializing base joker set", e);
-        }
+        return writePretty(defs);
     }
 
     /** Render a diff as a Markdown changelog — the auto-generated, reason-bearing ruleset doc. */

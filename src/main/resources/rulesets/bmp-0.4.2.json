@@ -1,83 +1,104 @@
 {
   "name" : "bmp-0.4.2-ranked",
   "base" : "vanilla",
-  "remove" : [ {
-    "key" : "j_chicot",
-    "reason" : "Disables boss blinds — removes the core PvP variable"
-  }, {
-    "key" : "j_luchador",
-    "reason" : "On-sell boss disable trivializes boss antes"
-  }, {
-    "key" : "j_matador",
-    "reason" : "Boss-triggered economy snowballs uncontested in PvP"
-  }, {
-    "key" : "j_mr_bones",
-    "reason" : "Prevents loss — distorts the race"
-  } ],
-  "override" : [ {
-    "key" : "j_golden_ticket",
-    "reason" : "MP rework: Uncommon, $3 per Gold card",
-    "patch" : {
-      "description" : "Played Gold cards give $3 when scored (multiplayer)",
-      "rarity" : "Uncommon",
-      "rules" : [ {
-        "when" : "ON_SCORED",
-        "condition" : {
-          "type" : "scoredEnhancement",
-          "enhancement" : "GOLD"
-        },
-        "effects" : [ {
-          "type" : "score",
-          "op" : "DOLLARS",
-          "value" : {
-            "type" : "const",
-            "amount" : 3.0
-          }
-        } ]
-      } ]
+  "remove" : [
+    {
+      "key" : "j_chicot",
+      "reason" : "Disables boss blinds — removes the core PvP variable"
+    },
+    {
+      "key" : "j_luchador",
+      "reason" : "On-sell boss disable trivializes boss antes"
+    },
+    {
+      "key" : "j_matador",
+      "reason" : "Boss-triggered economy snowballs uncontested in PvP"
+    },
+    {
+      "key" : "j_mr_bones",
+      "reason" : "Prevents loss — distorts the race"
     }
-  }, {
-    "key" : "j_hanging_chad",
-    "reason" : "MP rework: retriggers first AND second played card",
-    "patch" : {
-      "description" : "Retrigger the first and second played cards 1 additional time each (multiplayer)",
-      "rules" : [ {
-        "when" : "REPETITION_PLAYED",
-        "condition" : {
-          "type" : "scoredAmongFirst",
-          "n" : 2
-        },
-        "effects" : [ {
-          "type" : "score",
-          "op" : "REPETITIONS",
-          "value" : {
-            "type" : "const",
-            "amount" : 1.0
+  ],
+  "override" : [
+    {
+      "key" : "j_golden_ticket",
+      "reason" : "MP rework: Uncommon, $3 per Gold card",
+      "patch" : {
+        "description" : "Played Gold cards give $3 when scored (multiplayer)",
+        "rarity" : "Uncommon",
+        "rules" : [
+          {
+            "when" : "ON_SCORED",
+            "condition" : {
+              "type" : "scoredEnhancement",
+              "enhancement" : "GOLD"
+            },
+            "effects" : [
+              {
+                "type" : "score",
+                "op" : "DOLLARS",
+                "value" : {
+                  "type" : "const",
+                  "amount" : 3.0
+                }
+              }
+            ]
           }
-        } ]
-      } ]
-    }
-  }, {
-    "key" : "j_seltzer",
-    "reason" : "MP rework: 8-hand acquire window",
-    "patch" : {
-      "description" : "Retrigger all played cards for the first 8 hands after it is acquired (multiplayer)",
-      "rules" : [ {
-        "when" : "REPETITION_PLAYED",
-        "condition" : {
-          "type" : "handsSinceAcquire",
-          "max" : 8
-        },
-        "effects" : [ {
-          "type" : "score",
-          "op" : "REPETITIONS",
-          "value" : {
-            "type" : "const",
-            "amount" : 1.0
+        ]
+      }
+    },
+    {
+      "key" : "j_hanging_chad",
+      "reason" : "MP rework: retriggers first AND second played card",
+      "patch" : {
+        "description" : "Retrigger the first and second played cards 1 additional time each (multiplayer)",
+        "rules" : [
+          {
+            "when" : "REPETITION_PLAYED",
+            "condition" : {
+              "type" : "scoredAmongFirst",
+              "n" : 2
+            },
+            "effects" : [
+              {
+                "type" : "score",
+                "op" : "REPETITIONS",
+                "value" : {
+                  "type" : "const",
+                  "amount" : 1.0
+                }
+              }
+            ]
           }
-        } ]
-      } ]
+        ]
+      }
+    },
+    {
+      "key" : "j_seltzer",
+      "reason" : "MP rework: 8-hand acquire window",
+      "patch" : {
+        "description" : "Retrigger all played cards for the first 8 hands after it is acquired (multiplayer)",
+        "rules" : [
+          {
+            "when" : "REPETITION_PLAYED",
+            "condition" : {
+              "type" : "handsSinceAcquire",
+              "max" : 8
+            },
+            "effects" : [
+              {
+                "type" : "score",
+                "op" : "REPETITIONS",
+                "value" : {
+                  "type" : "const",
+                  "amount" : 1.0
+                }
+              }
+            ]
+          }
+        ]
+      }
     }
-  } ],
+  ],
   "add" : [ ]
 }

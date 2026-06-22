@@ -49,7 +49,7 @@ class RulesetArtifactsTest {
 
     @Test void bmpOverlayAndDoc() throws Exception {
         RulesetOverlay overlay = REGEN ? deriveBmpOverlay() : loadOverlay(BMP);
-        if (REGEN) gate(BMP, M.writerWithDefaultPrettyPrinter().writeValueAsString(overlay) + "\n");
+        if (REGEN) gate(BMP, JokerOverlays.writePretty(overlay));
 
         // It applies cleanly onto the base, and the doc reflects exactly what it does.
         var eff = JokerOverlays.apply(BuiltinJokerDefs.all(), overlay);
