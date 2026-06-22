@@ -2,10 +2,10 @@ import { useState } from "react";
 // Rendered ENTIRELY from the generated content module — no server round-trip. The data is the DSL,
 // compiled to typed TS (./generated/content.ts), checked against the generated interfaces at build.
 import {
-  DECKS, BOSSES, TAGS, VOUCHERS, CONSUMABLES, PLANETS, HAND_SCORES, BUNDLES,
+  JOKERS, DECKS, BOSSES, TAGS, VOUCHERS, CONSUMABLES, PLANETS, HAND_SCORES, BUNDLES,
 } from "../../generated/content";
 
-const TABS = ["Decks", "Bosses", "Planets", "Hands", "Vouchers", "Tags", "Consumables", "Rulesets"] as const;
+const TABS = ["Jokers", "Decks", "Bosses", "Planets", "Hands", "Vouchers", "Tags", "Consumables", "Rulesets"] as const;
 type Tab = (typeof TABS)[number];
 
 export default function Almanac({ onClose }: { onClose: () => void }) {
@@ -19,6 +19,7 @@ export default function Almanac({ onClose }: { onClose: () => void }) {
         <button className="alt tiny" onClick={onClose}>✕ Close</button>
       </div>
 
+      {tab === "Jokers" && rows(JOKERS.map((j) => [`${j.name} (${j.rarity}, $${j.cost})`, `${j.description} · ${j.rules.length} rule${j.rules.length === 1 ? "" : "s"}`]))}
       {tab === "Decks" && rows(DECKS.map((d) => [d.name, d.description ?? ""]))}
       {tab === "Bosses" && rows(BOSSES.map((b) => [b.name, `${b.effect} · ×${b.reqMult} · ante ${b.minAnte}${b.finisher ? " · finisher" : ""}`]))}
       {tab === "Planets" && rows(PLANETS.map((p) => [p.name, `levels ${p.hand}`]))}

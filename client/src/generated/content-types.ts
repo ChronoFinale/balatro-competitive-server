@@ -102,21 +102,21 @@ export interface Rule {
 }
 
 export interface JokerDef {
-  key: string;
-  name: string;
-  description: string;
-  rarity: string;
+  key?: string;
+  name?: string;
+  description?: string;
+  rarity?: string;
   cost: number;
   atlasX: number;
   atlasY: number;
-  spriteUrl: string;
-  spriteUrl2x: string;
+  spriteUrl?: string;
+  spriteUrl2x?: string;
   blueprintCompatible: boolean;
   rules: Rule[];
-  handMods: Record<string, unknown>[];
-  mods: Record<string, unknown>[];
-  runMod: Record<string, unknown> | null;
-  copy: Record<string, unknown> | null;
+  handMods: string[];
+  mods: Modify[];
+  runMod?: Record<string, unknown>;
+  copy?: Record<string, unknown>;
   props: Record<string, unknown>;
   state: Record<string, unknown>;
 }

@@ -72,7 +72,8 @@ public final class ClientCodegen {
 
         sb.append("export interface JokerDef {\n");
         for (RecordComponent rc : JokerDef.class.getRecordComponents()) {
-            sb.append("  ").append(rc.getName()).append(": ").append(jokerFieldType(rc)).append(";\n");
+            String opt = jokerNullable(rc) ? "?" : "";
+            sb.append("  ").append(rc.getName()).append(opt).append(": ").append(jokerFieldType(rc)).append(";\n");
         }
         sb.append("}\n\n");
 
@@ -164,9 +165,19 @@ public final class ClientCodegen {
     private static String jokerFieldType(RecordComponent rc) {
         return switch (rc.getName()) {
             case "rules" -> "Rule[]";
-            case "handMods", "mods" -> "Record<string, unknown>[]";
-            case "runMod", "copy" -> "Record<string, unknown> | null";
+            case "handMods" -> "string[]";          // HandMod enum tokens (FOUR_FINGERS, SHORTCUT, …)
+            case "mods" -> "Modify[]";
+            case "runMod", "copy" -> "Record<string, unknown>";   // optional (omitted when null)
             default -> tsType(rc.getGenericType());
+        };
+    }
+
+    /** Which JokerDef fields are absent when null in the NON_NULL data module (so optional in TS). */
+    private static boolean jokerNullable(RecordComponent rc) {
+        return switch (rc.getName()) {
+            case "rules", "handMods", "mods", "props", "state" -> false; // lists/maps: normalized non-null
+            case "runMod", "copy" -> true;
+            default -> nullable(rc.getGenericType());
         };
     }
 
