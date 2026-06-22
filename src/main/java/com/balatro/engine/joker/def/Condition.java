@@ -57,6 +57,8 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.Not.class, name = "not"),
     @JsonSubTypes.Type(value = Condition.BossBlindSelected.class, name = "bossBlindSelected"),
     @JsonSubTypes.Type(value = Condition.BossAbilityActive.class, name = "bossAbilityActive"),
+    @JsonSubTypes.Type(value = Condition.RoundHandTypeConsistent.class, name = "roundHandTypeConsistent"),
+    @JsonSubTypes.Type(value = Condition.ScoredPlayedThisAnte.class, name = "scoredPlayedThisAnte"),
 })
 public sealed interface Condition {
 

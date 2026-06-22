@@ -74,6 +74,10 @@ public final class ClientCodegen {
         }
         sb.append("}\n\n");
 
+        // Shared value types referenced by content records (a Modify on a game Var; a boss face-down rule).
+        record(sb, "Modify", com.balatro.engine.joker.def.Modify.class);
+        record(sb, "FaceDownRule", com.balatro.engine.game.BossBlind.FaceDownRule.class);
+
         // Content records: each compiles to a JSON table the client renders; the interface types it.
         record(sb, "RulesetBundle", RulesetBundle.class);
         record(sb, "DeckType", com.balatro.engine.game.DeckCatalog.DeckType.class);
@@ -139,6 +143,8 @@ public final class ClientCodegen {
             if (c == Condition.class) return "Condition";
             if (c == Effect.class) return "Effect";
             if (c == Value.class) return "Value";
+            if (c == com.balatro.engine.joker.def.Modify.class) return "Modify";
+            if (c == com.balatro.engine.game.BossBlind.FaceDownRule.class) return "FaceDownRule";
             if (c.isEnum()) {
                 return Arrays.stream(c.getEnumConstants()).map(e -> "\"" + e + "\"")
                         .collect(Collectors.joining(" | "));

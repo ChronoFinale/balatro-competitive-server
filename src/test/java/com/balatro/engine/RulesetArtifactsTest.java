@@ -63,9 +63,12 @@ class RulesetArtifactsTest {
     private static final Path BOSSES = Path.of("src/main/resources/content/bosses.json");
     private static final Path TAGS = Path.of("src/main/resources/content/tags.json");
 
-    @Test void bossesCompileToJson() throws Exception {
+    @Test void bossesCompileToJsonAndRoundTrip() throws Exception {
         // The client renders each boss's display `effect` + the rule shape (debuff/requires Conditions, mods).
-        gate(BOSSES, JokerOverlays.writePretty(com.balatro.engine.game.BossCatalog.all()));
+        var bosses = com.balatro.engine.game.BossCatalog.all();
+        String json = JokerOverlays.writePretty(bosses);
+        gate(BOSSES, json);
+        assertThat(List.of(M.readValue(json, com.balatro.engine.game.BossBlind[].class))).isEqualTo(bosses);
     }
 
     @Test void tagsCompileToJsonAndRoundTrip() throws Exception {
@@ -79,10 +82,13 @@ class RulesetArtifactsTest {
     private static final Path VOUCHERS = Path.of("src/main/resources/content/vouchers.json");
     private static final Path CONSUMABLES = Path.of("src/main/resources/content/consumables.json");
 
-    @Test void vouchersCompileToJson() throws Exception {
+    @Test void vouchersCompileToJsonAndRoundTrip() throws Exception {
         var vouchers = com.balatro.engine.game.VoucherCatalog.keys().stream()
                 .map(com.balatro.engine.game.VoucherCatalog::get).toList();
-        gate(VOUCHERS, JokerOverlays.writePretty(vouchers));
+        String json = JokerOverlays.writePretty(vouchers);
+        gate(VOUCHERS, json);
+        assertThat(List.of(M.readValue(json, com.balatro.engine.game.VoucherCatalog.Voucher[].class)))
+                .isEqualTo(vouchers);
     }
 
     @Test void consumablesCompileToJsonAndRoundTrip() throws Exception {

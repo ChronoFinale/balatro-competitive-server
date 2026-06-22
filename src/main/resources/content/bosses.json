@@ -376,7 +376,7 @@
     "zeroMoneyOnMostPlayed" : false,
     "delevelPlayedHand" : false,
     "requires" : {
-      "type" : "Condition$RoundHandTypeConsistent"
+      "type" : "roundHandTypeConsistent"
     },
     "faceDown" : null,
     "drawOnRefill" : -1,
@@ -534,7 +534,7 @@
     "reward" : 5,
     "mods" : [ ],
     "debuff" : {
-      "type" : "Condition$ScoredPlayedThisAnte"
+      "type" : "scoredPlayedThisAnte"
     },
     "halveBase" : false,
     "dollarsPerCardPlayed" : 0,
