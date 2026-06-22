@@ -55,6 +55,8 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.And.class, name = "and"),
     @JsonSubTypes.Type(value = Condition.Or.class, name = "or"),
     @JsonSubTypes.Type(value = Condition.Not.class, name = "not"),
+    @JsonSubTypes.Type(value = Condition.BossBlindSelected.class, name = "bossBlindSelected"),
+    @JsonSubTypes.Type(value = Condition.BossAbilityActive.class, name = "bossAbilityActive"),
 })
 public sealed interface Condition {
 

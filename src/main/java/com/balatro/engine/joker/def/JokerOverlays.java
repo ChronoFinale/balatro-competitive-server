@@ -21,8 +21,14 @@ public final class JokerOverlays {
 
     private JokerOverlays() {}
 
-    /** Shared mapper; the Effect/Condition/Value/Selector type-discriminators live on the classes. */
-    static final ObjectMapper JSON = new ObjectMapper();
+    /**
+     * Shared mapper; the Effect/Condition/Value/Selector type-discriminators live on the classes.
+     * {@code ORDER_MAP_ENTRIES_BY_KEYS} makes the compiled artifact deterministic: a JokerDef's
+     * {@code props}/{@code state} are {@code Map.copyOf} maps whose iteration order is JVM-salt-randomized,
+     * so without this the generated JSON would differ run-to-run and the artifact gate would flap.
+     */
+    static final ObjectMapper JSON = new ObjectMapper()
+            .configure(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
     /**
      * Fold {@code overlay} onto {@code base}, returning the effective joker set keyed by joker key (insertion

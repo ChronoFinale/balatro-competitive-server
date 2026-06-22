@@ -47,6 +47,8 @@ test {
     testLogging {
         events 'passed', 'skipped', 'failed'
     }
+    // Forward -Dregen so RulesetArtifactsTest can (re)write the generated ruleset artifacts.
+    systemProperty 'regen', System.getProperty('regen', 'false')
 }
 
 // `dependencyUpdates`: only flag STABLE upgrades (skip alpha/RC/milestone).
