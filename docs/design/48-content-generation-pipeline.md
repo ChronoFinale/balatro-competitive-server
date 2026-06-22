@@ -60,8 +60,14 @@ No new architecture per type — they all plug into the same machine.
 In the pipe (JSON artifact + generated TS, round-trip-gated unless noted): jokers (+ overlays), decks, bosses
 (effect text + rule shape), tags, vouchers, consumables (tarots/planets/spectrals), planets, hand-scoring
 table, bundles. Generated unions: the 4 rule vocabularies, the stake ladder, and the card/blind render
-primitives (Suit/Rank/Edition/Seal/Enhancement/ConsumableKind/BlindType). The client consumes the card unions
-in `CardView`/`PackItem` (drift-proof).
+primitives (Suit/Rank/Edition/Seal/Enhancement/ConsumableKind/BlindType).
+
+**The client consumes it end to end.** `./gradlew generateContent` also emits `client/src/generated/content.ts`
+— the full compiled content as typed `const` arrays (serialized NON_NULL so it conforms to the interfaces,
+whose nullable reference fields are optional). `CardView`/`PackItem` are typed from the generated card unions
+(drift-proof), and `Almanac.tsx` renders every content type — jokers, decks, bosses, planets, hands, vouchers,
+tags, consumables, rulesets — entirely from the generated module with zero server round-trip. The client
+typechecks and `electron-vite build` succeeds.
 
 Intentionally still code (behaviour, not data): the ante/blind-amount curve formula (`Blinds`), economy/
 interest, and the rule interpreter itself (server scorer + client preview) — per the invariant above.
