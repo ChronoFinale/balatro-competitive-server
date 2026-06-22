@@ -109,6 +109,9 @@ public final class GameServer implements AutoCloseable {
         this.rulesetStore = rulesetStore;
         jokerStore.loadAll();   // register custom jokers first...
         rulesetStore.loadAll(); // ...so custom rulesets can reference them
+        // Custom composable bundles (a new mode authored as JSON, no code) — joins the selectable rulesets.
+        com.balatro.engine.state.BundleCatalog.loadDir(
+                new java.io.File("web-assets/custom-bundles").getAbsoluteFile().toPath());
         accounts.loadAll();     // persisted player accounts
         // Javalin 7: routes/ws/static are configured upfront in the create() block.
         java.io.File assetsDir = new java.io.File("web-assets").getAbsoluteFile();
