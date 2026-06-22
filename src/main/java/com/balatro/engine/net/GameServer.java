@@ -145,10 +145,12 @@ public final class GameServer implements AutoCloseable {
             // Content auto-update: the delta-sync manifest (version + per-file sha256) and the raw, hash-exact
             // bytes of the files it lists. A client fetches the manifest, diffs vs its cache, downloads deltas.
             cfg.routes.get("/content/manifest", ctx -> {
+                ctx.header("Access-Control-Allow-Origin", "*"); // public content; readable by any client
                 ctx.contentType("application/json");
                 ctx.result(resourceBytes("/content/manifest.json"));
             });
             cfg.routes.get("/content/file", ctx -> {
+                ctx.header("Access-Control-Allow-Origin", "*");
                 String p = ctx.queryParam("path");
                 if (p == null || !com.balatro.engine.codegen.ContentManifest.FILES.contains(p)) {
                     ctx.status(404).result("unknown content file");
