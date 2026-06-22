@@ -31,4 +31,18 @@ public final class Bundles {
     public static List<RulesetBundle> all() {
         return List.of(vanillaSolo(), vanillaPvp(), bmp042Ranked());
     }
+
+    /**
+     * Load a bundle from its compiled artifact ({@code /rulesets/bundles/<name>.json}) — the engine's
+     * data-driven entry point. The DSL form above and this JSON form deserialize to identical objects, so
+     * first-party content can use either while mods (JSON only) flow through exactly the same path.
+     */
+    public static RulesetBundle load(String name) {
+        try (var in = Bundles.class.getResourceAsStream("/rulesets/bundles/" + name + ".json")) {
+            if (in == null) throw new IllegalArgumentException("no bundle /rulesets/bundles/" + name + ".json");
+            return new com.fasterxml.jackson.databind.ObjectMapper().readValue(in, RulesetBundle.class);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("loading bundle " + name, e);
+        }
+    }
 }
