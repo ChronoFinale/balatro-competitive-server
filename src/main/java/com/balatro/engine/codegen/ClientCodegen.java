@@ -38,6 +38,7 @@ public final class ClientCodegen {
     private static final List<String> MANIFEST = List.of(
             "rulesets/vanilla.json",
             "rulesets/bmp-0.4.2-ranked.json",
+            "content/decks.json",
             "rulesets/bundles/vanilla-solo.json",
             "rulesets/bundles/vanilla-pvp.json",
             "rulesets/bundles/bmp-0.4.2-ranked.json");
@@ -70,6 +71,7 @@ public final class ClientCodegen {
         sb.append("}\n\n");
 
         record(sb, "RulesetBundle", RulesetBundle.class);
+        record(sb, "DeckType", com.balatro.engine.game.DeckCatalog.DeckType.class);
 
         sb.append("export const CONTENT_MANIFEST = [\n");
         for (String m : MANIFEST) sb.append("  \"").append(m).append("\",\n");

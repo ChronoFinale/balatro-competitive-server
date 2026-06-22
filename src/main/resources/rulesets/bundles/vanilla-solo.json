@@ -4,6 +4,7 @@
   "overlays" : [ ],
   "variant" : "default",
   "mode" : "SOLO",
+  "decks" : [ ],
   "startingMoney" : 4,
   "hands" : 4,
   "discards" : 3,

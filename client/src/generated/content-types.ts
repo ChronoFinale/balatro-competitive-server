@@ -125,6 +125,7 @@ export interface RulesetBundle {
   overlays: string[];
   variant: string;
   mode: "SOLO" | "PVP";
+  decks: string[];
   startingMoney: number;
   hands: number;
   discards: number;
@@ -135,9 +136,24 @@ export interface RulesetBundle {
   deckType: string;
 }
 
+export interface DeckType {
+  key: string;
+  name: string;
+  description: string;
+  resourceMods: unknown[];
+  greenEconomy: boolean;
+  composition: "STANDARD" | "NO_FACES" | "CHECKERED" | "ERRATIC";
+  startingVouchers: string[];
+  startingConsumables: string[];
+  balanceChipsMult: boolean;
+  blindSizeMult: number;
+  onBossDefeatTags: string[];
+}
+
 export const CONTENT_MANIFEST = [
   "rulesets/vanilla.json",
   "rulesets/bmp-0.4.2-ranked.json",
+  "content/decks.json",
   "rulesets/bundles/vanilla-solo.json",
   "rulesets/bundles/vanilla-pvp.json",
   "rulesets/bundles/bmp-0.4.2-ranked.json",

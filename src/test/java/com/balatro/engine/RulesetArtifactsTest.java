@@ -49,6 +49,17 @@ class RulesetArtifactsTest {
         gate(CLIENT_TYPES, com.balatro.engine.codegen.ClientCodegen.generate());
     }
 
+    private static final Path DECKS = Path.of("src/main/resources/content/decks.json");
+
+    @Test void decksCompileToJsonAndRoundTrip() throws Exception {
+        var decks = com.balatro.engine.game.DeckCatalog.keys().stream()
+                .map(com.balatro.engine.game.DeckCatalog::get).toList();
+        String json = JokerOverlays.writePretty(decks);
+        gate(DECKS, json);
+        var back = List.of(M.readValue(json, com.balatro.engine.game.DeckCatalog.DeckType[].class));
+        assertThat(back).isEqualTo(decks);
+    }
+
     @Test void baseCompilesToVanillaJson() throws Exception {
         String json = JokerOverlays.toJson(BuiltinJokerDefs.all());
         gate(VANILLA, json);

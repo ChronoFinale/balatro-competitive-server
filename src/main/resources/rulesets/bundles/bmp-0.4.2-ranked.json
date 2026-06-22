@@ -6,6 +6,7 @@
   ],
   "variant" : "multiplayer",
   "mode" : "PVP",
+  "decks" : [ ],
   "startingMoney" : 4,
   "hands" : 4,
   "discards" : 3,

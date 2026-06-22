@@ -1,0 +1,283 @@
+[
+  {
+    "key" : "d_base",
+    "name" : "Base Deck",
+    "description" : "No modifiers",
+    "resourceMods" : [ ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_red",
+    "name" : "Red Deck",
+    "description" : "+1 discard each round",
+    "resourceMods" : [
+      {
+        "variable" : "DISCARDS_LEFT",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_blue",
+    "name" : "Blue Deck",
+    "description" : "+1 hand each round",
+    "resourceMods" : [
+      {
+        "variable" : "HANDS_LEFT",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_yellow",
+    "name" : "Yellow Deck",
+    "description" : "Start with an extra $10",
+    "resourceMods" : [
+      {
+        "variable" : "MONEY",
+        "op" : "ADD",
+        "value" : 10.0
+      }
+    ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_black",
+    "name" : "Black Deck",
+    "description" : "+1 Joker slot, but -1 hand each round",
+    "resourceMods" : [
+      {
+        "variable" : "JOKER_SLOTS",
+        "op" : "ADD",
+        "value" : 1.0
+      },
+      {
+        "variable" : "HANDS_LEFT",
+        "op" : "ADD",
+        "value" : -1.0
+      }
+    ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_green",
+    "name" : "Green Deck",
+    "description" : "No interest; $2 per remaining hand, $1 per discard",
+    "resourceMods" : [
+      {
+        "variable" : "INTEREST_CAP",
+        "op" : "MIN",
+        "value" : 0.0
+      }
+    ],
+    "greenEconomy" : true,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_painted",
+    "name" : "Painted Deck",
+    "description" : "+2 hand size, -1 Joker slot",
+    "resourceMods" : [
+      {
+        "variable" : "HAND_SIZE",
+        "op" : "ADD",
+        "value" : 2.0
+      },
+      {
+        "variable" : "JOKER_SLOTS",
+        "op" : "ADD",
+        "value" : -1.0
+      }
+    ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_abandoned",
+    "name" : "Abandoned Deck",
+    "description" : "No face cards (no Jacks/Queens/Kings)",
+    "resourceMods" : [ ],
+    "greenEconomy" : false,
+    "composition" : "NO_FACES",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_checkered",
+    "name" : "Checkered Deck",
+    "description" : "26 Spades + 26 Hearts",
+    "resourceMods" : [ ],
+    "greenEconomy" : false,
+    "composition" : "CHECKERED",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_erratic",
+    "name" : "Erratic Deck",
+    "description" : "All ranks and suits are randomized",
+    "resourceMods" : [ ],
+    "greenEconomy" : false,
+    "composition" : "ERRATIC",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_magic",
+    "name" : "Magic Deck",
+    "description" : "Start with the Crystal Ball voucher and 2 The Fool tarots",
+    "resourceMods" : [ ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [
+      "v_crystal_ball"
+    ],
+    "startingConsumables" : [
+      "c_fool",
+      "c_fool"
+    ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_nebula",
+    "name" : "Nebula Deck",
+    "description" : "Start with the Telescope voucher, -1 consumable slot",
+    "resourceMods" : [
+      {
+        "variable" : "CONSUMABLE_SLOTS",
+        "op" : "ADD",
+        "value" : -1.0
+      }
+    ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [
+      "v_telescope"
+    ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_zodiac",
+    "name" : "Zodiac Deck",
+    "description" : "Start with Tarot Merchant, Planet Merchant, and Overstock vouchers",
+    "resourceMods" : [ ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [
+      "v_tarot_merchant",
+      "v_planet_merchant",
+      "v_overstock"
+    ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_ghost",
+    "name" : "Ghost Deck",
+    "description" : "Spectral cards may appear in the shop; start with The Hex",
+    "resourceMods" : [
+      {
+        "variable" : "SPECTRAL_RATE",
+        "op" : "MAX",
+        "value" : 2.0
+      }
+    ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [
+      "c_hex"
+    ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [ ]
+  },
+  {
+    "key" : "d_anaglyph",
+    "name" : "Anaglyph Deck",
+    "description" : "Double Tag after defeating each Boss Blind",
+    "resourceMods" : [ ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : false,
+    "blindSizeMult" : 1,
+    "onBossDefeatTags" : [
+      "tag_double"
+    ]
+  },
+  {
+    "key" : "d_plasma",
+    "name" : "Plasma Deck",
+    "description" : "Balance chips and mult; blinds are 2x larger",
+    "resourceMods" : [ ],
+    "greenEconomy" : false,
+    "composition" : "STANDARD",
+    "startingVouchers" : [ ],
+    "startingConsumables" : [ ],
+    "balanceChipsMult" : true,
+    "blindSizeMult" : 2,
+    "onBossDefeatTags" : [ ]
+  }
+]

@@ -32,6 +32,8 @@ public record RulesetBundle(
         List<String> overlays,
         String variant,
         Mode mode,
+        // Allowed deck keys for this ruleset; empty = all decks (mirrors jokerPool semantics).
+        List<String> decks,
         int startingMoney,
         int hands,
         int discards,
@@ -50,6 +52,7 @@ public record RulesetBundle(
             @JsonProperty("overlays") List<String> overlays,
             @JsonProperty("variant") String variant,
             @JsonProperty("mode") Mode mode,
+            @JsonProperty("decks") List<String> decks,
             @JsonProperty("startingMoney") int startingMoney,
             @JsonProperty("hands") int hands,
             @JsonProperty("discards") int discards,
@@ -63,6 +66,7 @@ public record RulesetBundle(
         this.overlays = overlays == null ? List.of() : List.copyOf(overlays);
         this.variant = (variant == null || variant.isBlank()) ? "default" : variant;
         this.mode = mode == null ? Mode.SOLO : mode;
+        this.decks = decks == null ? List.of() : List.copyOf(decks);
         this.startingMoney = startingMoney;
         this.hands = hands;
         this.discards = discards;
@@ -76,7 +80,7 @@ public record RulesetBundle(
     /** Standard ante curve + economy, parameterized only by the composition axes. */
     public static RulesetBundle standard(String name, String base, List<String> overlays,
                                          String variant, Mode mode) {
-        return new RulesetBundle(name, base, overlays, variant, mode,
+        return new RulesetBundle(name, base, overlays, variant, mode, List.of(),
                 4, 4, 3, 8, 1.0, 8,
                 new int[]{300, 800, 2000, 5000, 11000, 20000, 35000, 50000}, "d_base");
     }
