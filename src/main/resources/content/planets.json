@@ -1,0 +1,62 @@
+[
+  {
+    "key" : "c_pluto",
+    "name" : "Pluto",
+    "hand" : "HIGH_CARD"
+  },
+  {
+    "key" : "c_mercury",
+    "name" : "Mercury",
+    "hand" : "PAIR"
+  },
+  {
+    "key" : "c_uranus",
+    "name" : "Uranus",
+    "hand" : "TWO_PAIR"
+  },
+  {
+    "key" : "c_venus",
+    "name" : "Venus",
+    "hand" : "THREE_OF_A_KIND"
+  },
+  {
+    "key" : "c_saturn",
+    "name" : "Saturn",
+    "hand" : "STRAIGHT"
+  },
+  {
+    "key" : "c_jupiter",
+    "name" : "Jupiter",
+    "hand" : "FLUSH"
+  },
+  {
+    "key" : "c_earth",
+    "name" : "Earth",
+    "hand" : "FULL_HOUSE"
+  },
+  {
+    "key" : "c_mars",
+    "name" : "Mars",
+    "hand" : "FOUR_OF_A_KIND"
+  },
+  {
+    "key" : "c_neptune",
+    "name" : "Neptune",
+    "hand" : "STRAIGHT_FLUSH"
+  },
+  {
+    "key" : "c_planet_x",
+    "name" : "Planet X",
+    "hand" : "FIVE_OF_A_KIND"
+  },
+  {
+    "key" : "c_ceres",
+    "name" : "Ceres",
+    "hand" : "FLUSH_HOUSE"
+  },
+  {
+    "key" : "c_eris",
+    "name" : "Eris",
+    "hand" : "FLUSH_FIVE"
+  }
+]

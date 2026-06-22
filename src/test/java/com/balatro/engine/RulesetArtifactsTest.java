@@ -100,6 +100,34 @@ class RulesetArtifactsTest {
         assertThat(List.of(M.readValue(json, com.balatro.engine.consumable.Consumable[].class))).isEqualTo(cs);
     }
 
+    private static final Path PLANETS = Path.of("src/main/resources/content/planets.json");
+    private static final Path HAND_SCORES = Path.of("src/main/resources/content/hand-scores.json");
+
+    @Test void planetsCompileToJsonAndRoundTrip() throws Exception {
+        var planets = com.balatro.engine.game.PlanetCatalog.keys().stream()
+                .map(com.balatro.engine.game.PlanetCatalog::get).toList();
+        String json = JokerOverlays.writePretty(planets);
+        gate(PLANETS, json);
+        assertThat(List.of(M.readValue(json, com.balatro.engine.game.PlanetCatalog.Planet[].class)))
+                .isEqualTo(planets);
+    }
+
+    @Test void handScoreTableCompiles() throws Exception {
+        // The base/level scoring table a Planet bumps — projected from the HandType enum for the client.
+        var table = new java.util.ArrayList<java.util.Map<String, Object>>();
+        for (var h : com.balatro.engine.hand.HandType.values()) {
+            var m = new java.util.LinkedHashMap<String, Object>();
+            m.put("hand", h.name());
+            m.put("display", h.display);
+            m.put("baseChips", h.baseChips);
+            m.put("baseMult", h.baseMult);
+            m.put("chipsPerLevel", h.lChips);
+            m.put("multPerLevel", h.lMult);
+            table.add(m);
+        }
+        gate(HAND_SCORES, JokerOverlays.writePretty(table));
+    }
+
     @Test void baseCompilesToVanillaJson() throws Exception {
         String json = JokerOverlays.toJson(BuiltinJokerDefs.all());
         gate(VANILLA, json);

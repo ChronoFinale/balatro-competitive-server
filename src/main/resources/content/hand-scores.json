@@ -1,0 +1,98 @@
+[
+  {
+    "baseChips" : 5,
+    "baseMult" : 1,
+    "chipsPerLevel" : 10,
+    "display" : "High Card",
+    "hand" : "HIGH_CARD",
+    "multPerLevel" : 1
+  },
+  {
+    "baseChips" : 10,
+    "baseMult" : 2,
+    "chipsPerLevel" : 15,
+    "display" : "Pair",
+    "hand" : "PAIR",
+    "multPerLevel" : 1
+  },
+  {
+    "baseChips" : 20,
+    "baseMult" : 2,
+    "chipsPerLevel" : 20,
+    "display" : "Two Pair",
+    "hand" : "TWO_PAIR",
+    "multPerLevel" : 1
+  },
+  {
+    "baseChips" : 30,
+    "baseMult" : 3,
+    "chipsPerLevel" : 20,
+    "display" : "Three of a Kind",
+    "hand" : "THREE_OF_A_KIND",
+    "multPerLevel" : 2
+  },
+  {
+    "baseChips" : 30,
+    "baseMult" : 4,
+    "chipsPerLevel" : 30,
+    "display" : "Straight",
+    "hand" : "STRAIGHT",
+    "multPerLevel" : 3
+  },
+  {
+    "baseChips" : 35,
+    "baseMult" : 4,
+    "chipsPerLevel" : 15,
+    "display" : "Flush",
+    "hand" : "FLUSH",
+    "multPerLevel" : 2
+  },
+  {
+    "baseChips" : 40,
+    "baseMult" : 4,
+    "chipsPerLevel" : 25,
+    "display" : "Full House",
+    "hand" : "FULL_HOUSE",
+    "multPerLevel" : 2
+  },
+  {
+    "baseChips" : 60,
+    "baseMult" : 7,
+    "chipsPerLevel" : 30,
+    "display" : "Four of a Kind",
+    "hand" : "FOUR_OF_A_KIND",
+    "multPerLevel" : 3
+  },
+  {
+    "baseChips" : 100,
+    "baseMult" : 8,
+    "chipsPerLevel" : 40,
+    "display" : "Straight Flush",
+    "hand" : "STRAIGHT_FLUSH",
+    "multPerLevel" : 4
+  },
+  {
+    "baseChips" : 120,
+    "baseMult" : 12,
+    "chipsPerLevel" : 35,
+    "display" : "Five of a Kind",
+    "hand" : "FIVE_OF_A_KIND",
+    "multPerLevel" : 3
+  },
+  {
+    "baseChips" : 140,
+    "baseMult" : 14,
+    "chipsPerLevel" : 40,
+    "display" : "Flush House",
+    "hand" : "FLUSH_HOUSE",
+    "multPerLevel" : 4
+  },
+  {
+    "baseChips" : 160,
+    "baseMult" : 16,
+    "chipsPerLevel" : 50,
+    "display" : "Flush Five",
+    "hand" : "FLUSH_FIVE",
+    "multPerLevel" : 3
+  }
+]

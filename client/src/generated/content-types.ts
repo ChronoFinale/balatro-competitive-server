@@ -214,6 +214,23 @@ export interface Consumable {
   effects: Effect[];
 }
 
+export interface Planet {
+  key: string;
+  name: string;
+  hand: "HIGH_CARD" | "PAIR" | "TWO_PAIR" | "THREE_OF_A_KIND" | "STRAIGHT" | "FLUSH" | "FULL_HOUSE" | "FOUR_OF_A_KIND" | "STRAIGHT_FLUSH" | "FIVE_OF_A_KIND" | "FLUSH_HOUSE" | "FLUSH_FIVE";
+}
+
+export type HandName = "HIGH_CARD" | "PAIR" | "TWO_PAIR" | "THREE_OF_A_KIND" | "STRAIGHT" | "FLUSH" | "FULL_HOUSE" | "FOUR_OF_A_KIND" | "STRAIGHT_FLUSH" | "FIVE_OF_A_KIND" | "FLUSH_HOUSE" | "FLUSH_FIVE";
+
+export interface HandScore {
+  hand: HandName;
+  display: string;
+  baseChips: number;
+  baseMult: number;
+  chipsPerLevel: number;
+  multPerLevel: number;
+}
+
 export type StakeName = "WHITE" | "RED" | "GREEN" | "BLACK" | "BLUE" | "PURPLE" | "ORANGE" | "GOLD" | "PLANET" | "SPECTRAL" | "SPECTRAL_PLUS";
 
 export type Suit = "SPADES" | "HEARTS" | "CLUBS" | "DIAMONDS";
@@ -238,6 +255,8 @@ export const CONTENT_MANIFEST = [
   "content/tags.json",
   "content/vouchers.json",
   "content/consumables.json",
+  "content/planets.json",
+  "content/hand-scores.json",
   "rulesets/bundles/vanilla-solo.json",
   "rulesets/bundles/vanilla-pvp.json",
   "rulesets/bundles/bmp-0.4.2-ranked.json",

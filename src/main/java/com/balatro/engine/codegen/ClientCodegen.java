@@ -43,6 +43,8 @@ public final class ClientCodegen {
             "content/tags.json",
             "content/vouchers.json",
             "content/consumables.json",
+            "content/planets.json",
+            "content/hand-scores.json",
             "rulesets/bundles/vanilla-solo.json",
             "rulesets/bundles/vanilla-pvp.json",
             "rulesets/bundles/bmp-0.4.2-ranked.json");
@@ -85,6 +87,15 @@ public final class ClientCodegen {
         record(sb, "Tag", com.balatro.engine.game.TagCatalog.Tag.class);
         record(sb, "Voucher", com.balatro.engine.game.VoucherCatalog.Voucher.class);
         record(sb, "Consumable", com.balatro.engine.consumable.Consumable.class);
+        record(sb, "Planet", com.balatro.engine.game.PlanetCatalog.Planet.class);
+        enumType(sb, "HandName", com.balatro.engine.hand.HandType.class);
+
+        // The poker-hand scoring/leveling table — base + (level-1)×increment — so the client can show
+        // what a Planet does. Projected from the HandType enum (see hand-scores.json).
+        sb.append("export interface HandScore {\n");
+        sb.append("  hand: HandName;\n  display: string;\n  baseChips: number;\n  baseMult: number;\n");
+        sb.append("  chipsPerLevel: number;\n  multPerLevel: number;\n}\n\n");
+
         enumType(sb, "StakeName", com.balatro.engine.state.Stake.class);
 
         // Card + blind render primitives — the closed enums the client needs to draw cards and blinds.
