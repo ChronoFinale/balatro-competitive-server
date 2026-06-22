@@ -1,0 +1,812 @@
+[
+  {
+    "key" : "c_magician",
+    "name" : "The Magician",
+    "description" : "Enhance up to 2 selected cards to Lucky",
+    "type" : "TAROT",
+    "maxTargets" : 2,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_ENHANCEMENT",
+          "amount" : 0,
+          "enhancement" : "LUCKY",
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_empress",
+    "name" : "The Empress",
+    "description" : "Enhance up to 2 selected cards to Mult",
+    "type" : "TAROT",
+    "maxTargets" : 2,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_ENHANCEMENT",
+          "amount" : 0,
+          "enhancement" : "MULT",
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_hierophant",
+    "name" : "The Hierophant",
+    "description" : "Enhance up to 2 selected cards to Bonus",
+    "type" : "TAROT",
+    "maxTargets" : 2,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_ENHANCEMENT",
+          "amount" : 0,
+          "enhancement" : "BONUS",
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_devil",
+    "name" : "The Devil",
+    "description" : "Enhance 1 selected card to Gold",
+    "type" : "TAROT",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_ENHANCEMENT",
+          "amount" : 0,
+          "enhancement" : "GOLD",
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_hanged_man",
+    "name" : "The Hanged Man",
+    "description" : "Destroy up to 2 selected cards",
+    "type" : "TAROT",
+    "maxTargets" : 2,
+    "effects" : [
+      {
+        "type" : "destroyTargets",
+        "selector" : {
+          "type" : "selected"
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_strength",
+    "name" : "Strength",
+    "description" : "Increase rank of up to 2 selected cards by 1",
+    "type" : "TAROT",
+    "maxTargets" : 2,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "INC_RANK",
+          "amount" : 1,
+          "enhancement" : null,
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_star",
+    "name" : "The Star",
+    "description" : "Convert up to 3 selected cards to Diamonds",
+    "type" : "TAROT",
+    "maxTargets" : 3,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_SUIT",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : null,
+          "edition" : null,
+          "suit" : "DIAMONDS"
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_moon",
+    "name" : "The Moon",
+    "description" : "Convert up to 3 selected cards to Clubs",
+    "type" : "TAROT",
+    "maxTargets" : 3,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_SUIT",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : null,
+          "edition" : null,
+          "suit" : "CLUBS"
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_sun",
+    "name" : "The Sun",
+    "description" : "Convert up to 3 selected cards to Hearts",
+    "type" : "TAROT",
+    "maxTargets" : 3,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_SUIT",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : null,
+          "edition" : null,
+          "suit" : "HEARTS"
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_world",
+    "name" : "The World",
+    "description" : "Convert up to 3 selected cards to Spades",
+    "type" : "TAROT",
+    "maxTargets" : 3,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_SUIT",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : null,
+          "edition" : null,
+          "suit" : "SPADES"
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_lovers",
+    "name" : "The Lovers",
+    "description" : "Enhance 1 selected card to Wild (counts as every suit)",
+    "type" : "TAROT",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_ENHANCEMENT",
+          "amount" : 0,
+          "enhancement" : "WILD",
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_chariot",
+    "name" : "The Chariot",
+    "description" : "Enhance 1 selected card to Steel",
+    "type" : "TAROT",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_ENHANCEMENT",
+          "amount" : 0,
+          "enhancement" : "STEEL",
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_justice",
+    "name" : "Justice",
+    "description" : "Enhance 1 selected card to Glass",
+    "type" : "TAROT",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_ENHANCEMENT",
+          "amount" : 0,
+          "enhancement" : "GLASS",
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_tower",
+    "name" : "The Tower",
+    "description" : "Enhance 1 selected card to Stone",
+    "type" : "TAROT",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_ENHANCEMENT",
+          "amount" : 0,
+          "enhancement" : "STONE",
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_incantation",
+    "name" : "Incantation",
+    "description" : "Add 4 Bonus number cards to your deck",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "createCards",
+        "count" : 4,
+        "enhancement" : "BONUS"
+      }
+    ]
+  },
+  {
+    "key" : "c_talisman",
+    "name" : "Talisman",
+    "description" : "Add a Gold Seal to 1 selected card",
+    "type" : "SPECTRAL",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_SEAL",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : "GOLD",
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_deja_vu",
+    "name" : "Deja Vu",
+    "description" : "Add a Red Seal to 1 selected card",
+    "type" : "SPECTRAL",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_SEAL",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : "RED",
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_trance",
+    "name" : "Trance",
+    "description" : "Add a Blue Seal to 1 selected card",
+    "type" : "SPECTRAL",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_SEAL",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : "BLUE",
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_medium",
+    "name" : "Medium",
+    "description" : "Add a Purple Seal to 1 selected card",
+    "type" : "SPECTRAL",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_SEAL",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : "PURPLE",
+          "edition" : null,
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_aura",
+    "name" : "Aura",
+    "description" : "Add Polychrome to 1 selected card in hand",
+    "type" : "SPECTRAL",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "SET_EDITION",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : null,
+          "edition" : "POLYCHROME",
+          "suit" : null
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_black_hole",
+    "name" : "Black Hole",
+    "description" : "Upgrade every poker hand by 1 level",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "levelAllHands"
+      }
+    ]
+  },
+  {
+    "key" : "c_wheel_of_fortune",
+    "name" : "The Wheel of Fortune",
+    "description" : "1 in 4 chance to add Foil, Holographic, or Polychrome to a random Joker",
+    "type" : "TAROT",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "jokerEdition",
+        "edition" : "NONE",
+        "chanceDenominator" : 4,
+        "handSizeDelta" : 0,
+        "destroyOtherJokers" : false
+      }
+    ]
+  },
+  {
+    "key" : "c_ectoplasm",
+    "name" : "Ectoplasm",
+    "description" : "Add Negative to a random Joker, -1 hand size",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "jokerEdition",
+        "edition" : "NEGATIVE",
+        "chanceDenominator" : 1,
+        "handSizeDelta" : -1,
+        "destroyOtherJokers" : false
+      }
+    ]
+  },
+  {
+    "key" : "c_hex",
+    "name" : "Hex",
+    "description" : "Add Polychrome to a random Joker, destroy all other Jokers",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "jokerEdition",
+        "edition" : "POLYCHROME",
+        "chanceDenominator" : 1,
+        "handSizeDelta" : 0,
+        "destroyOtherJokers" : true
+      }
+    ]
+  },
+  {
+    "key" : "c_emperor",
+    "name" : "The Emperor",
+    "description" : "Create up to 2 random Tarot cards",
+    "type" : "TAROT",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : {
+          "kind" : "TAROT",
+          "count" : 2,
+          "rarity" : null,
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false
+        },
+        "destroyRandomInHand" : 0,
+        "add" : null,
+        "money" : null
+      }
+    ]
+  },
+  {
+    "key" : "c_high_priestess",
+    "name" : "The High Priestess",
+    "description" : "Create up to 2 random Planet cards",
+    "type" : "TAROT",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : {
+          "kind" : "PLANET",
+          "count" : 2,
+          "rarity" : null,
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false
+        },
+        "destroyRandomInHand" : 0,
+        "add" : null,
+        "money" : null
+      }
+    ]
+  },
+  {
+    "key" : "c_judgement",
+    "name" : "Judgement",
+    "description" : "Create a random Joker",
+    "type" : "TAROT",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : null,
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false
+        },
+        "destroyRandomInHand" : 0,
+        "add" : null,
+        "money" : null
+      }
+    ]
+  },
+  {
+    "key" : "c_hermit",
+    "name" : "The Hermit",
+    "description" : "Double your money (max gain of $20)",
+    "type" : "TAROT",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : null,
+        "destroyRandomInHand" : 0,
+        "add" : null,
+        "money" : {
+          "kind" : "DOUBLE_CAP",
+          "amount" : 20
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_temperance",
+    "name" : "Temperance",
+    "description" : "Gain the total sell value of all Jokers (max $50)",
+    "type" : "TAROT",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : null,
+        "destroyRandomInHand" : 0,
+        "add" : null,
+        "money" : {
+          "kind" : "SELL_VALUE_CAP",
+          "amount" : 50
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_the_soul",
+    "name" : "The Soul",
+    "description" : "Create a random Legendary Joker",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : "Legendary",
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false
+        },
+        "destroyRandomInHand" : 0,
+        "add" : null,
+        "money" : null
+      }
+    ]
+  },
+  {
+    "key" : "c_wraith",
+    "name" : "The Wraith",
+    "description" : "Create a random Rare Joker, set money to $0",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : "Rare",
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false
+        },
+        "destroyRandomInHand" : 0,
+        "add" : null,
+        "money" : {
+          "kind" : "SET",
+          "amount" : 0
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_immolate",
+    "name" : "Immolate",
+    "description" : "Destroy 5 random cards in hand, gain $20",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : null,
+        "destroyRandomInHand" : 5,
+        "add" : null,
+        "money" : {
+          "kind" : "FLAT",
+          "amount" : 20
+        }
+      }
+    ]
+  },
+  {
+    "key" : "c_familiar",
+    "name" : "Familiar",
+    "description" : "Destroy 1 random card, add 3 random Enhanced face cards",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : null,
+        "destroyRandomInHand" : 1,
+        "add" : {
+          "rankClass" : "FACE",
+          "count" : 3,
+          "enhancement" : null
+        },
+        "money" : null
+      }
+    ]
+  },
+  {
+    "key" : "c_grim",
+    "name" : "Grim",
+    "description" : "Destroy 1 random card, add 2 random Enhanced Aces",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "generate",
+        "create" : null,
+        "destroyRandomInHand" : 1,
+        "add" : {
+          "rankClass" : "ACE",
+          "count" : 2,
+          "enhancement" : null
+        },
+        "money" : null
+      }
+    ]
+  },
+  {
+    "key" : "c_fool",
+    "name" : "The Fool",
+    "description" : "Create a copy of the last Tarot or Planet used this run",
+    "type" : "TAROT",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "copyLastConsumable"
+      }
+    ]
+  },
+  {
+    "key" : "c_death",
+    "name" : "Death",
+    "description" : "Select 2 cards: the left card becomes a copy of the right",
+    "type" : "TAROT",
+    "maxTargets" : 2,
+    "effects" : [
+      {
+        "type" : "overwriteSelected"
+      }
+    ]
+  },
+  {
+    "key" : "c_sigil",
+    "name" : "Sigil",
+    "description" : "Convert all cards in hand to a single random suit",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "convertHand",
+        "toRandomSuit" : true,
+        "toRandomRank" : false,
+        "handSizeDelta" : 0
+      }
+    ]
+  },
+  {
+    "key" : "c_ouija",
+    "name" : "Ouija",
+    "description" : "Convert all cards in hand to a single random rank, -1 hand size",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "convertHand",
+        "toRandomSuit" : false,
+        "toRandomRank" : true,
+        "handSizeDelta" : -1
+      }
+    ]
+  },
+  {
+    "key" : "c_cryptid",
+    "name" : "Cryptid",
+    "description" : "Create 2 copies of 1 selected card",
+    "type" : "SPECTRAL",
+    "maxTargets" : 1,
+    "effects" : [
+      {
+        "type" : "copySelected",
+        "copies" : 2
+      }
+    ]
+  },
+  {
+    "key" : "c_ankh",
+    "name" : "Ankh",
+    "description" : "Copy a random Joker, destroy all other Jokers",
+    "type" : "SPECTRAL",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "copyRandomJoker",
+        "destroyOthers" : true
+      }
+    ]
+  },
+  {
+    "key" : "c_asteroid",
+    "name" : "Asteroid",
+    "description" : "Delevel your nemesis's highest-level poker hand",
+    "type" : "PLANET",
+    "maxTargets" : 0,
+    "effects" : [
+      {
+        "type" : "nemesisDelevel"
+      }
+    ]
+  }
+]

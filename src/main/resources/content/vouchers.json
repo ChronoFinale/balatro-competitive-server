@@ -1,0 +1,469 @@
+[
+  {
+    "key" : "v_overstock",
+    "name" : "Overstock",
+    "description" : "+1 card slot in the shop",
+    "cost" : 10,
+    "upgradeKey" : "v_overstock_plus",
+    "mods" : [
+      {
+        "variable" : "SHOP_SLOTS",
+        "op" : "MAX",
+        "value" : 3.0
+      }
+    ]
+  },
+  {
+    "key" : "v_overstock_plus",
+    "name" : "Overstock Plus",
+    "description" : "+1 more shop card slot (4 total)",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "SHOP_SLOTS",
+        "op" : "MAX",
+        "value" : 4.0
+      }
+    ]
+  },
+  {
+    "key" : "v_clearance_sale",
+    "name" : "Clearance Sale",
+    "description" : "All shop cards & packs 25% off",
+    "cost" : 10,
+    "upgradeKey" : "v_liquidation",
+    "mods" : [
+      {
+        "variable" : "PRICE_MULTIPLIER",
+        "op" : "MIN",
+        "value" : 0.75
+      }
+    ]
+  },
+  {
+    "key" : "v_liquidation",
+    "name" : "Liquidation",
+    "description" : "All shop cards & packs 50% off",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "PRICE_MULTIPLIER",
+        "op" : "MIN",
+        "value" : 0.5
+      }
+    ]
+  },
+  {
+    "key" : "v_hone",
+    "name" : "Hone",
+    "description" : "Foil/Holo/Poly Jokers appear 2x more often",
+    "cost" : 10,
+    "upgradeKey" : "v_glow_up",
+    "mods" : [
+      {
+        "variable" : "EDITION_MULTIPLIER",
+        "op" : "MAX",
+        "value" : 2.0
+      },
+      {
+        "variable" : "POLY_MULTIPLIER",
+        "op" : "MAX",
+        "value" : 3.0
+      }
+    ]
+  },
+  {
+    "key" : "v_glow_up",
+    "name" : "Glow Up",
+    "description" : "Foil/Holo/Poly Jokers appear 4x more often",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "EDITION_MULTIPLIER",
+        "op" : "MAX",
+        "value" : 4.0
+      },
+      {
+        "variable" : "POLY_MULTIPLIER",
+        "op" : "MAX",
+        "value" : 7.0
+      }
+    ]
+  },
+  {
+    "key" : "v_reroll_surplus",
+    "name" : "Reroll Surplus",
+    "description" : "Rerolls cost $2 less",
+    "cost" : 10,
+    "upgradeKey" : "v_reroll_glut",
+    "mods" : [
+      {
+        "variable" : "REROLL_DISCOUNT",
+        "op" : "ADD",
+        "value" : 2.0
+      }
+    ]
+  },
+  {
+    "key" : "v_reroll_glut",
+    "name" : "Reroll Glut",
+    "description" : "Rerolls cost an additional $2 less",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "REROLL_DISCOUNT",
+        "op" : "ADD",
+        "value" : 2.0
+      }
+    ]
+  },
+  {
+    "key" : "v_crystal_ball",
+    "name" : "Crystal Ball",
+    "description" : "+1 consumable slot",
+    "cost" : 10,
+    "upgradeKey" : "v_omen_globe",
+    "mods" : [
+      {
+        "variable" : "CONSUMABLE_SLOTS",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_omen_globe",
+    "name" : "Omen Globe",
+    "description" : "Spectral cards may appear in Arcana Packs",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "CONSUMABLE_SLOTS",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_telescope",
+    "name" : "Telescope",
+    "description" : "Celestial Packs always contain your most-played hand's Planet",
+    "cost" : 10,
+    "upgradeKey" : "v_observatory",
+    "mods" : [
+      {
+        "variable" : "CELESTIAL_MOST_PLAYED",
+        "op" : "MAX",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_observatory",
+    "name" : "Observatory",
+    "description" : "Planet cards in your consumables give X1.5 Mult for their hand",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "HELD_PLANET_MULT",
+        "op" : "MAX",
+        "value" : 1.5
+      }
+    ]
+  },
+  {
+    "key" : "v_grabber",
+    "name" : "Grabber",
+    "description" : "Permanently +1 hand per round",
+    "cost" : 10,
+    "upgradeKey" : "v_nacho_tong",
+    "mods" : [
+      {
+        "variable" : "HANDS_LEFT",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_nacho_tong",
+    "name" : "Nacho Tong",
+    "description" : "Permanently +1 additional hand per round",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "HANDS_LEFT",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_wasteful",
+    "name" : "Wasteful",
+    "description" : "Permanently +1 discard per round",
+    "cost" : 10,
+    "upgradeKey" : "v_recyclomancy",
+    "mods" : [
+      {
+        "variable" : "DISCARDS_LEFT",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_recyclomancy",
+    "name" : "Recyclomancy",
+    "description" : "Permanently +1 additional discard per round",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "DISCARDS_LEFT",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_tarot_merchant",
+    "name" : "Tarot Merchant",
+    "description" : "Tarot cards appear 2x more in the shop",
+    "cost" : 10,
+    "upgradeKey" : "v_tarot_tycoon",
+    "mods" : [
+      {
+        "variable" : "TAROT_RATE",
+        "op" : "MAX",
+        "value" : 8.0
+      }
+    ]
+  },
+  {
+    "key" : "v_tarot_tycoon",
+    "name" : "Tarot Tycoon",
+    "description" : "Tarot cards appear 4x more in the shop",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "TAROT_RATE",
+        "op" : "MAX",
+        "value" : 16.0
+      }
+    ]
+  },
+  {
+    "key" : "v_planet_merchant",
+    "name" : "Planet Merchant",
+    "description" : "Planet cards appear 2x more in the shop",
+    "cost" : 10,
+    "upgradeKey" : "v_planet_tycoon",
+    "mods" : [
+      {
+        "variable" : "PLANET_RATE",
+        "op" : "MAX",
+        "value" : 8.0
+      }
+    ]
+  },
+  {
+    "key" : "v_planet_tycoon",
+    "name" : "Planet Tycoon",
+    "description" : "Planet cards appear 4x more in the shop",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "PLANET_RATE",
+        "op" : "MAX",
+        "value" : 16.0
+      }
+    ]
+  },
+  {
+    "key" : "v_seed_money",
+    "name" : "Seed Money",
+    "description" : "Raise the interest cap to $10 per round",
+    "cost" : 10,
+    "upgradeKey" : "v_money_tree",
+    "mods" : [
+      {
+        "variable" : "INTEREST_CAP",
+        "op" : "MAX",
+        "value" : 10.0
+      }
+    ]
+  },
+  {
+    "key" : "v_money_tree",
+    "name" : "Money Tree",
+    "description" : "Raise the interest cap to $20 per round",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "INTEREST_CAP",
+        "op" : "MAX",
+        "value" : 20.0
+      }
+    ]
+  },
+  {
+    "key" : "v_blank",
+    "name" : "Blank",
+    "description" : "Does nothing",
+    "cost" : 10,
+    "upgradeKey" : "v_antimatter",
+    "mods" : [ ]
+  },
+  {
+    "key" : "v_antimatter",
+    "name" : "Antimatter",
+    "description" : "+1 Joker slot",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "JOKER_SLOTS",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_magic_trick",
+    "name" : "Magic Trick",
+    "description" : "Playing cards can be bought from the shop",
+    "cost" : 10,
+    "upgradeKey" : "v_illusion",
+    "mods" : [
+      {
+        "variable" : "SHOP_PLAYING_CARD_RATE",
+        "op" : "MAX",
+        "value" : 4.0
+      }
+    ]
+  },
+  {
+    "key" : "v_illusion",
+    "name" : "Illusion",
+    "description" : "Shop playing cards may have an Enhancement and/or Edition",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "SHOP_PLAYING_CARD_RATE",
+        "op" : "MAX",
+        "value" : 4.0
+      },
+      {
+        "variable" : "SHOP_CARDS_ENHANCED",
+        "op" : "MAX",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_hieroglyph",
+    "name" : "Hieroglyph",
+    "description" : "-1 Ante; -1 hand each round",
+    "cost" : 10,
+    "upgradeKey" : "v_petroglyph",
+    "mods" : [
+      {
+        "variable" : "WIN_ANTE",
+        "op" : "ADD",
+        "value" : -1.0
+      },
+      {
+        "variable" : "HANDS_LEFT",
+        "op" : "ADD",
+        "value" : -1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_petroglyph",
+    "name" : "Petroglyph",
+    "description" : "-1 Ante again; -1 discard each round",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "WIN_ANTE",
+        "op" : "ADD",
+        "value" : -1.0
+      },
+      {
+        "variable" : "DISCARDS_LEFT",
+        "op" : "ADD",
+        "value" : -1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_directors_cut",
+    "name" : "Director's Cut",
+    "description" : "Reroll the Boss Blind once per ante ($10)",
+    "cost" : 10,
+    "upgradeKey" : "v_retcon",
+    "mods" : [
+      {
+        "variable" : "BOSS_REROLLS_PER_ANTE",
+        "op" : "MAX",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_retcon",
+    "name" : "Retcon",
+    "description" : "Reroll the Boss Blind unlimited times ($10)",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "BOSS_REROLLS_PER_ANTE",
+        "op" : "MAX",
+        "value" : 9999.0
+      }
+    ]
+  },
+  {
+    "key" : "v_paint_brush",
+    "name" : "Paint Brush",
+    "description" : "+1 hand size",
+    "cost" : 10,
+    "upgradeKey" : "v_palette",
+    "mods" : [
+      {
+        "variable" : "HAND_SIZE",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  },
+  {
+    "key" : "v_palette",
+    "name" : "Palette",
+    "description" : "+1 hand size again",
+    "cost" : 10,
+    "upgradeKey" : null,
+    "mods" : [
+      {
+        "variable" : "HAND_SIZE",
+        "op" : "ADD",
+        "value" : 1.0
+      }
+    ]
+  }
+]

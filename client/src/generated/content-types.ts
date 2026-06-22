@@ -182,6 +182,24 @@ export interface Tag {
   timing: "IMMEDIATE" | "ON_SHOP" | "ON_BOSS_DEFEAT" | "NEXT_BLIND" | "HELD";
 }
 
+export interface Voucher {
+  key: string;
+  name: string;
+  description: string;
+  cost: number;
+  upgradeKey: string;
+  mods: unknown[];
+}
+
+export interface Consumable {
+  key: string;
+  name: string;
+  description: string;
+  type: "TAROT" | "PLANET" | "SPECTRAL";
+  maxTargets: number;
+  effects: Effect[];
+}
+
 export type StakeName = "WHITE" | "RED" | "GREEN" | "BLACK" | "BLUE" | "PURPLE" | "ORANGE" | "GOLD" | "PLANET" | "SPECTRAL" | "SPECTRAL_PLUS";
 
 export const CONTENT_MANIFEST = [
@@ -190,6 +208,8 @@ export const CONTENT_MANIFEST = [
   "content/decks.json",
   "content/bosses.json",
   "content/tags.json",
+  "content/vouchers.json",
+  "content/consumables.json",
   "rulesets/bundles/vanilla-solo.json",
   "rulesets/bundles/vanilla-pvp.json",
   "rulesets/bundles/bmp-0.4.2-ranked.json",

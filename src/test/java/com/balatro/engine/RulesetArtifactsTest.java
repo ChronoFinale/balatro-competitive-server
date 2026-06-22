@@ -76,6 +76,24 @@ class RulesetArtifactsTest {
         assertThat(List.of(M.readValue(json, com.balatro.engine.game.TagCatalog.Tag[].class))).isEqualTo(tags);
     }
 
+    private static final Path VOUCHERS = Path.of("src/main/resources/content/vouchers.json");
+    private static final Path CONSUMABLES = Path.of("src/main/resources/content/consumables.json");
+
+    @Test void vouchersCompileToJson() throws Exception {
+        var vouchers = com.balatro.engine.game.VoucherCatalog.keys().stream()
+                .map(com.balatro.engine.game.VoucherCatalog::get).toList();
+        gate(VOUCHERS, JokerOverlays.writePretty(vouchers));
+    }
+
+    @Test void consumablesCompileToJsonAndRoundTrip() throws Exception {
+        // Tarots/planets/spectrals — name/description/type + their Effect-union shape for the client.
+        var cs = com.balatro.engine.consumable.TarotCatalog.keys().stream()
+                .map(com.balatro.engine.consumable.TarotCatalog::get).toList();
+        String json = JokerOverlays.writePretty(cs);
+        gate(CONSUMABLES, json);
+        assertThat(List.of(M.readValue(json, com.balatro.engine.consumable.Consumable[].class))).isEqualTo(cs);
+    }
+
     @Test void baseCompilesToVanillaJson() throws Exception {
         String json = JokerOverlays.toJson(BuiltinJokerDefs.all());
         gate(VANILLA, json);

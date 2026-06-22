@@ -41,6 +41,8 @@ public final class ClientCodegen {
             "content/decks.json",
             "content/bosses.json",
             "content/tags.json",
+            "content/vouchers.json",
+            "content/consumables.json",
             "rulesets/bundles/vanilla-solo.json",
             "rulesets/bundles/vanilla-pvp.json",
             "rulesets/bundles/bmp-0.4.2-ranked.json");
@@ -77,6 +79,8 @@ public final class ClientCodegen {
         record(sb, "DeckType", com.balatro.engine.game.DeckCatalog.DeckType.class);
         record(sb, "BossBlind", com.balatro.engine.game.BossBlind.class);
         record(sb, "Tag", com.balatro.engine.game.TagCatalog.Tag.class);
+        record(sb, "Voucher", com.balatro.engine.game.VoucherCatalog.Voucher.class);
+        record(sb, "Consumable", com.balatro.engine.consumable.Consumable.class);
         enumType(sb, "StakeName", com.balatro.engine.state.Stake.class);
 
         sb.append("export const CONTENT_MANIFEST = [\n");
