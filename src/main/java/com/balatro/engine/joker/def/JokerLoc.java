@@ -1,41 +1,24 @@
 package com.balatro.engine.joker.def;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.HashMap;
-import java.util.Map;
+import com.balatro.engine.i18n.Loc;
 
 /**
- * Joker descriptions, as <b>localization data</b> — not code. Loaded from {@code /localization/en.json}
- * ({@code key -> text}); a {@code fr.json} etc. drops in beside it for other languages. A built-in joker def
- * carries only its effect (the rules); its display text lives here, where translations belong. The builder
- * reads it by key, so no def hardcodes a description string.
+ * Joker descriptions, as <b>localization data</b> — a thin alias over the shared {@link Loc} layer (which
+ * serves <i>all</i> content text from {@code /localization/<locale>.json}). A built-in joker def carries only
+ * its effect; its display text lives in localization, keyed by joker key. Kept as a named entry point so the
+ * Jokers builder reads "joker text" intentionally; new code can use {@link Loc} directly.
  */
 public final class JokerLoc {
 
     private JokerLoc() {}
 
-    private static final Map<String, String> DESC = load("en");
-
-    private static Map<String, String> load(String locale) {
-        Map<String, String> out = new HashMap<>();
-        try (var in = JokerLoc.class.getResourceAsStream("/localization/" + locale + ".json")) {
-            if (in == null) return out;
-            JsonNode root = new ObjectMapper().readTree(in);
-            root.fields().forEachRemaining(e -> out.put(e.getKey(), e.getValue().asText()));
-        } catch (Exception ignored) {
-            // Missing/malformed localization: the builder's missing-field check surfaces an absent description.
-        }
-        return out;
-    }
-
     /** True if the localization table has text for this joker key. */
     public static boolean has(String key) {
-        return DESC.containsKey(key);
+        return Loc.has(key);
     }
 
     /** Localized description for a joker key, or "" if none. */
     public static String description(String key) {
-        return DESC.getOrDefault(key, "");
+        return Loc.text(key);
     }
 }

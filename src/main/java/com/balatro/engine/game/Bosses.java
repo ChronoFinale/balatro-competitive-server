@@ -129,8 +129,21 @@ public final class Bosses {
     /** Cerulean Bell: one held card is force-selected — every played hand must include it. */
     public Bosses forcesOneCardSelected() { this.forcesCardSelection = true; return this; }
 
+    /** Integer-valued doubles render without a trailing ".0" (4.0 -> "4") for clean description text. */
+    private static Object fmt(double d) {
+        return d == Math.rint(d) ? (Object) (long) d : (Object) d;
+    }
+
     public BossBlind build() {
-        return new BossBlind(key, name, effect, minAnte, finisher, reqMult, reward,
+        // Description is localization data: if not set explicitly, pull the template from Loc keyed by the
+        // boss key and fill ${field} placeholders from this boss's own values (so a number lives once).
+        String text = effect.isEmpty()
+                ? com.balatro.engine.i18n.Loc.fill(key, java.util.Map.of(
+                        "reqMult", fmt(reqMult), "minAnte", minAnte, "reward", reward,
+                        "dollarsPerCardPlayed", dollarsPerCardPlayed, "drawOnRefill", drawOnRefill,
+                        "discardAfterPlay", discardAfterPlay))
+                : effect;
+        return new BossBlind(key, name, text, minAnte, finisher, reqMult, reward,
                 java.util.List.copyOf(mods), debuff, halveBase,
                 dollarsPerCardPlayed, zeroMoneyOnMostPlayed, delevelPlayedHand, requires, faceDown,
                 drawOnRefill, discardAfterPlay, disableOnJokerSell, disableRandomJokerPerHand,
