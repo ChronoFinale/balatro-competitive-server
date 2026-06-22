@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useStore } from "@tanstack/react-store";
 // Reads from the reactive content store: bundled content instantly, then overlaid by a server delta-sync on
 // open — so new content/balance from the server shows up without rebuilding the client (Tier-1 auto-update).
-import { content, syncFromServer } from "./content";
+import { content, syncFromServer, localize } from "./content";
 
 const SERVER = "http://localhost:28788"; // dev default; production would come from config
 
@@ -13,12 +13,17 @@ export default function Almanac({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<Tab>("Jokers");
   const data = useStore(content);
   const [sync, setSync] = useState("syncing…");
+  const [lang, setLang] = useState("en");
 
   useEffect(() => {
     syncFromServer(SERVER)
       .then((r) => setSync(`server v${r.version.slice(0, 8)} · ${r.changed.length} files`))
       .catch(() => setSync("offline — bundled content"));
   }, []);
+
+  // localized description for an item (locale wording with ${field} filled from the item's data)
+  const loc = (item: { key: string }) => localize(item, lang, data.locales);
+  const langs = ["en", ...Object.keys(data.locales).filter((l) => l !== "en")];
 
   return (
     <div className="panel almanac">
@@ -28,16 +33,24 @@ export default function Almanac({ onClose }: { onClose: () => void }) {
         ))}
         <button className="alt tiny" onClick={onClose}>✕ Close</button>
         <span className="stat">{sync}</span>
+        {langs.length > 1 && (
+          <span className="stat">
+            lang:{" "}
+            {langs.map((l) => (
+              <button key={l} className={"alt tiny" + (lang === l ? " on" : "")} onClick={() => setLang(l)}>{l}</button>
+            ))}
+          </span>
+        )}
       </div>
 
-      {tab === "Jokers" && rows(data.JOKERS.map((j) => [`${j.name} (${j.rarity}, $${j.cost})`, `${j.description} · ${j.rules.length} rule${j.rules.length === 1 ? "" : "s"}`]))}
-      {tab === "Decks" && rows(data.DECKS.map((d) => [d.name, d.description ?? ""]))}
-      {tab === "Bosses" && rows(data.BOSSES.map((b) => [b.name, `${b.effect} · ×${b.reqMult} · ante ${b.minAnte}${b.finisher ? " · finisher" : ""}`]))}
+      {tab === "Jokers" && rows(data.JOKERS.map((j) => [`${j.name} (${j.rarity}, $${j.cost})`, `${loc(j)} · ${j.rules.length} rule${j.rules.length === 1 ? "" : "s"}`]))}
+      {tab === "Decks" && rows(data.DECKS.map((d) => [d.name, loc(d)]))}
+      {tab === "Bosses" && rows(data.BOSSES.map((b) => [b.name, `${loc(b)} · ×${b.reqMult} · ante ${b.minAnte}${b.finisher ? " · finisher" : ""}`]))}
       {tab === "Planets" && rows(data.PLANETS.map((p) => [p.name, `levels ${p.hand}`]))}
       {tab === "Hands" && rows(data.HAND_SCORES.map((h) => [h.display, `${h.baseChips} chips × ${h.baseMult} mult (+${h.chipsPerLevel}/+${h.multPerLevel} per level)`]))}
-      {tab === "Vouchers" && rows(data.VOUCHERS.map((v) => [v.name, `$${v.cost} · ${v.description}`]))}
-      {tab === "Tags" && rows(data.TAGS.map((t) => [t.name, t.description]))}
-      {tab === "Consumables" && rows(data.CONSUMABLES.map((c) => [`${c.name} (${c.type})`, c.description]))}
+      {tab === "Vouchers" && rows(data.VOUCHERS.map((v) => [v.name, `$${v.cost} · ${loc(v)}`]))}
+      {tab === "Tags" && rows(data.TAGS.map((t) => [t.name, loc(t)]))}
+      {tab === "Consumables" && rows(data.CONSUMABLES.map((c) => [`${c.name} (${c.type})`, loc(c)]))}
       {tab === "Rulesets" && rows(data.BUNDLES.map((b) => [b.name, `${b.mode} · ${b.overlays.length ? b.overlays.join("+") : "vanilla"} · ${b.variant}`]))}
     </div>
   );

@@ -19,13 +19,28 @@ export interface ContentData {
   PLANETS: readonly Planet[];
   HAND_SCORES: readonly HandScore[];
   BUNDLES: readonly RulesetBundle[];
+  locales: Record<string, Record<string, string>>; // locale -> (content key -> text/template), synced from server
+}
+
+/** Localized text for a content item: the locale's wording with ${field} filled from the item's own data
+ *  (so numbers stay single-sourced), falling back to the item's bundled description. */
+export function localize<T extends { key: string }>(
+  item: T,
+  locale: string,
+  locales: Record<string, Record<string, string>>,
+): string {
+  const rec = item as Record<string, unknown>;
+  const template = locales[locale]?.[item.key];
+  const fallback = String(rec.description ?? rec.effect ?? "");
+  if (!template) return fallback;
+  return template.replace(/\$\{(\w+)}/g, (_, f) => String(rec[f] ?? `\${${f}}`));
 }
 
 const BUNDLED: ContentData = {
   version: "bundled",
   JOKERS: bundled.JOKERS, DECKS: bundled.DECKS, BOSSES: bundled.BOSSES, TAGS: bundled.TAGS,
   VOUCHERS: bundled.VOUCHERS, CONSUMABLES: bundled.CONSUMABLES, PLANETS: bundled.PLANETS,
-  HAND_SCORES: bundled.HAND_SCORES, BUNDLES: bundled.BUNDLES,
+  HAND_SCORES: bundled.HAND_SCORES, BUNDLES: bundled.BUNDLES, locales: {},
 };
 
 const CACHE_KEY = "balatro.contentCache";
@@ -67,10 +82,17 @@ const FILE_TO_KEY: Record<string, keyof ContentData> = {
 export async function syncFromServer(baseUrl: string, cache: ContentCache = loadCache()): Promise<SyncResult> {
   const result = await syncContent(baseUrl, cache);
   const patch: Partial<ContentData> = { version: result.version };
+  const locales: Record<string, Record<string, string>> = { ...content.state.locales };
   for (const [path, text] of Object.entries(result.files)) {
+    const localeMatch = path.match(/^localization\/(\w+)\.json$/);
+    if (localeMatch) {
+      locales[localeMatch[1]] = JSON.parse(text); // localization/fr.json -> locales.fr
+      continue;
+    }
     const key = FILE_TO_KEY[path];
     if (key) (patch as Record<string, unknown>)[key] = JSON.parse(text);
   }
+  patch.locales = locales;
   content.setState((s) => ({ ...s, ...patch }));
   lsSet(CACHE_KEY, JSON.stringify(result.cache));
   lsSet(DATA_KEY, JSON.stringify(content.state)); // a restart starts from this synced snapshot

@@ -139,7 +139,7 @@ public final class ClientCodegen {
     private static void record(StringBuilder sb, String tsName, Class<?> rec) {
         sb.append("export interface ").append(tsName).append(" {\n");
         for (RecordComponent rc : rec.getRecordComponents()) {
-            String opt = nullable(rc.getGenericType()) ? "?" : "";
+            String opt = requiredField(rc.getName()) || !nullable(rc.getGenericType()) ? "" : "?";
             sb.append("  ").append(rc.getName()).append(opt).append(": ")
               .append(tsType(rc.getGenericType())).append(";\n");
         }
@@ -172,8 +172,14 @@ public final class ClientCodegen {
         };
     }
 
+    /** Identity/always-present fields that must stay required (never null in the data). */
+    private static boolean requiredField(String name) {
+        return name.equals("key") || name.equals("name");
+    }
+
     /** Which JokerDef fields are absent when null in the NON_NULL data module (so optional in TS). */
     private static boolean jokerNullable(RecordComponent rc) {
+        if (requiredField(rc.getName())) return false;
         return switch (rc.getName()) {
             case "rules", "handMods", "mods", "props", "state" -> false; // lists/maps: normalized non-null
             case "runMod", "copy" -> true;

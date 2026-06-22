@@ -102,8 +102,8 @@ export interface Rule {
 }
 
 export interface JokerDef {
-  key?: string;
-  name?: string;
+  key: string;
+  name: string;
   description?: string;
   rarity?: string;
   cost: number;
@@ -134,7 +134,7 @@ export interface FaceDownRule {
 }
 
 export interface RulesetBundle {
-  name?: string;
+  name: string;
   base?: string;
   overlays: string[];
   variant?: string;
@@ -151,8 +151,8 @@ export interface RulesetBundle {
 }
 
 export interface DeckType {
-  key?: string;
-  name?: string;
+  key: string;
+  name: string;
   description?: string;
   resourceMods: Modify[];
   greenEconomy: boolean;
@@ -165,8 +165,8 @@ export interface DeckType {
 }
 
 export interface BossBlind {
-  key?: string;
-  name?: string;
+  key: string;
+  name: string;
   effect?: string;
   minAnte: number;
   finisher: boolean;
@@ -189,16 +189,16 @@ export interface BossBlind {
 }
 
 export interface Tag {
-  key?: string;
-  name?: string;
+  key: string;
+  name: string;
   description?: string;
   ante1: boolean;
   timing?: "IMMEDIATE" | "ON_SHOP" | "ON_BOSS_DEFEAT" | "NEXT_BLIND" | "HELD";
 }
 
 export interface Voucher {
-  key?: string;
-  name?: string;
+  key: string;
+  name: string;
   description?: string;
   cost: number;
   upgradeKey?: string;
@@ -206,8 +206,8 @@ export interface Voucher {
 }
 
 export interface Consumable {
-  key?: string;
-  name?: string;
+  key: string;
+  name: string;
   description?: string;
   type?: "TAROT" | "PLANET" | "SPECTRAL";
   maxTargets: number;
@@ -215,8 +215,8 @@ export interface Consumable {
 }
 
 export interface Planet {
-  key?: string;
-  name?: string;
+  key: string;
+  name: string;
   hand?: "HIGH_CARD" | "PAIR" | "TWO_PAIR" | "THREE_OF_A_KIND" | "STRAIGHT" | "FLUSH" | "FULL_HOUSE" | "FOUR_OF_A_KIND" | "STRAIGHT_FLUSH" | "FIVE_OF_A_KIND" | "FLUSH_HOUSE" | "FLUSH_FIVE";
 }
 
