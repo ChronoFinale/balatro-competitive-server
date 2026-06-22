@@ -460,7 +460,8 @@ public final class GameServer implements AutoCloseable {
                 // Reconnected within the grace window: cancel the pending cleanup.
                 ScheduledFuture<?> grace = graceTasks.remove(playerId);
                 if (grace != null) grace.cancel(false);
-                conn.send(Map.of("type", "authed", "seq", seq, "playerId", playerId));
+                conn.send(Map.of("type", "authed", "seq", seq, "playerId", playerId,
+                        "rulesets", rulesetStore.names()));
                 // Resume: if a solo run is still alive for this identity, resend its view so the
                 // reconnected client re-renders the exact authoritative state.
                 Run existing = runs.get(playerId);
@@ -482,19 +483,25 @@ public final class GameServer implements AutoCloseable {
 
             switch (type) {
                 case "newRun" -> {
+                    // Optional ruleset by NAME — the client picks from listRulesets (curated + bundles +
+                    // custom). Unknown/absent falls back to the server default. The server resolves it; the
+                    // client only sends a name, never the ruleset's content (anti-cheat).
+                    String rsName = msg.path("ruleset").asText("");
+                    Ruleset rs = rsName.isEmpty() ? ruleset : rulesetStore.get(rsName);
+                    if (rs == null) rs = ruleset;
                     // Optional difficulty stake (White..Gold / 1..8) and deck (e.g. "d_blue"); both
                     // default sensibly (White; the ruleset's deck) if absent.
                     com.balatro.engine.state.Stake stake =
                             com.balatro.engine.state.Stake.parse(msg.path("stake").asText(null));
                     com.balatro.engine.game.DeckCatalog.DeckType deck =
                             com.balatro.engine.game.DeckCatalog.get(
-                                    msg.path("deck").asText(ruleset.deckType()));
+                                    msg.path("deck").asText(rs.deckType()));
                     // SERVER generates the seed (anti-cheat: the client must not pick a favorable one). A
                     // seed is honored only if explicitly supplied (dev/testing/reproducible wire tests);
                     // otherwise every run is fresh-random (PvP matches share one seed via createLobby).
                     String seedArg = msg.path("seed").asText("");
                     String seed = seedArg.isEmpty() ? com.balatro.engine.rng.Seeds.random() : seedArg;
-                    Run run = new Run(ruleset, seed, stake, deck);
+                    Run run = new Run(rs, seed, stake, deck);
                     runs.put(players.get(conn.sessionId()), run); // keyed by identity, survives reconnect
                     conn.send(ok(seq, run));
                 }

@@ -12,6 +12,7 @@ export interface SessionState {
   toast: string | null;
   banner: string | null;
   preview: { chips: number; mult: number; score: number } | null; // server score projection
+  rulesets: string[]; // rulesets the server offers (sent on auth) — the client selects one
 }
 
 export const store = new Store<SessionState>({
@@ -22,6 +23,7 @@ export const store = new Store<SessionState>({
   toast: null,
   banner: null,
   preview: null,
+  rulesets: [],
 });
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -50,9 +52,13 @@ export function previewCards(cards: number[]) {
   send({ type: "preview", cards });
 }
 
-export function newRun() {
+export function newRun(ruleset?: string) {
   set({ banner: null });
-  send({ type: "newRun", seed: Math.random().toString(36).slice(2, 8).toUpperCase() });
+  send({
+    type: "newRun",
+    ruleset, // server resolves the name (curated/bundle/custom); omitted = server default
+    seed: Math.random().toString(36).slice(2, 8).toUpperCase(),
+  });
 }
 
 /** Wire IPC message + status streams into the store. Call once at startup. */
@@ -61,7 +67,7 @@ export function initSession() {
   window.balatro.onMessage((m: ServerMessage) => {
     switch (m.type) {
       case "authed":
-        set({ myId: m.playerId ?? null, status: "menu" });
+        set({ myId: m.playerId ?? null, status: "menu", rulesets: m.rulesets ?? [] });
         break;
       case "update":
         if (m.accepted === false) toast(m.rejection ?? "rejected");

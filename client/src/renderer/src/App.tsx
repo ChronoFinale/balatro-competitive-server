@@ -53,10 +53,21 @@ function Login() {
 }
 
 function Menu() {
+  const rulesets = useStore(store, (s) => s.rulesets);
+  const [picked, setPicked] = useState("");
+  // default the selection to the first offered ruleset once they arrive
+  const choice = picked || rulesets[0] || "";
   return (
     <div className="panel row">
-      <button onClick={() => newRun()}>Solo Run</button>
-      <span className="stat">Multiplayer lobby UI is next.</span>
+      <label className="stat">Ruleset</label>
+      <select value={choice} onChange={(e) => setPicked(e.target.value)}>
+        {rulesets.length === 0 && <option value="">(server default)</option>}
+        {rulesets.map((r) => (
+          <option key={r} value={r}>{r}</option>
+        ))}
+      </select>
+      <button onClick={() => newRun(choice || undefined)}>Solo Run</button>
+      <span className="stat">{rulesets.length} rulesets offered by the server</span>
     </div>
   );
 }

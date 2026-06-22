@@ -44,9 +44,15 @@ class TcpNetworkTest {
                         new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 
                 send(out, Map.of("type", "auth", "seq", 0, "token", token));
-                assertThat(JSON.readTree(in.readLine()).path("type").asText()).isEqualTo("authed");
+                JsonNode authed = JSON.readTree(in.readLine());
+                assertThat(authed.path("type").asText()).isEqualTo("authed");
+                // the server offers its rulesets (curated + bundles) so the client can select one
+                JsonNode rulesets = authed.path("rulesets");
+                assertThat(rulesets.isArray()).isTrue();
+                assertThat(rulesets.toString()).contains("Standard").contains("vanilla-pvp");
 
-                send(out, Map.of("type", "newRun", "seq", 1, "seed", "TCP"));
+                // newRun naming a ruleset the server resolves (here the bundle "vanilla-pvp")
+                send(out, Map.of("type", "newRun", "seq", 1, "seed", "TCP", "ruleset", "vanilla-pvp"));
                 JsonNode start = JSON.readTree(in.readLine());
                 assertThat(start.path("view").path("ante").asInt()).isEqualTo(1);
                 assertThat(start.path("view").path("requirement").asLong()).isEqualTo(300);

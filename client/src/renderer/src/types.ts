@@ -116,5 +116,6 @@ export interface ServerMessage {
   mult?: number;
   score?: number;
   playerId?: string;
+  rulesets?: string[]; // names the server offers (curated + bundles + custom), sent on auth
   [k: string]: unknown;
 }
