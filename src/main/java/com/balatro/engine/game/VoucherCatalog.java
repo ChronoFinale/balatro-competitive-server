@@ -44,38 +44,22 @@ public final class VoucherCatalog {
             Set.of("v_hieroglyph", "v_petroglyph", "v_directors_cut", "v_retcon");
 
     static {
-        pair("v_overstock", "Overstock", "+1 card slot in the shop",
-                "v_overstock_plus", "Overstock Plus", "+1 more shop card slot (4 total)");
-        pair("v_clearance_sale", "Clearance Sale", "All shop cards & packs 25% off",
-                "v_liquidation", "Liquidation", "All shop cards & packs 50% off");
-        pair("v_hone", "Hone", "Foil/Holo/Poly Jokers appear 2x more often",
-                "v_glow_up", "Glow Up", "Foil/Holo/Poly Jokers appear 4x more often");
-        pair("v_reroll_surplus", "Reroll Surplus", "Rerolls cost $2 less",
-                "v_reroll_glut", "Reroll Glut", "Rerolls cost an additional $2 less");
-        pair("v_crystal_ball", "Crystal Ball", "+1 consumable slot",
-                "v_omen_globe", "Omen Globe", "Spectral cards may appear in Arcana Packs");
-        pair("v_telescope", "Telescope", "Celestial Packs always contain your most-played hand's Planet",
-                "v_observatory", "Observatory", "Planet cards in your consumables give X1.5 Mult for their hand");
-        pair("v_grabber", "Grabber", "Permanently +1 hand per round",
-                "v_nacho_tong", "Nacho Tong", "Permanently +1 additional hand per round");
-        pair("v_wasteful", "Wasteful", "Permanently +1 discard per round",
-                "v_recyclomancy", "Recyclomancy", "Permanently +1 additional discard per round");
-        pair("v_tarot_merchant", "Tarot Merchant", "Tarot cards appear 2x more in the shop",
-                "v_tarot_tycoon", "Tarot Tycoon", "Tarot cards appear 4x more in the shop");
-        pair("v_planet_merchant", "Planet Merchant", "Planet cards appear 2x more in the shop",
-                "v_planet_tycoon", "Planet Tycoon", "Planet cards appear 4x more in the shop");
-        pair("v_seed_money", "Seed Money", "Raise the interest cap to $10 per round",
-                "v_money_tree", "Money Tree", "Raise the interest cap to $20 per round");
-        pair("v_blank", "Blank", "Does nothing",
-                "v_antimatter", "Antimatter", "+1 Joker slot");
-        pair("v_magic_trick", "Magic Trick", "Playing cards can be bought from the shop",
-                "v_illusion", "Illusion", "Shop playing cards may have an Enhancement and/or Edition");
-        pair("v_hieroglyph", "Hieroglyph", "-1 Ante; -1 hand each round",
-                "v_petroglyph", "Petroglyph", "-1 Ante again; -1 discard each round");
-        pair("v_directors_cut", "Director's Cut", "Reroll the Boss Blind once per ante ($10)",
-                "v_retcon", "Retcon", "Reroll the Boss Blind unlimited times ($10)");
-        pair("v_paint_brush", "Paint Brush", "+1 hand size",
-                "v_palette", "Palette", "+1 hand size again");
+        pair("v_overstock", "Overstock", "v_overstock_plus", "Overstock Plus");
+        pair("v_clearance_sale", "Clearance Sale", "v_liquidation", "Liquidation");
+        pair("v_hone", "Hone", "v_glow_up", "Glow Up");
+        pair("v_reroll_surplus", "Reroll Surplus", "v_reroll_glut", "Reroll Glut");
+        pair("v_crystal_ball", "Crystal Ball", "v_omen_globe", "Omen Globe");
+        pair("v_telescope", "Telescope", "v_observatory", "Observatory");
+        pair("v_grabber", "Grabber", "v_nacho_tong", "Nacho Tong");
+        pair("v_wasteful", "Wasteful", "v_recyclomancy", "Recyclomancy");
+        pair("v_tarot_merchant", "Tarot Merchant", "v_tarot_tycoon", "Tarot Tycoon");
+        pair("v_planet_merchant", "Planet Merchant", "v_planet_tycoon", "Planet Tycoon");
+        pair("v_seed_money", "Seed Money", "v_money_tree", "Money Tree");
+        pair("v_blank", "Blank", "v_antimatter", "Antimatter");
+        pair("v_magic_trick", "Magic Trick", "v_illusion", "Illusion");
+        pair("v_hieroglyph", "Hieroglyph", "v_petroglyph", "Petroglyph");
+        pair("v_directors_cut", "Director's Cut", "v_retcon", "Retcon");
+        pair("v_paint_brush", "Paint Brush", "v_palette", "Palette");
 
         // Resource vouchers carry their effect as data (a Modify on a game variable), folded by Run
         // alongside the joker/boss/deck modifiers — no key-string checks.
@@ -127,10 +111,10 @@ public final class VoucherCatalog {
         BY_KEY.put(key, BY_KEY.get(key).withMods(mods));
     }
 
-    private static void pair(String baseKey, String baseName, String baseDesc,
-            String upKey, String upName, String upDesc) {
-        BY_KEY.put(baseKey, new Voucher(baseKey, baseName, baseDesc, 10, upKey));
-        BY_KEY.put(upKey, new Voucher(upKey, upName, upDesc, 10, null));
+    private static void pair(String baseKey, String baseName, String upKey, String upName) {
+        // Descriptions are localization data, keyed by voucher key (see /localization/en.json via Loc).
+        BY_KEY.put(baseKey, new Voucher(baseKey, baseName, com.balatro.engine.i18n.Loc.text(baseKey), 10, upKey));
+        BY_KEY.put(upKey, new Voucher(upKey, upName, com.balatro.engine.i18n.Loc.text(upKey), 10, null));
         BASES.add(baseKey);
     }
 

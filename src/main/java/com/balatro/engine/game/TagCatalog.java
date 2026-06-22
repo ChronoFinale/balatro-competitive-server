@@ -32,34 +32,34 @@ public final class TagCatalog {
     public static final Set<String> MP_BANNED = Set.of("tag_boss");
 
     static {
-        put("tag_uncommon", "Uncommon Tag", "Shop has a free Uncommon Joker", true, Timing.ON_SHOP);
-        put("tag_rare", "Rare Tag", "Shop has a free Rare Joker", true, Timing.ON_SHOP);
-        put("tag_negative", "Negative Tag", "Next base shop Joker is free and Negative", false, Timing.ON_SHOP);
-        put("tag_foil", "Foil Tag", "Next base shop Joker is free and Foil", true, Timing.ON_SHOP);
-        put("tag_holo", "Holographic Tag", "Next base shop Joker is free and Holographic", true, Timing.ON_SHOP);
-        put("tag_polychrome", "Polychrome Tag", "Next base shop Joker is free and Polychrome", true, Timing.ON_SHOP);
-        put("tag_investment", "Investment Tag", "Gain $25 after defeating the next Boss Blind", true, Timing.ON_BOSS_DEFEAT);
-        put("tag_voucher", "Voucher Tag", "Adds one Voucher to the next shop", true, Timing.ON_SHOP);
-        put("tag_boss", "Boss Tag", "Rerolls the Boss Blind", true, Timing.HELD);
-        put("tag_standard", "Standard Tag", "Free Mega Standard Pack", false, Timing.ON_SHOP);
-        put("tag_charm", "Charm Tag", "Free Mega Arcana Pack", true, Timing.ON_SHOP);
-        put("tag_meteor", "Meteor Tag", "Free Mega Celestial Pack", false, Timing.ON_SHOP);
-        put("tag_buffoon", "Buffoon Tag", "Free Mega Buffoon Pack", false, Timing.ON_SHOP);
-        put("tag_ethereal", "Ethereal Tag", "Free Spectral Pack", false, Timing.ON_SHOP);
-        put("tag_coupon", "Coupon Tag", "Initial shop cards & packs are free", true, Timing.ON_SHOP);
-        put("tag_double", "Double Tag", "Gives a copy of the next selected tag", true, Timing.HELD);
-        put("tag_juggle", "Juggle Tag", "+3 hand size next round", true, Timing.NEXT_BLIND);
-        put("tag_d_six", "D6 Tag", "Rerolls in the next shop start at $0", true, Timing.ON_SHOP);
-        put("tag_economy", "Economy Tag", "Doubles your money (max $40 gain)", true, Timing.IMMEDIATE);
-        put("tag_skip", "Speed Tag", "$5 per blind skipped this run", true, Timing.IMMEDIATE);
-        put("tag_orbital", "Orbital Tag", "Upgrade your most-played hand by 3 levels", false, Timing.IMMEDIATE);
-        put("tag_handy", "Handy Tag", "$1 per hand played this run", false, Timing.IMMEDIATE);
-        put("tag_garbage", "Garbage Tag", "$1 per unused discard this run", false, Timing.IMMEDIATE);
-        put("tag_top_up", "Top-Up Tag", "Create up to 2 Common Jokers", false, Timing.IMMEDIATE);
+        put("tag_uncommon", "Uncommon Tag", true, Timing.ON_SHOP);
+        put("tag_rare", "Rare Tag", true, Timing.ON_SHOP);
+        put("tag_negative", "Negative Tag", false, Timing.ON_SHOP);
+        put("tag_foil", "Foil Tag", true, Timing.ON_SHOP);
+        put("tag_holo", "Holographic Tag", true, Timing.ON_SHOP);
+        put("tag_polychrome", "Polychrome Tag", true, Timing.ON_SHOP);
+        put("tag_investment", "Investment Tag", true, Timing.ON_BOSS_DEFEAT);
+        put("tag_voucher", "Voucher Tag", true, Timing.ON_SHOP);
+        put("tag_boss", "Boss Tag", true, Timing.HELD);
+        put("tag_standard", "Standard Tag", false, Timing.ON_SHOP);
+        put("tag_charm", "Charm Tag", true, Timing.ON_SHOP);
+        put("tag_meteor", "Meteor Tag", false, Timing.ON_SHOP);
+        put("tag_buffoon", "Buffoon Tag", false, Timing.ON_SHOP);
+        put("tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP);
+        put("tag_coupon", "Coupon Tag", true, Timing.ON_SHOP);
+        put("tag_double", "Double Tag", true, Timing.HELD);
+        put("tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND);
+        put("tag_d_six", "D6 Tag", true, Timing.ON_SHOP);
+        put("tag_economy", "Economy Tag", true, Timing.IMMEDIATE);
+        put("tag_skip", "Speed Tag", true, Timing.IMMEDIATE);
+        put("tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE);
+        put("tag_handy", "Handy Tag", false, Timing.IMMEDIATE);
+        put("tag_garbage", "Garbage Tag", false, Timing.IMMEDIATE);
+        put("tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE);
     }
 
-    private static void put(String key, String name, String desc, boolean ante1, Timing timing) {
-        BY_KEY.put(key, new Tag(key, name, desc, ante1, timing));
+    private static void put(String key, String name, boolean ante1, Timing timing) {
+        BY_KEY.put(key, new Tag(key, name, com.balatro.engine.i18n.Loc.text(key), ante1, timing));
     }
 
     public static Tag get(String key) {
