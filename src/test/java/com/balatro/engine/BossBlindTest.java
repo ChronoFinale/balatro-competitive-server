@@ -124,7 +124,7 @@ class BossBlindTest {
     @Test
     void bossEffectTextIsLocalizedPerRunLocale() {
         Run run = new Run(Ruleset.standard(), "LOC", stoneDeck(300),
-                jokers("j_joker", "j_joker", "j_joker"));
+                jokers("j_greedy_joker", "j_joker", "j_joker"));
         run.forcedBoss = Bosses.of("bl_wall", "The Wall").requirement(4).build(); // effect from localization
         run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
         run.proceed();
@@ -134,8 +134,10 @@ class BossBlindTest {
 
         run.viewLocale = "en";
         assertThat(run.view().bossEffect()).isEqualTo("Very large blind (4x score)");
-        run.viewLocale = "fr"; // server renders the boss text in French, ${reqMult}=4 from data
-        assertThat(run.view().bossEffect()).isEqualTo("Très grande blinde (4× score)");
+        assertThat(run.view().jokers().get(0).get("description")).isEqualTo("Each played Diamond gives +3 Mult");
+        run.viewLocale = "fr"; // server renders ALL ClientView text in French
+        assertThat(run.view().bossEffect()).isEqualTo("Très grande blinde (4× score)"); // ${reqMult}=4 from data
+        assertThat(run.view().jokers().get(0).get("description")).isEqualTo("Chaque Carreau joué donne +3 Mult");
     }
 
     @Test

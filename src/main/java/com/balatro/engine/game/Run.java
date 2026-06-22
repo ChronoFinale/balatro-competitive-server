@@ -1565,6 +1565,13 @@ public final class Run {
                 "drawOnRefill", b.drawOnRefill(), "discardAfterPlay", b.discardAfterPlay()));
     }
 
+    /** A localized description for a content key in {@link #viewLocale}, falling back to {@code original}
+     *  when neither the locale nor English has text (e.g. a custom joker not in localization). */
+    private String locDesc(String key, String original) {
+        String t = com.balatro.engine.i18n.Loc.text(viewLocale, key);
+        return t.isEmpty() ? original : t;
+    }
+
     /** The safe projection of authoritative state the client may render (spec §8). */
     public ClientView view() {
         List<CardView> handView = new ArrayList<>();
@@ -1584,7 +1591,7 @@ public final class Run {
             }
             jv.put("key", info.key());
             jv.put("name", info.name());
-            jv.put("description", info.description());
+            jv.put("description", locDesc(info.key(), info.description()));
             jv.put("rarity", info.rarity());
             jv.put("cost", info.cost()); // for Swashbuckler's sell-value sum on the client
             jv.put("x", info.atlasX());
@@ -1610,7 +1617,7 @@ public final class Run {
                 m.put("kind", it.kind().name());
                 m.put("key", it.key());
                 m.put("name", it.name());
-                m.put("description", it.description());
+                m.put("description", locDesc(it.key(), it.description()));
                 m.put("cost", it.cost());
                 m.put("rarity", it.rarity());
                 m.put("edition", it.edition().name());
@@ -1626,12 +1633,12 @@ public final class Run {
         for (String key : state.consumables) {
             PlanetCatalog.Planet p = PlanetCatalog.get(key);
             if (p != null) {
-                consumables.add(Map.of("key", key, "name", p.name(), "description", p.description()));
+                consumables.add(Map.of("key", key, "name", p.name(), "description", locDesc(key, p.description())));
                 continue;
             }
             Consumable c = TarotCatalog.get(key);
             if (c != null) {
-                consumables.add(Map.of("key", key, "name", c.name(), "description", c.description(),
+                consumables.add(Map.of("key", key, "name", c.name(), "description", locDesc(key, c.description()),
                         "maxTargets", c.maxTargets()));
             }
         }
@@ -1689,8 +1696,8 @@ public final class Run {
             shopVouchers = new ArrayList<>();
             for (String vk : shop.vouchers()) {
                 var v = VoucherCatalog.get(vk);
-                shopVouchers.add(Map.of("key", v.key(), "name", v.name(), "description", v.description(),
-                        "cost", price(v.cost())));
+                shopVouchers.add(Map.of("key", v.key(), "name", v.name(),
+                        "description", locDesc(v.key(), v.description()), "cost", price(v.cost())));
             }
         }
 
@@ -1728,7 +1735,7 @@ public final class Run {
                 var info = JokerLibrary.create(it.key()).info();
                 m.put("key", it.key());
                 m.put("name", info.name());
-                m.put("description", info.description());
+                m.put("description", locDesc(it.key(), info.description()));
             }
             case "CARD" -> {
                 Card c = it.card();
@@ -1742,7 +1749,8 @@ public final class Run {
                 Consumable c = TarotCatalog.get(it.key());
                 m.put("key", it.key());
                 m.put("name", p != null ? p.name() : (c != null ? c.name() : it.key()));
-                m.put("description", p != null ? p.description() : (c != null ? c.description() : ""));
+                m.put("description", locDesc(it.key(),
+                        p != null ? p.description() : (c != null ? c.description() : "")));
             }
         }
         return m;
