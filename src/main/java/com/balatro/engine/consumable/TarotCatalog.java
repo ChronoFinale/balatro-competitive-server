@@ -5,7 +5,9 @@ import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Seal;
 import com.balatro.engine.card.Suit;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,6 +22,7 @@ public final class TarotCatalog {
     private TarotCatalog() {}
 
     private static final Map<String, Consumable> BY_KEY = new LinkedHashMap<>();
+    private static final List<Consumable> AUTHORED = new ArrayList<>();  // built by put(); the DSL source
 
     static {
         put(Consumables.tarot("c_magician", "The Magician")
@@ -118,10 +121,24 @@ public final class TarotCatalog {
         // single-player Tarot/Spectral pools; it's distributed only in multiplayer).
         put(Consumables.planet("c_asteroid", "Asteroid")
                 .nemesisDelevel().build());
+
+        // Runtime loads from /content/consumables.json; the puts above are the DSL authoring (+ fallback).
+        List<Consumable> cs;
+        try {
+            cs = com.balatro.engine.content.ContentStore.consumables();
+        } catch (RuntimeException e) {
+            cs = AUTHORED;
+        }
+        for (Consumable c : cs) BY_KEY.put(c.key(), c);
     }
 
     private static void put(Consumable c) {
-        BY_KEY.put(c.key(), c);
+        AUTHORED.add(c);
+    }
+
+    /** The DSL authoring source for {@code content/consumables.json} (also the fallback). */
+    public static List<Consumable> authored() {
+        return List.copyOf(AUTHORED);
     }
 
     public static Consumable get(String key) {

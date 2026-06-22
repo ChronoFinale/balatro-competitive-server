@@ -49,8 +49,7 @@ class EngineFromJsonTest {
         assertThat(com.balatro.engine.content.ContentStore.vouchers()).isEqualTo(
                 com.balatro.engine.game.VoucherCatalog.keys().stream()
                         .map(com.balatro.engine.game.VoucherCatalog::get).toList());
-        assertThat(com.balatro.engine.content.ContentStore.consumables()).isEqualTo(
-                com.balatro.engine.consumable.TarotCatalog.keys().stream()
-                        .map(com.balatro.engine.consumable.TarotCatalog::get).toList());
+        assertThat(com.balatro.engine.content.ContentStore.consumables())
+                .isEqualTo(com.balatro.engine.consumable.TarotCatalog.authored());
     }
 }
