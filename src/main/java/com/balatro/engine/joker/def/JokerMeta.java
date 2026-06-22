@@ -27,7 +27,7 @@ public final class JokerMeta {
         try (var in = JokerMeta.class.getResourceAsStream("/balatro-joker-stats.json")) {
             if (in == null) return out;
             JsonNode jokers = new ObjectMapper().readTree(in).path("jokers");
-            jokers.fields().forEachRemaining(e -> {
+            jokers.properties().forEach(e -> {
                 JsonNode v = e.getValue();
                 if (!v.isObject() || !v.has("cost")) return; // skip the "_note" strings
                 int r = v.path("rarity").asInt();

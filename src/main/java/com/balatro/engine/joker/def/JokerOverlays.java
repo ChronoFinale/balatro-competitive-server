@@ -52,7 +52,7 @@ public final class JokerOverlays {
     }
 
     private static final ObjectMapper JSON_NON_NULL = JSON.copy()
-            .setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+            .setDefaultPropertyInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
 
     /** Like {@link #writePretty} but omits null fields — so the value conforms to a TS interface whose
      *  nullable (object/string/enum) fields are optional rather than {@code | null}. */

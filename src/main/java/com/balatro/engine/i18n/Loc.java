@@ -35,7 +35,7 @@ public final class Loc {
         try (var in = Loc.class.getResourceAsStream("/localization/" + locale + ".json")) {
             if (in == null) return out;
             JsonNode root = new ObjectMapper().readTree(in);
-            root.fields().forEachRemaining(e -> out.put(e.getKey(), e.getValue().asText()));
+            root.properties().forEach(e -> out.put(e.getKey(), e.getValue().asText()));
         } catch (Exception ignored) {
             // Missing/malformed: callers' missing-text checks surface it.
         }
