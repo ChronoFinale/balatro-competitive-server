@@ -7,7 +7,7 @@ import type { UiScreen, UiComponent } from "../../generated/content-types";
 // A GENERIC renderer for server-driven UI: it interprets a UiScreen (data) into widgets, with no screen-
 // specific code. Selects bind to client data sources; buttons send wire intents with $bind-resolved params;
 // stats read session/view state. The same screen JSON will later drive a Lua renderer the same way.
-export default function ScreenView({ screen }: { screen: UiScreen }) {
+export default function ScreenView({ screen, onNavigate }: { screen: UiScreen; onNavigate?: (id: string) => void }) {
   const [state, setState] = useState<Record<string, string>>({});
   const session = useStore(store);
   const data = useStore(content);
@@ -53,6 +53,18 @@ export default function ScreenView({ screen }: { screen: UiScreen }) {
         );
       case "stat":
         return <div key={i} className="stat">{String(a.label)}: {statValue(String(a.source))}</div>;
+      case "input": {
+        const bind = String(a.bind);
+        return (
+          <label key={i} className="row">
+            <span className="stat">{String(a.label)}</span>
+            <input value={state[bind] ?? ""} placeholder={String(a.placeholder ?? "")}
+              onChange={(e) => setState((s) => ({ ...s, [bind]: e.target.value }))} />
+          </label>
+        );
+      }
+      case "nav":
+        return <button key={i} className="alt" onClick={() => onNavigate?.(String(a.screen))}>{String(a.text)}</button>;
       default:
         return <div key={i} className="stat">[unknown component: {c.type}]</div>;
     }

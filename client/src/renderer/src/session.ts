@@ -13,6 +13,8 @@ export interface SessionState {
   banner: string | null;
   preview: { chips: number; mult: number; score: number } | null; // server score projection
   rulesets: string[]; // rulesets the server offers (sent on auth) — the client selects one
+  lobbyCode: string; // code of a lobby this client created (to share), shown by the mp screen
+  queueStatus: string; // matchmaking status, shown by the queue screen
 }
 
 export const store = new Store<SessionState>({
@@ -24,6 +26,8 @@ export const store = new Store<SessionState>({
   banner: null,
   preview: null,
   rulesets: [],
+  lobbyCode: "",
+  queueStatus: "",
 });
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -79,6 +83,13 @@ export function initSession() {
         break;
       case "preview":
         set({ preview: { chips: m.chips ?? 0, mult: m.mult ?? 0, score: m.score ?? 0 } });
+        break;
+      case "lobbyCreated":
+        set({ lobbyCode: String(m.code ?? "") });
+        toast(`Lobby ${m.code} — share the code`);
+        break;
+      case "queued":
+        set({ queueStatus: String(m.status ?? "waiting") });
         break;
       case "error":
         toast(m.rejection ?? "error");

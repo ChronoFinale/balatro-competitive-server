@@ -55,10 +55,12 @@ function Login() {
 }
 
 function Menu() {
-  // The menu is now server-driven UI: render the "menu" screen (data) via the generic ScreenView.
+  // Server-driven UI: a tiny router over the data-defined screens (menu / mp / queue), with Nav components
+  // walking between them. No screen-specific code — every screen is rendered by the generic ScreenView.
   const screens = useStore(content, (c) => c.SCREENS);
-  const menu = screens.find((s) => s.id === "menu");
-  return menu ? <ScreenView screen={menu} /> : <div className="panel row">Loading…</div>;
+  const [screenId, setScreenId] = useState("menu");
+  const screen = screens.find((s) => s.id === screenId) ?? screens.find((s) => s.id === "menu");
+  return screen ? <ScreenView screen={screen} onNavigate={setScreenId} /> : <div className="panel row">Loading…</div>;
 }
 
 function Game() {

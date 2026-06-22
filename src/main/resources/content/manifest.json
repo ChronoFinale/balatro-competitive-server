@@ -1,5 +1,5 @@
 {
-  "version" : "f65f257fc269b3ad",
+  "version" : "97b0a09d72974266",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
@@ -48,8 +48,8 @@
     },
     {
       "path" : "content/ui-screens.json",
-      "sha256" : "58bfae7583cf88ac514f7eec8105981d00d627bfcc665bbda4b921e7f54e5d58",
-      "bytes" : 1108
+      "sha256" : "723d6a2a79234464fafb9a6edcd02bc9011707865453c4e9290c1448585327c9",
+      "bytes" : 2059
     },
     {
       "path" : "rulesets/bundles/vanilla-solo.json",

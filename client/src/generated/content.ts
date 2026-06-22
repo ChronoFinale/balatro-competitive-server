@@ -5,11 +5,11 @@ import type { JokerDef, DeckType, BossBlind, Tag, Voucher, Consumable, Planet, H
 export const SCREENS: readonly UiScreen[] = [
   {
     "id" : "menu",
-    "title" : "New Run",
+    "title" : "Balatro Competitive",
     "components" : [
       {
         "type" : "label",
-        "text" : "Pick a ruleset and start, or queue for a match."
+        "text" : "Pick a ruleset and start a run, or play multiplayer."
       },
       {
         "type" : "select",
@@ -27,12 +27,51 @@ export const SCREENS: readonly UiScreen[] = [
         }
       },
       {
+        "type" : "nav",
+        "text" : "Multiplayer ▸",
+        "screen" : "mp"
+      }
+    ]
+  },
+  {
+    "id" : "mp",
+    "title" : "Multiplayer",
+    "components" : [
+      {
         "type" : "button",
-        "text" : "Find Match",
-        "intent" : "joinQueue",
+        "text" : "Create Lobby",
+        "intent" : "createLobby",
+        "params" : { }
+      },
+      {
+        "type" : "stat",
+        "label" : "Lobby code",
+        "source" : "lobbyCode"
+      },
+      {
+        "type" : "input",
+        "id" : "code",
+        "label" : "Join by code",
+        "bind" : "code",
+        "placeholder" : "ABCD12"
+      },
+      {
+        "type" : "button",
+        "text" : "Join Lobby",
+        "intent" : "joinLobby",
         "params" : {
-          "ruleset" : "$ruleset"
+          "code" : "$code"
         }
+      },
+      {
+        "type" : "nav",
+        "text" : "Quick Match ▸",
+        "screen" : "queue"
+      },
+      {
+        "type" : "nav",
+        "text" : "◂ Back",
+        "screen" : "menu"
       }
     ]
   },
@@ -41,20 +80,28 @@ export const SCREENS: readonly UiScreen[] = [
     "title" : "Finding a Match",
     "components" : [
       {
-        "type" : "stat",
-        "label" : "Status",
-        "source" : "queueStatus"
+        "type" : "button",
+        "text" : "Join Queue",
+        "intent" : "joinQueue",
+        "params" : {
+          "ruleset" : "$ruleset"
+        }
       },
       {
         "type" : "stat",
-        "label" : "In queue",
-        "source" : "queueCount"
+        "label" : "Status",
+        "source" : "queueStatus"
       },
       {
         "type" : "button",
         "text" : "Leave Queue",
         "intent" : "leaveQueue",
         "params" : { }
+      },
+      {
+        "type" : "nav",
+        "text" : "◂ Back",
+        "screen" : "mp"
       }
     ]
   }

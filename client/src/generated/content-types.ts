@@ -90,10 +90,12 @@ export type SelectorType =
   | "randomJoker"
   | "selected";
 
-/** 4 discriminators the server dispatches on — the client must handle exactly these. */
+/** 6 discriminators the server dispatches on — the client must handle exactly these. */
 export type UiComponentType =
   | "button"
+  | "input"
   | "label"
+  | "nav"
   | "select"
   | "stat";
 

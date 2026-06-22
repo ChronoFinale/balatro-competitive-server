@@ -21,6 +21,8 @@ import java.util.Map;
     @JsonSubTypes.Type(value = UiComponent.Select.class, name = "select"),
     @JsonSubTypes.Type(value = UiComponent.Button.class, name = "button"),
     @JsonSubTypes.Type(value = UiComponent.Stat.class, name = "stat"),
+    @JsonSubTypes.Type(value = UiComponent.Input.class, name = "input"),
+    @JsonSubTypes.Type(value = UiComponent.Nav.class, name = "nav"),
 })
 public sealed interface UiComponent {
 
@@ -35,4 +37,10 @@ public sealed interface UiComponent {
 
     /** A live key/value display, reading {@code source} from the client's view/session state. */
     record Stat(String label, String source) implements UiComponent {}
+
+    /** A text field storing its value under the {@code bind} state key (e.g. a lobby code). */
+    record Input(String id, String label, String bind, String placeholder) implements UiComponent {}
+
+    /** A button that navigates the client to another {@link UiScreen} by id (no wire intent). */
+    record Nav(String text, String screen) implements UiComponent {}
 }

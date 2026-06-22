@@ -1,7 +1,9 @@
 package com.balatro.engine.ui;
 
 import com.balatro.engine.ui.UiComponent.Button;
+import com.balatro.engine.ui.UiComponent.Input;
 import com.balatro.engine.ui.UiComponent.Label;
+import com.balatro.engine.ui.UiComponent.Nav;
 import com.balatro.engine.ui.UiComponent.Select;
 import com.balatro.engine.ui.UiComponent.Stat;
 import java.util.List;
@@ -18,17 +20,27 @@ public final class Screens {
 
     public static List<UiScreen> all() {
         return List.of(
-                // Main menu: pick a ruleset the server offers, start a run (or join the queue).
-                new UiScreen("menu", "New Run", List.of(
-                        new Label("Pick a ruleset and start, or queue for a match."),
+                // Main menu: pick a ruleset the server offers; start a solo run or go to multiplayer.
+                new UiScreen("menu", "Balatro Competitive", List.of(
+                        new Label("Pick a ruleset and start a run, or play multiplayer."),
                         new Select("rs", "Ruleset", "rulesets", "ruleset"),
                         new Button("Solo Run", "newRun", Map.of("ruleset", "$ruleset")),
-                        new Button("Find Match", "joinQueue", Map.of("ruleset", "$ruleset")))),
+                        new Nav("Multiplayer ▸", "mp"))),
 
-                // Queue: while matchmaking, show status; allow leaving.
+                // Multiplayer: create a lobby, join one by code, or quick-match via the queue.
+                new UiScreen("mp", "Multiplayer", List.of(
+                        new Button("Create Lobby", "createLobby", Map.of()),
+                        new Stat("Lobby code", "lobbyCode"),
+                        new Input("code", "Join by code", "code", "ABCD12"),
+                        new Button("Join Lobby", "joinLobby", Map.of("code", "$code")),
+                        new Nav("Quick Match ▸", "queue"),
+                        new Nav("◂ Back", "menu"))),
+
+                // Queue: kick off matchmaking, show status, allow leaving.
                 new UiScreen("queue", "Finding a Match", List.of(
+                        new Button("Join Queue", "joinQueue", Map.of("ruleset", "$ruleset")),
                         new Stat("Status", "queueStatus"),
-                        new Stat("In queue", "queueCount"),
-                        new Button("Leave Queue", "leaveQueue", Map.of()))));
+                        new Button("Leave Queue", "leaveQueue", Map.of()),
+                        new Nav("◂ Back", "mp"))));
     }
 }
