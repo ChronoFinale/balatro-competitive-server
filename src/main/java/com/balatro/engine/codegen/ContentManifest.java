@@ -37,6 +37,7 @@ public record ContentManifest(String version, List<FileEntry> files) {
             "content/consumables.json",
             "content/planets.json",
             "content/hand-scores.json",
+            "content/ui-screens.json",
             "rulesets/bundles/vanilla-solo.json",
             "rulesets/bundles/vanilla-pvp.json",
             "rulesets/bundles/bmp-0.4.2-ranked.json",

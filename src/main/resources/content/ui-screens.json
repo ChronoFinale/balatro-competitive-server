@@ -1,0 +1,57 @@
+[
+  {
+    "id" : "menu",
+    "title" : "New Run",
+    "components" : [
+      {
+        "type" : "label",
+        "text" : "Pick a ruleset and start, or queue for a match."
+      },
+      {
+        "type" : "select",
+        "id" : "rs",
+        "label" : "Ruleset",
+        "source" : "rulesets",
+        "bind" : "ruleset"
+      },
+      {
+        "type" : "button",
+        "text" : "Solo Run",
+        "intent" : "newRun",
+        "params" : {
+          "ruleset" : "$ruleset"
+        }
+      },
+      {
+        "type" : "button",
+        "text" : "Find Match",
+        "intent" : "joinQueue",
+        "params" : {
+          "ruleset" : "$ruleset"
+        }
+      }
+    ]
+  },
+  {
+    "id" : "queue",
+    "title" : "Finding a Match",
+    "components" : [
+      {
+        "type" : "stat",
+        "label" : "Status",
+        "source" : "queueStatus"
+      },
+      {
+        "type" : "stat",
+        "label" : "In queue",
+        "source" : "queueCount"
+      },
+      {
+        "type" : "button",
+        "text" : "Leave Queue",
+        "intent" : "leaveQueue",
+        "params" : { }
+      }
+    ]
+  }
+]

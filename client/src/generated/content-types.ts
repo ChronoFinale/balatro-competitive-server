@@ -90,10 +90,18 @@ export type SelectorType =
   | "randomJoker"
   | "selected";
 
+/** 4 discriminators the server dispatches on — the client must handle exactly these. */
+export type UiComponentType =
+  | "button"
+  | "label"
+  | "select"
+  | "stat";
+
 /** A node tagged by its discriminator; the client narrows on `type` to read the rest. */
 export type Condition = { type: ConditionType } & Record<string, unknown>;
 export type Effect = { type: EffectType } & Record<string, unknown>;
 export type Value = { type: ValueType } & Record<string, unknown>;
+export type UiComponent = { type: UiComponentType } & Record<string, unknown>;
 
 export interface Rule {
   when: string;
@@ -220,6 +228,12 @@ export interface Planet {
   hand?: "HIGH_CARD" | "PAIR" | "TWO_PAIR" | "THREE_OF_A_KIND" | "STRAIGHT" | "FLUSH" | "FULL_HOUSE" | "FOUR_OF_A_KIND" | "STRAIGHT_FLUSH" | "FIVE_OF_A_KIND" | "FLUSH_HOUSE" | "FLUSH_FIVE";
 }
 
+export interface UiScreen {
+  id?: string;
+  title?: string;
+  components: UiComponent[];
+}
+
 export type HandName = "HIGH_CARD" | "PAIR" | "TWO_PAIR" | "THREE_OF_A_KIND" | "STRAIGHT" | "FLUSH" | "FULL_HOUSE" | "FOUR_OF_A_KIND" | "STRAIGHT_FLUSH" | "FIVE_OF_A_KIND" | "FLUSH_HOUSE" | "FLUSH_FIVE";
 
 export interface HandScore {
@@ -257,6 +271,7 @@ export const CONTENT_MANIFEST = [
   "content/consumables.json",
   "content/planets.json",
   "content/hand-scores.json",
+  "content/ui-screens.json",
   "rulesets/bundles/vanilla-solo.json",
   "rulesets/bundles/vanilla-pvp.json",
   "rulesets/bundles/bmp-0.4.2-ranked.json",

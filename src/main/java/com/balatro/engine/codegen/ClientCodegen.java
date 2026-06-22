@@ -45,6 +45,7 @@ public final class ClientCodegen {
             "content/consumables.json",
             "content/planets.json",
             "content/hand-scores.json",
+            "content/ui-screens.json",
             "rulesets/bundles/vanilla-solo.json",
             "rulesets/bundles/vanilla-pvp.json",
             "rulesets/bundles/bmp-0.4.2-ranked.json");
@@ -58,11 +59,13 @@ public final class ClientCodegen {
         union(sb, "EffectType", Effect.class);
         union(sb, "ValueType", Value.class);
         union(sb, "SelectorType", Selector.class);
+        union(sb, "UiComponentType", com.balatro.engine.ui.UiComponent.class);
 
         sb.append("/** A node tagged by its discriminator; the client narrows on `type` to read the rest. */\n");
         sb.append("export type Condition = { type: ConditionType } & Record<string, unknown>;\n");
         sb.append("export type Effect = { type: EffectType } & Record<string, unknown>;\n");
-        sb.append("export type Value = { type: ValueType } & Record<string, unknown>;\n\n");
+        sb.append("export type Value = { type: ValueType } & Record<string, unknown>;\n");
+        sb.append("export type UiComponent = { type: UiComponentType } & Record<string, unknown>;\n\n");
 
         sb.append("export interface Rule {\n");
         sb.append("  when: string;\n");
@@ -89,6 +92,7 @@ public final class ClientCodegen {
         record(sb, "Voucher", com.balatro.engine.game.VoucherCatalog.Voucher.class);
         record(sb, "Consumable", com.balatro.engine.consumable.Consumable.class);
         record(sb, "Planet", com.balatro.engine.game.PlanetCatalog.Planet.class);
+        record(sb, "UiScreen", com.balatro.engine.ui.UiScreen.class);
         enumType(sb, "HandName", com.balatro.engine.hand.HandType.class);
 
         // The poker-hand scoring/leveling table — base + (level-1)×increment — so the client can show
@@ -200,6 +204,7 @@ public final class ClientCodegen {
             if (c == Value.class) return "Value";
             if (c == com.balatro.engine.joker.def.Modify.class) return "Modify";
             if (c == com.balatro.engine.game.BossBlind.FaceDownRule.class) return "FaceDownRule";
+            if (c == com.balatro.engine.ui.UiComponent.class) return "UiComponent";
             if (c.isEnum()) {
                 return Arrays.stream(c.getEnumConstants()).map(e -> "\"" + e + "\"")
                         .collect(Collectors.joining(" | "));

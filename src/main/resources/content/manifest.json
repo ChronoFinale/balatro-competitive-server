@@ -1,5 +1,5 @@
 {
-  "version" : "b81b9b61edb8a4e2",
+  "version" : "f65f257fc269b3ad",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
@@ -45,6 +45,11 @@
       "path" : "content/hand-scores.json",
       "sha256" : "03d1072b44ee5ec442b802fd9835fda9bd992e3d6324f24f686e4b99a19c6087",
       "bytes" : 1897
+    },
+    {
+      "path" : "content/ui-screens.json",
+      "sha256" : "58bfae7583cf88ac514f7eec8105981d00d627bfcc665bbda4b921e7f54e5d58",
+      "bytes" : 1108
     },
     {
       "path" : "rulesets/bundles/vanilla-solo.json",
