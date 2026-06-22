@@ -68,9 +68,12 @@ public final class RulesetStore {
         return r;
     }
 
-    /** Curated + custom names, curated first. */
+    /** Curated + bundle + custom names, curated first. */
     public List<String> names() {
         List<String> out = new ArrayList<>(RulesetCatalog.names());
+        for (String n : BundleCatalog.names()) {
+            if (!out.contains(n)) out.add(n);
+        }
         for (String n : custom.keySet()) {
             if (!out.contains(n)) out.add(n);
         }
@@ -81,13 +84,19 @@ public final class RulesetStore {
     public List<Ruleset> all() {
         List<Ruleset> out = new ArrayList<>();
         for (String n : RulesetCatalog.names()) out.add(RulesetCatalog.get(n));
+        for (String n : BundleCatalog.names()) out.add(BundleCatalog.get(n).resolve());
         out.addAll(custom.values());
         return out;
     }
 
     public Ruleset get(String name) {
         Ruleset curated = RulesetCatalog.get(name);
-        return curated != null ? curated : custom.get(name);
+        if (curated != null) return curated;
+        Ruleset c = custom.get(name);
+        if (c != null) return c;
+        // Composable bundles are resolvable as rulesets by name (the lobby can propose them).
+        RulesetBundle b = BundleCatalog.get(name);
+        return b != null ? b.resolve() : null;
     }
 
     private void validate(Ruleset r) {

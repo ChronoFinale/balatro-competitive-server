@@ -230,6 +230,10 @@ public final class Match {
             send(me, map("type", "error", "rejection", "unknown ruleset: " + name));
             return;
         }
+        if (!com.balatro.engine.state.BundleCatalog.isPvp(name)) {
+            send(me, map("type", "error", "rejection", "ruleset is single-player only: " + name));
+            return;
+        }
         proposed = r;
         proposedName = name;
         send(guest, map("type", "rulesetProposed", "ruleset", r));
