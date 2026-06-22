@@ -55,4 +55,18 @@ class CustomBundleTest {
         Run run = new Run(b.resolve(), "SEED", stoneDeck(400), jokers("j_joker"));
         assertThat(run.state.capabilities).isEqualTo(Capabilities.MULTIPLAYER);
     }
+
+    @Test void invalidCustomBundleIsRejectedAtLoadNotAtRuntime(@TempDir Path dir) throws Exception {
+        // references an overlay that doesn't exist — must be skipped at load, never offered
+        Files.writeString(dir.resolve("broken.json"), """
+            { "name": "broken-mode", "base": "vanilla", "overlays": ["does-not-exist"],
+              "variant": "default", "mode": "SOLO", "decks": [],
+              "startingMoney": 4, "hands": 4, "discards": 3, "handSize": 8, "anteScaling": 1.0,
+              "winAnte": 8, "blindBaseAmounts": [300, 800, 2000, 5000, 11000, 20000, 35000, 50000],
+              "deckType": "d_base" }
+            """);
+        BundleCatalog.loadDir(dir);
+        assertThat(BundleCatalog.names()).doesNotContain("broken-mode");
+        assertThat(BundleCatalog.get("broken-mode")).isNull();
+    }
 }

@@ -40,9 +40,11 @@ public final class BundleCatalog {
         try (Stream<Path> files = Files.list(dir)) {
             files.filter(p -> p.getFileName().toString().endsWith(".json")).forEach(p -> {
                 try {
-                    register(JSON.readValue(Files.readAllBytes(p), RulesetBundle.class));
+                    RulesetBundle b = JSON.readValue(Files.readAllBytes(p), RulesetBundle.class);
+                    b.content(); // validate it resolves (known base + every overlay exists) before offering it
+                    register(b);
                 } catch (Exception e) {
-                    System.err.println("skipping unreadable bundle " + p + ": " + e.getMessage());
+                    System.err.println("skipping invalid bundle " + p + ": " + e.getMessage());
                 }
             });
         } catch (java.io.IOException e) {
