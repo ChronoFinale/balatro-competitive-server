@@ -22,7 +22,24 @@
 - **Seltzer** (`j_seltzer`) — changed: description, rules
   - _MP rework: 8-hand acquire window_
 
-## Added (0)
+## Added (9)
 
-_none_
+- **Pizza** (`j_pizza`)
+  - _Nemesis: spends at PvP end for temporary discards on both sides_
+- **Speedrun** (`j_speedrun`)
+  - _Nemesis: rewards reaching the PvP blind first_
+- **Penny Pincher** (`j_penny_pincher`)
+  - _Nemesis: taxes the opponent's shop spend_
+- **Skip-Off** (`j_skip_off`)
+  - _Nemesis: rewards skipping blinds_
+- **Let's Go Gambling** (`j_lets_go_gambling`)
+  - _Nemesis: high-variance gamble payout_
+- **Pacifist** (`j_pacifist`)
+  - _Nemesis: pays off outside PvP blinds_
+- **Defensive Joker** (`j_defensive_joker`)
+  - _Nemesis: scales with the opponent's life deficit_
+- **Conjoined Joker** (`j_conjoined`)
+  - _Nemesis: scales with the opponent's remaining hands_
+- **Taxes** (`j_taxes`)
+  - _Nemesis: scales with the opponent's cards sold_
 

@@ -92,11 +92,14 @@ public final class JokerLibrary {
             new LinkedHashMap<>();
 
     static {
-        // The MP behaviour variants are the overlay's overrides, applied to the base: e.g. create("j_seltzer",
-        // "multiplayer") returns the reworked def. (Removals are enforced by MP_BANNED in the pools, not here.)
+        // The MP overlay's adds (Nemesis jokers) join the registry — AFTER the BUILTIN_KEYS snapshot above, so
+        // create("j_pizza") works but they never leak into the default single-player pool. Its overrides become
+        // the "multiplayer" variant defs: create("j_seltzer", "multiplayer") returns the reworked def.
+        // (Removals are enforced by MP_BANNED in the pools, not here.)
+        var overlay = com.balatro.engine.joker.def.Rulesets.overlay(MP_OVERLAY);
         var eff = com.balatro.engine.joker.def.Rulesets.effective(MP_OVERLAY);
-        com.balatro.engine.joker.def.Rulesets.overlay(MP_OVERLAY).override()
-                .forEach(o -> registerVariant(MP_VARIANT, eff.get(o.key())));
+        overlay.add().forEach(a -> registerDef(a.def()));
+        overlay.override().forEach(o -> registerVariant(MP_VARIANT, eff.get(o.key())));
     }
 
     /** Register an alternate behavior for an existing joker key under a named variant. */

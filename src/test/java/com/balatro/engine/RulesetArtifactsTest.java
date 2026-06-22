@@ -45,12 +45,35 @@ class RulesetArtifactsTest {
     }
 
     @Test void bmpOverlayAndDoc() throws Exception {
-        // The overlay JSON is the committed source of truth; the doc is generated from it.
-        RulesetOverlay overlay = M.readValue(Files.readAllBytes(BMP), RulesetOverlay.class);
+        // remove + override are the committed hand-data; the add list is compiled from the typed
+        // BuiltinJokerDefs.mpAdditions() DSL (so complex Nemesis rules aren't hand-written as JSON).
+        RulesetOverlay committed = M.readValue(Files.readAllBytes(BMP), RulesetOverlay.class);
+        RulesetOverlay overlay = REGEN ? withCompiledAdds(committed) : committed;
+        if (REGEN) gate(BMP, JokerOverlays.writePretty(overlay));
+
         var eff = JokerOverlays.apply(BuiltinJokerDefs.all(), overlay);
         assertThat(eff).doesNotContainKeys(JokerLibrary.MP_BANNED.toArray(String[]::new));
+        assertThat(eff).containsKey("j_pizza"); // an MP-only add lands in the effective set
         RulesetDiff diff = JokerOverlays.diff(BuiltinJokerDefs.all(), overlay);
         gate(BMP_DOC, JokerOverlays.toMarkdown(diff));
+    }
+
+    /** Rebuild the overlay's {@code add} list from the DSL-authored Nemesis defs, keeping remove + override. */
+    private RulesetOverlay withCompiledAdds(RulesetOverlay committed) {
+        var reasons = java.util.Map.ofEntries(
+                java.util.Map.entry("j_pizza", "Nemesis: spends at PvP end for temporary discards on both sides"),
+                java.util.Map.entry("j_speedrun", "Nemesis: rewards reaching the PvP blind first"),
+                java.util.Map.entry("j_penny_pincher", "Nemesis: taxes the opponent's shop spend"),
+                java.util.Map.entry("j_skip_off", "Nemesis: rewards skipping blinds"),
+                java.util.Map.entry("j_lets_go_gambling", "Nemesis: high-variance gamble payout"),
+                java.util.Map.entry("j_pacifist", "Nemesis: pays off outside PvP blinds"),
+                java.util.Map.entry("j_defensive_joker", "Nemesis: scales with the opponent's life deficit"),
+                java.util.Map.entry("j_conjoined", "Nemesis: scales with the opponent's remaining hands"),
+                java.util.Map.entry("j_taxes", "Nemesis: scales with the opponent's cards sold"));
+        List<RulesetOverlay.Add> adds = BuiltinJokerDefs.mpAdditions().stream()
+                .map(d -> new RulesetOverlay.Add(reasons.getOrDefault(d.key(), "Multiplayer-exclusive Nemesis joker"), d))
+                .toList();
+        return new RulesetOverlay(committed.name(), committed.base(), committed.remove(), committed.override(), adds);
     }
 
     private static void gate(Path path, String expected) throws Exception {

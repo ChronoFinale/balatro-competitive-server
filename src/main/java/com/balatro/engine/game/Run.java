@@ -495,7 +495,13 @@ public final class Run {
     private List<String> jokerPoolForShop() {
         if (!ruleset.capabilities().restrictedPools()) return ruleset.jokerPool();
         List<String> base = ruleset.jokerPool().isEmpty() ? JokerLibrary.builtinKeys() : ruleset.jokerPool();
-        return base.stream().filter(k -> !MP_DISABLED.contains(k)).toList();
+        // MP pool = configured base minus the overlay's bans, plus its MP-only adds (the Nemesis jokers, which
+        // are not in the vanilla base). Source: the bmp-0.4.2-ranked overlay.
+        List<String> out = new java.util.ArrayList<>(base.stream().filter(k -> !MP_DISABLED.contains(k)).toList());
+        for (var a : com.balatro.engine.joker.def.Rulesets.overlay(JokerLibrary.MP_OVERLAY).add()) {
+            if (!out.contains(a.def().key())) out.add(a.def().key());
+        }
+        return out;
     }
 
     /**

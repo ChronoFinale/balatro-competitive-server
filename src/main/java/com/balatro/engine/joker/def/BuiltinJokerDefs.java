@@ -89,6 +89,46 @@ public final class BuiltinJokerDefs {
                 .build();
     }
 
+    /**
+     * The multiplayer-exclusive "Nemesis" jokers — authored in the DSL here, but <b>not</b> part of the base
+     * {@link #all()} (which is pure vanilla). They enter a run only via the MP ruleset overlay's {@code add}
+     * list ({@code /rulesets/bmp-0.4.2-ranked.json}, compiled from these defs). Several read opponent state or
+     * fire on PvP triggers, so they have no meaning in single-player and never appear in a vanilla pool.
+     */
+    public static List<JokerDef> mpAdditions() {
+        return List.of(
+                // Pizza: consumed at PvP end -> temporary discards (mine + the Nemesis's).
+                Jokers.of("j_pizza", "Pizza")
+                        .on(Trigger.PVP_BLIND_ENDED).effect(
+                                new Effect.GrantDiscards(false, 1, 3),  // +1 discard to me, next 3 blinds
+                                new Effect.GrantDiscards(true, 2, 3),   // +2 discards to the Nemesis
+                                new Effect.DestroySelf())               // consumed
+                        .build(),
+                // Speedrun: reach PvP first -> Spectral (match-coordinated).
+                Jokers.of("j_speedrun", "Speedrun")
+                        .on(Trigger.PVP_BLIND_REACHED).when(Cond.reachedPvpFirst())
+                        .create(CreateSpec.Kind.SPECTRAL).build(),
+                // Penny Pincher: Nemesis shop-spend economy.
+                Jokers.of("j_penny_pincher", "Penny Pincher")
+                        .runMod(RunMod.pvpShopSpendShare(3)).build(),
+                // Skip-Off / Let's Go Gambling.
+                Jokers.of("j_skip_off", "Skip-Off")
+                        .runMod(RunMod.skipBonus()).build(),
+                Jokers.of("j_lets_go_gambling", "Let's Go Gambling")
+                        .whenHand(Cond.chance(1, 4, "gambling"))
+                        .effect(new Effect.Score(Op.XMULT, Val.of(4)), new Effect.Score(Op.DOLLARS, Val.of(10))).build(),
+                // Opponent-state readers.
+                Jokers.of("j_pacifist", "Pacifist")
+                        .whenHand(not(Cond.inPvpBlind())).multiply(MULT, 10).build(),
+                Jokers.of("j_defensive_joker", "Defensive Joker")
+                        .whenHand().add(CHIPS, Val.runVar(Value.Var.OPP_LIVES_BEHIND, 0, 125)).build(),
+                Jokers.of("j_conjoined", "Conjoined Joker")
+                        .whenHand(Cond.inPvpBlind())
+                        .multiply(MULT, Val.clamp(Val.runVar(Value.Var.OPP_HANDS_LEFT, 1, 0.5), 1, 3)).build(),
+                Jokers.of("j_taxes", "Taxes")
+                        .whenHand().add(MULT, Val.runVar(Value.Var.OPP_CARDS_SOLD, 0, 4)).build());
+    }
+
     public static List<JokerDef> all() {
         return List.of(
                 // --- suit-mult family (all four, fully data-driven) ---
@@ -478,41 +518,6 @@ public final class BuiltinJokerDefs {
                 // --- batch 39: Showman (allow duplicate shop offerings; disables the skip-if-owned rule) ---
                 Jokers.of("j_showman", "Showman")
                         .mods(Modify.max(Value.Var.ALLOW_SHOP_DUPLICATES, 1)).build(),
-
-                // --- batch 47: Pizza (consumed at PvP end -> temporary discards) ---
-                Jokers.of("j_pizza", "Pizza")
-                        .on(Trigger.PVP_BLIND_ENDED).effect(
-                                new Effect.GrantDiscards(false, 1, 3),  // +1 discard to me, next 3 blinds
-                                new Effect.GrantDiscards(true, 2, 3),   // +2 discards to the Nemesis
-                                new Effect.DestroySelf())               // consumed
-                        .build(),
-
-                // --- batch 46: Speedrun (reach PvP first -> Spectral; match-coordinated) ---
-                Jokers.of("j_speedrun", "Speedrun")
-                        .on(Trigger.PVP_BLIND_REACHED).when(Cond.reachedPvpFirst())
-                        .create(CreateSpec.Kind.SPECTRAL).build(),
-
-                // --- batch 45: Penny Pincher (Nemesis shop-spend economy) ---
-                Jokers.of("j_penny_pincher", "Penny Pincher")
-                        .runMod(RunMod.pvpShopSpendShare(3)).build(),
-
-                // --- batch 44: more Nemesis jokers (Skip-Off, Let's Go Gambling) ---
-                Jokers.of("j_skip_off", "Skip-Off")
-                        .runMod(RunMod.skipBonus()).build(),
-                Jokers.of("j_lets_go_gambling", "Let's Go Gambling")
-                        .whenHand(Cond.chance(1, 4, "gambling"))
-                        .effect(new Effect.Score(Op.XMULT, Val.of(4)), new Effect.Score(Op.DOLLARS, Val.of(10))).build(),
-
-                // --- batch 43: multiplayer-exclusive "Nemesis" jokers (read opponent state) ---
-                Jokers.of("j_pacifist", "Pacifist")
-                        .whenHand(not(Cond.inPvpBlind())).multiply(MULT, 10).build(),
-                Jokers.of("j_defensive_joker", "Defensive Joker")
-                        .whenHand().add(CHIPS, Val.runVar(Value.Var.OPP_LIVES_BEHIND, 0, 125)).build(),
-                Jokers.of("j_conjoined", "Conjoined Joker")
-                        .whenHand(Cond.inPvpBlind())
-                        .multiply(MULT, Val.clamp(Val.runVar(Value.Var.OPP_HANDS_LEFT, 1, 0.5), 1, 3)).build(),
-                Jokers.of("j_taxes", "Taxes")
-                        .whenHand().add(MULT, Val.runVar(Value.Var.OPP_CARDS_SOLD, 0, 4)).build(),
 
                 // --- batch 38: blind-skipping (Throwback) ---
                 Jokers.of("j_throwback", "Throwback")

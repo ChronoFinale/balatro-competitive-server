@@ -100,5 +100,493 @@
       }
     }
   ],
-  "add" : [ ]
+  "add" : [
+    {
+      "reason" : "Nemesis: spends at PvP end for temporary discards on both sides",
+      "def" : {
+        "key" : "j_pizza",
+        "name" : "Pizza",
+        "description" : "At the end of the next PvP blind, consumed for +1 discard to you and +2 to your Nemesis",
+        "rarity" : "Common",
+        "cost" : 4,
+        "atlasX" : 0,
+        "atlasY" : 18,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [
+          {
+            "when" : "PVP_BLIND_ENDED",
+            "condition" : {
+              "type" : "always"
+            },
+            "effects" : [
+              {
+                "type" : "grantDiscards",
+                "toOpponent" : false,
+                "amount" : 1,
+                "blinds" : 3
+              },
+              {
+                "type" : "grantDiscards",
+                "toOpponent" : true,
+                "amount" : 2,
+                "blinds" : 3
+              },
+              {
+                "type" : "destroySelf"
+              }
+            ]
+          }
+        ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 0,
+          "pvpSkipBonus" : false
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    },
+    {
+      "reason" : "Nemesis: rewards reaching the PvP blind first",
+      "def" : {
+        "key" : "j_speedrun",
+        "name" : "Speedrun",
+        "description" : "If you reach a PvP blind before your Nemesis, create a random Spectral",
+        "rarity" : "Uncommon",
+        "cost" : 6,
+        "atlasX" : 9,
+        "atlasY" : 17,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [
+          {
+            "when" : "PVP_BLIND_REACHED",
+            "condition" : {
+              "type" : "reachedPvpFirst"
+            },
+            "effects" : [
+              {
+                "type" : "create",
+                "spec" : {
+                  "kind" : "SPECTRAL",
+                  "count" : 1,
+                  "rarity" : null,
+                  "enhancement" : null,
+                  "seal" : null,
+                  "randomSeal" : false
+                }
+              }
+            ]
+          }
+        ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 0,
+          "pvpSkipBonus" : false
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    },
+    {
+      "reason" : "Nemesis: taxes the opponent's shop spend",
+      "def" : {
+        "key" : "j_penny_pincher",
+        "name" : "Penny Pincher",
+        "description" : "On entering the shop, gain $1 for every $3 your Nemesis spent last ante",
+        "rarity" : "Common",
+        "cost" : 4,
+        "atlasX" : 8,
+        "atlasY" : 17,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [ ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 3,
+          "pvpSkipBonus" : false
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    },
+    {
+      "reason" : "Nemesis: rewards skipping blinds",
+      "def" : {
+        "key" : "j_skip_off",
+        "name" : "Skip-Off",
+        "description" : "+1 Hand and +1 Discard per additional blind skipped vs your Nemesis",
+        "rarity" : "Uncommon",
+        "cost" : 5,
+        "atlasX" : 6,
+        "atlasY" : 17,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [ ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 0,
+          "pvpSkipBonus" : true
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    },
+    {
+      "reason" : "Nemesis: high-variance gamble payout",
+      "def" : {
+        "key" : "j_lets_go_gambling",
+        "name" : "Let's Go Gambling",
+        "description" : "1 in 4 chance for x4 Mult and $10",
+        "rarity" : "Uncommon",
+        "cost" : 6,
+        "atlasX" : 7,
+        "atlasY" : 17,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [
+          {
+            "when" : "JOKER_MAIN",
+            "condition" : {
+              "type" : "chance",
+              "numerator" : 1,
+              "denominator" : 4,
+              "seedKey" : "gambling"
+            },
+            "effects" : [
+              {
+                "type" : "score",
+                "op" : "XMULT",
+                "value" : {
+                  "type" : "const",
+                  "amount" : 4.0
+                }
+              },
+              {
+                "type" : "score",
+                "op" : "DOLLARS",
+                "value" : {
+                  "type" : "const",
+                  "amount" : 10.0
+                }
+              }
+            ]
+          }
+        ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 0,
+          "pvpSkipBonus" : false
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    },
+    {
+      "reason" : "Nemesis: pays off outside PvP blinds",
+      "def" : {
+        "key" : "j_pacifist",
+        "name" : "Pacifist",
+        "description" : "x10 Mult while not in a PvP blind",
+        "rarity" : "Common",
+        "cost" : 4,
+        "atlasX" : 2,
+        "atlasY" : 17,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [
+          {
+            "when" : "JOKER_MAIN",
+            "condition" : {
+              "type" : "not",
+              "inner" : {
+                "type" : "inPvpBlind"
+              }
+            },
+            "effects" : [
+              {
+                "type" : "score",
+                "op" : "XMULT",
+                "value" : {
+                  "type" : "const",
+                  "amount" : 10.0
+                }
+              }
+            ]
+          }
+        ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 0,
+          "pvpSkipBonus" : false
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    },
+    {
+      "reason" : "Nemesis: scales with the opponent's life deficit",
+      "def" : {
+        "key" : "j_defensive_joker",
+        "name" : "Defensive Joker",
+        "description" : "+125 Chips for every life you are behind your Nemesis",
+        "rarity" : "Common",
+        "cost" : 4,
+        "atlasX" : 3,
+        "atlasY" : 17,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [
+          {
+            "when" : "JOKER_MAIN",
+            "condition" : {
+              "type" : "always"
+            },
+            "effects" : [
+              {
+                "type" : "score",
+                "op" : "CHIPS",
+                "value" : {
+                  "type" : "runVar",
+                  "which" : "OPP_LIVES_BEHIND",
+                  "base" : 0.0,
+                  "scale" : 125.0
+                }
+              }
+            ]
+          }
+        ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 0,
+          "pvpSkipBonus" : false
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    },
+    {
+      "reason" : "Nemesis: scales with the opponent's remaining hands",
+      "def" : {
+        "key" : "j_conjoined",
+        "name" : "Conjoined Joker",
+        "description" : "In a PvP blind, x0.5 Mult per hand your Nemesis has left (max x3)",
+        "rarity" : "Uncommon",
+        "cost" : 6,
+        "atlasX" : 4,
+        "atlasY" : 17,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [
+          {
+            "when" : "JOKER_MAIN",
+            "condition" : {
+              "type" : "inPvpBlind"
+            },
+            "effects" : [
+              {
+                "type" : "score",
+                "op" : "XMULT",
+                "value" : {
+                  "type" : "clamp",
+                  "inner" : {
+                    "type" : "runVar",
+                    "which" : "OPP_HANDS_LEFT",
+                    "base" : 1.0,
+                    "scale" : 0.5
+                  },
+                  "min" : 1.0,
+                  "max" : 3.0
+                }
+              }
+            ]
+          }
+        ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 0,
+          "pvpSkipBonus" : false
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    },
+    {
+      "reason" : "Nemesis: scales with the opponent's cards sold",
+      "def" : {
+        "key" : "j_taxes",
+        "name" : "Taxes",
+        "description" : "+4 Mult per card your Nemesis has sold since the last PvP blind",
+        "rarity" : "Common",
+        "cost" : 5,
+        "atlasX" : 5,
+        "atlasY" : 17,
+        "spriteUrl" : null,
+        "spriteUrl2x" : null,
+        "blueprintCompatible" : true,
+        "rules" : [
+          {
+            "when" : "JOKER_MAIN",
+            "condition" : {
+              "type" : "always"
+            },
+            "effects" : [
+              {
+                "type" : "score",
+                "op" : "MULT",
+                "value" : {
+                  "type" : "runVar",
+                  "which" : "OPP_CARDS_SOLD",
+                  "base" : 0.0,
+                  "scale" : 4.0
+                }
+              }
+            ]
+          }
+        ],
+        "handMods" : [ ],
+        "mods" : [ ],
+        "runMod" : {
+          "noDiscards" : false,
+          "disablesBoss" : false,
+          "survivesLostBlindFraction" : 0.0,
+          "blindSelectConsume" : "NONE",
+          "onSell" : {
+            "disablesBoss" : false,
+            "duplicatesJokerAfterRounds" : -1,
+            "createsTag" : null
+          },
+          "doublesProbability" : false,
+          "handSizeDecayStart" : 0,
+          "duplicatesConsumableOnShopExit" : false,
+          "pvpShopSpendDenominator" : 0,
+          "pvpSkipBonus" : false
+        },
+        "copy" : null,
+        "props" : { },
+        "state" : { }
+      }
+    }
+  ]
 }
