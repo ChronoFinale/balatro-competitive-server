@@ -37,10 +37,16 @@ class RulesetArtifactsTest {
     private static final Path BMP_DOC = Path.of("docs/rulesets/bmp-0.4.2-ranked.md");
     private static final Path BUNDLES = Path.of("src/main/resources/rulesets/bundles");
 
+    private static final Path CLIENT_TYPES = Path.of("client/src/generated/content-types.ts");
+
     @Test void bundlesCompileToJson() throws Exception {
         for (var b : com.balatro.engine.state.Bundles.all()) {
             gate(BUNDLES.resolve(b.name() + ".json"), JokerOverlays.writePretty(b));
         }
+    }
+
+    @Test void clientTypesAreGenerated() throws Exception {
+        gate(CLIENT_TYPES, com.balatro.engine.codegen.ClientCodegen.generate());
     }
 
     @Test void baseCompilesToVanillaJson() throws Exception {
