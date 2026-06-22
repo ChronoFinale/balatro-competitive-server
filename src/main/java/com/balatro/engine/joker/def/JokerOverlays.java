@@ -51,6 +51,19 @@ public final class JokerOverlays {
         }
     }
 
+    private static final ObjectMapper JSON_NON_NULL = JSON.copy()
+            .setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+
+    /** Like {@link #writePretty} but omits null fields — so the value conforms to a TS interface whose
+     *  nullable (object/string/enum) fields are optional rather than {@code | null}. */
+    public static String writePrettyNonNull(Object value) {
+        try {
+            return JSON_NON_NULL.writer(LF_PRETTY).writeValueAsString(value) + "\n";
+        } catch (Exception e) {
+            throw new IllegalStateException("serializing " + value, e);
+        }
+    }
+
     /**
      * Fold {@code overlay} onto {@code base}, returning the effective joker set keyed by joker key (insertion
      * order = base order, with adds appended). Validates that every remove/override names a base joker and

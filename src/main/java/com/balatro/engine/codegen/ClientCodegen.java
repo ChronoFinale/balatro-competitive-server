@@ -133,13 +133,31 @@ public final class ClientCodegen {
         sb.append("export type ").append(tsName).append(" = ").append(members).append(";\n\n");
     }
 
-    /** A TS interface reflected from a record's components (scalars/lists/enums only). */
+    /** A TS interface reflected from a record's components. Object/string/enum fields are marked optional,
+     *  matching the data module (serialized NON_NULL): a null Java field is simply absent in the JSON. */
     private static void record(StringBuilder sb, String tsName, Class<?> rec) {
         sb.append("export interface ").append(tsName).append(" {\n");
         for (RecordComponent rc : rec.getRecordComponents()) {
-            sb.append("  ").append(rc.getName()).append(": ").append(tsType(rc.getGenericType())).append(";\n");
+            String opt = nullable(rc.getGenericType()) ? "?" : "";
+            sb.append("  ").append(rc.getName()).append(opt).append(": ")
+              .append(tsType(rc.getGenericType())).append(";\n");
         }
         sb.append("}\n\n");
+    }
+
+    /** Whether a Java field can be null in the data (so its TS field is optional). Primitives, their
+     *  wrappers, lists, arrays and maps are never null in our records (normalized); references can be. */
+    private static boolean nullable(Type t) {
+        if (t instanceof Class<?> c) {
+            if (c.isPrimitive() || c.isArray()) return false;
+            return !(c == Integer.class || c == Long.class || c == Double.class || c == Float.class
+                    || c == Boolean.class || c == Short.class || c == Byte.class);
+        }
+        if (t instanceof ParameterizedType pt) {
+            Class<?> raw = (Class<?>) pt.getRawType();
+            return !List.class.isAssignableFrom(raw) && !java.util.Map.class.isAssignableFrom(raw);
+        }
+        return true;
     }
 
     /** JokerDef's polymorphic fields point at the generated envelopes; the rest map structurally. */

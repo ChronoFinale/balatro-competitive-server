@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useStore } from "@tanstack/react-store";
 import { store, connect, newRun, send, previewCards } from "./session";
 import type { CardView } from "./types";
+import Almanac from "./Almanac";
 // Generated from the server's own enums (see generateContent) — these maps are now exhaustive and
 // drift-proof: add a Suit/Rank on the server and the client fails to compile until it's handled.
 import type { Suit, Rank } from "../../generated/content-types";
@@ -23,13 +24,16 @@ export default function App() {
   const status = useStore(store, (s) => s.status);
   const conn = useStore(store, (s) => s.conn);
   const toast = useStore(store, (s) => s.toast);
+  const [almanac, setAlmanac] = useState(false);
 
   return (
     <div className="app">
       <h1>
         BALATRO · COMPETITIVE
         <span className="conn">{conn && `● ${conn}`}</span>
+        <button className="alt tiny" onClick={() => setAlmanac((a) => !a)}>Almanac</button>
       </h1>
+      {almanac && <Almanac onClose={() => setAlmanac(false)} />}
       {status === "login" && <Login />}
       {status === "menu" && <Menu />}
       {status === "game" && <Game />}

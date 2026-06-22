@@ -122,23 +122,23 @@ export interface JokerDef {
 }
 
 export interface Modify {
-  variable: "MONEY" | "HANDS_LEFT" | "DISCARDS_LEFT" | "HAND_SIZE" | "CONSUMABLE_SLOTS" | "JOKER_SLOTS" | "ANTE" | "DISCARDS_USED" | "HANDS_PLAYED" | "HANDS_PLAYED_TOTAL" | "ROUNDS_PLAYED" | "CARDS_DISCARDED_TOTAL" | "LUCKY_TRIGGERS" | "UNIQUE_PLANETS" | "OBELISK_STREAK" | "BLINDS_SKIPPED" | "OPP_LIVES_BEHIND" | "OPP_HANDS_LEFT" | "OPP_CARDS_SOLD" | "INTEREST_CAP" | "MONEY_PER_HAND" | "MONEY_PER_DISCARD" | "MIN_MONEY" | "SHOP_SLOTS" | "PRICE_MULTIPLIER" | "REROLL_DISCOUNT" | "EDITION_MULTIPLIER" | "POLY_MULTIPLIER" | "TAROT_RATE" | "PLANET_RATE" | "WIN_ANTE" | "BOSS_REROLLS_PER_ANTE" | "HELD_PLANET_MULT" | "CELESTIAL_MOST_PLAYED" | "SHOP_PLAYING_CARD_RATE" | "SHOP_CARDS_ENHANCED" | "FREE_REROLLS" | "SPECTRAL_RATE" | "ALLOW_SHOP_DUPLICATES" | "PLANETS_FREE" | "UNCAPPED_INTEREST";
-  op: "ADD" | "SET" | "MULTIPLY" | "MAX" | "MIN";
+  variable?: "MONEY" | "HANDS_LEFT" | "DISCARDS_LEFT" | "HAND_SIZE" | "CONSUMABLE_SLOTS" | "JOKER_SLOTS" | "ANTE" | "DISCARDS_USED" | "HANDS_PLAYED" | "HANDS_PLAYED_TOTAL" | "ROUNDS_PLAYED" | "CARDS_DISCARDED_TOTAL" | "LUCKY_TRIGGERS" | "UNIQUE_PLANETS" | "OBELISK_STREAK" | "BLINDS_SKIPPED" | "OPP_LIVES_BEHIND" | "OPP_HANDS_LEFT" | "OPP_CARDS_SOLD" | "INTEREST_CAP" | "MONEY_PER_HAND" | "MONEY_PER_DISCARD" | "MIN_MONEY" | "SHOP_SLOTS" | "PRICE_MULTIPLIER" | "REROLL_DISCOUNT" | "EDITION_MULTIPLIER" | "POLY_MULTIPLIER" | "TAROT_RATE" | "PLANET_RATE" | "WIN_ANTE" | "BOSS_REROLLS_PER_ANTE" | "HELD_PLANET_MULT" | "CELESTIAL_MOST_PLAYED" | "SHOP_PLAYING_CARD_RATE" | "SHOP_CARDS_ENHANCED" | "FREE_REROLLS" | "SPECTRAL_RATE" | "ALLOW_SHOP_DUPLICATES" | "PLANETS_FREE" | "UNCAPPED_INTEREST";
+  op?: "ADD" | "SET" | "MULTIPLY" | "MAX" | "MIN";
   value: number;
 }
 
 export interface FaceDownRule {
-  when: "INITIAL_DEAL" | "AFTER_PLAY" | "ALWAYS";
-  card: Condition;
+  when?: "INITIAL_DEAL" | "AFTER_PLAY" | "ALWAYS";
+  card?: Condition;
   chance: number;
 }
 
 export interface RulesetBundle {
-  name: string;
-  base: string;
+  name?: string;
+  base?: string;
   overlays: string[];
-  variant: string;
-  mode: "SOLO" | "PVP";
+  variant?: string;
+  mode?: "SOLO" | "PVP";
   decks: string[];
   startingMoney: number;
   hands: number;
@@ -147,16 +147,16 @@ export interface RulesetBundle {
   anteScaling: number;
   winAnte: number;
   blindBaseAmounts: number[];
-  deckType: string;
+  deckType?: string;
 }
 
 export interface DeckType {
-  key: string;
-  name: string;
-  description: string;
+  key?: string;
+  name?: string;
+  description?: string;
   resourceMods: Modify[];
   greenEconomy: boolean;
-  composition: "STANDARD" | "NO_FACES" | "CHECKERED" | "ERRATIC";
+  composition?: "STANDARD" | "NO_FACES" | "CHECKERED" | "ERRATIC";
   startingVouchers: string[];
   startingConsumables: string[];
   balanceChipsMult: boolean;
@@ -165,21 +165,21 @@ export interface DeckType {
 }
 
 export interface BossBlind {
-  key: string;
-  name: string;
-  effect: string;
+  key?: string;
+  name?: string;
+  effect?: string;
   minAnte: number;
   finisher: boolean;
   reqMult: number;
   reward: number;
   mods: Modify[];
-  debuff: Condition;
+  debuff?: Condition;
   halveBase: boolean;
   dollarsPerCardPlayed: number;
   zeroMoneyOnMostPlayed: boolean;
   delevelPlayedHand: boolean;
-  requires: Condition;
-  faceDown: FaceDownRule;
+  requires?: Condition;
+  faceDown?: FaceDownRule;
   drawOnRefill: number;
   discardAfterPlay: number;
   disableOnJokerSell: boolean;
@@ -189,35 +189,35 @@ export interface BossBlind {
 }
 
 export interface Tag {
-  key: string;
-  name: string;
-  description: string;
+  key?: string;
+  name?: string;
+  description?: string;
   ante1: boolean;
-  timing: "IMMEDIATE" | "ON_SHOP" | "ON_BOSS_DEFEAT" | "NEXT_BLIND" | "HELD";
+  timing?: "IMMEDIATE" | "ON_SHOP" | "ON_BOSS_DEFEAT" | "NEXT_BLIND" | "HELD";
 }
 
 export interface Voucher {
-  key: string;
-  name: string;
-  description: string;
+  key?: string;
+  name?: string;
+  description?: string;
   cost: number;
-  upgradeKey: string;
+  upgradeKey?: string;
   mods: Modify[];
 }
 
 export interface Consumable {
-  key: string;
-  name: string;
-  description: string;
-  type: "TAROT" | "PLANET" | "SPECTRAL";
+  key?: string;
+  name?: string;
+  description?: string;
+  type?: "TAROT" | "PLANET" | "SPECTRAL";
   maxTargets: number;
   effects: Effect[];
 }
 
 export interface Planet {
-  key: string;
-  name: string;
-  hand: "HIGH_CARD" | "PAIR" | "TWO_PAIR" | "THREE_OF_A_KIND" | "STRAIGHT" | "FLUSH" | "FULL_HOUSE" | "FOUR_OF_A_KIND" | "STRAIGHT_FLUSH" | "FIVE_OF_A_KIND" | "FLUSH_HOUSE" | "FLUSH_FIVE";
+  key?: string;
+  name?: string;
+  hand?: "HIGH_CARD" | "PAIR" | "TWO_PAIR" | "THREE_OF_A_KIND" | "STRAIGHT" | "FLUSH" | "FULL_HOUSE" | "FOUR_OF_A_KIND" | "STRAIGHT_FLUSH" | "FIVE_OF_A_KIND" | "FLUSH_HOUSE" | "FLUSH_FIVE";
 }
 
 export type HandName = "HIGH_CARD" | "PAIR" | "TWO_PAIR" | "THREE_OF_A_KIND" | "STRAIGHT" | "FLUSH" | "FULL_HOUSE" | "FOUR_OF_A_KIND" | "STRAIGHT_FLUSH" | "FIVE_OF_A_KIND" | "FLUSH_HOUSE" | "FLUSH_FIVE";
