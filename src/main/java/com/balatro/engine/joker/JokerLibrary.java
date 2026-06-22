@@ -23,11 +23,11 @@ public final class JokerLibrary {
         // Every built-in joker is now data — there are no hand-coded jokers left. The whole catalog is
         // expressed in the card language (BuiltinJokerDefs): conditions, values, effects, mutations, copy.
 
-        // Data-driven built-ins (real Balatro jokers as pure JokerDef data). Registered
-        // here, BEFORE the BUILTIN_KEYS snapshot, so they join the curated shop pool and
-        // score through the same authoritative path as the hand-coded set above.
+        // Data-driven built-ins, loaded from the COMPILED JSON artifact (rulesets/vanilla.json) — the engine
+        // boots from data, not the authoring DSL. Registered before the BUILTIN_KEYS snapshot so they join the
+        // curated shop pool and score through the same authoritative path.
         for (com.balatro.engine.joker.def.JokerDef def
-                : com.balatro.engine.joker.def.BuiltinJokerDefs.all()) {
+                : com.balatro.engine.content.ContentStore.jokers()) {
             REGISTRY.put(def.key(), () -> new com.balatro.engine.joker.def.DataJoker(def));
         }
     }
