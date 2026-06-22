@@ -40,7 +40,8 @@ public record ContentManifest(String version, List<FileEntry> files) {
             "rulesets/bundles/vanilla-solo.json",
             "rulesets/bundles/vanilla-pvp.json",
             "rulesets/bundles/bmp-0.4.2-ranked.json",
-            "localization/en.json");
+            "localization/en.json",
+            "localization/fr.json");
 
     public static String sha256(byte[] bytes) {
         try {

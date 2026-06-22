@@ -1,0 +1,12 @@
+{
+  "j_greedy_joker": "Chaque Carreau joué donne +3 Mult",
+  "j_lusty_joker": "Chaque Cœur joué donne +3 Mult",
+  "j_joker": "+4 Mult",
+  "j_sly_joker": "+50 Jetons si la main jouée contient une Paire",
+  "d_blue": "+1 main par manche",
+  "d_red": "+1 défausse par manche",
+  "bl_wall": "Très grande blinde (${reqMult}× score)",
+  "bl_needle": "Une seule main",
+  "bl_tooth": "Perdez 1 $ par carte jouée",
+  "tag_uncommon": "La boutique a un Joker peu commun gratuit"
+}

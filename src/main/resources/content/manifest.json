@@ -1,5 +1,5 @@
 {
-  "version" : "62ca1e04679bcb1b",
+  "version" : "b81b9b61edb8a4e2",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
@@ -65,6 +65,11 @@
       "path" : "localization/en.json",
       "sha256" : "63de4b793a98b07130d7332d0c2a6f165e1e2ec1a2c9cef8711506b7a56fe9bf",
       "bytes" : 18705
+    },
+    {
+      "path" : "localization/fr.json",
+      "sha256" : "bd73163f3ae3083faa4db4f1435c8e89722c404f89162dafeaa8a4b74f3e1a0f",
+      "bytes" : 478
     }
   ]
 }
