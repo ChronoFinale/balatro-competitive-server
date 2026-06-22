@@ -35,6 +35,13 @@ class RulesetArtifactsTest {
     private static final Path VANILLA = Path.of("src/main/resources/rulesets/vanilla.json");
     private static final Path BMP = Path.of("src/main/resources/rulesets/bmp-0.4.2-ranked.json");
     private static final Path BMP_DOC = Path.of("docs/rulesets/bmp-0.4.2-ranked.md");
+    private static final Path BUNDLES = Path.of("src/main/resources/rulesets/bundles");
+
+    @Test void bundlesCompileToJson() throws Exception {
+        for (var b : com.balatro.engine.state.Bundles.all()) {
+            gate(BUNDLES.resolve(b.name() + ".json"), JokerOverlays.writePretty(b));
+        }
+    }
 
     @Test void baseCompilesToVanillaJson() throws Exception {
         String json = JokerOverlays.toJson(BuiltinJokerDefs.all());
