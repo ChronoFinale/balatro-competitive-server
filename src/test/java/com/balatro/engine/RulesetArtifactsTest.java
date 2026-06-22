@@ -119,8 +119,7 @@ class RulesetArtifactsTest {
     private static final Path HAND_SCORES = Path.of("src/main/resources/content/hand-scores.json");
 
     @Test void planetsCompileToJsonAndRoundTrip() throws Exception {
-        var planets = com.balatro.engine.game.PlanetCatalog.keys().stream()
-                .map(com.balatro.engine.game.PlanetCatalog::get).toList();
+        var planets = com.balatro.engine.game.PlanetCatalog.authored();  // DSL source (runtime loads from JSON)
         String json = JokerOverlays.writePretty(planets);
         gate(PLANETS, json);
         assertThat(List.of(M.readValue(json, com.balatro.engine.game.PlanetCatalog.Planet[].class)))

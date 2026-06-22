@@ -26,22 +26,31 @@ public final class PlanetCatalog {
     private static final Map<String, Planet> BY_KEY = new LinkedHashMap<>();
 
     static {
-        add("c_pluto", "Pluto", HandType.HIGH_CARD);
-        add("c_mercury", "Mercury", HandType.PAIR);
-        add("c_uranus", "Uranus", HandType.TWO_PAIR);
-        add("c_venus", "Venus", HandType.THREE_OF_A_KIND);
-        add("c_saturn", "Saturn", HandType.STRAIGHT);
-        add("c_jupiter", "Jupiter", HandType.FLUSH);
-        add("c_earth", "Earth", HandType.FULL_HOUSE);
-        add("c_mars", "Mars", HandType.FOUR_OF_A_KIND);
-        add("c_neptune", "Neptune", HandType.STRAIGHT_FLUSH);
-        add("c_planet_x", "Planet X", HandType.FIVE_OF_A_KIND);
-        add("c_ceres", "Ceres", HandType.FLUSH_HOUSE);
-        add("c_eris", "Eris", HandType.FLUSH_FIVE);
+        // Runtime loads from /content/planets.json; authored() is the codegen source + fallback.
+        List<Planet> planets;
+        try {
+            planets = com.balatro.engine.content.ContentStore.planets();
+        } catch (RuntimeException e) {
+            planets = authored();
+        }
+        for (Planet p : planets) BY_KEY.put(p.key(), p);
     }
 
-    private static void add(String key, String name, HandType hand) {
-        BY_KEY.put(key, new Planet(key, name, hand));
+    /** The DSL authoring source for {@code content/planets.json} (also the fallback). */
+    public static List<Planet> authored() {
+        return List.of(
+                new Planet("c_pluto", "Pluto", HandType.HIGH_CARD),
+                new Planet("c_mercury", "Mercury", HandType.PAIR),
+                new Planet("c_uranus", "Uranus", HandType.TWO_PAIR),
+                new Planet("c_venus", "Venus", HandType.THREE_OF_A_KIND),
+                new Planet("c_saturn", "Saturn", HandType.STRAIGHT),
+                new Planet("c_jupiter", "Jupiter", HandType.FLUSH),
+                new Planet("c_earth", "Earth", HandType.FULL_HOUSE),
+                new Planet("c_mars", "Mars", HandType.FOUR_OF_A_KIND),
+                new Planet("c_neptune", "Neptune", HandType.STRAIGHT_FLUSH),
+                new Planet("c_planet_x", "Planet X", HandType.FIVE_OF_A_KIND),
+                new Planet("c_ceres", "Ceres", HandType.FLUSH_HOUSE),
+                new Planet("c_eris", "Eris", HandType.FLUSH_FIVE));
     }
 
     public static Planet get(String key) {
