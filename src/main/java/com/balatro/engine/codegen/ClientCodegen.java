@@ -87,6 +87,15 @@ public final class ClientCodegen {
         record(sb, "Consumable", com.balatro.engine.consumable.Consumable.class);
         enumType(sb, "StakeName", com.balatro.engine.state.Stake.class);
 
+        // Card + blind render primitives — the closed enums the client needs to draw cards and blinds.
+        enumType(sb, "Suit", com.balatro.engine.card.Suit.class);
+        enumType(sb, "Rank", com.balatro.engine.card.Rank.class);
+        enumType(sb, "Edition", com.balatro.engine.card.Edition.class);
+        enumType(sb, "Seal", com.balatro.engine.card.Seal.class);
+        enumType(sb, "Enhancement", com.balatro.engine.card.Enhancement.class);
+        enumType(sb, "ConsumableKind", com.balatro.engine.consumable.ConsumableType.class);
+        enumType(sb, "BlindType", com.balatro.engine.game.Blinds.BlindType.class);
+
         sb.append("export const CONTENT_MANIFEST = [\n");
         for (String m : MANIFEST) sb.append("  \"").append(m).append("\",\n");
         sb.append("] as const;\n");

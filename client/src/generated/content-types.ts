@@ -216,6 +216,20 @@ export interface Consumable {
 
 export type StakeName = "WHITE" | "RED" | "GREEN" | "BLACK" | "BLUE" | "PURPLE" | "ORANGE" | "GOLD" | "PLANET" | "SPECTRAL" | "SPECTRAL_PLUS";
 
+export type Suit = "SPADES" | "HEARTS" | "CLUBS" | "DIAMONDS";
+
+export type Rank = "TWO" | "THREE" | "FOUR" | "FIVE" | "SIX" | "SEVEN" | "EIGHT" | "NINE" | "TEN" | "JACK" | "QUEEN" | "KING" | "ACE";
+
+export type Edition = "NONE" | "FOIL" | "HOLOGRAPHIC" | "POLYCHROME" | "NEGATIVE";
+
+export type Seal = "NONE" | "RED" | "BLUE" | "GOLD" | "PURPLE";
+
+export type Enhancement = "NONE" | "BONUS" | "MULT" | "GLASS" | "STEEL" | "STONE" | "GOLD" | "WILD" | "LUCKY";
+
+export type ConsumableKind = "TAROT" | "PLANET" | "SPECTRAL";
+
+export type BlindType = "SMALL" | "BIG" | "BOSS";
+
 export const CONTENT_MANIFEST = [
   "rulesets/vanilla.json",
   "rulesets/bmp-0.4.2-ranked.json",
