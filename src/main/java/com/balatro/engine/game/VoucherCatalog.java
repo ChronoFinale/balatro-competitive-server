@@ -37,6 +37,7 @@ public final class VoucherCatalog {
     }
 
     private static final Map<String, Voucher> BY_KEY = new LinkedHashMap<>();
+    private static final Map<String, Voucher> AUTHORED = new LinkedHashMap<>();  // DSL build (pair + addMods)
     private static final List<String> BASES = new ArrayList<>();
 
     /** Banned in Standard Ranked multiplayer (affect ante/boss in ways that break PvP pacing). */
@@ -105,16 +106,30 @@ public final class VoucherCatalog {
         addMods("v_magic_trick", Modify.max(Value.Var.SHOP_PLAYING_CARD_RATE, 4));
         addMods("v_illusion", Modify.max(Value.Var.SHOP_PLAYING_CARD_RATE, 4),
                 Modify.max(Value.Var.SHOP_CARDS_ENHANCED, 1));
+
+        // Runtime loads from /content/vouchers.json; the pair()/addMods() above are the DSL authoring (+ fallback).
+        List<Voucher> vouchers;
+        try {
+            vouchers = com.balatro.engine.content.ContentStore.vouchers();
+        } catch (RuntimeException e) {
+            vouchers = new ArrayList<>(AUTHORED.values());
+        }
+        for (Voucher v : vouchers) BY_KEY.put(v.key(), v);
+    }
+
+    /** The DSL authoring source for {@code content/vouchers.json} (also the fallback). */
+    public static List<Voucher> authored() {
+        return List.copyOf(AUTHORED.values());
     }
 
     private static void addMods(String key, Modify... mods) {
-        BY_KEY.put(key, BY_KEY.get(key).withMods(mods));
+        AUTHORED.put(key, AUTHORED.get(key).withMods(mods));
     }
 
     private static void pair(String baseKey, String baseName, String upKey, String upName) {
         // Descriptions are localization data, keyed by voucher key (see /localization/en.json via Loc).
-        BY_KEY.put(baseKey, new Voucher(baseKey, baseName, com.balatro.engine.i18n.Loc.text(baseKey), 10, upKey));
-        BY_KEY.put(upKey, new Voucher(upKey, upName, com.balatro.engine.i18n.Loc.text(upKey), 10, null));
+        AUTHORED.put(baseKey, new Voucher(baseKey, baseName, com.balatro.engine.i18n.Loc.text(baseKey), 10, upKey));
+        AUTHORED.put(upKey, new Voucher(upKey, upName, com.balatro.engine.i18n.Loc.text(upKey), 10, null));
         BASES.add(baseKey);
     }
 
