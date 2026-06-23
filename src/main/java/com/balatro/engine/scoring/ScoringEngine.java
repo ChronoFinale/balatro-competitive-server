@@ -344,20 +344,20 @@ public final class ScoringEngine {
             acc.mult = acc.mult.add(BigNum.of(4));
             log(acc, card.toString(), "mult", "+4 Mult");
         }
-        if (card.enhancement == Enhancement.LUCKY) {
+        if (card.enhancement == Enhancement.LUCKY && !preview) {
             // Two independent game-long hit/miss queues: 1-in-5 for +20 Mult,
             // 1-in-15 for +$20. Each Lucky trigger pops the next roll; the
-            // threshold honors probabilityNumerator (Oops! All 6s).
+            // threshold honors probabilityNumerator (Oops! All 6s). Skipped entirely in
+            // preview: the selection preview shows the guaranteed floor (matching real
+            // Balatro and the client preview.js), never a throwaway-seed roll.
             if (queues.roll(RngSources.LUCKY_MULT, run.rngContext()) < run.probabilityNumerator / 5.0) {
                 acc.mult = acc.mult.add(BigNum.of(20));
                 log(acc, card.toString(), "mult", "Lucky! +20 Mult");
-                if (!preview) run.luckyTriggersTotal++; // Lucky Cat counts triggers
+                run.luckyTriggersTotal++; // Lucky Cat counts triggers
             }
             if (queues.roll(RngSources.LUCKY_MONEY, run.rngContext()) < run.probabilityNumerator / 15.0) {
-                if (!preview) {
-                    run.money += 20;
-                    run.luckyTriggersTotal++;
-                }
+                run.money += 20;
+                run.luckyTriggersTotal++;
                 log(acc, card.toString(), "dollars", "Lucky! +$20");
             }
         }

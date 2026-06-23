@@ -222,6 +222,12 @@ class PreviewFixtureGenerator {
         scenario("lucky-cat", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.luckyTriggersTotal = 4, "j_lucky_cat");
 
+        // 47b. Lucky card: the preview shows the guaranteed floor (no probabilistic +20 Mult / +$20),
+        // matching the client preview.js — never a throwaway-seed roll.
+        Card luckyKing = new Card(Rank.KING, Suit.HEARTS, Enhancement.LUCKY, Edition.NONE, Seal.NONE);
+        scenario("lucky-floor", play(luckyKing, c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS)), List.of());
+
         // 47. Glass card in multiplayer scores x1.5 (vanilla x2)
         Card glassMp = new Card(Rank.KING, Suit.HEARTS, Enhancement.GLASS, Edition.NONE, Seal.NONE);
         scenario("glass-mp", play(glassMp, c(Rank.KING, Suit.SPADES),
