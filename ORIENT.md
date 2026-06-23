@@ -40,7 +40,7 @@ mod in real Balatro** (thin shell + server config); the Electron app is a fast p
 | layer | package | what it is |
 |---|---|---|
 | **language** | `joker/def/` (`JokerDef`, `Effect`, `Condition` + the `Jokers`/`Cond`/`Val` builders), `ui/` (`UiScreen`/`UiComponent`), `state/` (`RulesetBundle`, `Ruleset`) | the closed vocabulary + the fluent builders. Tightly coupled (package-private), small, stable. |
-| **content** | **`com.balatro.content/`** — `jokers/BuiltinJokerDefs` (**← the 141 jokers live here**), `Bundles`, `Screens` | what's *authored in* the language. "What gets turned into JSON/client-libs." |
+| **content** | **`com.balatro.content/`** — `jokers/BuiltinJokerDefs` (**← the 141 jokers**), `DeckDefs`, `BossDefs`, `TagDefs`, `VoucherDefs`, `ConsumableDefs`, `PlanetDefs`, `Bundles`, `Screens` | what's *authored in* the language. "What gets turned into JSON/client-libs." Every content type's definitions live here. |
 | **engine** | `game/ scoring/ rng/ net/ …` | interprets the language → outcomes. |
 
 **Glue:**
@@ -51,10 +51,10 @@ mod in real Balatro** (thin shell + server config); the Electron app is a fast p
 | `codegen/` | `ClientCodegen` (generates the client's TS types) + `ContentManifest` (the delta-sync manifest) |
 | `joker/def/` overlay files | `RulesetOverlay` (a ruleset = a diff) + `JokerOverlays` + `Rulesets` |
 
-> **Where are the jokers?** `src/main/java/com/balatro/content/jokers/BuiltinJokerDefs.java`. The DSL
-> *builders* they're written with (`Jokers`, `Cond`, `Val`) stay in `joker/def/` with the model — they're the
-> language, not the content. Catalog content (decks/bosses/…) still lives in `game/*Catalog.java` (`authored()`),
-> mixed with its runtime; splitting those out is the next reorg if it's worth it.
+> **Where is content X defined?** `com.balatro.content/` — jokers in `jokers/BuiltinJokerDefs`, decks in
+> `DeckDefs`, bosses in `BossDefs`, and so on. The `game/*Catalog.java` classes are now **runtime only** (load
+> from the compiled JSON, fall back to the matching `*Defs`). The DSL *builders* (`Jokers`/`Cond`/`Val`,
+> `Decks`, `Bosses`, …) stay in `joker/def/`, `game/` with the model — they're the language, not the content.
 
 ## The data pipeline in one breath
 
