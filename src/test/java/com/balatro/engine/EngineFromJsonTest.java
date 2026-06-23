@@ -32,7 +32,7 @@ class EngineFromJsonTest {
     @Test void decksAreLoadedFromJsonAtRuntime() {
         // DeckCatalog now populates from /content/decks.json; the JSON equals the DSL authoring source.
         var fromJson = com.balatro.engine.content.ContentStore.decks();
-        assertThat(fromJson).isEqualTo(com.balatro.engine.game.DeckCatalog.authored());
+        assertThat(fromJson).isEqualTo(com.balatro.content.DeckDefs.authored());
         // and that is what the live catalog serves
         assertThat(com.balatro.engine.game.DeckCatalog.get("d_blue").description()).isEqualTo("+1 hand each round");
     }

@@ -65,42 +65,15 @@ public final class DeckCatalog {
     private static final Map<String, DeckType> BY_KEY = new LinkedHashMap<>();
 
     static {
-        // The engine loads decks from the compiled /content/decks.json; the DSL authored() below is the
-        // authoring source that generates it (gate keeps them identical). Falls back to the DSL if absent.
+        // Runtime loads decks from /content/decks.json; the content is authored in com.balatro.content.DeckDefs
+        // (the codegen source; gate keeps them identical). Falls back to that DSL source if the artifact is absent.
         List<DeckType> decks;
         try {
             decks = com.balatro.engine.content.ContentStore.decks();
         } catch (RuntimeException e) {
-            decks = authored();
+            decks = com.balatro.content.DeckDefs.authored();
         }
         for (DeckType d : decks) BY_KEY.put(d.key(), d);
-    }
-
-    /** The DSL authoring source for {@code content/decks.json} — what the codegen serializes. */
-    public static List<DeckType> authored() {
-        return List.of(
-                Decks.of("d_base", "Base Deck").build(),
-                Decks.of("d_red", "Red Deck").discards(1).build(),
-                Decks.of("d_blue", "Blue Deck").hands(1).build(),
-                Decks.of("d_yellow", "Yellow Deck").money(10).build(),
-                Decks.of("d_black", "Black Deck").jokerSlots(1).hands(-1).build(),
-                Decks.of("d_green", "Green Deck").greenEconomy().build(),
-                Decks.of("d_painted", "Painted Deck").handSize(2).jokerSlots(-1).build(),
-                Decks.of("d_abandoned", "Abandoned Deck").noFaces().build(),
-                Decks.of("d_checkered", "Checkered Deck").checkered().build(),
-                Decks.of("d_erratic", "Erratic Deck").erratic().build(),
-                Decks.of("d_magic", "Magic Deck")
-                        .startsWithVouchers("v_crystal_ball").startsWith("c_fool", "c_fool").build(),
-                Decks.of("d_nebula", "Nebula Deck")
-                        .startsWithVouchers("v_telescope").consumableSlots(-1).build(),
-                Decks.of("d_zodiac", "Zodiac Deck")
-                        .startsWithVouchers("v_tarot_merchant", "v_planet_merchant", "v_overstock").build(),
-                Decks.of("d_ghost", "Ghost Deck")
-                        .spectralRate(2).startsWith("c_hex").build(),
-                Decks.of("d_anaglyph", "Anaglyph Deck")
-                        .tagAfterBoss("tag_double").build(),
-                Decks.of("d_plasma", "Plasma Deck")
-                        .balancesChipsAndMult().blindSizeMult(2).build());
     }
 
     public static DeckType get(String key) {
