@@ -29,15 +29,26 @@ with `accepted`, `view` (ClientView), `replay`).
 
 ## Layout
 
-- `src/main/java/com/balatro/engine/`
+Four layers, one-directional deps (`engine → content → dsl → model`). **See `ORIENT.md` (repo root) for the
+5-minute map** — read it first if the structure feels unclear.
+
+- `src/main/java/com/balatro/engine/` — **model + runtime**
   - `net/` — `ServerMain`, `GameServer` (routing + serialization), `ClientView` (the hiding boundary),
     `IntentHandler`, `ServerUpdate`/`ReplayEntry`.
-  - `game/` — `Run` (the run loop), `Shop`, `Match` (PvP/Attrition), catalogs.
+  - `game/` — `Run` (the run loop), `Shop`, `Match` (PvP/Attrition), and the `*Catalog` runtime (catalogs
+    now load content from the compiled JSON; their authoring lives in `content/`).
   - `scoring/` — `ScoringEngine`, `ScoreResult`, `ReplayEntry` (the animation stream the client renders).
   - `rng/` — the **composable RngSource model** (see below) + `rng/vanilla/` bit-exact Balatro PRNG.
-  - `consumable/`, `joker/`, `state/`.
+  - `consumable/`, `joker/` (incl. `joker/def/` — the data model: `JokerDef`/`Effect`/`Condition`/…), `state/`,
+    `codegen/` (TS + manifest), `content/ContentStore`, `i18n/Loc`, `ui/` (server-driven-UI vocabulary).
+- `src/main/java/com/balatro/dsl/` — **the fluent builders** (`Jokers`, `Cond`, `Val`, `Decks`, `Bosses`,
+  `Consumables`) you author content with.
+- `src/main/java/com/balatro/content/` — **the content authored in the dsl**: `jokers/BuiltinJokerDefs`
+  (the 141 jokers), `DeckDefs`/`BossDefs`/`TagDefs`/`VoucherDefs`/`ConsumableDefs`/`PlanetDefs`, `Bundles`,
+  `Screens`. Compiled to `resources/{content,rulesets}/*.json` by `./gradlew generateContent` (gated).
 - `src/test/` — JUnit suites + golden fixtures in `src/test/resources/` (real-game pool/shop/PRNG vectors).
 - `client/` — Electron/React renderer (`client/src/renderer`). Mirrors scoring previews; see invariant below.
+  `client/src/generated/content-types.ts` is committed (the type contract); `content.ts` is generated.
 - `tools/` — dev/integration: see "Real-Balatro thin client" below.
 
 ## RNG model (read before touching randomness)
