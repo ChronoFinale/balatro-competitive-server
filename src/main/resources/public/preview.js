@@ -303,8 +303,8 @@
     if (eff.type !== 'score') return true;
     const val = valResolve(eff.value, ctx);
     if (val === null) return false; // probabilistic value -> unsupported
-    // Mirrors Effect.Score.apply: a contribution is (operation, subject). Only MULT varies by operation;
-    // the other subjects are additive-only.
+    // Mirrors Effect.Score.apply: a contribution is (operation, term). Only MULT varies by operation;
+    // the other terms are additive-only.
     switch (eff.term) {
       case 'CHIPS': acc.chips += val; break;
       case 'HELD_MULT': acc.mult += val; break;
@@ -349,7 +349,7 @@
     let reps = 0;
     for (const r of joker.def.rules || []) {
       if (r.when !== ctx.phase) continue;
-      const rep = (r.effects || []).find((e) => e.type === 'score' && e.op === 'REPETITIONS');
+      const rep = (r.effects || []).find((e) => e.type === 'score' && e.term === 'RETRIGGERS');
       if (!rep) continue;
       const t = condTest(r.condition, ctx);
       if (t === null) return { reps: 0, ok: false };

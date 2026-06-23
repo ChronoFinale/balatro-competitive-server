@@ -51,6 +51,40 @@ test {
     systemProperty 'regen', System.getProperty('regen', 'false')
 }
 
+// Generate the preview fixtures (the server scorer's result as the oracle) that the JS
+// preview-mirror test consumes. Always re-runs so the fixtures track the current scorer.
+tasks.register('previewFixtures', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    filter { includeTestsMatching 'com.balatro.engine.PreviewFixtureGenerator' }
+    outputs.upToDateWhen { false }
+}
+
+// Enforce the preview-mirror invariant: the client preview.js must reproduce the server's
+// chips/mult/score for every supported fixture (see preview.test.mjs). Wired into `check`.
+// Skips gracefully when Node isn't installed — the JUnit suite still covers the server side.
+def nodeExe = {
+    def name = org.gradle.internal.os.OperatingSystem.current().windows ? 'node.exe' : 'node'
+    (System.getenv('PATH') ?: '').split(File.pathSeparator)
+        .collect { new File(it, name) }.find { it.canExecute() }
+}()
+if (nodeExe != null) {
+    tasks.register('previewMirror', Exec) {
+        group = 'verification'
+        description = 'Run client preview.js against the server-oracle fixtures (preview-mirror invariant).'
+        dependsOn 'previewFixtures'
+        commandLine nodeExe.absolutePath, 'preview.test.mjs'
+    }
+} else {
+    tasks.register('previewMirror') {
+        group = 'verification'
+        description = 'Preview-mirror check (skipped: Node not found on PATH).'
+        doLast { logger.warn('previewMirror skipped: node not found on PATH') }
+    }
+}
+tasks.named('check') { dependsOn 'previewMirror' }
+
 // Regenerate every compiled content artifact (vanilla.json, overlays, bundles, decks/bosses/tags/vouchers/
 // consumables/planets/hand-scores, and the client TS lib) from the Java DSL. The plain `test` task gates
 // these for staleness; this task rewrites them. Usage: ./gradlew generateContent
