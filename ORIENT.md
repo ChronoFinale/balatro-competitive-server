@@ -36,12 +36,15 @@ mod in real Balatro** (thin shell + server config); the Electron app is a fast p
 | `state/` | `Ruleset`, `RulesetBundle` (content + capabilities + mode), overlays, the stores |
 | `auth/` | accounts + OAuth login |
 
-**Three layers, kept separate (the reorg boundary):**
+**Four layers, kept separate (the reorg boundary):**
 | layer | package | what it is |
 |---|---|---|
-| **language** | `joker/def/` (`JokerDef`, `Effect`, `Condition` + the `Jokers`/`Cond`/`Val` builders), `ui/` (`UiScreen`/`UiComponent`), `state/` (`RulesetBundle`, `Ruleset`) | the closed vocabulary + the fluent builders. Tightly coupled (package-private), small, stable. |
-| **content** | **`com.balatro.content/`** — `jokers/BuiltinJokerDefs` (**← the 141 jokers**), `DeckDefs`, `BossDefs`, `TagDefs`, `VoucherDefs`, `ConsumableDefs`, `PlanetDefs`, `Bundles`, `Screens` | what's *authored in* the language. "What gets turned into JSON/client-libs." Every content type's definitions live here. |
-| **engine** | `game/ scoring/ rng/ net/ …` | interprets the language → outcomes. |
+| **model** | `joker/def/` (`JokerDef`, `Effect`, `Condition`, `Value`, …), `ui/` (`UiScreen`/`UiComponent`), `state/` (`RulesetBundle`) | the closed vocabulary — pure data records. The contract everything else speaks. |
+| **dsl** | **`com.balatro.dsl/`** — `Jokers`, `Cond`, `Val`, `Decks`, `Bosses`, `Consumables` | the fluent builders you *write content with*. Its own package now (decoupled — the model's convenience ctors were made public). |
+| **content** | **`com.balatro.content/`** — `jokers/BuiltinJokerDefs` (**← the 141 jokers**), `DeckDefs`, `BossDefs`, `TagDefs`, `VoucherDefs`, `ConsumableDefs`, `PlanetDefs`, `Bundles`, `Screens` | what's *authored in* the dsl. "What gets turned into JSON/client-libs." Every content type's definitions live here. |
+| **engine** | `game/ scoring/ rng/ net/ …` | interprets the model → outcomes. |
+
+Dependency direction: **engine → content → dsl → model** (engine loads content, content is written with the dsl, the dsl produces the model). The runtime never depends on the dsl or content's authoring.
 
 **Glue:**
 | package | what it is |
@@ -53,8 +56,8 @@ mod in real Balatro** (thin shell + server config); the Electron app is a fast p
 
 > **Where is content X defined?** `com.balatro.content/` — jokers in `jokers/BuiltinJokerDefs`, decks in
 > `DeckDefs`, bosses in `BossDefs`, and so on. The `game/*Catalog.java` classes are now **runtime only** (load
-> from the compiled JSON, fall back to the matching `*Defs`). The DSL *builders* (`Jokers`/`Cond`/`Val`,
-> `Decks`, `Bosses`, …) stay in `joker/def/`, `game/` with the model — they're the language, not the content.
+> from the compiled JSON, fall back to the matching `*Defs`). The DSL *builders* you author with live in
+> **`com.balatro.dsl/`**.
 
 ## The data pipeline in one breath
 

@@ -1,5 +1,6 @@
 package com.balatro.engine.game;
 
+import com.balatro.dsl.*;
 import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Rank;

@@ -1,4 +1,6 @@
-package com.balatro.engine.consumable;
+package com.balatro.dsl;
+
+import com.balatro.engine.consumable.*;
 
 import com.balatro.engine.card.CardMod;
 import com.balatro.engine.card.Edition;

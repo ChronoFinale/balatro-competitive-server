@@ -1,7 +1,7 @@
 package com.balatro.content;
 
 import com.balatro.engine.game.DeckCatalog.DeckType;
-import com.balatro.engine.game.Decks;
+import com.balatro.dsl.Decks;
 import java.util.List;
 
 /**

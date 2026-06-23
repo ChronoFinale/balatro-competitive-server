@@ -1,4 +1,7 @@
-package com.balatro.engine.game;
+package com.balatro.dsl;
+
+import com.balatro.engine.game.*;
+import com.balatro.engine.game.DeckCatalog.DeckType;
 
 import com.balatro.engine.game.DeckCatalog.Composition;
 import com.balatro.engine.game.DeckCatalog.DeckType;

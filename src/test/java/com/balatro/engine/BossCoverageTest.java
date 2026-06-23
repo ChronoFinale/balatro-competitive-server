@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The boss half of the safety net (sibling of voucher/joker/tag/consumable coverage). Every boss is
- * built from the {@link com.balatro.engine.game.Bosses} DSL; a boss that declares only {@code .desc(...)}
+ * built from the {@link com.balatro.dsl.Bosses} DSL; a boss that declares only {@code .desc(...)}
  * and forgets its actual ability is a baseline (×2) blind that does nothing special — the no-op trap
  * Boss Tag fell into. {@link BossBlind#hasAbility()} pins that down, and this rejects any boss without one.
  */

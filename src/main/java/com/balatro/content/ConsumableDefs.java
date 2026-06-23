@@ -6,7 +6,7 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Seal;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.consumable.Consumable;
-import com.balatro.engine.consumable.Consumables;
+import com.balatro.dsl.Consumables;
 import java.util.ArrayList;
 import java.util.List;
 

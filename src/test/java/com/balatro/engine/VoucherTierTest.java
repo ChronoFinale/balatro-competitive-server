@@ -4,7 +4,7 @@ import static com.balatro.engine.TestSupport.jokers;
 import static com.balatro.engine.TestSupport.stoneDeck;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.balatro.engine.game.Bosses;
+import com.balatro.dsl.Bosses;
 import com.balatro.engine.game.Run;
 import com.balatro.engine.game.VoucherCatalog;
 import com.balatro.engine.intent.Intent;

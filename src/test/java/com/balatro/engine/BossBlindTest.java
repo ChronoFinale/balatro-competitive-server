@@ -14,7 +14,7 @@ import static com.balatro.dsl.Cond.card;
 
 import com.balatro.engine.game.BossBlind;
 import com.balatro.engine.game.BossCatalog;
-import com.balatro.engine.game.Bosses;
+import com.balatro.dsl.Bosses;
 import com.balatro.engine.game.Run;
 import com.balatro.engine.intent.Intent;
 import com.balatro.engine.rng.RandomStreams;

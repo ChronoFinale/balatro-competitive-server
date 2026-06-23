@@ -7,7 +7,7 @@ import com.balatro.engine.card.CardMod;
 import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.consumable.Consumable;
 import com.balatro.engine.consumable.ConsumableType;
-import com.balatro.engine.consumable.Consumables;
+import com.balatro.dsl.Consumables;
 import com.balatro.engine.joker.def.CreateSpec;
 import com.balatro.engine.joker.def.Effect;
 import org.junit.jupiter.api.Test;

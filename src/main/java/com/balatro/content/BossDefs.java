@@ -6,7 +6,7 @@ import static com.balatro.dsl.Cond.playedHand;
 
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.game.BossBlind;
-import com.balatro.engine.game.Bosses;
+import com.balatro.dsl.Bosses;
 import java.util.List;
 
 /** The boss CONTENT — each boss declares only the effects it has (see the {@link Bosses} builder). Compiled

@@ -5,7 +5,7 @@ import static com.balatro.engine.TestSupport.stoneDeck;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.game.Blinds.BlindType;
-import com.balatro.engine.game.Bosses;
+import com.balatro.dsl.Bosses;
 import com.balatro.engine.game.DeckCatalog;
 import com.balatro.engine.joker.def.Modify;
 import com.balatro.engine.game.Run;

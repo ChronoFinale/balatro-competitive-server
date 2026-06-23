@@ -1,4 +1,6 @@
-package com.balatro.engine.game;
+package com.balatro.dsl;
+
+import com.balatro.engine.game.*;
 
 import com.balatro.engine.joker.def.Condition;
 import com.balatro.engine.joker.def.Modify;
