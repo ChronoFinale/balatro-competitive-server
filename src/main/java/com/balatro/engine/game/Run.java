@@ -1645,7 +1645,23 @@ public final class Run {
     public ClientView view() {
         List<CardView> handView = new ArrayList<>();
         for (Card c : state.hand) handView.add(CardView.of(c));
+        Map<String, Object> handLevels = new LinkedHashMap<>();
+        for (HandType t : HandType.values()) handLevels.put(t.display, state.handLevel(t));
+        boolean inShop = phase == Phase.SHOP && shop != null;
+        int rerollCost = inShop ? rerollCost() : 0;
 
+        return new ClientView(ante, blind.display, requirement, state.roundScore,
+                state.handsLeft, state.discardsLeft, state.money, state.handSize,
+                phase.name(), handView, jokerView(), shopItemsView(), rerollCost,
+                boss != null ? boss.name() : null, boss != null ? bossText(boss) : null,
+                consumablesView(), handLevels, deckStatsView(), countersView(), shopVouchersView(),
+                shopPacksView(), openPackView(),
+                stake.display, deckType.name(), boss != null ? boss.key() : null);
+    }
+
+    /** The owned Jokers, each as a render map (or just a face-down placeholder under Amber Acorn) with the
+     *  data def + live state so the client can run an instant local preview. */
+    private List<Map<String, Object>> jokerView() {
         List<Map<String, Object>> jokerView = new ArrayList<>();
         for (int i = 0; i < state.jokers().size(); i++) {
             Joker j = state.jokers().get(i);
@@ -1674,30 +1690,33 @@ public final class Run {
             jv.put("state", state.jokerState(j));
             jokerView.add(jv);
         }
+        return jokerView;
+    }
 
-        // The shop's mixed main slots — each a Joker, Tarot, or Planet (kind tells the client
-        // how to render/label it, and which buy path the server takes on buyShopItem).
-        List<Map<String, Object>> shopView = null;
-        int rerollCost = 0;
-        if (phase == Phase.SHOP && shop != null) {
-            shopView = new ArrayList<>();
-            for (Shop.Item it : shop.items()) {
-                Map<String, Object> m = new LinkedHashMap<>();
-                m.put("kind", it.kind().name());
-                m.put("key", it.key());
-                m.put("name", it.name());
-                m.put("description", locDesc(it.key(), it.description()));
-                m.put("cost", it.cost());
-                m.put("rarity", it.rarity());
-                m.put("edition", it.edition().name());
-                if (it.eternal()) m.put("eternal", true);
-                if (it.perishable()) m.put("perishable", true);
-                if (it.rental()) m.put("rental", true);
-                shopView.add(m);
-            }
-            rerollCost = rerollCost();
+    /** The shop's mixed main slots (Joker / Tarot / Planet), or null when not in the shop. {@code kind}
+     *  tells the client how to render/label and which buy path {@code buyShopItem} takes. */
+    private List<Map<String, Object>> shopItemsView() {
+        if (phase != Phase.SHOP || shop == null) return null;
+        List<Map<String, Object>> shopView = new ArrayList<>();
+        for (Shop.Item it : shop.items()) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("kind", it.kind().name());
+            m.put("key", it.key());
+            m.put("name", it.name());
+            m.put("description", locDesc(it.key(), it.description()));
+            m.put("cost", it.cost());
+            m.put("rarity", it.rarity());
+            m.put("edition", it.edition().name());
+            if (it.eternal()) m.put("eternal", true);
+            if (it.perishable()) m.put("perishable", true);
+            if (it.rental()) m.put("rental", true);
+            shopView.add(m);
         }
+        return shopView;
+    }
 
+    /** Held consumables (Tarot/Planet) as render maps. */
+    private List<Map<String, Object>> consumablesView() {
         List<Map<String, Object>> consumables = new ArrayList<>();
         for (String key : state.consumables) {
             PlanetCatalog.Planet p = PlanetCatalog.get(key);
@@ -1711,11 +1730,11 @@ public final class Run {
                         "maxTargets", c.maxTargets()));
             }
         }
+        return consumables;
+    }
 
-        Map<String, Object> handLevels = new LinkedHashMap<>();
-        for (HandType t : HandType.values()) handLevels.put(t.display, state.handLevel(t));
-
-        // Deck aggregates the client's local preview needs for deck-stat jokers.
+    /** Deck aggregates the client needs for deck-stat joker previews (size / remaining / enhancement counts). */
+    private Map<String, Object> deckStatsView() {
         Map<String, Object> deckStats = new LinkedHashMap<>();
         deckStats.put("size", state.deckComposition.size());
         deckStats.put("remaining", state.deck != null ? state.deck.remaining() : 0);
@@ -1726,7 +1745,12 @@ public final class Run {
             }
         }
         deckStats.put("enhancements", enh);
+        return deckStats;
+    }
 
+    /** The run-state counters the client mirrors for previews/screens (run totals, hand-type plays, round
+     *  targets, cash-out breakdown, offered/held tags, opponent state). */
+    private Map<String, Object> countersView() {
         Map<String, Object> counters = new LinkedHashMap<>();
         counters.put("HANDS_PLAYED_TOTAL", state.handsPlayedTotal);
         counters.put("ROUNDS_PLAYED", state.roundsPlayedTotal);
@@ -1759,40 +1783,39 @@ public final class Run {
         counters.put("OPP_LIVES_BEHIND", Math.max(0, state.oppLives - state.myLives));
         counters.put("OPP_HANDS_LEFT", state.oppHandsLeft);
         counters.put("OPP_CARDS_SOLD", state.oppCardsSold);
+        return counters;
+    }
 
-        List<Map<String, Object>> shopVouchers = null;
-        if (phase == Phase.SHOP && shop != null && !shop.vouchers().isEmpty()) {
-            shopVouchers = new ArrayList<>();
-            for (String vk : shop.vouchers()) {
-                var v = VoucherCatalog.get(vk);
-                shopVouchers.add(Map.of("key", v.key(), "name", v.name(),
-                        "description", locDesc(v.key(), v.description()), "cost", price(v.cost())));
-            }
+    /** The extra Voucher(s) offered in the shop (Voucher Tag / second slot), or null if none. */
+    private List<Map<String, Object>> shopVouchersView() {
+        if (phase != Phase.SHOP || shop == null || shop.vouchers().isEmpty()) return null;
+        List<Map<String, Object>> shopVouchers = new ArrayList<>();
+        for (String vk : shop.vouchers()) {
+            var v = VoucherCatalog.get(vk);
+            shopVouchers.add(Map.of("key", v.key(), "name", v.name(),
+                    "description", locDesc(v.key(), v.description()), "cost", price(v.cost())));
         }
+        return shopVouchers;
+    }
 
-        // The shop's two booster packs (kept across rerolls), and the currently-open pack if any.
-        List<Map<String, Object>> packsView = null;
-        if (phase == Phase.SHOP) {
-            packsView = new ArrayList<>();
-            for (PackCatalog.Pack p : shopPacks) {
-                packsView.add(Map.of("kind", p.kind().name(), "size", p.size().name(),
-                        "name", p.displayName(), "cost", price(p.cost()),
-                        "shown", p.shown(), "choose", p.choose()));
-            }
+    /** The shop's booster packs (kept across rerolls), or null when not in the shop. */
+    private List<Map<String, Object>> shopPacksView() {
+        if (phase != Phase.SHOP) return null;
+        List<Map<String, Object>> packsView = new ArrayList<>();
+        for (PackCatalog.Pack p : shopPacks) {
+            packsView.add(Map.of("kind", p.kind().name(), "size", p.size().name(),
+                    "name", p.displayName(), "cost", price(p.cost()),
+                    "shown", p.shown(), "choose", p.choose()));
         }
-        Map<String, Object> openPackView = null;
-        if (openPack != null) {
-            List<Map<String, Object>> items = new ArrayList<>();
-            for (RevealedItem it : openPack) items.add(revealedItemView(it));
-            openPackView = Map.of("picksLeft", packPicksLeft, "items", items);
-        }
+        return packsView;
+    }
 
-        return new ClientView(ante, blind.display, requirement, state.roundScore,
-                state.handsLeft, state.discardsLeft, state.money, state.handSize,
-                phase.name(), handView, jokerView, shopView, rerollCost,
-                boss != null ? boss.name() : null, boss != null ? bossText(boss) : null,
-                consumables, handLevels, deckStats, counters, shopVouchers, packsView, openPackView,
-                stake.display, deckType.name(), boss != null ? boss.key() : null);
+    /** The currently-open booster pack's revealed items + picks left, or null if no pack is open. */
+    private Map<String, Object> openPackView() {
+        if (openPack == null) return null;
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (RevealedItem it : openPack) items.add(revealedItemView(it));
+        return Map.of("picksLeft", packPicksLeft, "items", items);
     }
 
     /** View of one revealed pack card: a consumable/joker (key+name+desc) or a playing card. */
