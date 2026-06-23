@@ -1,6 +1,6 @@
 package com.balatro.engine.state;
 
-import com.balatro.engine.joker.def.BuiltinJokerDefs;
+import com.balatro.content.jokers.BuiltinJokerDefs;
 import com.balatro.engine.joker.def.JokerDef;
 import com.balatro.engine.joker.def.JokerOverlays;
 import com.balatro.engine.joker.def.Rulesets;

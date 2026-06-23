@@ -1,5 +1,6 @@
 package com.balatro.engine.joker.def;
 
+
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Seal;

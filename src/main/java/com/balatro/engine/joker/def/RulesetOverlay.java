@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.content.jokers.*;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -1,6 +1,6 @@
 package com.balatro.engine.content;
 
-import com.balatro.engine.joker.def.BuiltinJokerDefs;
+import com.balatro.content.jokers.BuiltinJokerDefs;
 import com.balatro.engine.joker.def.JokerDef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

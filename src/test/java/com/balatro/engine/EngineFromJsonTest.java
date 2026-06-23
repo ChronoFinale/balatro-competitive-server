@@ -2,7 +2,7 @@ package com.balatro.engine;
 
 import com.balatro.engine.content.ContentStore;
 import com.balatro.engine.joker.JokerLibrary;
-import com.balatro.engine.joker.def.BuiltinJokerDefs;
+import com.balatro.content.jokers.BuiltinJokerDefs;
 import com.balatro.engine.joker.def.DataJoker;
 import org.junit.jupiter.api.Test;
 

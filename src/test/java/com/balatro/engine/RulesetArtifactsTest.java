@@ -1,7 +1,7 @@
 package com.balatro.engine;
 
 import com.balatro.engine.joker.JokerLibrary;
-import com.balatro.engine.joker.def.BuiltinJokerDefs;
+import com.balatro.content.jokers.BuiltinJokerDefs;
 import com.balatro.engine.joker.def.JokerDef;
 import com.balatro.engine.joker.def.JokerOverlays;
 import com.balatro.engine.joker.def.RulesetDiff;
@@ -166,7 +166,7 @@ class RulesetArtifactsTest {
         sb.append("import type { JokerDef, DeckType, BossBlind, Tag, Voucher, Consumable, Planet, HandScore, "
                 + "RulesetBundle, UiScreen } from \"./content-types\";\n\n");
         emit(sb, "SCREENS", "UiScreen", com.balatro.engine.ui.Screens.all());
-        emit(sb, "JOKERS", "JokerDef", com.balatro.engine.joker.def.BuiltinJokerDefs.all());
+        emit(sb, "JOKERS", "JokerDef", com.balatro.content.jokers.BuiltinJokerDefs.all());
         emit(sb, "DECKS", "DeckType", com.balatro.engine.game.DeckCatalog.keys().stream()
                 .map(com.balatro.engine.game.DeckCatalog::get).toList());
         emit(sb, "BOSSES", "BossBlind", com.balatro.engine.game.BossCatalog.all());
