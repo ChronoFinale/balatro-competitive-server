@@ -289,8 +289,9 @@ public final class Run {
         state.deck.drawTo(state.hand, state.handSize);
         markFaceDown(state.hand, DrawContext.INITIAL); // The House: the opening hand is dealt face down
         // The Serpent: subsequent refills draw a fixed count instead of filling to hand size.
-        state.drawCountOverride = (boss != null && !bossDisabled() && boss.drawOnRefill() > 0)
-                ? boss.drawOnRefill() : -1;
+        // The Serpent: draw a fixed count instead of filling to hand size — a Modify on DRAW_COUNT, folded
+        // alongside every other resource (a disabled boss contributes no mods, so it falls back to -1).
+        state.drawCountOverride = (int) Modify.fold(-1, Value.Var.DRAW_COUNT, resourceMods());
         for (Joker j : state.jokers()) state.jokerState(j).put("bossDisabled", false); // Crimson Heart re-arms each blind
         jokersHidden = false; // reset; Amber Acorn's BLIND_SELECTED rule re-hides + shuffles the Jokers
         raiseBossRules(Trigger.BLIND_SELECTED, null);
@@ -371,7 +372,6 @@ public final class Run {
                 || !boss.mods().isEmpty() // hand/discard/size resource modifiers
                 || !boss.rules().isEmpty() // rule-driven effects (per-hand, blind-start, pre-hand, on-sell)
                 || boss.requires() != null || boss.faceDown() != null
-                || boss.drawOnRefill() > 0
                 || boss.forcesCardSelection());
     }
 
@@ -1610,8 +1610,7 @@ public final class Run {
         double rm = b.reqMult();
         Object req = rm == Math.rint(rm) ? (Object) (long) rm : (Object) rm;
         return com.balatro.engine.i18n.Loc.fill(viewLocale, b.key(), java.util.Map.of(
-                "reqMult", req, "minAnte", b.minAnte(), "reward", b.reward(),
-                "drawOnRefill", b.drawOnRefill()));
+                "reqMult", req, "minAnte", b.minAnte(), "reward", b.reward()));
     }
 
     /** A localized description for a content key in {@link #viewLocale}, falling back to {@code original}

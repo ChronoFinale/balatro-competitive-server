@@ -35,7 +35,6 @@ public final class Bosses {
     private boolean halveBase = false;
     private Condition requires = null;
     private BossBlind.FaceDownRule faceDown = null;
-    private int drawOnRefill = -1;
     private boolean forcesCardSelection = false;
 
     private Bosses(String key, String name) {
@@ -127,8 +126,9 @@ public final class Bosses {
         return this;
     }
 
-    /** The Serpent: after each play or discard, always draw exactly {@code n} cards (no refill to size). */
-    public Bosses drawsExactly(int n) { this.drawOnRefill = n; return this; }
+    /** The Serpent: after each play or discard, always draw exactly {@code n} cards (no refill to size) —
+     *  a {@code Modify} on the draw count, the same resource-modifier family as hands/discards/hand-size. */
+    public Bosses drawsExactly(int n) { mods.add(Modify.set(Value.Var.DRAW_COUNT, n)); return this; }
 
     /** The Hook: after each played hand, discard {@code n} random held cards (then refill) —
      *  {@code DiscardRandomHeld(n)}. */
@@ -170,12 +170,11 @@ public final class Bosses {
         // boss key and fill ${field} placeholders from this boss's own values (so a number lives once).
         String text = effect.isEmpty()
                 ? com.balatro.engine.i18n.Loc.fill(key, java.util.Map.of(
-                        "reqMult", fmt(reqMult), "minAnte", minAnte, "reward", reward,
-                        "drawOnRefill", drawOnRefill))
+                        "reqMult", fmt(reqMult), "minAnte", minAnte, "reward", reward))
                 : effect;
         return new BossBlind(key, name, text, minAnte, finisher, reqMult, reward,
                 java.util.List.copyOf(mods), debuff, halveBase,
                 java.util.List.copyOf(rules), requires, faceDown,
-                drawOnRefill, forcesCardSelection);
+                forcesCardSelection);
     }
 }

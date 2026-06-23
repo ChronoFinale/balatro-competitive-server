@@ -39,9 +39,6 @@ public record BossBlind(
         // --- draw-time hidden information: cards drawn under this rule arrive face down (Run marks them,
         //     ClientView hides them). House/Wheel/Mark/Fish. null = none. ---
         FaceDownRule faceDown,
-        // --- The Serpent: after each play/discard, draw exactly this many cards instead of refilling
-        //     to hand size (so the hand shrinks). -1 = normal refill. ---
-        int drawOnRefill,
         // --- Cerulean Bell: one held card is force-selected — every played hand must include it. ---
         boolean forcesCardSelection) {
 
@@ -56,7 +53,7 @@ public record BossBlind(
     public boolean hasAbility() {
         return reqMult != BASELINE_REQ_MULT || !mods.isEmpty() || debuff != null || halveBase
                 || !rules.isEmpty()
-                || requires != null || faceDown != null || drawOnRefill != -1
+                || requires != null || faceDown != null
                 || forcesCardSelection;
     }
 

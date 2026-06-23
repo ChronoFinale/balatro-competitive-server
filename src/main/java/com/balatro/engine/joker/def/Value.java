@@ -139,6 +139,9 @@ public sealed interface Value {
         SHOP_SLOTS, PRICE_MULTIPLIER, REROLL_DISCOUNT, EDITION_MULTIPLIER, POLY_MULTIPLIER,
         TAROT_RATE, PLANET_RATE, WIN_ANTE, BOSS_REROLLS_PER_ANTE, HELD_PLANET_MULT,
         CELESTIAL_MOST_PLAYED, SHOP_PLAYING_CARD_RATE, SHOP_CARDS_ENHANCED, FREE_REROLLS, SPECTRAL_RATE,
+        // Per-blind draw-count override: -1 = refill to hand size; >0 = draw exactly N (The Serpent), as a
+        // Modify like hands/discards/hand-size — "draw on refill" is literally a modifier on the draw count.
+        DRAW_COUNT,
         // Boolean policies (fold to >= 1 when any owner grants them): Showman lets owned cards reappear
         // in shop/creation pools; Astronomer makes shop Planets free; To the Moon adds an uncapped extra
         // $1/$5 interest tier (the formula coupling stays in EconomyConfig — this var only flags it).
