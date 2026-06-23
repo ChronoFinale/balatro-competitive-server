@@ -85,8 +85,8 @@ public final class Bosses {
     /** The Tooth: lose ${@code -d} per card played (pass a negative, e.g. {@code -1}). The verb carries the
      *  sign — a loss is {@code AdjustMoney(SUBTRACT, count(played))}, a gain {@code ADD}. */
     public Bosses dollarsPerCard(int d) {
-        Effect.AdjustMoney.Mode mode = d < 0 ? Effect.AdjustMoney.Mode.SUBTRACT : Effect.AdjustMoney.Mode.ADD;
-        return onHandPlayed(new Condition.Always(), new Effect.AdjustMoney(mode,
+        Effect.Operation op = d < 0 ? Effect.Operation.SUBTRACT : Effect.Operation.ADD;
+        return onHandPlayed(new Condition.Always(), new Effect.AdjustMoney(op,
                 new Value.Count(Value.Source.PLAYED, new Condition.Always(), 0, Math.abs(d))));
     }
 
@@ -94,7 +94,7 @@ public final class Bosses {
      *  {@link Condition.PlayedHandIsMostPlayed}. */
     public Bosses zeroMoneyOnMostPlayed() {
         return onHandPlayed(new Condition.PlayedHandIsMostPlayed(),
-                new Effect.AdjustMoney(Effect.AdjustMoney.Mode.SET, new Value.Const(0)));
+                new Effect.AdjustMoney(Effect.Operation.SET, new Value.Const(0)));
     }
 
     /** The Arm: the played poker hand drops a level — {@code DelevelPlayedHand}. */

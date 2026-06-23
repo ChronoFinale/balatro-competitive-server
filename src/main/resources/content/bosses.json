@@ -255,7 +255,7 @@
         "effects" : [
           {
             "type" : "adjustMoney",
-            "mode" : "SUBTRACT",
+            "op" : "SUBTRACT",
             "amount" : {
               "type" : "count",
               "source" : "PLAYED",
@@ -297,7 +297,7 @@
         "effects" : [
           {
             "type" : "adjustMoney",
-            "mode" : "SET",
+            "op" : "SET",
             "amount" : {
               "type" : "const",
               "amount" : 0.0

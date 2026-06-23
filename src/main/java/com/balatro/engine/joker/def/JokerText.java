@@ -47,6 +47,7 @@ public final class JokerText {
                 case ADD -> "+" + n + " Mult";
                 case MULTIPLY -> "x" + n + " Mult";
                 case POWER -> "^" + n + " Mult";
+                default -> null;
             };
             default -> null;
         };

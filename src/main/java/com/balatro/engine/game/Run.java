@@ -838,12 +838,13 @@ public final class Run {
             case Effect.AdjustMoney am -> {
                 double v = am.amount().resolve(ctx); // a magnitude; the verb carries the direction
                 int floor = minMoney();
-                state.money = switch (am.mode()) {
+                state.money = switch (am.op()) {
                     case ADD -> Math.max(floor, state.money + (int) Math.round(v));
                     case SUBTRACT -> Math.max(floor, state.money - (int) Math.round(v)); // The Tooth
                     case MULTIPLY -> Math.max(0, (int) Math.round(state.money * v));
                     case DIVIDE -> v == 0 ? state.money : Math.max(0, (int) Math.round(state.money / v));
                     case SET -> Math.max(0, (int) Math.round(v)); // The Ox: set to $0
+                    case POWER -> throw new IllegalStateException("POWER is not a money operation");
                 };
             }
             case Effect.DelevelPlayedHand ignored -> { // The Arm

@@ -91,9 +91,13 @@ public sealed interface Effect {
     /** What a score contribution operates on — the slot, separated from the operation (docs 49/50). */
     enum Subject { CHIPS, MULT, DOLLARS, RETRIGGERS, HELD_MULT }
 
-    /** How a score contribution combines with the slot — the operation, separated from the subject. {@code
-     *  MULT} supports all three; the other subjects are additive-only (no accumulator slot for ×/^ yet). */
-    enum Operation { ADD, MULTIPLY, POWER }
+    /**
+     * How a contribution combines with its subject — the operation, separated from the subject. ONE shared
+     * verb vocabulary across scoring and money (and conceptually {@code Modify}); each effect supports the
+     * subset that makes sense for it: scoring uses {@code ADD/MULTIPLY/POWER}, money uses
+     * {@code ADD/SUBTRACT/MULTIPLY/DIVIDE/SET}. Unsupported cells are rejected loudly, not silently coerced.
+     */
+    enum Operation { ADD, SUBTRACT, MULTIPLY, DIVIDE, POWER, SET }
 
     /**
      * A numeric contribution to the running score, modelled as {@code operation × subject × value} — e.g.
@@ -128,6 +132,7 @@ public sealed interface Effect {
                         e.powMult = v;
                         yield e.msg("^" + fmt(v) + " Mult");
                     }
+                    default -> throw new IllegalStateException(op + " is not a scoring operation (only ADD/MULTIPLY/POWER)");
                 };
             };
         }
@@ -277,9 +282,7 @@ public sealed interface Effect {
      *  at the run's minimum money — {@code MULTIPLY}/{@code DIVIDE} the balance, or {@code SET} it to a
      *  fixed value. The Tooth is {@code SUBTRACT(count(played))}; the Ox is {@code SET(0)}. Mirrors the
      *  scoring op model (MULT vs XMULT vs POW_MULT), where each arithmetic verb is its own primitive. */
-    record AdjustMoney(Mode mode, Value amount) implements Effect {
-        public enum Mode { ADD, SUBTRACT, MULTIPLY, DIVIDE, SET }
-    }
+    record AdjustMoney(Operation op, Value amount) implements Effect {}
 
     /** Drop the played poker hand's level by one (The Arm). No-op if there is no played hand. */
     record DelevelPlayedHand() implements Effect {}
