@@ -1,11 +1,5 @@
 package com.balatro.engine.consumable;
 
-import com.balatro.engine.card.CardMod;
-import com.balatro.engine.card.Edition;
-import com.balatro.engine.card.Enhancement;
-import com.balatro.engine.card.Seal;
-import com.balatro.engine.card.Suit;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
