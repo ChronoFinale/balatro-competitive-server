@@ -101,7 +101,7 @@ class RulesetArtifactsTest {
     private static final Path CONSUMABLES = Path.of("src/main/resources/content/consumables.json");
 
     @Test void vouchersCompileToJsonAndRoundTrip() throws Exception {
-        var vouchers = com.balatro.engine.game.VoucherCatalog.authored();  // DSL source (runtime loads from JSON)
+        var vouchers = com.balatro.content.VoucherDefs.authored();  // DSL source (runtime loads from JSON)
         String json = JokerOverlays.writePretty(vouchers);
         gate(VOUCHERS, json);
         assertThat(List.of(M.readValue(json, com.balatro.engine.game.VoucherCatalog.Voucher[].class)))
