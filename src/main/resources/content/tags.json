@@ -337,6 +337,12 @@
     "description" : "Create up to 2 Common Jokers",
     "ante1" : false,
     "timing" : "IMMEDIATE",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "grantJokers",
+        "rarity" : "Common",
+        "count" : 2
+      }
+    ]
   }
 ]

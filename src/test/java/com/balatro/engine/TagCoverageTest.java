@@ -9,50 +9,44 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
- * The tag half of the safety net (sibling of {@link VoucherCoverageTest} / {@link JokerCoverageTest}).
- * Tags don't carry data — each resolves through a hand-wired branch in {@code Run} keyed by its
- * {@link TagCatalog.Timing}. So coverage here is an explicit ledger: every catalog tag must be listed
- * in exactly one handling bucket below. A new tag that nobody wires fails this test, so it can't slip
- * into the catalog as a silent no-op the way Boss Tag did.
+ * The tag half of the data-driven safety net (sibling of {@link ConsumableCoverageTest} /
+ * {@link JokerCoverageTest}). Tags are DATA now — each carries a {@code List<Effect>} the {@code Run}
+ * interpreter resolves. So the real check is: every catalog tag actually carries an effect.
+ *
+ * <p>This replaces the old manual-ledger version, which only checked that each tag was <i>listed</i> in
+ * a hand-maintained bucket — that rubber-stamped {@code tag_top_up} as "wired" while its effect list was
+ * empty and it did nothing in game. Listing a key is not the same as the key doing something; this checks
+ * the latter.
  */
 class TagCoverageTest {
 
-    /** Resolves the instant it's claimed — money/level effects computed in {@code Run.claimTag}. */
-    private static final Set<String> IMMEDIATE = Set.of(
-            "tag_economy", "tag_skip", "tag_orbital", "tag_handy", "tag_garbage", "tag_top_up");
-
-    /** Resolves when the next shop opens — free jokers/editions, packs, voucher, coupon, d6. */
-    private static final Set<String> ON_SHOP = Set.of(
-            "tag_uncommon", "tag_rare", "tag_negative", "tag_foil", "tag_holo", "tag_polychrome",
-            "tag_voucher", "tag_standard", "tag_charm", "tag_meteor", "tag_buffoon", "tag_ethereal",
-            "tag_coupon", "tag_d_six");
-
-    /** Resolves at a specific later moment in the run loop. */
-    private static final Set<String> DEFERRED = Set.of(
-            "tag_investment", // ON_BOSS_DEFEAT: +$25 payout
-            "tag_juggle",     // NEXT_BLIND: +3 hand size
-            "tag_boss",       // HELD: free boss reroll on arrival at the boss blind
-            "tag_double");    // HELD: duplicates the next claimed tag
+    /** Structural meta-tags: they act on blind/tag <i>selection</i> in {@code Run} itself, not through an
+     *  {@link com.balatro.engine.joker.def.Effect}, so they are intentionally effect-less. Boss Tag
+     *  rerolls the boss on arrival; Double Tag duplicates the next claimed tag. Any OTHER empty tag is a
+     *  no-op bug. */
+    private static final Set<String> STRUCTURAL = Set.of("tag_boss", "tag_double");
 
     @Test
-    void everyTagIsClassified() {
-        List<String> unclassified = new ArrayList<>();
+    void everyTagDoesSomething() {
+        List<String> noOps = new ArrayList<>();
         for (String key : TagCatalog.keys()) {
-            boolean wired = IMMEDIATE.contains(key) || ON_SHOP.contains(key) || DEFERRED.contains(key);
-            if (!wired) unclassified.add(key);
+            if (STRUCTURAL.contains(key)) continue;
+            if (TagCatalog.get(key).effects().isEmpty()) noOps.add(key);
         }
-        assertThat(unclassified)
-                .as("tags with no wired effect — implement them in Run and list them in a bucket")
+        assertThat(noOps)
+                .as("tags whose effect list is empty — wire an Effect (or, if it acts on the run loop "
+                        + "structurally, add it to STRUCTURAL with a reason)")
                 .isEmpty();
     }
 
     @Test
-    void bucketsAreNotStale() {
-        // Every listed key must still exist in the catalog (no rot when tags are renamed/removed).
-        for (Set<String> bucket : List.of(IMMEDIATE, ON_SHOP, DEFERRED)) {
-            for (String key : bucket) {
-                assertThat(TagCatalog.get(key)).as("listed tag '%s' is gone from the catalog", key).isNotNull();
-            }
+    void structuralExemptionsAreNotStale() {
+        // Each exemption must still exist AND still be genuinely effect-less — otherwise it's a tag we
+        // forgot to drop from the list once it grew a real effect.
+        for (String key : STRUCTURAL) {
+            assertThat(TagCatalog.get(key)).as("structural tag '%s' is gone from the catalog", key).isNotNull();
+            assertThat(TagCatalog.get(key).effects())
+                    .as("'%s' now carries an effect — drop it from STRUCTURAL", key).isEmpty();
         }
     }
 }

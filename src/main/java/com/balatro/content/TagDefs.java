@@ -46,7 +46,8 @@ public final class TagDefs {
         add(t, "tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE, new Effect.LevelMostPlayedHand(3));
         add(t, "tag_handy", "Handy Tag", false, Timing.IMMEDIATE, gain(Value.Var.HANDS_PLAYED_TOTAL, 1));
         add(t, "tag_garbage", "Garbage Tag", false, Timing.IMMEDIATE, gain(Value.Var.CARDS_DISCARDED_TOTAL, 1));
-        add(t, "tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE);
+        // Top-Up: create up to 2 free Common Jokers for the player (real game: spawn_jokers = 2).
+        add(t, "tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE, new Effect.GrantJokers("Common", 2));
         return t;
     }
 
