@@ -50,6 +50,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.FlipAndShuffleJokers.class, name = "flipAndShuffleJokers"),
     @JsonSubTypes.Type(value = Effect.DisableRandomJoker.class, name = "disableRandomJoker"),
     @JsonSubTypes.Type(value = Effect.DisableBoss.class, name = "disableBoss"),
+    @JsonSubTypes.Type(value = Effect.AddPack.class, name = "addPack"),
 })
 public sealed interface Effect {
 
@@ -304,6 +305,11 @@ public sealed interface Effect {
 
     /** Disable this boss's ability for the rest of the blind (Verdant Leaf, when any Joker is sold). */
     record DisableBoss() implements Effect {}
+
+    /** Add a booster pack to the next shop (Charm/Meteor/Buffoon/Standard/Ethereal tags). {@code kind} and
+     *  {@code size} are the {@code PackCatalog.Kind}/{@code Size} names — strings so the model layer needn't
+     *  depend on the game layer; {@code Run} resolves them when the shop opens. */
+    record AddPack(String kind, String size) implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {

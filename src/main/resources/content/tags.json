@@ -77,7 +77,13 @@
     "description" : "Free Mega Standard Pack",
     "ante1" : false,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "addPack",
+        "kind" : "STANDARD",
+        "size" : "MEGA"
+      }
+    ]
   },
   {
     "key" : "tag_charm",
@@ -85,7 +91,13 @@
     "description" : "Free Mega Arcana Pack",
     "ante1" : true,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "addPack",
+        "kind" : "ARCANA",
+        "size" : "MEGA"
+      }
+    ]
   },
   {
     "key" : "tag_meteor",
@@ -93,7 +105,13 @@
     "description" : "Free Mega Celestial Pack",
     "ante1" : false,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "addPack",
+        "kind" : "CELESTIAL",
+        "size" : "MEGA"
+      }
+    ]
   },
   {
     "key" : "tag_buffoon",
@@ -101,7 +119,13 @@
     "description" : "Free Mega Buffoon Pack",
     "ante1" : false,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "addPack",
+        "kind" : "BUFFOON",
+        "size" : "MEGA"
+      }
+    ]
   },
   {
     "key" : "tag_ethereal",
@@ -109,7 +133,13 @@
     "description" : "Free Spectral Pack",
     "ante1" : false,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "addPack",
+        "kind" : "SPECTRAL",
+        "size" : "NORMAL"
+      }
+    ]
   },
   {
     "key" : "tag_coupon",

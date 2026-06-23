@@ -24,11 +24,12 @@ public final class TagDefs {
         add(t, "tag_investment", "Investment Tag", true, Timing.ON_BOSS_DEFEAT);
         add(t, "tag_voucher", "Voucher Tag", true, Timing.ON_SHOP);
         add(t, "tag_boss", "Boss Tag", true, Timing.HELD);
-        add(t, "tag_standard", "Standard Tag", false, Timing.ON_SHOP);
-        add(t, "tag_charm", "Charm Tag", true, Timing.ON_SHOP);
-        add(t, "tag_meteor", "Meteor Tag", false, Timing.ON_SHOP);
-        add(t, "tag_buffoon", "Buffoon Tag", false, Timing.ON_SHOP);
-        add(t, "tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP);
+        // Pack tags are data: a booster pack appears in the next shop — AddPack(kind, size).
+        add(t, "tag_standard", "Standard Tag", false, Timing.ON_SHOP, pack("STANDARD", "MEGA"));
+        add(t, "tag_charm", "Charm Tag", true, Timing.ON_SHOP, pack("ARCANA", "MEGA"));
+        add(t, "tag_meteor", "Meteor Tag", false, Timing.ON_SHOP, pack("CELESTIAL", "MEGA"));
+        add(t, "tag_buffoon", "Buffoon Tag", false, Timing.ON_SHOP, pack("BUFFOON", "MEGA"));
+        add(t, "tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP, pack("SPECTRAL", "NORMAL"));
         add(t, "tag_coupon", "Coupon Tag", true, Timing.ON_SHOP);
         add(t, "tag_double", "Double Tag", true, Timing.HELD);
         add(t, "tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND);
@@ -46,6 +47,11 @@ public final class TagDefs {
     /** Gain ${@code scale} per unit of a run-state variable (Speed/Handy/Garbage). */
     private static Effect gain(Value.Var which, double scale) {
         return new Effect.AdjustMoney(Effect.Operation.ADD, new Value.RunVar(which, 0, scale));
+    }
+
+    /** A booster pack in the next shop (Charm/Meteor/Buffoon/Standard/Ethereal). */
+    private static Effect pack(String kind, String size) {
+        return new Effect.AddPack(kind, size);
     }
 
     private static void add(List<Tag> t, String key, String name, boolean ante1, Timing timing, Effect... effects) {

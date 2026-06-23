@@ -882,7 +882,9 @@ public final class Run {
                 luchadorDisabledBoss = true;
                 refreshDebuffs();
             }
-            default -> throw new IllegalStateException("not a boss run-loop effect: " + e);
+            case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
+                shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind()), PackCatalog.Size.valueOf(ap.size())));
+            default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
 
@@ -1873,6 +1875,14 @@ public final class Run {
                 .filter(t -> TagCatalog.timing(t) == TagCatalog.Timing.ON_SHOP).toList();
         for (String t : shopTags) {
             state.tags.remove(t); // consume one instance
+            TagCatalog.Tag tag = TagCatalog.get(t);
+            if (tag != null && !tag.effects().isEmpty()) { // data-driven (pack tags: AddPack)
+                com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
+                ctx.run = state;
+                ctx.rng = rng;
+                for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
+                continue;
+            }
             switch (t) {
                 case "tag_rare" -> addFreeJoker("Rare");
                 case "tag_uncommon" -> addFreeJoker("Uncommon");
@@ -1880,11 +1890,6 @@ public final class Run {
                 case "tag_holo" -> addFreeEditionedJoker(Edition.HOLOGRAPHIC);
                 case "tag_polychrome" -> addFreeEditionedJoker(Edition.POLYCHROME);
                 case "tag_negative" -> addFreeEditionedJoker(Edition.NEGATIVE);
-                case "tag_charm" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.ARCANA, PackCatalog.Size.MEGA));
-                case "tag_meteor" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.CELESTIAL, PackCatalog.Size.MEGA));
-                case "tag_buffoon" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.BUFFOON, PackCatalog.Size.MEGA));
-                case "tag_standard" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.STANDARD, PackCatalog.Size.MEGA));
-                case "tag_ethereal" -> shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.SPECTRAL, PackCatalog.Size.NORMAL));
                 case "tag_voucher" -> addTagVoucher();
                 case "tag_coupon" -> couponActive = true;
                 case "tag_d_six" -> d6Active = true;
