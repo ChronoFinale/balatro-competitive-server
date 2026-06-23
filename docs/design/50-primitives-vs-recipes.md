@@ -55,11 +55,16 @@ e.g. `.scales(MULT).by(1).on(handPlayed).resetWhen(faceScored)` compiling to the
    (each old `Op` → its cell), golden fixtures unchanged. Empty cells (`MULTIPLY × CHIPS`) are now expressible
    but reject loudly until an accumulator slot exists. Mirrored in `preview.js`; readable `Effect.chips/mult/
    xMult/…` factories; `BuilderSchema` exposes `scoreOperations` + `scoreSubjects`.
-2. **Unify the operation enum** so money (`AdjustMoney`) and scoring share one `Operation` vocabulary, money
-   being subject = MONEY. (`Modify` is already `(subject=Var, op, value)` — a third instance of the shape.)
-3. **Scaling/static recipes** in the builder — declarative sugar over `Value.State` + `MutateState`. Must
-   keep the accumulator separate from the read so one counter can feed multiple subjects (chips + mult + xMult)
-   and scale `xMult` (`MULTIPLY, MULT`), not only `+mult`.
+2. **Unify the operation enum** ✅ DONE (commit c1eaba4). One `Effect.Operation {ADD, SUBTRACT, MULTIPLY,
+   DIVIDE, POWER, SET}` shared by `Score` (uses ADD/MULTIPLY/POWER) and `AdjustMoney` (uses ADD/SUBTRACT/
+   MULTIPLY/DIVIDE/SET); each rejects the cells it doesn't support. `Modify` is already `(subject=Var, op,
+   value)` — the third instance of the shape.
+3. **Scaling/static — proved, not sugar-coated** ✅ DONE (commit 8308ad2). The scaling primitives are already
+   the clean two-part decomposition (accumulator `.gain`→`MutateState` + read `Val.state`→`Value.State`); a
+   `.scales()` recipe would *re-fuse* them and bring back the programming-language-like complexity we avoid.
+   `ScalingCompositionTest` proves the stress-test cases work through existing primitives with no new
+   machinery: one counter feeding multiple subjects (chips + xMult) and scaling `xMult` (`MULTIPLY, MULT`),
+   plus the static `Const` case. A joker's "kind" IS the `Value` it reads.
 
 Genuinely structural, stays code: the interpreter, RNG, the `chips × mult` arithmetic and its canonical
 within-source order (ADD before MULTIPLY before POWER). See [49](49-bespoke-logic-audit.md).
