@@ -816,9 +816,7 @@ public final class Run {
      */
     private void raiseBossRules(Trigger trigger, java.util.function.Consumer<com.balatro.engine.joker.EvaluationContext> setup) {
         if (boss == null || bossDisabled() || boss.rules().isEmpty()) return;
-        com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
-        ctx.run = state;
-        ctx.rng = rng;
+        com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
         ctx.phase = trigger;
         if (setup != null) setup.accept(ctx);
         for (Rule r : boss.rules()) {
@@ -1835,9 +1833,7 @@ public final class Run {
     /** Fire a just-sold joker's own SELL_SELF rules (Luchador disables the boss, Diet Cola makes a tag). */
     private void raiseSelfSellRules(Joker sold) {
         if (!(sold instanceof DataJoker dj)) return;
-        com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
-        ctx.run = state;
-        ctx.rng = rng;
+        com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
         ctx.jokers = List.of(sold); // self() = the sold joker, so its state (e.g. "rounds") is readable
         ctx.selfIndex = 0;
         for (Rule r : dj.def().rules()) {
@@ -1851,9 +1847,7 @@ public final class Run {
      *  the joker-side twin of {@link #raiseBossRules}. Used for capability effects (Perkeo on shop exit) that
      *  mutate run state, which the scoring/GameEvents paths don't apply. */
     private void raiseJokerRules(Trigger trigger) {
-        com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
-        ctx.run = state;
-        ctx.rng = rng;
+        com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
         ctx.jokers = state.jokers();
         List<Joker> owned = state.jokers();
         for (int i = 0; i < owned.size(); i++) {
@@ -1886,11 +1880,22 @@ public final class Run {
 
     /** IMMEDIATE tags: resolve their data {@link Effect}s on claim (Economy/Speed/Handy/Garbage/Orbital/Top-Up). */
     private void applyImmediateTag(String key) {
-        TagCatalog.Tag tag = TagCatalog.get(key);
-        if (tag == null || tag.effects().isEmpty()) return;
+        applyTagEffects(TagCatalog.get(key));
+    }
+
+    /** A base run-loop {@link com.balatro.engine.joker.EvaluationContext}: the run + its RNG, nothing more.
+     *  Every run-loop dispatcher (boss/joker/tag effects) starts from this and adds what it needs. */
+    private com.balatro.engine.joker.EvaluationContext runLoopContext() {
         com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
         ctx.run = state;
         ctx.rng = rng;
+        return ctx;
+    }
+
+    /** Apply a tag's data effects through the run-loop interpreter (null/effectless tags are a no-op). */
+    private void applyTagEffects(TagCatalog.Tag tag) {
+        if (tag == null) return;
+        com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
         for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
     }
 
@@ -1910,13 +1915,8 @@ public final class Run {
     private void applyHeldTagsOfTiming(TagCatalog.Timing timing) {
         List<String> held = state.tags.stream().filter(t -> TagCatalog.timing(t) == timing).toList();
         for (String key : held) {
-            TagCatalog.Tag tag = TagCatalog.get(key);
-            if (tag == null) continue;
             state.tags.remove(key); // consume one instance
-            com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
-            ctx.run = state;
-            ctx.rng = rng;
-            for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
+            applyTagEffects(TagCatalog.get(key));
         }
     }
 
