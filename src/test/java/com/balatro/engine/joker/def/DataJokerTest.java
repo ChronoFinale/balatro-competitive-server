@@ -25,11 +25,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * The data-driven joker model proves itself against the hand-coded set: for every
- * {@link JokerDefLibrary} entry, the interpreted {@link DataJoker} must produce
- * the exact same numeric effect as its hand-coded twin in {@code JokerLibrary},
- * across each relevant trigger (positive and negative). If a data joker and a code
- * joker can't be told apart by the scoring pipeline, the framework is faithful.
+ * Per-scenario JSON round-trip fidelity for the data joker model: for representative jokers across each
+ * relevant trigger (positive and negative cases), the live {@link DataJoker} must produce the exact same
+ * effect as one rebuilt from the serialize → deserialize of its def. If a joker survives a JSON round-trip
+ * indistinguishably, the data model + its (de)serialization are faithful. (This was a data-vs-hand-coded
+ * equivalence suite; every joker is data now, so round-trip fidelity is the invariant that remained.)
  */
 class DataJokerTest {
 
@@ -127,7 +127,7 @@ class DataJokerTest {
     @Test
     void rideTheBusStreakMatches() {
         Joker code = JokerLibrary.create("j_ride_the_bus");
-        Joker data = new DataJoker(JokerDefLibrary.get("j_ride_the_bus"));
+        Joker data = roundTrip("j_ride_the_bus");
         RunState run = new RunState();
 
         List<Card> noFace = List.of(c(Rank.TWO, Suit.SPADES), c(Rank.FIVE, Suit.HEARTS));
@@ -150,7 +150,7 @@ class DataJokerTest {
     @Test
     void constellationScalesPerPlanet() {
         Joker code = JokerLibrary.create("j_constellation");
-        Joker data = new DataJoker(JokerDefLibrary.get("j_constellation"));
+        Joker data = roundTrip("j_constellation");
         RunState run = new RunState();
 
         // before any planet: no effect
@@ -322,12 +322,30 @@ class DataJokerTest {
     }
 
     /** Run the same (freshly built) context through the code and data jokers; assert identical output. */
+    /** A joker built from the JSON round-trip of its def — serialize → deserialize → interpret. */
+    private Joker roundTrip(String key) {
+        try {
+            JokerDef def = JokerDefLibrary.get(key);
+            return new DataJoker(json.readValue(json.writeValueAsString(def), JokerDef.class));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** The live def must behave identically to its JSON round-trip across this scenario — i.e. serialize →
+     *  deserialize preserves the joker's effect for the given trigger/condition. (Was a data-vs-hand-coded
+     *  equivalence check; every joker is data now, so this is the meaningful invariant that survived.) */
     private void assertEquivalent(String key, java.util.function.Consumer<EvaluationContext> setup) {
-        Joker code = JokerLibrary.create(key);
-        Joker data = new DataJoker(JokerDefLibrary.get(key));
-        JokerEffect expected = code.calculate(fresh(code, setup));
-        JokerEffect actual = data.calculate(fresh(data, setup));
-        assertSame(key, expected, actual);
+        try {
+            Joker live = JokerLibrary.create(key);
+            JokerDef def = JokerDefLibrary.get(key);
+            Joker roundTripped = new DataJoker(json.readValue(json.writeValueAsString(def), JokerDef.class));
+            JokerEffect expected = live.calculate(fresh(live, setup));
+            JokerEffect actual = roundTripped.calculate(fresh(roundTripped, setup));
+            assertSame(key, expected, actual);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /** Drive both jokers with the same context against a shared run; return the data joker's effect. */

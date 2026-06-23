@@ -27,7 +27,6 @@ import com.balatro.engine.joker.def.Modify;
 import com.balatro.engine.joker.def.Value;
 import com.balatro.engine.joker.def.JokerDef;
 import com.balatro.engine.joker.def.RunMod;
-import com.balatro.engine.joker.def.JokerDefLibrary;
 import com.balatro.engine.net.CardView;
 import com.balatro.engine.net.ClientView;
 import com.balatro.engine.net.ServerUpdate;
@@ -1620,10 +1619,9 @@ public final class Run {
         return new ServerUpdate(rejection == null, rejection, view(), List.of());
     }
 
-    /** The data definition backing a joker (for the client preview), or null if native-only. */
+    /** The data definition backing a joker (for the client preview); every joker is data now. */
     private static JokerDef defFor(Joker j) {
-        if (j instanceof DataJoker dj) return dj.def();
-        return JokerDefLibrary.get(j.key()); // hand-coded jokers have data equivalents (except Blueprint)
+        return (j instanceof DataJoker dj) ? dj.def() : null;
     }
 
     /** The locale the client wants its server-rendered text in (set per session); "en" by default. */
