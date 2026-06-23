@@ -150,40 +150,7 @@ public final class GameServer implements AutoCloseable {
             // Rulesets the lobby/builder can use (curated + custom).
             cfg.routes.get("/rulesets", ctx -> ctx.json(rulesetStore.all()));
 
-            // Content auto-update: the delta-sync manifest (version + per-file sha256) and the raw, hash-exact
-            // bytes of the files it lists. A client fetches the manifest, diffs vs its cache, downloads deltas.
-            cfg.routes.get("/content/manifest", ctx -> {
-                ctx.header("Access-Control-Allow-Origin", "*"); // public content; readable by any client
-                ctx.contentType("application/json");
-                ctx.result(resourceBytes("/content/manifest.json"));
-            });
-            cfg.routes.get("/content/file", ctx -> {
-                ctx.header("Access-Control-Allow-Origin", "*");
-                String p = ctx.queryParam("path");
-                if (p == null || !com.balatro.engine.codegen.ContentManifest.FILES.contains(p)) {
-                    ctx.status(404).result("unknown content file");
-                    return;
-                }
-                ctx.contentType("application/json");
-                ctx.result(resourceBytes("/" + p));   // path validated against the manifest list (no traversal)
-            });
-
-            // Bootstrap: the single "what should this client do now" call a thin client makes at launch. The
-            // mod shell is stable; everything variable (content version to sync, offered modes, feature flags,
-            // whether the mod CODE itself is out of date) comes from here — so behaviour changes server-side
-            // without redistributing the mod (only a mod-code change needs MOD_VERSION bumped + a reboot).
-            cfg.routes.get("/bootstrap", ctx -> {
-                ctx.header("Access-Control-Allow-Origin", "*");
-                String contentVersion = "";
-                try {
-                    contentVersion = json.readTree(resourceBytes("/content/manifest.json")).path("version").asText("");
-                } catch (Exception ignored) { /* no manifest -> empty version */ }
-                ctx.json(Map.of(
-                        "modVersion", MOD_VERSION,           // the mod compares its own version; older -> restart
-                        "contentVersion", contentVersion,    // sync /content if this differs from the cached one
-                        "rulesets", rulesetStore.names(),    // the modes/rulesets to offer in the lobby
-                        "features", Map.of("lobby", true, "queue", true)));
-            });
+            registerContentSyncRoutes(cfg);
 
             // Create a custom ruleset (a bundle that, with its joker pool, dictates a match).
             cfg.routes.post("/rulesets", ctx -> {
@@ -254,6 +221,39 @@ public final class GameServer implements AutoCloseable {
                 ws.onMessage(ctx -> handle(new WsConnection(ctx), ctx.message()));
                 ws.onClose(ctx -> dropSession(ctx.sessionId()));
             });
+        });
+    }
+
+    /** Content auto-update: the delta-sync manifest (version + per-file sha256), the raw hash-exact bytes of
+     *  the files it lists, and /bootstrap (the single "what should this client do now" call a thin client
+     *  makes at launch — content version to sync, offered modes, feature flags, mod-code freshness). */
+    private void registerContentSyncRoutes(io.javalin.config.JavalinConfig cfg) {
+        cfg.routes.get("/content/manifest", ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*"); // public content; readable by any client
+            ctx.contentType("application/json");
+            ctx.result(resourceBytes("/content/manifest.json"));
+        });
+        cfg.routes.get("/content/file", ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*");
+            String p = ctx.queryParam("path");
+            if (p == null || !com.balatro.engine.codegen.ContentManifest.FILES.contains(p)) {
+                ctx.status(404).result("unknown content file");
+                return;
+            }
+            ctx.contentType("application/json");
+            ctx.result(resourceBytes("/" + p));   // path validated against the manifest list (no traversal)
+        });
+        cfg.routes.get("/bootstrap", ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*");
+            String contentVersion = "";
+            try {
+                contentVersion = json.readTree(resourceBytes("/content/manifest.json")).path("version").asText("");
+            } catch (Exception ignored) { /* no manifest -> empty version */ }
+            ctx.json(Map.of(
+                    "modVersion", MOD_VERSION,           // the mod compares its own version; older -> restart
+                    "contentVersion", contentVersion,    // sync /content if this differs from the cached one
+                    "rulesets", rulesetStore.names(),    // the modes/rulesets to offer in the lobby
+                    "features", Map.of("lobby", true, "queue", true)));
         });
     }
 
