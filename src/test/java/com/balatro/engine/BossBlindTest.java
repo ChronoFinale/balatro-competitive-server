@@ -211,6 +211,32 @@ class BossBlindTest {
     }
 
     @Test
+    void theOxZeroesMoneyOnlyOnYourMostPlayedHand() { // PlayedHandIsMostPlayed + AdjustMoney(SET) as data rules
+        Run run = bossRunOn(Bosses.of("bl_ox", "The Ox").desc("most-played sets $0")
+                .requirement(100).zeroMoneyOnMostPlayed().build());
+        // bossRunOn cleared Small + Big with two 5-King hands, so that hand type is the most-played this run.
+        run.state.money = 9;
+        // Negative control: a Pair (2 Kings) is a different, rarer hand type — not most-played, money stands.
+        run.play(new Intent.PlayHand(List.of(0, 1)));
+        assertThat(run.state.money).isEqualTo(9);
+        // Positive: replay the most-played 5-King hand — The Ox empties the wallet.
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        assertThat(run.state.money).isEqualTo(0);
+    }
+
+    @Test
+    void theArmDelevelsThePlayedHand() { // DelevelPlayedHand fired at ON_HAND_PLAYED
+        Run run = bossRunOn(Bosses.of("bl_arm", "The Arm").desc("delevel played hand")
+                .requirement(100).delevelsPlayedHand().build());
+        var handType = com.balatro.engine.hand.HandEvaluator.evaluate(
+                List.of(run.state.hand.get(0), run.state.hand.get(1), run.state.hand.get(2),
+                        run.state.hand.get(3), run.state.hand.get(4))).type();
+        run.state.setHandLevel(handType, 3); // raise it so the one-level drop is observable (not floored at 1)
+        run.play(new Intent.PlayHand(List.of(0, 1, 2, 3, 4)));
+        assertThat(run.state.handLevel(handType)).isEqualTo(2); // The Arm dropped it one level
+    }
+
+    @Test
     void theMouthAllowsOnlyOneHandTypePerRound() { // hand-legality via the shared Cond language
         Run run = bossRunOn(Bosses.of("bl_mouth", "The Mouth").desc("one hand type")
                 .requirement(100).requires(com.balatro.dsl.Cond.playedHand().matchesRoundType()).build());

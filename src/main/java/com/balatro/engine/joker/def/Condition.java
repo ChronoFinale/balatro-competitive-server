@@ -59,6 +59,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.BossAbilityActive.class, name = "bossAbilityActive"),
     @JsonSubTypes.Type(value = Condition.RoundHandTypeConsistent.class, name = "roundHandTypeConsistent"),
     @JsonSubTypes.Type(value = Condition.ScoredPlayedThisAnte.class, name = "scoredPlayedThisAnte"),
+    @JsonSubTypes.Type(value = Condition.PlayedHandIsMostPlayed.class, name = "playedHandIsMostPlayed"),
 })
 public sealed interface Condition {
 
@@ -368,6 +369,18 @@ public sealed interface Condition {
             if (ctx.run == null || ctx.handType == null) return true;
             var played = ctx.run.handTypesThisRound;
             return played.isEmpty() || played.contains(ctx.handType);
+        }
+    }
+
+    /** The played poker hand is (one of) the most-played hand type(s) this run — The Ox's trigger. A tie
+     *  counts: every hand sharing the maximum play count qualifies (read after this hand was counted). */
+    record PlayedHandIsMostPlayed() implements Condition {
+        public boolean test(EvaluationContext ctx) {
+            if (ctx.run == null || ctx.handType == null) return false;
+            int mine = ctx.run.handTypePlays.getOrDefault(ctx.handType, 0);
+            if (mine == 0) return false;
+            int max = ctx.run.handTypePlays.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+            return mine == max;
         }
     }
 

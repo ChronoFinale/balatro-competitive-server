@@ -2,8 +2,11 @@ package com.balatro.dsl;
 
 import com.balatro.engine.game.*;
 
+import com.balatro.engine.joker.Trigger;
 import com.balatro.engine.joker.def.Condition;
+import com.balatro.engine.joker.def.Effect;
 import com.balatro.engine.joker.def.Modify;
+import com.balatro.engine.joker.def.Rule;
 import com.balatro.engine.joker.def.Value;
 
 /**
@@ -27,15 +30,12 @@ public final class Bosses {
     private double reqMult = 2.0;
     private int reward = 5;
     private final java.util.List<Modify> mods = new java.util.ArrayList<>();
+    private final java.util.List<Rule> rules = new java.util.ArrayList<>();
     private Condition debuff = null;
     private boolean halveBase = false;
-    private int dollarsPerCardPlayed = 0;
-    private boolean zeroMoneyOnMostPlayed = false;
-    private boolean delevelPlayedHand = false;
     private Condition requires = null;
     private BossBlind.FaceDownRule faceDown = null;
     private int drawOnRefill = -1;
-    private int discardAfterPlay = 0;
     private boolean disableOnJokerSell = false;
     private boolean disableRandomJokerPerHand = false;
     private boolean flipAndShuffleJokers = false;
@@ -75,14 +75,31 @@ public final class Bosses {
 
     public Bosses halvesBase() { this.halveBase = true; return this; }
 
-    /** The Tooth: lose ${@code -d} per card played (pass a negative). */
-    public Bosses dollarsPerCard(int d) { this.dollarsPerCardPlayed = d; return this; }
+    /** A per-hand rule: when {@code ON_HAND_PLAYED} fires and {@code cond} holds, run {@code effect}. The
+     *  boss's per-hand abilities are authored as data rules — the same {@link Effect} vocabulary jokers use. */
+    private Bosses onHandPlayed(Condition cond, Effect effect) {
+        rules.add(new Rule(Trigger.ON_HAND_PLAYED, cond, effect));
+        return this;
+    }
 
-    /** The Ox: playing your most-played hand sets money to $0. */
-    public Bosses zeroMoneyOnMostPlayed() { this.zeroMoneyOnMostPlayed = true; return this; }
+    /** The Tooth: lose ${@code -d} per card played (pass a negative) —
+     *  {@code AdjustMoney(ADD, count(played) x d)}. */
+    public Bosses dollarsPerCard(int d) {
+        return onHandPlayed(new Condition.Always(), new Effect.AdjustMoney(Effect.AdjustMoney.Mode.ADD,
+                new Value.Count(Value.Source.PLAYED, new Condition.Always(), 0, d)));
+    }
 
-    /** The Arm: the played poker hand drops a level. */
-    public Bosses delevelsPlayedHand() { this.delevelPlayedHand = true; return this; }
+    /** The Ox: playing your most-played hand sets money to $0 — {@code AdjustMoney(SET, 0)} gated on
+     *  {@link Condition.PlayedHandIsMostPlayed}. */
+    public Bosses zeroMoneyOnMostPlayed() {
+        return onHandPlayed(new Condition.PlayedHandIsMostPlayed(),
+                new Effect.AdjustMoney(Effect.AdjustMoney.Mode.SET, new Value.Const(0)));
+    }
+
+    /** The Arm: the played poker hand drops a level — {@code DelevelPlayedHand}. */
+    public Bosses delevelsPlayedHand() {
+        return onHandPlayed(new Condition.Always(), new Effect.DelevelPlayedHand());
+    }
 
     /** A play is only legal if it satisfies {@code cond} — reuses the joker condition vocabulary
      *  (The Psychic: {@code requires(playedHand().sizeAtLeast(5))}). */
@@ -115,8 +132,11 @@ public final class Bosses {
     /** The Serpent: after each play or discard, always draw exactly {@code n} cards (no refill to size). */
     public Bosses drawsExactly(int n) { this.drawOnRefill = n; return this; }
 
-    /** The Hook: after each played hand, discard {@code n} random held cards (then refill). */
-    public Bosses discardsRandomAfterPlay(int n) { this.discardAfterPlay = n; return this; }
+    /** The Hook: after each played hand, discard {@code n} random held cards (then refill) —
+     *  {@code DiscardRandomHeld(n)}. */
+    public Bosses discardsRandomAfterPlay(int n) {
+        return onHandPlayed(new Condition.Always(), new Effect.DiscardRandomHeld(n));
+    }
 
     /** Verdant Leaf: selling any Joker disables this boss for the rest of the blind. Pairs with
      *  {@code debuffs(always())} — every card is debuffed until you sell a Joker to lift it. */
@@ -142,13 +162,12 @@ public final class Bosses {
         String text = effect.isEmpty()
                 ? com.balatro.engine.i18n.Loc.fill(key, java.util.Map.of(
                         "reqMult", fmt(reqMult), "minAnte", minAnte, "reward", reward,
-                        "dollarsPerCardPlayed", dollarsPerCardPlayed, "drawOnRefill", drawOnRefill,
-                        "discardAfterPlay", discardAfterPlay))
+                        "drawOnRefill", drawOnRefill))
                 : effect;
         return new BossBlind(key, name, text, minAnte, finisher, reqMult, reward,
                 java.util.List.copyOf(mods), debuff, halveBase,
-                dollarsPerCardPlayed, zeroMoneyOnMostPlayed, delevelPlayedHand, requires, faceDown,
-                drawOnRefill, discardAfterPlay, disableOnJokerSell, disableRandomJokerPerHand,
+                java.util.List.copyOf(rules), requires, faceDown,
+                drawOnRefill, disableOnJokerSell, disableRandomJokerPerHand,
                 flipAndShuffleJokers, forcesCardSelection);
     }
 }

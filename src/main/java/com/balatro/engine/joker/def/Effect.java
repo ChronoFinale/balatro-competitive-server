@@ -43,6 +43,10 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.NemesisDelevel.class, name = "nemesisDelevel"),
     @JsonSubTypes.Type(value = Effect.DestroySelf.class, name = "destroySelf"),
     @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
+    // --- boss run-loop effects (applied by Run's action interpreter at a lifecycle trigger) ---
+    @JsonSubTypes.Type(value = Effect.AdjustMoney.class, name = "adjustMoney"),
+    @JsonSubTypes.Type(value = Effect.DelevelPlayedHand.class, name = "delevelPlayedHand"),
+    @JsonSubTypes.Type(value = Effect.DiscardRandomHeld.class, name = "discardRandomHeld"),
 })
 public sealed interface Effect {
 
@@ -231,6 +235,23 @@ public sealed interface Effect {
 
     /** Asteroid (MP): delevel the nemesis's highest poker hand (resolved by the Match). */
     record NemesisDelevel() implements Effect {}
+
+    // --- boss run-loop effects: pure data fired by Run at a lifecycle trigger (ON_HAND_PLAYED), never in
+    //     the scorer. They mutate run state directly through Run's action interpreter, exactly like the
+    //     consumable verbs above — one Effect vocabulary, so a boss is authored as Rules like a joker. ---
+
+    /** Change the run's money outside scoring: {@code ADD} a (possibly negative, possibly per-card) amount —
+     *  floored at the run's minimum money — or {@code SET} it to a fixed value. The Tooth is
+     *  {@code ADD(count(played) x -1)}; the Ox is {@code SET(0)}. */
+    record AdjustMoney(Mode mode, Value amount) implements Effect {
+        public enum Mode { ADD, SET }
+    }
+
+    /** Drop the played poker hand's level by one (The Arm). No-op if there is no played hand. */
+    record DelevelPlayedHand() implements Effect {}
+
+    /** Discard {@code count} random held cards, then refill the hand (The Hook). */
+    record DiscardRandomHeld(int count) implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {

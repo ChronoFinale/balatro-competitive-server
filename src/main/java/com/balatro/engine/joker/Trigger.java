@@ -31,6 +31,7 @@ public enum Trigger {
 
     // ---- lifecycle (raised by GameEvents) ----
     BLIND_SELECTED,     // a blind is chosen
+    ON_HAND_PLAYED,     // a hand was played + scored (the boss's per-hand effects: Tooth/Ox/Arm/Hook)
     FIRST_HAND_DRAWN,   // first hand of the round dealt
     PRE_DISCARD,        // before a discard resolves (sees the discarded set)
     ON_DISCARD,         // per discarded card

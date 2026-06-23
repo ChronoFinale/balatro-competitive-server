@@ -31,11 +31,24 @@ These aren't four separate problems. They're one: **no run-level rule interprete
 
 ## What's genuinely structural (leave as code — NOT vocabulary)
 
-Some bespoke code is not "effects" and shouldn't be data:
-- **Deck composition algorithms** — Erratic randomizes every card, Checkered remaps suits, Abandoned removes
-  faces. These *build the deck*; they're not effects fired at a trigger.
-- **Mode `Capabilities`** (`glassMult`, `restrictedPools`, `idolDeckPosition`) — mode config, not content.
-- The scoring math, RNG, and the interpreter itself — by the server-authority invariant.
+The line is narrower than it first looks. **Deck composition is NOT an exception** — Erratic ("randomize each
+card"), Checkered ("set suit by color"), Abandoned ("remove faces") are exactly the card-mutation effects tarots
+already use (`MutateCard`/`DestroyTargets`/`Generate`), just fired at the *earliest* trigger — deck-build /
+run-start — over an `ALL_DECK` selector. `deck = fold(buildEffects, standard52)`. "Runs once at construction"
+≠ "isn't an effect" (consumables run once and mutate cards too). So deck composition is *more* evidence for the
+unification, not against it.
+
+The only things that genuinely can't be vocabulary are **the machine**:
+- the **interpreter** (the code that reads an `Effect` and performs it),
+- the **RNG streams**, and
+- the **scoring arithmetic** (the chips × mult loop).
+
+Expressing *those* as data would mean a Turing-complete data language — the exact thing we refuse, because it
+re-introduces shipped code and breaks serialization / codegen / server-authority (that's Balatro's Lua model).
+
+Gray-zone, tier-2 (a value/flag the engine reads, not a transform): `balanceChipsMult` (Plasma branches the
+score math), `blindSizeMult`, `discardDelta` — these are knobs, closer to `Var`s than to effects.
+Mode `Capabilities` (`restrictedPools`, `idolDeckPosition`) are mode config, not content.
 
 ## The one fix that absorbs most of it
 

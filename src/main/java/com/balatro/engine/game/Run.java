@@ -20,6 +20,7 @@ import com.balatro.engine.joker.Trigger;
 import com.balatro.engine.joker.JokerDisplay;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.joker.def.Effect;
+import com.balatro.engine.joker.def.Rule;
 import com.balatro.engine.joker.def.Selector;
 import com.balatro.engine.joker.def.Modify;
 import com.balatro.engine.joker.def.Value;
@@ -367,9 +368,9 @@ public final class Run {
     private boolean bossHasAbility() {
         return boss != null && (boss.debuff() != null || boss.halveBase()
                 || !boss.mods().isEmpty() // hand/discard/size resource modifiers
-                || boss.dollarsPerCardPlayed() != 0 || boss.zeroMoneyOnMostPlayed() || boss.delevelPlayedHand()
+                || !boss.rules().isEmpty() // per-hand effects (Tooth/Ox/Arm/Hook)
                 || boss.requires() != null || boss.faceDown() != null
-                || boss.drawOnRefill() > 0 || boss.discardAfterPlay() > 0
+                || boss.drawOnRefill() > 0
                 || boss.disableOnJokerSell() || boss.disableRandomJokerPerHand()
                 || boss.flipAndShuffleJokers() || boss.forcesCardSelection());
     }
@@ -749,6 +750,14 @@ public final class Run {
         // Snapshot the hand so we can tell which cards the upcoming refill freshly drew (boss face-down).
         java.util.Set<java.util.UUID> handBefore = new java.util.HashSet<>();
         for (Card c : state.hand) handBefore.add(c.uid);
+        // Capture the played cards before scoring removes them — the boss's ON_HAND_PLAYED rules read them
+        // (The Tooth counts cards played). Resolved here while the indices still point into the live hand.
+        List<Card> playedCards = new ArrayList<>();
+        if (intent instanceof Intent.PlayHand phPlayed) {
+            for (int i : phPlayed.cardIndices()) {
+                if (i >= 0 && i < state.hand.size()) playedCards.add(state.hand.get(i));
+            }
+        }
         // Purple Seal: count the sealed cards in this discard before they leave the hand.
         int purpleDiscards = 0;
         if (intent instanceof Intent.Discard dscP) {
@@ -782,7 +791,7 @@ public final class Run {
         if (intent instanceof Intent.PlayHand ph) {
             state.handsPlayedThisRound++; // after scoring, so DNA's "first hand" check saw 0
             state.handsPlayedTotal++;
-            applyBossOnHandPlayed(ph, result.score()); // Tooth / Ox / Arm per-hand boss effects
+            applyBossOnHandPlayed(playedCards, result.score()); // Tooth / Ox / Arm / Hook per-hand boss effects
             // (Matador's $8 vs an active boss ability is now a data Rule: DOLLARS gated on bossAbilityActive.)
             if (pvpActive) {
                 // PvP blind: play all hands, then await the head-to-head comparison.
@@ -801,29 +810,56 @@ public final class Run {
         return result;
     }
 
-    /** Boss per-hand effects, applied after each played hand (data-driven from {@link BossBlind}). */
-    private void applyBossOnHandPlayed(Intent.PlayHand ph, ScoreResult score) {
-        if (boss == null || bossDisabled()) return;
-        if (boss.dollarsPerCardPlayed() != 0) { // The Tooth: -$1 per card played
-            state.money = Math.max(minMoney(), state.money + boss.dollarsPerCardPlayed() * ph.cardIndices().size());
+    /**
+     * Boss per-hand effects: raise {@link Trigger#ON_HAND_PLAYED} over the boss's rules and apply each
+     * matching effect through the run-loop interpreter. The boss is "a joker the blind owns" — Tooth / Ox /
+     * Arm / Hook are now data {@link Rule}s ({@code AdjustMoney} / {@code DelevelPlayedHand} /
+     * {@code DiscardRandomHeld}), not bespoke fields. One condition language, one effect vocabulary.
+     */
+    private void applyBossOnHandPlayed(List<Card> playedCards, ScoreResult score) {
+        if (boss == null || bossDisabled() || boss.rules().isEmpty()) return;
+        com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
+        ctx.run = state;
+        ctx.rng = rng;
+        ctx.phase = Trigger.ON_HAND_PLAYED;
+        ctx.playedCards = playedCards;
+        ctx.handType = (score != null) ? score.handType() : null;
+        for (Rule r : boss.rules()) {
+            if (r.when() != Trigger.ON_HAND_PLAYED) continue;
+            if (r.condition() != null && !r.condition().test(ctx)) continue;
+            for (Effect e : r.effects()) applyBossEffect(e, ctx);
         }
-        if (score == null) return;
-        if (boss.zeroMoneyOnMostPlayed() && score.handType() == mostPlayedHand()) { // The Ox
-            state.money = 0;
-        }
-        if (boss.delevelPlayedHand()) { // The Arm
-            state.levelDownHand(score.handType());
-        }
-        if (boss.discardAfterPlay() > 0) { // The Hook: discard random held cards, then refill
-            for (int i = 0; i < boss.discardAfterPlay() && !state.hand.isEmpty(); i++) {
-                int idx = (int) (roll(RngSources.BOSS_HOOK) * state.hand.size());
-                if (idx >= state.hand.size()) idx = state.hand.size() - 1;
-                state.hand.remove(idx);
+    }
+
+    /** The run-loop interpreter for a boss effect (the action-side twin of {@link #applyConsumableEffect}):
+     *  resolve a {@link Value} against the run and mutate authoritative state. */
+    private void applyBossEffect(Effect e, com.balatro.engine.joker.EvaluationContext ctx) {
+        switch (e) {
+            case Effect.AdjustMoney am -> {
+                int v = (int) Math.round(am.amount().resolve(ctx));
+                state.money = switch (am.mode()) {
+                    case ADD -> Math.max(minMoney(), state.money + v); // The Tooth floors at the run minimum
+                    case SET -> Math.max(0, v);                        // The Ox: set to $0
+                };
             }
-            if (state.deck != null) {
-                if (state.drawCountOverride > 0) state.deck.drawCount(state.hand, boss.discardAfterPlay());
-                else state.deck.drawTo(state.hand, state.handSize);
+            case Effect.DelevelPlayedHand ignored -> { // The Arm
+                if (ctx.handType != null) state.levelDownHand(ctx.handType);
             }
+            case Effect.DiscardRandomHeld d -> hookDiscardAndRefill(d.count()); // The Hook
+            default -> throw new IllegalStateException("not a boss run-loop effect: " + e);
+        }
+    }
+
+    /** The Hook: discard {@code count} random held cards, then refill (honouring a Serpent draw override). */
+    private void hookDiscardAndRefill(int count) {
+        for (int i = 0; i < count && !state.hand.isEmpty(); i++) {
+            int idx = (int) (roll(RngSources.BOSS_HOOK) * state.hand.size());
+            if (idx >= state.hand.size()) idx = state.hand.size() - 1;
+            state.hand.remove(idx);
+        }
+        if (state.deck != null) {
+            if (state.drawCountOverride > 0) state.deck.drawCount(state.hand, count);
+            else state.deck.drawTo(state.hand, state.handSize);
         }
     }
 
@@ -1562,8 +1598,7 @@ public final class Run {
         Object req = rm == Math.rint(rm) ? (Object) (long) rm : (Object) rm;
         return com.balatro.engine.i18n.Loc.fill(viewLocale, b.key(), java.util.Map.of(
                 "reqMult", req, "minAnte", b.minAnte(), "reward", b.reward(),
-                "dollarsPerCardPlayed", b.dollarsPerCardPlayed(),
-                "drawOnRefill", b.drawOnRefill(), "discardAfterPlay", b.discardAfterPlay()));
+                "drawOnRefill", b.drawOnRefill()));
     }
 
     /** A localized description for a content key in {@link #viewLocale}, falling back to {@code original}

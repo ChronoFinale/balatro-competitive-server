@@ -3,6 +3,7 @@ package com.balatro.engine.game;
 import com.balatro.dsl.*;
 import com.balatro.engine.joker.def.Condition;
 import com.balatro.engine.joker.def.Modify;
+import com.balatro.engine.joker.def.Rule;
 import java.util.List;
 
 /**
@@ -28,10 +29,10 @@ public record BossBlind(
         List<Modify> mods,
         Condition debuff,              // cards matching this don't score (Club/Goad/Window/Head/Plant); null = none
         boolean halveBase,             // The Flint: base chips & mult halved
-        // --- per-hand event effects (Run.applyBossOnHandPlayed) ---
-        int dollarsPerCardPlayed,      // The Tooth: -$1 per card played
-        boolean zeroMoneyOnMostPlayed, // The Ox
-        boolean delevelPlayedHand,     // The Arm
+        // --- per-hand event effects, as data: rules fired at ON_HAND_PLAYED through the same Effect
+        //     vocabulary a joker uses (Tooth = AdjustMoney, Ox = AdjustMoney/SET gated on most-played,
+        //     Arm = DelevelPlayedHand, Hook = DiscardRandomHeld). A boss is "a joker the blind owns". ---
+        List<Rule> rules,
         // --- hand-legality: a play is only legal if it satisfies this condition (Run.play, pre-score).
         //     Reuses the shared Cond vocabulary — The Psychic is requires(playedHand().sizeAtLeast(5)). ---
         Condition requires,
@@ -41,8 +42,6 @@ public record BossBlind(
         // --- The Serpent: after each play/discard, draw exactly this many cards instead of refilling
         //     to hand size (so the hand shrinks). -1 = normal refill. ---
         int drawOnRefill,
-        // --- The Hook: after each played hand, discard this many random held cards (then refill). 0 = none. ---
-        int discardAfterPlay,
         // --- Verdant Leaf: selling any joker disables this boss for the rest of the blind (like Luchador). ---
         boolean disableOnJokerSell,
         // --- Crimson Heart: before each played hand, one random Joker is disabled for that hand. ---
@@ -63,8 +62,8 @@ public record BossBlind(
      */
     public boolean hasAbility() {
         return reqMult != BASELINE_REQ_MULT || !mods.isEmpty() || debuff != null || halveBase
-                || dollarsPerCardPlayed != 0 || zeroMoneyOnMostPlayed || delevelPlayedHand
-                || requires != null || faceDown != null || drawOnRefill != -1 || discardAfterPlay != 0
+                || !rules.isEmpty()
+                || requires != null || faceDown != null || drawOnRefill != -1
                 || disableOnJokerSell || disableRandomJokerPerHand || flipAndShuffleJokers
                 || forcesCardSelection;
     }
