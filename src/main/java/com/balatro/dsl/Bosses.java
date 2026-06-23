@@ -82,11 +82,12 @@ public final class Bosses {
         return this;
     }
 
-    /** The Tooth: lose ${@code -d} per card played (pass a negative) —
-     *  {@code AdjustMoney(ADD, count(played) x d)}. */
+    /** The Tooth: lose ${@code -d} per card played (pass a negative, e.g. {@code -1}). The verb carries the
+     *  sign — a loss is {@code AdjustMoney(SUBTRACT, count(played))}, a gain {@code ADD}. */
     public Bosses dollarsPerCard(int d) {
-        return onHandPlayed(new Condition.Always(), new Effect.AdjustMoney(Effect.AdjustMoney.Mode.ADD,
-                new Value.Count(Value.Source.PLAYED, new Condition.Always(), 0, d)));
+        Effect.AdjustMoney.Mode mode = d < 0 ? Effect.AdjustMoney.Mode.SUBTRACT : Effect.AdjustMoney.Mode.ADD;
+        return onHandPlayed(new Condition.Always(), new Effect.AdjustMoney(mode,
+                new Value.Count(Value.Source.PLAYED, new Condition.Always(), 0, Math.abs(d))));
     }
 
     /** The Ox: playing your most-played hand sets money to $0 — {@code AdjustMoney(SET, 0)} gated on

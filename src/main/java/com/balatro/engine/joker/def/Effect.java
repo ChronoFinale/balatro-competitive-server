@@ -240,11 +240,13 @@ public sealed interface Effect {
     //     the scorer. They mutate run state directly through Run's action interpreter, exactly like the
     //     consumable verbs above — one Effect vocabulary, so a boss is authored as Rules like a joker. ---
 
-    /** Change the run's money outside scoring: {@code ADD} a (possibly negative, possibly per-card) amount —
-     *  floored at the run's minimum money — or {@code SET} it to a fixed value. The Tooth is
-     *  {@code ADD(count(played) x -1)}; the Ox is {@code SET(0)}. */
+    /** Change the run's money outside scoring. The verb carries the direction so {@code amount} is a plain
+     *  magnitude (no signed operands): {@code ADD}/{@code SUBTRACT} a (possibly per-card) amount — floored
+     *  at the run's minimum money — {@code MULTIPLY}/{@code DIVIDE} the balance, or {@code SET} it to a
+     *  fixed value. The Tooth is {@code SUBTRACT(count(played))}; the Ox is {@code SET(0)}. Mirrors the
+     *  scoring op model (MULT vs XMULT vs POW_MULT), where each arithmetic verb is its own primitive. */
     record AdjustMoney(Mode mode, Value amount) implements Effect {
-        public enum Mode { ADD, SET }
+        public enum Mode { ADD, SUBTRACT, MULTIPLY, DIVIDE, SET }
     }
 
     /** Drop the played poker hand's level by one (The Arm). No-op if there is no played hand. */

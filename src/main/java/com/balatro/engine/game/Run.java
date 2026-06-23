@@ -836,10 +836,14 @@ public final class Run {
     private void applyBossEffect(Effect e, com.balatro.engine.joker.EvaluationContext ctx) {
         switch (e) {
             case Effect.AdjustMoney am -> {
-                int v = (int) Math.round(am.amount().resolve(ctx));
+                double v = am.amount().resolve(ctx); // a magnitude; the verb carries the direction
+                int floor = minMoney();
                 state.money = switch (am.mode()) {
-                    case ADD -> Math.max(minMoney(), state.money + v); // The Tooth floors at the run minimum
-                    case SET -> Math.max(0, v);                        // The Ox: set to $0
+                    case ADD -> Math.max(floor, state.money + (int) Math.round(v));
+                    case SUBTRACT -> Math.max(floor, state.money - (int) Math.round(v)); // The Tooth
+                    case MULTIPLY -> Math.max(0, (int) Math.round(state.money * v));
+                    case DIVIDE -> v == 0 ? state.money : Math.max(0, (int) Math.round(state.money / v));
+                    case SET -> Math.max(0, (int) Math.round(v)); // The Ox: set to $0
                 };
             }
             case Effect.DelevelPlayedHand ignored -> { // The Arm
