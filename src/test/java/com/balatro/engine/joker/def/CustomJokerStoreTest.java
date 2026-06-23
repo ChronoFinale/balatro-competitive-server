@@ -21,7 +21,7 @@ class CustomJokerStoreTest {
     private static JokerDef def(String key) {
         return new JokerDef(key, "Custom " + key, "+9 Mult", "Common", 4, 0, 0, null, null, true,
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
-                        new Effect.Score(Effect.Op.MULT, new Value.Const(9)))));
+                        Effect.mult(new Value.Const(9)))));
     }
 
     @Test

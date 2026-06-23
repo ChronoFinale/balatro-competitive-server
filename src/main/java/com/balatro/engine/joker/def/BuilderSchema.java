@@ -32,7 +32,8 @@ public final class BuilderSchema {
                 "playedCount", "discardedFaceCount", "scoringAnyFace", "consumableType",
                 "stateAtLeast", "moneyAtLeast", "handsLeft", "discardsLeft", "ante",
                 "inPvpBlind", "reachedPvpFirst", "and", "or", "not"));
-        s.put("effectOps", names(Effect.Op.values()));      // numeric Score ops
+        s.put("scoreOperations", names(Effect.Operation.values())); // Score verb: ADD / MULTIPLY / POWER
+        s.put("scoreSubjects", names(Effect.Subject.values()));     // Score slot: CHIPS / MULT / DOLLARS / …
         s.put("effectTypes", List.of(                        // the sealed Effect kinds
                 "score", "mutateCard", "create", "destroyScored", "destroyDiscarded", "levelUpHand",
                 "copyScored", "mutateState", "destroySelf", "grantDiscards"));

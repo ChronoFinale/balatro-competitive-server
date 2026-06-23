@@ -24,8 +24,8 @@ class RuleAccumulationTest {
     @Test
     void twoScoringRulesOnOneTriggerBothContribute() {
         DataJoker j = joker(
-                new Rule(Trigger.JOKER_MAIN, ALWAYS, new Effect.Score(Effect.Op.CHIPS, new Value.Const(10))),
-                new Rule(Trigger.JOKER_MAIN, ALWAYS, new Effect.Score(Effect.Op.MULT, new Value.Const(5))));
+                new Rule(Trigger.JOKER_MAIN, ALWAYS, Effect.chips(new Value.Const(10))),
+                new Rule(Trigger.JOKER_MAIN, ALWAYS, Effect.mult(new Value.Const(5))));
 
         JokerEffect e = j.calculate(ctx(j, Trigger.JOKER_MAIN));
 
@@ -38,7 +38,7 @@ class RuleAccumulationTest {
     @Test
     void aStateWriteAfterAScoringRuleStillApplies() {
         DataJoker j = joker(
-                new Rule(Trigger.JOKER_MAIN, ALWAYS, new Effect.Score(Effect.Op.MULT, new Value.Const(4))),
+                new Rule(Trigger.JOKER_MAIN, ALWAYS, Effect.mult(new Value.Const(4))),
                 new Rule(Trigger.JOKER_MAIN, ALWAYS,
                         new Effect.MutateState("count", Effect.MutateState.Op.ADD, 1, null, null)));
 

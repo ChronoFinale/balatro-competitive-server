@@ -303,14 +303,21 @@
     if (eff.type !== 'score') return true;
     const val = valResolve(eff.value, ctx);
     if (val === null) return false; // probabilistic value -> unsupported
-    switch (eff.op) {
+    // Mirrors Effect.Score.apply: a contribution is (operation, subject). Only MULT varies by operation;
+    // the other subjects are additive-only.
+    switch (eff.subject) {
       case 'CHIPS': acc.chips += val; break;
-      case 'MULT': acc.mult += val; break;
       case 'HELD_MULT': acc.mult += val; break;
-      case 'XMULT': if (val !== 1) acc.mult *= val; break;
-      case 'POW_MULT': if (val !== 1) acc.mult = Math.pow(acc.mult, val); break;
       case 'DOLLARS': break;           // no money in scoring math
-      case 'REPETITIONS': break;       // handled by the retrigger pass
+      case 'RETRIGGERS': break;        // handled by the retrigger pass
+      case 'MULT':
+        switch (eff.op) {
+          case 'ADD': acc.mult += val; break;
+          case 'MULTIPLY': if (val !== 1) acc.mult *= val; break;
+          case 'POWER': if (val !== 1) acc.mult = Math.pow(acc.mult, val); break;
+          default: return false;
+        }
+        break;
       default: return false;
     }
     return true;

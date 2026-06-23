@@ -1,6 +1,7 @@
 package com.balatro.engine.joker.def;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.JokerEffect;
@@ -15,30 +16,36 @@ import org.junit.jupiter.api.Test;
 class EffectApplyTest {
 
     private static final EvaluationContext CTX = new EvaluationContext();
-    private static Effect.Score score(Effect.Op op, double v) { return new Effect.Score(op, new Value.Const(v)); }
+    private static Value.Const c(double v) { return new Value.Const(v); }
 
     @Test
-    void eachNumericOpWritesItsField() {
-        assertThat(score(Effect.Op.CHIPS, 50).apply(CTX).chips).isEqualTo(50);
-        assertThat(score(Effect.Op.MULT, 4).apply(CTX).mult).isEqualTo(4);
-        assertThat(score(Effect.Op.XMULT, 3).apply(CTX).xMult).isEqualTo(3.0);
-        assertThat(score(Effect.Op.POW_MULT, 2).apply(CTX).powMult).isEqualTo(2.0);
-        assertThat(score(Effect.Op.DOLLARS, 7).apply(CTX).dollars).isEqualTo(7);
-        assertThat(score(Effect.Op.REPETITIONS, 2).apply(CTX).repetitions).isEqualTo(2);
-        assertThat(score(Effect.Op.HELD_MULT, 13).apply(CTX).hMult).isEqualTo(13);
+    void eachCellWritesItsField() { // (operation, subject) cells map to the right JokerEffect field
+        assertThat(Effect.chips(c(50)).apply(CTX).chips).isEqualTo(50);
+        assertThat(Effect.mult(c(4)).apply(CTX).mult).isEqualTo(4);
+        assertThat(Effect.xMult(c(3)).apply(CTX).xMult).isEqualTo(3.0);   // (MULTIPLY, MULT)
+        assertThat(Effect.powMult(c(2)).apply(CTX).powMult).isEqualTo(2.0); // (POWER, MULT)
+        assertThat(Effect.dollars(c(7)).apply(CTX).dollars).isEqualTo(7);
+        assertThat(Effect.retriggers(c(2)).apply(CTX).repetitions).isEqualTo(2);
+        assertThat(Effect.heldMult(c(13)).apply(CTX).hMult).isEqualTo(13);
     }
 
     @Test
     void identityContributionsAreSkipped() {
-        assertThat(score(Effect.Op.MULT, 0).apply(CTX)).isNull();   // +0 mult
-        assertThat(score(Effect.Op.XMULT, 1).apply(CTX)).isNull();  // x1 mult
-        assertThat(score(Effect.Op.CHIPS, 0).apply(CTX)).isNull();  // +0 chips
+        assertThat(Effect.mult(c(0)).apply(CTX)).isNull();   // +0 mult
+        assertThat(Effect.xMult(c(1)).apply(CTX)).isNull();  // x1 mult
+        assertThat(Effect.chips(c(0)).apply(CTX)).isNull();  // +0 chips
+    }
+
+    @Test
+    void additiveOnlySubjectsRejectMultiply() { // CHIPS has no x-accumulator slot — the empty grid cell fails loudly
+        assertThatThrownBy(() -> new Effect.Score(Effect.Operation.MULTIPLY, Effect.Subject.CHIPS, c(2)).apply(CTX))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void applyAllChainsTheEffectList() {
         // Scholar: +20 Chips and +4 Mult — one rule, two effects, chained via extra.
-        JokerEffect r = Effect.applyAll(List.of(score(Effect.Op.CHIPS, 20), score(Effect.Op.MULT, 4)), CTX);
+        JokerEffect r = Effect.applyAll(List.of(Effect.chips(c(20)), Effect.mult(c(4))), CTX);
         assertThat(r.chips).isEqualTo(20);
         assertThat(r.extra).isNotNull();
         assertThat(r.extra.mult).isEqualTo(4);
@@ -46,7 +53,7 @@ class EffectApplyTest {
 
     @Test
     void identitySkipDropsTheNoOpFromAChain() {
-        JokerEffect r = Effect.applyAll(List.of(score(Effect.Op.MULT, 0), score(Effect.Op.CHIPS, 50)), CTX);
+        JokerEffect r = Effect.applyAll(List.of(Effect.mult(c(0)), Effect.chips(c(50))), CTX);
         assertThat(r.chips).isEqualTo(50);
         assertThat(r.extra).isNull(); // the +0 mult contributed nothing
     }

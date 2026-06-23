@@ -60,6 +60,16 @@ public sealed interface Effect {
         return null;
     }
 
+    // --- readable factories for the common score cells (operation × subject), so authoring/tests don't
+    //     spell out both axes for every contribution. The grid is the model; these are the named cells. ---
+    static Score chips(Value v)      { return new Score(Operation.ADD, Subject.CHIPS, v); }
+    static Score mult(Value v)       { return new Score(Operation.ADD, Subject.MULT, v); }
+    static Score xMult(Value v)      { return new Score(Operation.MULTIPLY, Subject.MULT, v); }
+    static Score powMult(Value v)    { return new Score(Operation.POWER, Subject.MULT, v); }
+    static Score dollars(Value v)    { return new Score(Operation.ADD, Subject.DOLLARS, v); }
+    static Score retriggers(Value v) { return new Score(Operation.ADD, Subject.RETRIGGERS, v); }
+    static Score heldMult(Value v)   { return new Score(Operation.ADD, Subject.HELD_MULT, v); }
+
     /** Apply effects in order, chaining the non-null contributions into one {@code extra} chain. */
     static JokerEffect applyAll(List<Effect> effects, EvaluationContext ctx) {
         JokerEffect head = null;
@@ -78,35 +88,57 @@ public sealed interface Effect {
         return head;
     }
 
-    /** The numeric scoring ops — {@code Modify(scoring.slot)} under the hood. */
-    enum Op { CHIPS, MULT, XMULT, POW_MULT, DOLLARS, REPETITIONS, HELD_MULT }
+    /** What a score contribution operates on — the slot, separated from the operation (docs 49/50). */
+    enum Subject { CHIPS, MULT, DOLLARS, RETRIGGERS, HELD_MULT }
 
-    /** A numeric contribution to the running score (+chips / +mult / x mult / ^mult / +$ / retrigger / held-mult). */
-    record Score(Op op, Value value) implements Effect {
+    /** How a score contribution combines with the slot — the operation, separated from the subject. {@code
+     *  MULT} supports all three; the other subjects are additive-only (no accumulator slot for ×/^ yet). */
+    enum Operation { ADD, MULTIPLY, POWER }
+
+    /**
+     * A numeric contribution to the running score, modelled as {@code operation × subject × value} — e.g.
+     * {@code (ADD, CHIPS)} = +chips, {@code (MULTIPLY, MULT)} = ×mult (the old {@code XMULT}),
+     * {@code (POWER, MULT)} = ^mult. The fused {@code Op} enum is gone: the two axes (what it does / what it
+     * deals with) are independent, so empty cells (×chips) are expressible once an accumulator slot exists.
+     */
+    record Score(Operation op, Subject subject, Value value) implements Effect {
         public JokerEffect apply(EvaluationContext ctx) {
             double v = value.resolve(ctx);
-            return switch (op) {
-                case CHIPS -> v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips");
-                case MULT -> v == 0 ? null : JokerEffect.mult(v).msg("+" + fmt(v) + " Mult");
-                case XMULT -> v == 1.0 ? null : JokerEffect.xMult(v).msg("x" + fmt(v) + " Mult");
-                case POW_MULT -> {
-                    if (v == 1.0) yield null;
-                    JokerEffect e = new JokerEffect();
-                    e.powMult = v;
-                    yield e.msg("^" + fmt(v) + " Mult");
-                }
-                case DOLLARS -> v == 0 ? null : JokerEffect.dollars(Math.round(v)).msg("+$" + fmt(v));
-                case REPETITIONS -> {
+            return switch (subject) {
+                case CHIPS -> { requireAdd(); yield v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips"); }
+                case DOLLARS -> { requireAdd(); yield v == 0 ? null : JokerEffect.dollars(Math.round(v)).msg("+$" + fmt(v)); }
+                case RETRIGGERS -> {
+                    requireAdd();
                     int r = (int) Math.round(v);
                     yield r == 0 ? null : JokerEffect.repetitions(r).msg("Retrigger");
                 }
                 case HELD_MULT -> {
+                    requireAdd();
                     if (v == 0) yield null;
                     JokerEffect e = new JokerEffect();
                     e.hMult = v;
                     yield e.msg("+" + fmt(v) + " Mult");
                 }
+                case MULT -> switch (op) {
+                    case ADD -> v == 0 ? null : JokerEffect.mult(v).msg("+" + fmt(v) + " Mult");
+                    case MULTIPLY -> v == 1.0 ? null : JokerEffect.xMult(v).msg("x" + fmt(v) + " Mult");
+                    case POWER -> {
+                        if (v == 1.0) yield null;
+                        JokerEffect e = new JokerEffect();
+                        e.powMult = v;
+                        yield e.msg("^" + fmt(v) + " Mult");
+                    }
+                };
             };
+        }
+
+        /** The additive-only subjects have no ×/^ accumulator slot — reject those cells loudly rather than
+         *  silently treating them as ADD. */
+        private void requireAdd() {
+            if (op != Operation.ADD) {
+                throw new IllegalStateException(op + " is not supported for subject " + subject
+                        + " (only ADD; no accumulator slot for that cell)");
+            }
         }
     }
 

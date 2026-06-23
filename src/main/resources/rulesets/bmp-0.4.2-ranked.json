@@ -36,7 +36,8 @@
             "effects" : [
               {
                 "type" : "score",
-                "op" : "DOLLARS",
+                "op" : "ADD",
+                "subject" : "DOLLARS",
                 "value" : {
                   "type" : "const",
                   "amount" : 3.0
@@ -62,7 +63,8 @@
             "effects" : [
               {
                 "type" : "score",
-                "op" : "REPETITIONS",
+                "op" : "ADD",
+                "subject" : "RETRIGGERS",
                 "value" : {
                   "type" : "const",
                   "amount" : 1.0
@@ -88,7 +90,8 @@
             "effects" : [
               {
                 "type" : "score",
-                "op" : "REPETITIONS",
+                "op" : "ADD",
+                "subject" : "RETRIGGERS",
                 "value" : {
                   "type" : "const",
                   "amount" : 1.0
@@ -318,7 +321,8 @@
             "effects" : [
               {
                 "type" : "score",
-                "op" : "XMULT",
+                "op" : "MULTIPLY",
+                "subject" : "MULT",
                 "value" : {
                   "type" : "const",
                   "amount" : 4.0
@@ -326,7 +330,8 @@
               },
               {
                 "type" : "score",
-                "op" : "DOLLARS",
+                "op" : "ADD",
+                "subject" : "DOLLARS",
                 "value" : {
                   "type" : "const",
                   "amount" : 10.0
@@ -383,7 +388,8 @@
             "effects" : [
               {
                 "type" : "score",
-                "op" : "XMULT",
+                "op" : "MULTIPLY",
+                "subject" : "MULT",
                 "value" : {
                   "type" : "const",
                   "amount" : 10.0
@@ -437,7 +443,8 @@
             "effects" : [
               {
                 "type" : "score",
-                "op" : "CHIPS",
+                "op" : "ADD",
+                "subject" : "CHIPS",
                 "value" : {
                   "type" : "runVar",
                   "which" : "OPP_LIVES_BEHIND",
@@ -493,7 +500,8 @@
             "effects" : [
               {
                 "type" : "score",
-                "op" : "XMULT",
+                "op" : "MULTIPLY",
+                "subject" : "MULT",
                 "value" : {
                   "type" : "clamp",
                   "inner" : {
@@ -554,7 +562,8 @@
             "effects" : [
               {
                 "type" : "score",
-                "op" : "MULT",
+                "op" : "ADD",
+                "subject" : "MULT",
                 "value" : {
                   "type" : "runVar",
                   "which" : "OPP_CARDS_SOLD",

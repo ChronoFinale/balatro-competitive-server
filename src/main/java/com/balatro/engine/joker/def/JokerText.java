@@ -40,11 +40,14 @@ public final class JokerText {
     private static String effect(Effect.Score s) {
         if (!(s.value() instanceof Value.Const c)) return null; // PoC: constant magnitudes only
         String n = num(c.amount());
-        return switch (s.op()) {
-            case MULT -> "+" + n + " Mult";
+        return switch (s.subject()) {
             case CHIPS -> "+" + n + " Chips";
-            case XMULT -> "x" + n + " Mult";
             case DOLLARS -> "+$" + n;
+            case MULT -> switch (s.op()) {
+                case ADD -> "+" + n + " Mult";
+                case MULTIPLY -> "x" + n + " Mult";
+                case POWER -> "^" + n + " Mult";
+            };
             default -> null;
         };
     }

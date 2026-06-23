@@ -8,7 +8,7 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Effect.Op;
+import com.balatro.engine.joker.def.Effect.Subject;
 import static com.balatro.dsl.Cond.always;
 import static com.balatro.dsl.Cond.all;
 import static com.balatro.dsl.Cond.any;
@@ -85,10 +85,10 @@ public final class BuiltinJokerDefs {
     }
 
     /** "Each played [suit] gives +N Chips/Mult" gem joker (Arrowhead/Onyx Agate). Uncommon, $7. */
-    private static JokerDef gem(String key, String name, Suit suit, Op op, int amount) {
-        String unit = op == Op.CHIPS ? " Chips" : " Mult";
+    private static JokerDef gem(String key, String name, Suit suit, Subject subject, int amount) {
+        String unit = subject == Subject.CHIPS ? " Chips" : " Mult";
         return Jokers.of(key, name)
-                .forEachScored(card().suit(suit)).gives(op, Val.of(amount))
+                .forEachScored(card().suit(suit)).gives(Effect.Operation.ADD, subject, Val.of(amount))
                 .build();
     }
 
@@ -119,7 +119,7 @@ public final class BuiltinJokerDefs {
                         .runMod(RunMod.skipBonus()).build(),
                 Jokers.of("j_lets_go_gambling", "Let's Go Gambling")
                         .whenHand(Cond.chance(1, 4, "gambling"))
-                        .effect(new Effect.Score(Op.XMULT, Val.of(4)), new Effect.Score(Op.DOLLARS, Val.of(10))).build(),
+                        .effect(Effect.xMult(Val.of(4)), Effect.dollars(Val.of(10))).build(),
                 // Opponent-state readers.
                 Jokers.of("j_pacifist", "Pacifist")
                         .whenHand(not(Cond.inPvpBlind())).multiply(MULT, 10).build(),
@@ -216,7 +216,7 @@ public final class BuiltinJokerDefs {
                 // --- compound effect: Aces give chips AND mult (extra-chain via .effect escape hatch) ---
                 Jokers.of("j_scholar", "Scholar")
                         .forEachScored(card().rankBetween(14, 14))
-                        .effect(new Effect.Score(Op.CHIPS, Val.of(20)), new Effect.Score(Op.MULT, Val.of(4))).build(),
+                        .effect(Effect.chips(Val.of(20)), Effect.mult(Val.of(4))).build(),
 
                 // --- per-card mult ---
                 Jokers.of("j_smiley", "Smiley Face")
@@ -225,7 +225,7 @@ public final class BuiltinJokerDefs {
                 // --- compound per-card: each played 10 or 4 gives +10 Chips and +4 Mult ---
                 Jokers.of("j_walkie_talkie", "Walkie Talkie")
                         .forEachScored(any(card().rankBetween(10, 10), card().rankBetween(4, 4)))
-                        .effect(new Effect.Score(Op.CHIPS, Val.of(10)), new Effect.Score(Op.MULT, Val.of(4))).build(),
+                        .effect(Effect.chips(Val.of(10)), Effect.mult(Val.of(4))).build(),
 
                 // --- rank-set via any(): each played A, 2, 3, 5, 8 gives +8 Mult ---
                 Jokers.of("j_fibonacci", "Fibonacci")
@@ -259,8 +259,8 @@ public final class BuiltinJokerDefs {
                 typeXMult("j_tribe", "The Tribe", HandType.FLUSH, 2),
 
                 // --- gem suit jokers ---
-                gem("j_arrowhead", "Arrowhead", Suit.SPADES, Op.CHIPS, 50),
-                gem("j_onyx_agate", "Onyx Agate", Suit.CLUBS, Op.MULT, 7),
+                gem("j_arrowhead", "Arrowhead", Suit.SPADES, Subject.CHIPS, 50),
+                gem("j_onyx_agate", "Onyx Agate", Suit.CLUBS, Subject.MULT, 7),
 
                 // --- retrigger: played face cards trigger again ---
                 Jokers.of("j_sock_and_buskin", "Sock and Buskin")
@@ -334,7 +334,7 @@ public final class BuiltinJokerDefs {
                 // --- ScoredFirst: retrigger the first scored card (Hanging Chad) ---
                 Jokers.of("j_hanging_chad", "Hanging Chad")
                         .on(Trigger.REPETITION_PLAYED).when(card().isFirst())
-                        .gives(Op.REPETITIONS, Val.of(2)).build(),
+                        .gives(Effect.Operation.ADD, Subject.RETRIGGERS, Val.of(2)).build(),
 
                 // --- ScoringContainsSuit: suit-coverage xMult jokers ---
                 Jokers.of("j_flower_pot", "Flower Pot")
@@ -549,7 +549,7 @@ public final class BuiltinJokerDefs {
                 Jokers.of("j_trading", "Trading Card")
                         .whenDiscarding(Cond.all(runVar(Value.Var.DISCARDS_USED).exactly(0),
                                 value(Val.count(Value.Source.EVENT, always(), 0, 1)).exactly(1)))
-                        .effect(new Effect.Score(Op.DOLLARS, Val.of(3)), new Effect.DestroyDiscarded())
+                        .effect(Effect.dollars(Val.of(3)), new Effect.DestroyDiscarded())
                         .build(),
 
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
