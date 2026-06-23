@@ -84,7 +84,7 @@ class RulesetArtifactsTest {
 
     @Test void bossesCompileToJsonAndRoundTrip() throws Exception {
         // The client renders each boss's display `effect` + the rule shape (debuff/requires Conditions, mods).
-        var bosses = com.balatro.engine.game.BossCatalog.authored();  // DSL source (runtime loads from JSON)
+        var bosses = com.balatro.content.BossDefs.authored();  // DSL source (runtime loads from JSON)
         String json = JokerOverlays.writePretty(bosses);
         gate(BOSSES, json);
         assertThat(List.of(M.readValue(json, com.balatro.engine.game.BossBlind[].class))).isEqualTo(bosses);
@@ -120,7 +120,7 @@ class RulesetArtifactsTest {
     private static final Path HAND_SCORES = Path.of("src/main/resources/content/hand-scores.json");
 
     @Test void planetsCompileToJsonAndRoundTrip() throws Exception {
-        var planets = com.balatro.engine.game.PlanetCatalog.authored();  // DSL source (runtime loads from JSON)
+        var planets = com.balatro.content.PlanetDefs.authored();  // DSL source (runtime loads from JSON)
         String json = JokerOverlays.writePretty(planets);
         gate(PLANETS, json);
         assertThat(List.of(M.readValue(json, com.balatro.engine.game.PlanetCatalog.Planet[].class)))

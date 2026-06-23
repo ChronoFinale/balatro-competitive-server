@@ -41,9 +41,9 @@ class EngineFromJsonTest {
         // The whole content surface round-trips from its compiled artifact equal to the DSL authoring —
         // i.e. the engine could boot entirely from JSON.
         assertThat(com.balatro.engine.content.ContentStore.bosses())
-                .isEqualTo(com.balatro.engine.game.BossCatalog.authored());
+                .isEqualTo(com.balatro.content.BossDefs.authored());
         assertThat(com.balatro.engine.content.ContentStore.planets())
-                .isEqualTo(com.balatro.engine.game.PlanetCatalog.authored());
+                .isEqualTo(com.balatro.content.PlanetDefs.authored());
         assertThat(com.balatro.engine.content.ContentStore.tags())
                 .isEqualTo(com.balatro.engine.game.TagCatalog.authored());
         assertThat(com.balatro.engine.content.ContentStore.vouchers())
