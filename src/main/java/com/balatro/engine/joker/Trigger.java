@@ -42,6 +42,7 @@ public enum Trigger {
     SELL_CARD,          // another card sold
     SELL_SELF,          // this joker sold
     REROLL_SHOP,        // shop rerolled
+    SHOP_ENTER,         // arriving at the shop (Penny Pincher: gain $ per Nemesis spend)
     SHOP_EXIT,          // leaving the shop
     SKIP_BLIND,         // a blind skipped (tag taken)
     OPEN_BOOSTER,       // a booster pack opened

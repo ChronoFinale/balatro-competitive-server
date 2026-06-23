@@ -555,15 +555,6 @@ public final class Run {
         return null;
     }
 
-    /** Penny Pincher (Nemesis): on entering the shop, gain $1 per $N your Nemesis spent last ante. */
-    private void applyPennyPincher() {
-        for (Joker j : state.jokers()) {
-            if (!(j instanceof DataJoker dj)) continue;
-            int denom = dj.def().runMod().pvpShopSpendDenominator();
-            if (denom > 0) state.money += state.oppShopSpentLastAnte / denom;
-        }
-    }
-
     /** The lowest money a purchase may leave you at — derived economy (Credit Card allows -$20 of debt). */
     private int minMoney() {
         return EconomyConfig.resolve(deckType, state.vouchers, state.jokers()).minMoney();
@@ -1073,7 +1064,7 @@ public final class Run {
         state.money += NEMESIS.reward() + endOfRoundMoney();
         applyBossDefeatTags(); // Investment Tag pays out after the PvP (Boss) blind too
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind (Gift Card's sell-value bump rides this)
-        applyPennyPincher();
+        raiseJokerRules(Trigger.SHOP_ENTER);
         refreshShopStock();
         phase = Phase.SHOP;
     }
@@ -1110,7 +1101,7 @@ public final class Run {
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
         applyJokerStickerEffects(); // perishable countdown + rental rent (stakes)
-        applyPennyPincher();
+        raiseJokerRules(Trigger.SHOP_ENTER);
         phase = Phase.SHOP;
         refreshShopStock();
     }

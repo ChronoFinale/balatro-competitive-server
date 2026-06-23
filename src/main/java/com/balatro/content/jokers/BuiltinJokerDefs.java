@@ -113,7 +113,8 @@ public final class BuiltinJokerDefs {
                         .create(CreateSpec.Kind.SPECTRAL).build(),
                 // Penny Pincher: Nemesis shop-spend economy.
                 Jokers.of("j_penny_pincher", "Penny Pincher")
-                        .runMod(RunMod.pvpShopSpendShare(3)).build(),
+                        .on(Trigger.SHOP_ENTER).effect(new Effect.AdjustMoney(Effect.Operation.ADD,
+                                new Value.RunVarStep(Value.Var.OPP_SHOP_SPENT, 0, 1, 3))).build(),
                 // Skip-Off / Let's Go Gambling.
                 Jokers.of("j_skip_off", "Skip-Off")
                         .runMod(RunMod.skipBonus()).build(),

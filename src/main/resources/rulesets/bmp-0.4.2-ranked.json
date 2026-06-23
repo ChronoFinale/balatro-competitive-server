@@ -154,7 +154,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
         "copy" : null,
@@ -208,7 +207,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
         "copy" : null,
@@ -229,7 +227,27 @@
         "spriteUrl" : null,
         "spriteUrl2x" : null,
         "blueprintCompatible" : true,
-        "rules" : [ ],
+        "rules" : [
+          {
+            "when" : "SHOP_ENTER",
+            "condition" : {
+              "type" : "always"
+            },
+            "effects" : [
+              {
+                "type" : "adjustMoney",
+                "op" : "ADD",
+                "amount" : {
+                  "type" : "runVarStep",
+                  "which" : "OPP_SHOP_SPENT",
+                  "base" : 0.0,
+                  "scale" : 1.0,
+                  "per" : 3.0
+                }
+              }
+            ]
+          }
+        ],
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
@@ -242,7 +260,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 3,
           "pvpSkipBonus" : false
         },
         "copy" : null,
@@ -276,7 +293,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : true
         },
         "copy" : null,
@@ -340,7 +356,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
         "copy" : null,
@@ -395,7 +410,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
         "copy" : null,
@@ -449,7 +463,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
         "copy" : null,
@@ -508,7 +521,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
         "copy" : null,
@@ -562,7 +574,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
         "copy" : null,
