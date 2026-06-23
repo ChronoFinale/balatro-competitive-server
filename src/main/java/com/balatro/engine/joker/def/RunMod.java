@@ -3,22 +3,22 @@ package com.balatro.engine.joker.def;
 /**
  * The static, non-scoring <b>capabilities</b> a joker has — behavioural switches the run checks at the
  * right moment, which are NOT expressible as a number on a game variable (those live in
- * {@link JokerDef#mods()} now, the same {@link Modify} vocabulary decks/bosses/vouchers use). These are:
- * {@code noDiscards} (Burglar), {@code disablesBoss} (Chicot), {@code survivesLostBlindFraction}
+ * {@link JokerDef#mods()} now, the same {@link Modify} vocabulary decks/bosses/vouchers use — e.g. Burglar's
+ * "no discards" is {@code min(Hand.DISCARDS, 0)}). These are:
+ * {@code disablesBoss} (Chicot), {@code survivesLostBlindFraction}
  * (Mr Bones), {@code blindSelectConsume} (Madness / Ceremonial), {@code doublesProbability}
  * (Oops! All 6s), {@code handSizeDecayStart} (Turtle Bean — a <i>dynamic</i> HAND_SIZE contribution that
  * decays by round, so it can't be a static Modify), {@code duplicatesConsumableOnShopExit} (Perkeo),
  * {@code pvpShopSpendDenominator} (Penny Pincher), {@code pvpSkipBonus} (Skip Off), and the
  * {@link OnSell} group. None affect the per-hand score.
  */
-public record RunMod(boolean noDiscards,
-                     boolean disablesBoss, double survivesLostBlindFraction,
+public record RunMod(boolean disablesBoss, double survivesLostBlindFraction,
                      BlindSelectConsume blindSelectConsume, OnSell onSell,
                      boolean doublesProbability, int handSizeDecayStart,
                      boolean duplicatesConsumableOnShopExit, int pvpShopSpendDenominator,
                      boolean pvpSkipBonus) {
 
-    public static final RunMod NONE = new RunMod(false, false, 0,
+    public static final RunMod NONE = new RunMod(false, 0,
             BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
 
     /** On selecting a blind, this joker eats a Joker — a random other one (Madness, Small/Big only)
@@ -36,13 +36,11 @@ public record RunMod(boolean noDiscards,
     }
 
     /** Canonical constructor: null-safes the sub-records. */
-    public RunMod(boolean noDiscards,
-                  boolean disablesBoss, double survivesLostBlindFraction,
+    public RunMod(boolean disablesBoss, double survivesLostBlindFraction,
                   BlindSelectConsume blindSelectConsume, OnSell onSell,
                   boolean doublesProbability, int handSizeDecayStart,
                   boolean duplicatesConsumableOnShopExit, int pvpShopSpendDenominator,
                   boolean pvpSkipBonus) {
-        this.noDiscards = noDiscards;
         this.disablesBoss = disablesBoss;
         this.survivesLostBlindFraction = survivesLostBlindFraction;
         this.blindSelectConsume = blindSelectConsume == null ? BlindSelectConsume.NONE : blindSelectConsume;
@@ -54,15 +52,10 @@ public record RunMod(boolean noDiscards,
         this.pvpSkipBonus = pvpSkipBonus;
     }
 
-    /** Burglar: no discards this round (a final override, not a Modify — the +3 hands is a {@code mods()}). */
-    public static RunMod locksDiscards() {
-        return new RunMod(true, false, 0, BlindSelectConsume.NONE, OnSell.NONE, false, 0, false, 0, false);
-    }
-
     private static RunMod capability(boolean disablesBoss, double survivesFraction, BlindSelectConsume consume,
             OnSell sell, boolean doublesProbability, int handSizeDecayStart,
             boolean dupConsumableOnShopExit, int pvpShopSpendDenominator, boolean pvpSkipBonus) {
-        return new RunMod(false, disablesBoss, survivesFraction, consume, sell, doublesProbability,
+        return new RunMod(disablesBoss, survivesFraction, consume, sell, doublesProbability,
                 handSizeDecayStart, dupConsumableOnShopExit, pvpShopSpendDenominator, pvpSkipBonus);
     }
 
@@ -133,8 +126,7 @@ public record RunMod(boolean noDiscards,
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isNone() {
-        return !noDiscards
-                && !disablesBoss && survivesLostBlindFraction == 0
+        return !disablesBoss && survivesLostBlindFraction == 0
                 && blindSelectConsume == BlindSelectConsume.NONE && onSell.isNone()
                 && !doublesProbability && handSizeDecayStart == 0
                 && !duplicatesConsumableOnShopExit && pvpShopSpendDenominator == 0 && !pvpSkipBonus;

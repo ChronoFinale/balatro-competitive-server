@@ -404,7 +404,7 @@ public final class BuiltinJokerDefs {
                 modJoker("j_merry_andy", "Merry Andy",
                         Modify.add(Hand.DISCARDS, 3), Modify.add(Hand.SIZE, -1)),
                 Jokers.of("j_burglar", "Burglar")
-                        .mods(Modify.add(Hand.PLAYS, 3)).runMod(RunMod.locksDiscards()).build(),
+                        .mods(Modify.add(Hand.PLAYS, 3), Modify.min(Hand.DISCARDS, 0)).build(),
                 Jokers.of("j_stuntman", "Stuntman")
                         .whenHand().add(CHIPS, 250)
                         .mods(Modify.add(Hand.SIZE, -2)).build(),

@@ -145,7 +145,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",
@@ -202,7 +201,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",
@@ -239,7 +237,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",
@@ -276,7 +273,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",
@@ -343,7 +339,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",
@@ -401,7 +396,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",
@@ -458,7 +452,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",
@@ -520,7 +513,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",
@@ -577,7 +569,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "noDiscards" : false,
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
           "blindSelectConsume" : "NONE",

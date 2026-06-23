@@ -678,8 +678,8 @@ public final class Run {
     private void applyResourceMods() {
         List<Modify> mods = resourceMods();
         state.handsLeft = Math.max(1, (int) Modify.fold(ruleset.hands(), Hand.PLAYS, mods));
+        // Burglar's "no discards" is a Modify.min(Hand.DISCARDS, 0) — the fold's MIN beats any discard-adder.
         int discards = (int) Modify.fold(baseDiscards(), Hand.DISCARDS, mods);
-        if (anyOwnedRunMod(RunMod::noDiscards)) discards = 0;             // Burglar: no discards at all
         state.discardsLeft = Math.max(0, discards);
         state.handSize = Math.max(1, (int) Modify.fold(ruleset.handSize(), Hand.SIZE, mods));
     }
