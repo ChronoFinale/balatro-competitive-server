@@ -1,7 +1,7 @@
 package com.balatro.engine;
 
 import com.balatro.engine.game.Run;
-import com.balatro.engine.state.Bundles;
+import com.balatro.content.Bundles;
 import com.balatro.engine.state.Capabilities;
 import com.balatro.engine.state.RulesetBundle;
 import org.junit.jupiter.api.Test;

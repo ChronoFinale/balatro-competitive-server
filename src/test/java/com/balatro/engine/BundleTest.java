@@ -1,6 +1,6 @@
 package com.balatro.engine;
 
-import com.balatro.engine.state.Bundles;
+import com.balatro.content.Bundles;
 import com.balatro.engine.state.RulesetBundle;
 import com.balatro.engine.state.Ruleset;
 import com.fasterxml.jackson.databind.ObjectMapper;

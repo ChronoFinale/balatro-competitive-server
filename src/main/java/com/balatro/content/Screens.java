@@ -1,4 +1,7 @@
-package com.balatro.engine.ui;
+package com.balatro.content;
+
+import com.balatro.engine.ui.*;
+import com.balatro.engine.ui.UiComponent.*;
 
 import com.balatro.engine.ui.UiComponent.Button;
 import com.balatro.engine.ui.UiComponent.Input;

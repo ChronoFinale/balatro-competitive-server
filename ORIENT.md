@@ -36,14 +36,25 @@ mod in real Balatro** (thin shell + server config); the Electron app is a fast p
 | `state/` | `Ruleset`, `RulesetBundle` (content + capabilities + mode), overlays, the stores |
 | `auth/` | accounts + OAuth login |
 
-**The data pipeline (how content becomes data clients can consume):**
+**Three layers, kept separate (the reorg boundary):**
+| layer | package | what it is |
+|---|---|---|
+| **language** | `joker/def/` (`JokerDef`, `Effect`, `Condition` + the `Jokers`/`Cond`/`Val` builders), `ui/` (`UiScreen`/`UiComponent`), `state/` (`RulesetBundle`, `Ruleset`) | the closed vocabulary + the fluent builders. Tightly coupled (package-private), small, stable. |
+| **content** | **`com.balatro.content/`** — `jokers/BuiltinJokerDefs` (**← the 141 jokers live here**), `Bundles`, `Screens` | what's *authored in* the language. "What gets turned into JSON/client-libs." |
+| **engine** | `game/ scoring/ rng/ net/ …` | interprets the language → outcomes. |
+
+**Glue:**
 | package | what it is |
 |---|---|
-| `joker/def/` | jokers as pure data (`JokerDef`) + `RulesetOverlay` (a ruleset = a diff) + `JokerOverlays` |
 | `content/ContentStore` | loads the engine's content from the compiled JSON at startup |
 | `i18n/Loc` | one localization layer; `${field}` templates fill from data (numbers single-sourced) |
 | `codegen/` | `ClientCodegen` (generates the client's TS types) + `ContentManifest` (the delta-sync manifest) |
-| `ui/` | server-driven-UI vocabulary (`UiScreen`/`UiComponent`) — the PoC for data-defined menus |
+| `joker/def/` overlay files | `RulesetOverlay` (a ruleset = a diff) + `JokerOverlays` + `Rulesets` |
+
+> **Where are the jokers?** `src/main/java/com/balatro/content/jokers/BuiltinJokerDefs.java`. The DSL
+> *builders* they're written with (`Jokers`, `Cond`, `Val`) stay in `joker/def/` with the model — they're the
+> language, not the content. Catalog content (decks/bosses/…) still lives in `game/*Catalog.java` (`authored()`),
+> mixed with its runtime; splitting those out is the next reorg if it's worth it.
 
 ## The data pipeline in one breath
 

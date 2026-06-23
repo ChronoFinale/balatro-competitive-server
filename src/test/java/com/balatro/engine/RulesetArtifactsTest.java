@@ -44,7 +44,7 @@ class RulesetArtifactsTest {
     private static final Path CLIENT_TYPES = Path.of("client/src/generated/content-types.ts");
 
     @Test void bundlesCompileToJson() throws Exception {
-        for (var b : com.balatro.engine.state.Bundles.all()) {
+        for (var b : com.balatro.content.Bundles.all()) {
             gate(BUNDLES.resolve(b.name() + ".json"), JokerOverlays.writePretty(b));
         }
     }
@@ -134,7 +134,7 @@ class RulesetArtifactsTest {
     private static final Path UI_SCREENS = Path.of("src/main/resources/content/ui-screens.json");
 
     @Test void uiScreensCompileToJsonAndRoundTrip() throws Exception {
-        var screens = com.balatro.engine.ui.Screens.all();
+        var screens = com.balatro.content.Screens.all();
         String json = JokerOverlays.writePretty(screens);
         gate(UI_SCREENS, json);
         assertThat(List.of(M.readValue(json, com.balatro.engine.ui.UiScreen[].class))).isEqualTo(screens);
@@ -165,7 +165,7 @@ class RulesetArtifactsTest {
         sb.append("// Regenerate: ./gradlew generateContent\n");
         sb.append("import type { JokerDef, DeckType, BossBlind, Tag, Voucher, Consumable, Planet, HandScore, "
                 + "RulesetBundle, UiScreen } from \"./content-types\";\n\n");
-        emit(sb, "SCREENS", "UiScreen", com.balatro.engine.ui.Screens.all());
+        emit(sb, "SCREENS", "UiScreen", com.balatro.content.Screens.all());
         emit(sb, "JOKERS", "JokerDef", com.balatro.content.jokers.BuiltinJokerDefs.all());
         emit(sb, "DECKS", "DeckType", com.balatro.engine.game.DeckCatalog.keys().stream()
                 .map(com.balatro.engine.game.DeckCatalog::get).toList());
@@ -179,7 +179,7 @@ class RulesetArtifactsTest {
         emit(sb, "PLANETS", "Planet", com.balatro.engine.game.PlanetCatalog.keys().stream()
                 .map(com.balatro.engine.game.PlanetCatalog::get).toList());
         emit(sb, "HAND_SCORES", "HandScore", handScoreTable());
-        emit(sb, "BUNDLES", "RulesetBundle", com.balatro.engine.state.Bundles.all());
+        emit(sb, "BUNDLES", "RulesetBundle", com.balatro.content.Bundles.all());
         gate(CLIENT_CONTENT, sb.toString());
     }
 

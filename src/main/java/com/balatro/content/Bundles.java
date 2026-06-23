@@ -1,4 +1,6 @@
-package com.balatro.engine.state;
+package com.balatro.content;
+
+import com.balatro.engine.state.*;
 
 import com.balatro.engine.state.RulesetBundle.Mode;
 import java.util.List;
