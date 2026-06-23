@@ -24,8 +24,8 @@ public record BossBlind(
         double reqMult,                // score requirement = blind amount × this
         int reward,
         // --- resource modifiers, as data: the boss's hand/discard/hand-size changes are Modifys on the
-        //     same game variables a joker/deck/voucher touch (Needle = set(HANDS_LEFT,1), Manacle =
-        //     add(HAND_SIZE,-1), Water = set(DISCARDS_LEFT,0)). Folded by Run alongside everyone else. ---
+        //     same game variables a joker/deck/voucher touch (Needle = set(Hand.PLAYS,1), Manacle =
+        //     add(Hand.SIZE,-1), Water = set(Hand.DISCARDS,0)). Folded by Run alongside everyone else. ---
         List<Modify> mods,
         Condition debuff,              // cards matching this don't score (Club/Goad/Window/Head/Plant); null = none
         boolean halveBase,             // The Flint: base chips & mult halved

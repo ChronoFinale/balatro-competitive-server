@@ -6,7 +6,7 @@ package com.balatro.engine.joker.def;
  * the same {@link Modify} vocabulary decks/bosses/vouchers use — e.g. Burglar's "no discards" is
  * {@code min(Hand.DISCARDS, 0)}). What's left is genuinely passive / read-side: {@code disablesBoss} (Chicot),
  * {@code survivesLostBlindFraction} (Mr Bones), {@code doublesProbability} (Oops! All 6s),
- * {@code handSizeDecayStart} (Turtle Bean — a <i>dynamic</i> HAND_SIZE contribution that decays by round),
+ * {@code handSizeDecayStart} (Turtle Bean — a <i>dynamic</i> Hand.SIZE contribution that decays by round),
  * and {@code pvpSkipBonus} (Skip Off). None affect the per-hand score, and none are events.
  *
  * <p>Every event-driven joker behaviour is a data RULE now (Perkeo SHOP_EXIT, Luchador/Diet Cola/Invisible

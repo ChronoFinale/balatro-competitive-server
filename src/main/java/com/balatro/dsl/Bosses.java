@@ -57,13 +57,13 @@ public final class Bosses {
 
     public Bosses reward(int r) { this.reward = r; return this; }
 
-    /** The Needle: this round has exactly {@code n} hands ({@code set(HANDS_LEFT, n)}). */
+    /** The Needle: this round has exactly {@code n} hands ({@code set(Hand.PLAYS, n)}). */
     public Bosses hands(int n) { mods.add(Modify.set(Hand.PLAYS, n)); return this; }
 
-    /** The Water: this round has exactly {@code n} discards ({@code set(DISCARDS_LEFT, n)}). */
+    /** The Water: this round has exactly {@code n} discards ({@code set(Hand.DISCARDS, n)}). */
     public Bosses discards(int n) { mods.add(Modify.set(Hand.DISCARDS, n)); return this; }
 
-    /** The Manacle: {@code delta} hand size ({@code add(HAND_SIZE, delta)}). */
+    /** The Manacle: {@code delta} hand size ({@code add(Hand.SIZE, delta)}). */
     public Bosses handSize(int delta) { mods.add(Modify.add(Hand.SIZE, delta)); return this; }
 
     /** Cards matching {@code cond} don't score — reuses the joker condition vocabulary

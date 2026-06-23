@@ -22,7 +22,7 @@ public final class VoucherCatalog {
 
     /**
      * {@code upgradeKey} is the Tier-2 key for a base voucher, or null for a Tier-2 voucher.
-     * {@code mods} are the voucher's resource effects as data — a Grabber is {@code add(HANDS_LEFT, 1)},
+     * {@code mods} are the voucher's resource effects as data — a Grabber is {@code add(Hand.PLAYS, 1)},
      * not a key-string check in {@code Run}.
      */
     public record Voucher(String key, String name, String description, int cost, String upgradeKey,

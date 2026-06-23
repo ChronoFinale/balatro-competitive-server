@@ -638,7 +638,7 @@ public final class Run {
     /**
      * Every per-blind resource {@link Modify} from every source — deck, boss, jokers (flat deltas +
      * Turtle Bean's decaying bonus), vouchers, Skip-Off and Pizza — in one flat list. {@code fold}
-     * then resolves each game variable (HANDS_LEFT / DISCARDS_LEFT / HAND_SIZE) from it. Every card
+     * then resolves each game variable (Hand.PLAYS / Hand.DISCARDS / Hand.SIZE) from it. Every card
      * type contributes through the same {@code mods()} interface; Run no longer special-cases any of
      * them. Has one side effect: it ticks down the Pizza counter (called once per blind start).
      */

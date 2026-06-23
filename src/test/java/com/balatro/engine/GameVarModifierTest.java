@@ -89,7 +89,7 @@ class GameVarModifierTest {
 
     @Test
     void aVoucherFoldsIntoTheResourceLikeAnyOtherModifier() {
-        // A voucher is no longer a key-string in Run; it carries Modify(HANDS_LEFT/DISCARDS_LEFT, ...)
+        // A voucher is no longer a key-string in Run; it carries Modify(Hand.PLAYS/Hand.DISCARDS, ...)
         // as data and folds in with the deck/boss/joker modifiers.
         Run run = new Run(Ruleset.standard(), "VR", stoneDeck(300), jokers("j_joker", "j_joker", "j_joker"));
         run.state.vouchers.add("v_grabber");   // Permanently +1 hand

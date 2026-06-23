@@ -133,7 +133,7 @@ public final class Jokers {
     /** Attach passive hand modifiers (Four Fingers, Shortcut, Splash, Pareidolia, Smeared). */
     public Jokers handMod(HandMod... mods) { java.util.Collections.addAll(handMods, mods); return this; }
 
-    /** Standing variable modifiers while owned — {@code mods(add(HAND_SIZE,1))} (Juggler), {@code
+    /** Standing variable modifiers while owned — {@code mods(add(Hand.SIZE,1))} (Juggler), {@code
      *  add(FREE_REROLLS,1)} (Chaos). The SAME {@link Modify} vocabulary decks/vouchers use, folded by Run. */
     public Jokers mods(Modify... mods) { java.util.Collections.addAll(varMods, mods); return this; }
 
