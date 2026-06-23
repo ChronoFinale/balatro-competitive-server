@@ -42,13 +42,6 @@ public record BossBlind(
         // --- The Serpent: after each play/discard, draw exactly this many cards instead of refilling
         //     to hand size (so the hand shrinks). -1 = normal refill. ---
         int drawOnRefill,
-        // --- Verdant Leaf: selling any joker disables this boss for the rest of the blind (like Luchador). ---
-        boolean disableOnJokerSell,
-        // --- Crimson Heart: before each played hand, one random Joker is disabled for that hand. ---
-        boolean disableRandomJokerPerHand,
-        // --- Amber Acorn: at blind start, the Jokers are flipped face down (hidden in the view) and
-        //     their order is shuffled (which reorders scoring). ---
-        boolean flipAndShuffleJokers,
         // --- Cerulean Bell: one held card is force-selected — every played hand must include it. ---
         boolean forcesCardSelection) {
 
@@ -64,7 +57,6 @@ public record BossBlind(
         return reqMult != BASELINE_REQ_MULT || !mods.isEmpty() || debuff != null || halveBase
                 || !rules.isEmpty()
                 || requires != null || faceDown != null || drawOnRefill != -1
-                || disableOnJokerSell || disableRandomJokerPerHand || flipAndShuffleJokers
                 || forcesCardSelection;
     }
 

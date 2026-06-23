@@ -36,9 +36,6 @@ public final class Bosses {
     private Condition requires = null;
     private BossBlind.FaceDownRule faceDown = null;
     private int drawOnRefill = -1;
-    private boolean disableOnJokerSell = false;
-    private boolean disableRandomJokerPerHand = false;
-    private boolean flipAndShuffleJokers = false;
     private boolean forcesCardSelection = false;
 
     private Bosses(String key, String name) {
@@ -139,15 +136,26 @@ public final class Bosses {
         return onHandPlayed(new Condition.Always(), new Effect.DiscardRandomHeld(n));
     }
 
-    /** Verdant Leaf: selling any Joker disables this boss for the rest of the blind. Pairs with
-     *  {@code debuffs(always())} — every card is debuffed until you sell a Joker to lift it. */
-    public Bosses disabledBySellingJoker() { this.disableOnJokerSell = true; return this; }
+    /** Verdant Leaf: selling any Joker disables this boss for the rest of the blind ({@code DisableBoss} on
+     *  {@code SELL_CARD}). Pairs with {@code debuffs(always())} — every card is debuffed until a sell lifts it. */
+    public Bosses disabledBySellingJoker() {
+        rules.add(new Rule(Trigger.SELL_CARD, null, new Effect.DisableBoss()));
+        return this;
+    }
 
-    /** Crimson Heart: before each played hand, one random Joker is switched off for that hand. */
-    public Bosses disablesRandomJokerEachHand() { this.disableRandomJokerPerHand = true; return this; }
+    /** Crimson Heart: before each played hand, one random Joker is switched off ({@code DisableRandomJoker}
+     *  on {@code PRE_HAND}). */
+    public Bosses disablesRandomJokerEachHand() {
+        rules.add(new Rule(Trigger.PRE_HAND, null, new Effect.DisableRandomJoker()));
+        return this;
+    }
 
-    /** Amber Acorn: at blind start, flip the Jokers face down and shuffle their order. */
-    public Bosses flipsAndShufflesJokers() { this.flipAndShuffleJokers = true; return this; }
+    /** Amber Acorn: at blind start, flip the Jokers face down and shuffle their order
+     *  ({@code FlipAndShuffleJokers} on {@code BLIND_SELECTED}). */
+    public Bosses flipsAndShufflesJokers() {
+        rules.add(new Rule(Trigger.BLIND_SELECTED, null, new Effect.FlipAndShuffleJokers()));
+        return this;
+    }
 
     /** Cerulean Bell: one held card is force-selected — every played hand must include it. */
     public Bosses forcesOneCardSelected() { this.forcesCardSelection = true; return this; }
@@ -168,7 +176,6 @@ public final class Bosses {
         return new BossBlind(key, name, text, minAnte, finisher, reqMult, reward,
                 java.util.List.copyOf(mods), debuff, halveBase,
                 java.util.List.copyOf(rules), requires, faceDown,
-                drawOnRefill, disableOnJokerSell, disableRandomJokerPerHand,
-                flipAndShuffleJokers, forcesCardSelection);
+                drawOnRefill, forcesCardSelection);
     }
 }

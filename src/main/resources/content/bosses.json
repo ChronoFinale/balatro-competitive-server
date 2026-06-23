@@ -18,9 +18,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -42,9 +39,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -66,9 +60,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -90,9 +81,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -116,9 +104,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -138,9 +123,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -158,9 +140,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -184,9 +163,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -210,9 +186,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -230,9 +203,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -272,9 +242,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -309,9 +276,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -341,9 +305,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -365,9 +326,6 @@
     },
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -387,9 +345,6 @@
     },
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -412,9 +367,6 @@
     },
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -438,9 +390,6 @@
       "chance" : 0.0
     },
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -462,9 +411,6 @@
       "chance" : 0.0
     },
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -486,9 +432,6 @@
       "chance" : 0.0
     },
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -510,9 +453,6 @@
       "chance" : 0.14285714285714285
     },
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -532,9 +472,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -552,9 +489,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : 3,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -585,9 +519,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -605,9 +536,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -625,9 +553,6 @@
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : true
   },
   {
@@ -641,13 +566,20 @@
     "mods" : [ ],
     "debuff" : null,
     "halveBase" : false,
-    "rules" : [ ],
+    "rules" : [
+      {
+        "when" : "PRE_HAND",
+        "condition" : null,
+        "effects" : [
+          {
+            "type" : "disableRandomJoker"
+          }
+        ]
+      }
+    ],
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : true,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -663,13 +595,20 @@
       "type" : "always"
     },
     "halveBase" : false,
-    "rules" : [ ],
+    "rules" : [
+      {
+        "when" : "SELL_CARD",
+        "condition" : null,
+        "effects" : [
+          {
+            "type" : "disableBoss"
+          }
+        ]
+      }
+    ],
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : true,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : false,
     "forcesCardSelection" : false
   },
   {
@@ -683,13 +622,20 @@
     "mods" : [ ],
     "debuff" : null,
     "halveBase" : false,
-    "rules" : [ ],
+    "rules" : [
+      {
+        "when" : "BLIND_SELECTED",
+        "condition" : null,
+        "effects" : [
+          {
+            "type" : "flipAndShuffleJokers"
+          }
+        ]
+      }
+    ],
     "requires" : null,
     "faceDown" : null,
     "drawOnRefill" : -1,
-    "disableOnJokerSell" : false,
-    "disableRandomJokerPerHand" : false,
-    "flipAndShuffleJokers" : true,
     "forcesCardSelection" : false
   }
 ]

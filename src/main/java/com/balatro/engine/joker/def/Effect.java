@@ -47,6 +47,9 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AdjustMoney.class, name = "adjustMoney"),
     @JsonSubTypes.Type(value = Effect.DelevelPlayedHand.class, name = "delevelPlayedHand"),
     @JsonSubTypes.Type(value = Effect.DiscardRandomHeld.class, name = "discardRandomHeld"),
+    @JsonSubTypes.Type(value = Effect.FlipAndShuffleJokers.class, name = "flipAndShuffleJokers"),
+    @JsonSubTypes.Type(value = Effect.DisableRandomJoker.class, name = "disableRandomJoker"),
+    @JsonSubTypes.Type(value = Effect.DisableBoss.class, name = "disableBoss"),
 })
 public sealed interface Effect {
 
@@ -289,6 +292,16 @@ public sealed interface Effect {
 
     /** Discard {@code count} random held cards, then refill the hand (The Hook). */
     record DiscardRandomHeld(int count) implements Effect {}
+
+    /** Flip the owned Jokers face down and shuffle their order — which reorders scoring (Amber Acorn,
+     *  at blind start). */
+    record FlipAndShuffleJokers() implements Effect {}
+
+    /** Switch off one random owned Joker for the coming hand, re-arming the rest (Crimson Heart, pre-hand). */
+    record DisableRandomJoker() implements Effect {}
+
+    /** Disable this boss's ability for the rest of the blind (Verdant Leaf, when any Joker is sold). */
+    record DisableBoss() implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {

@@ -42,7 +42,7 @@ export type ConditionType =
   | "scoringAnyFace"
   | "scoringContainsSuit";
 
-/** 24 discriminators the server dispatches on — the client must handle exactly these. */
+/** 27 discriminators the server dispatches on — the client must handle exactly these. */
 export type EffectType =
   | "adjustMoney"
   | "convertHand"
@@ -57,7 +57,10 @@ export type EffectType =
   | "destroyScored"
   | "destroySelf"
   | "destroyTargets"
+  | "disableBoss"
+  | "disableRandomJoker"
   | "discardRandomHeld"
+  | "flipAndShuffleJokers"
   | "generate"
   | "grantDiscards"
   | "jokerEdition"
@@ -193,9 +196,6 @@ export interface BossBlind {
   requires?: Condition;
   faceDown?: FaceDownRule;
   drawOnRefill: number;
-  disableOnJokerSell: boolean;
-  disableRandomJokerPerHand: boolean;
-  flipAndShuffleJokers: boolean;
   forcesCardSelection: boolean;
 }
 

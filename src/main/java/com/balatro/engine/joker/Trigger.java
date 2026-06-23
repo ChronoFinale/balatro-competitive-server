@@ -30,7 +30,8 @@ public enum Trigger {
     REMOVE_PLAYING_CARDS, // cards were removed this evaluation (carries removedCards)
 
     // ---- lifecycle (raised by GameEvents) ----
-    BLIND_SELECTED,     // a blind is chosen
+    BLIND_SELECTED,     // a blind is chosen (the boss's blind-start effects: Amber Acorn flip+shuffle)
+    PRE_HAND,           // before a played hand scores (the boss's pre-hand effects: Crimson Heart joker-disable)
     ON_HAND_PLAYED,     // a hand was played + scored (the boss's per-hand effects: Tooth/Ox/Arm/Hook)
     FIRST_HAND_DRAWN,   // first hand of the round dealt
     PRE_DISCARD,        // before a discard resolves (sees the discarded set)

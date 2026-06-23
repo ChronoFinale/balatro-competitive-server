@@ -292,7 +292,8 @@ public final class Run {
         state.drawCountOverride = (boss != null && !bossDisabled() && boss.drawOnRefill() > 0)
                 ? boss.drawOnRefill() : -1;
         for (Joker j : state.jokers()) state.jokerState(j).put("bossDisabled", false); // Crimson Heart re-arms each blind
-        applyAmberAcorn(); // flip + shuffle the Jokers (sets jokersHidden, reorders scoring)
+        jokersHidden = false; // reset; Amber Acorn's BLIND_SELECTED rule re-hides + shuffles the Jokers
+        raiseBossRules(Trigger.BLIND_SELECTED, null);
         ensureForcedSelection(); // Cerulean Bell: lock one opening-hand card as force-selected
         refreshDebuffs();
         GameEvents.raise(Trigger.FIRST_HAND_DRAWN, state, rng, null); // Certificate: add a sealed card on first draw
@@ -368,11 +369,10 @@ public final class Run {
     private boolean bossHasAbility() {
         return boss != null && (boss.debuff() != null || boss.halveBase()
                 || !boss.mods().isEmpty() // hand/discard/size resource modifiers
-                || !boss.rules().isEmpty() // per-hand effects (Tooth/Ox/Arm/Hook)
+                || !boss.rules().isEmpty() // rule-driven effects (per-hand, blind-start, pre-hand, on-sell)
                 || boss.requires() != null || boss.faceDown() != null
                 || boss.drawOnRefill() > 0
-                || boss.disableOnJokerSell() || boss.disableRandomJokerPerHand()
-                || boss.flipAndShuffleJokers() || boss.forcesCardSelection());
+                || boss.forcesCardSelection());
     }
 
     /** The boss blind's ability is off — Chicot (always) or Luchador (sold this blind). */
@@ -746,7 +746,7 @@ public final class Run {
         String illegal = bossLegality(intent);
         if (illegal != null) return IntentResult.rejected(illegal);
         // Crimson Heart: disable one random Joker for this hand, before it scores.
-        if (intent instanceof Intent.PlayHand) { applyBossPreScore(); resolveObservatory(); }
+        if (intent instanceof Intent.PlayHand) { raiseBossRules(Trigger.PRE_HAND, null); resolveObservatory(); }
         // Snapshot the hand so we can tell which cards the upcoming refill freshly drew (boss face-down).
         java.util.Set<java.util.UUID> handBefore = new java.util.HashSet<>();
         for (Card c : state.hand) handBefore.add(c.uid);
@@ -811,24 +811,31 @@ public final class Run {
     }
 
     /**
-     * Boss per-hand effects: raise {@link Trigger#ON_HAND_PLAYED} over the boss's rules and apply each
-     * matching effect through the run-loop interpreter. The boss is "a joker the blind owns" — Tooth / Ox /
-     * Arm / Hook are now data {@link Rule}s ({@code AdjustMoney} / {@code DelevelPlayedHand} /
-     * {@code DiscardRandomHeld}), not bespoke fields. One condition language, one effect vocabulary.
+     * Raise a lifecycle {@link Trigger} over the boss's rules, applying each matching effect through the
+     * run-loop interpreter. The boss is "a joker the blind owns" — its abilities are data {@link Rule}s fired
+     * at BLIND_SELECTED (Amber Acorn) / PRE_HAND (Crimson Heart) / ON_HAND_PLAYED (Tooth/Ox/Arm/Hook) /
+     * SELL_CARD (Verdant Leaf). One condition language, one effect vocabulary, one dispatch.
      */
-    private void applyBossOnHandPlayed(List<Card> playedCards, ScoreResult score) {
+    private void raiseBossRules(Trigger trigger, java.util.function.Consumer<com.balatro.engine.joker.EvaluationContext> setup) {
         if (boss == null || bossDisabled() || boss.rules().isEmpty()) return;
         com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
         ctx.run = state;
         ctx.rng = rng;
-        ctx.phase = Trigger.ON_HAND_PLAYED;
-        ctx.playedCards = playedCards;
-        ctx.handType = (score != null) ? score.handType() : null;
+        ctx.phase = trigger;
+        if (setup != null) setup.accept(ctx);
         for (Rule r : boss.rules()) {
-            if (r.when() != Trigger.ON_HAND_PLAYED) continue;
+            if (r.when() != trigger) continue;
             if (r.condition() != null && !r.condition().test(ctx)) continue;
             for (Effect e : r.effects()) applyBossEffect(e, ctx);
         }
+    }
+
+    /** Boss per-hand effects (Tooth / Ox / Arm / Hook), fired after a hand is played + scored. */
+    private void applyBossOnHandPlayed(List<Card> playedCards, ScoreResult score) {
+        raiseBossRules(Trigger.ON_HAND_PLAYED, ctx -> {
+            ctx.playedCards = playedCards;
+            ctx.handType = (score != null) ? score.handType() : null;
+        });
     }
 
     /** The run-loop interpreter for a boss effect (the action-side twin of {@link #applyConsumableEffect}):
@@ -851,6 +858,28 @@ public final class Run {
                 if (ctx.handType != null) state.levelDownHand(ctx.handType);
             }
             case Effect.DiscardRandomHeld d -> hookDiscardAndRefill(d.count()); // The Hook
+            case Effect.FlipAndShuffleJokers ignored -> { // Amber Acorn (blind start)
+                jokersHidden = true;
+                List<Joker> js = state.jokers();
+                for (int i = js.size() - 1; i > 0; i--) { // deterministic Fisher–Yates from the seeded stream
+                    int k = (int) (roll(RngSources.BOSS_ACORN) * (i + 1));
+                    if (k > i) k = i;
+                    java.util.Collections.swap(js, i, k);
+                }
+            }
+            case Effect.DisableRandomJoker ignored -> { // Crimson Heart (pre-hand)
+                List<Joker> js = state.jokers();
+                for (Joker j : js) state.jokerState(j).put("bossDisabled", false); // re-arm the rest
+                if (!js.isEmpty()) {
+                    int idx = (int) (roll(RngSources.BOSS_CRIMSON) * js.size());
+                    if (idx >= js.size()) idx = js.size() - 1;
+                    state.jokerState(js.get(idx)).put("bossDisabled", true);
+                }
+            }
+            case Effect.DisableBoss ignored -> { // Verdant Leaf (on sell)
+                luchadorDisabledBoss = true;
+                refreshDebuffs();
+            }
             default -> throw new IllegalStateException("not a boss run-loop effect: " + e);
         }
     }
@@ -865,19 +894,6 @@ public final class Run {
         if (state.deck != null) {
             if (state.drawCountOverride > 0) state.deck.drawCount(state.hand, count);
             else state.deck.drawTo(state.hand, state.handSize);
-        }
-    }
-
-    /** Amber Acorn: at blind start, flip the Jokers face down (hidden in the view) and shuffle their
-     *  order — which genuinely reorders scoring, since a Joker's roster position is its scoring slot. */
-    private void applyAmberAcorn() {
-        jokersHidden = boss != null && !bossDisabled() && boss.flipAndShuffleJokers();
-        if (!jokersHidden) return;
-        List<Joker> js = state.jokers();
-        for (int i = js.size() - 1; i > 0; i--) { // deterministic Fisher–Yates from the seeded stream
-            int k = (int) (roll(RngSources.BOSS_ACORN) * (i + 1));
-            if (k > i) k = i;
-            java.util.Collections.swap(js, i, k);
         }
     }
 
@@ -947,16 +963,6 @@ public final class Run {
             PlanetCatalog.Planet p = PlanetCatalog.get(c);
             if (p != null) state.heldPlanetHands.add(p.hand());
         }
-    }
-
-    private void applyBossPreScore() {
-        if (boss == null || bossDisabled() || !boss.disableRandomJokerPerHand()) return;
-        java.util.List<Joker> js = state.jokers();
-        for (Joker j : js) state.jokerState(j).put("bossDisabled", false);
-        if (js.isEmpty()) return;
-        int idx = (int) (roll(RngSources.BOSS_CRIMSON) * js.size());
-        if (idx >= js.size()) idx = js.size() - 1;
-        state.jokerState(js.get(idx)).put("bossDisabled", true);
     }
 
     /** The poker hand type played most this run (The Ox's trigger), or null if none yet. */
@@ -1200,14 +1206,16 @@ public final class Run {
         }
         // Diet Cola: sold, creates a free tag (Double Tag duplicates the next tag you gain).
         if (onSell.createsTag() != null) state.tags.add(onSell.createsTag());
-        // Luchador: sold during a boss blind, disable that boss's ability for the rest of the blind.
-        // Verdant Leaf works the other way round: ITS rule is that selling ANY joker lifts the boss.
-        if (boss != null && (onSell.disablesBoss() || boss.disableOnJokerSell())) {
+        // Luchador: sold during a boss blind, disable that boss's ability for the rest of the blind (a joker
+        // capability). Verdant Leaf works the other way round — that's the boss's own SELL_CARD rule below.
+        if (boss != null && onSell.disablesBoss()) {
             luchadorDisabledBoss = true;
             refreshDebuffs();
         }
-        // A card was sold: remaining jokers react (Campfire gains x0.25 each).
+        // A card was sold: remaining jokers react (Campfire gains x0.25 each), and the boss reacts
+        // (Verdant Leaf: DisableBoss) — both through the same SELL_CARD trigger.
         GameEvents.raise(Trigger.SELL_CARD, state, rng, null);
+        raiseBossRules(Trigger.SELL_CARD, null);
         return null;
     }
 
