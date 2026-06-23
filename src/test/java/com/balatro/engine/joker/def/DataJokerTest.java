@@ -15,7 +15,7 @@ import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerEffect;
 import com.balatro.engine.joker.JokerLibrary;
 import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Effect.Subject;
+import com.balatro.engine.joker.def.Effect.Term;
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.scoring.ScoreResult;
 import com.balatro.engine.scoring.ScoringEngine;
@@ -213,7 +213,7 @@ class DataJokerTest {
 
     @Test
     void scoredEnhancementCondition() {
-        DataJoker j = oneRule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.BONUS), Subject.CHIPS, 25);
+        DataJoker j = oneRule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.BONUS), Term.CHIPS, 25);
         assertThat(j.calculate(fresh(j, c -> {
             c.phase = Trigger.ON_SCORED;
             c.scoredCard = new Card(Rank.NINE, Suit.SPADES, Enhancement.BONUS, Edition.NONE, Seal.NONE);
@@ -226,7 +226,7 @@ class DataJokerTest {
 
     @Test
     void scoredEditionAndSealConditions() {
-        DataJoker foil = oneRule(Trigger.ON_SCORED, new Condition.ScoredEdition(Edition.POLYCHROME), Subject.MULT, 5);
+        DataJoker foil = oneRule(Trigger.ON_SCORED, new Condition.ScoredEdition(Edition.POLYCHROME), Term.MULT, 5);
         assertThat(foil.calculate(fresh(foil, c -> {
             c.phase = Trigger.ON_SCORED;
             Card poly = c(Rank.NINE, Suit.SPADES);
@@ -234,7 +234,7 @@ class DataJokerTest {
             c.scoredCard = poly;
         })).mult).isEqualTo(5);
 
-        DataJoker sealed = oneRule(Trigger.ON_SCORED, new Condition.ScoredSeal(Seal.GOLD), Subject.DOLLARS, 2);
+        DataJoker sealed = oneRule(Trigger.ON_SCORED, new Condition.ScoredSeal(Seal.GOLD), Term.DOLLARS, 2);
         assertThat(sealed.calculate(fresh(sealed, c -> {
             c.phase = Trigger.ON_SCORED;
             c.scoredCard = new Card(Rank.NINE, Suit.SPADES, Enhancement.NONE, Edition.NONE, Seal.GOLD);
@@ -243,17 +243,17 @@ class DataJokerTest {
 
     @Test
     void runStateConditions() {
-        DataJoker rich = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.MONEY, Condition.Cmp.GTE, 10), Subject.MULT, 3);
+        DataJoker rich = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.MONEY, Condition.Cmp.GTE, 10), Term.MULT, 3);
         assertThat(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 12; })).mult)
                 .isEqualTo(3);
         assertThat(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 4; }))).isNull();
 
-        DataJoker lateAnte = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.ANTE, Condition.Cmp.GTE, 3), Subject.MULT, 8);
+        DataJoker lateAnte = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.ANTE, Condition.Cmp.GTE, 3), Term.MULT, 8);
         assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 5; })).mult)
                 .isEqualTo(8);
         assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 1; }))).isNull();
 
-        DataJoker finisher = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Hand.PLAYS, Condition.Cmp.EQ, 0), Subject.MULT, 4);
+        DataJoker finisher = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Hand.PLAYS, Condition.Cmp.EQ, 0), Term.MULT, 4);
         assertThat(finisher.calculate(fresh(finisher, c -> { c.phase = Trigger.JOKER_MAIN; c.run.handsLeft = 0; })).mult)
                 .isEqualTo(4);
     }
@@ -263,7 +263,7 @@ class DataJokerTest {
     @Test
     void countOverPlayedCardsScalesEffect() {
         // +10 Chips per played face card
-        DataJoker j = new DataJoker(scalingDef("j_face_chips", Subject.CHIPS,
+        DataJoker j = new DataJoker(scalingDef("j_face_chips", Term.CHIPS,
                 new Value.Count(Value.Source.PLAYED, new Condition.ScoredIsFace(), 0, 10)));
         List<Card> played = List.of(c(Rank.KING, Suit.SPADES), c(Rank.QUEEN, Suit.SPADES),
                 c(Rank.JACK, Suit.SPADES), c(Rank.TEN, Suit.SPADES), c(Rank.NINE, Suit.SPADES));
@@ -276,7 +276,7 @@ class DataJokerTest {
     @Test
     void runVarScalesWithMoney() {
         // +1 Mult per dollar; RunState starts with $4
-        DataJoker j = new DataJoker(scalingDef("j_greed", Subject.MULT,
+        DataJoker j = new DataJoker(scalingDef("j_greed", Term.MULT,
                 new Value.RunVar(Value.Var.MONEY, 0, 1)));
         List<Card> played = List.of(c(Rank.NINE, Suit.SPADES), c(Rank.NINE, Suit.HEARTS),
                 c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.CLUBS));
@@ -288,7 +288,7 @@ class DataJokerTest {
     @Test
     void heldMultScalesWithHeldFaceCards() {
         // +3 Mult per face card held in hand
-        DataJoker j = new DataJoker(scalingDef("j_held_face", Subject.HELD_MULT,
+        DataJoker j = new DataJoker(scalingDef("j_held_face", Term.HELD_MULT,
                 new Value.Count(Value.Source.HELD, new Condition.ScoredIsFace(), 0, 3)));
         List<Card> played = List.of(c(Rank.TWO, Suit.SPADES), c(Rank.THREE, Suit.SPADES),
                 c(Rank.FOUR, Suit.SPADES), c(Rank.FIVE, Suit.SPADES), c(Rank.SIX, Suit.SPADES));
@@ -304,12 +304,12 @@ class DataJokerTest {
         return new Card(r, s);
     }
 
-    private static DataJoker oneRule(Trigger when, Condition cond, Subject subject, double amount) {
+    private static DataJoker oneRule(Trigger when, Condition cond, Term subject, double amount) {
         return new DataJoker(new JokerDef("j_unit", "Unit", "test", "Common", 1, 0, 0, null, null, true,
                 List.of(new Rule(when, cond, new Effect.Score(Effect.Operation.ADD, subject, new Value.Const(amount))))));
     }
 
-    private static JokerDef scalingDef(String key, Subject subject, Value value) {
+    private static JokerDef scalingDef(String key, Term subject, Value value) {
         return new JokerDef(key, key, "test", "Common", 1, 0, 0, null, null, true,
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                         new Effect.Score(Effect.Operation.ADD, subject, value))));

@@ -22,7 +22,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "prop",
               "name" : "mult"
@@ -79,7 +79,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "prop",
               "name" : "mult"
@@ -136,7 +136,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "prop",
               "name" : "mult"
@@ -193,7 +193,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "prop",
               "name" : "mult"
@@ -248,7 +248,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -300,7 +300,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 50.0
@@ -354,7 +354,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 20.0
@@ -407,7 +407,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -461,7 +461,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "RETRIGGERS",
+            "term" : "RETRIGGERS",
             "value" : {
               "type" : "const",
               "amount" : 1.0
@@ -513,7 +513,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -566,7 +566,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 5.0
@@ -643,7 +643,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "planets",
@@ -732,7 +732,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "streak",
@@ -858,7 +858,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 8.0
@@ -918,7 +918,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 15.0
@@ -970,7 +970,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "runVar",
               "which" : "DISCARDS",
@@ -1024,7 +1024,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "runVar",
               "which" : "MONEY",
@@ -1078,7 +1078,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 30.0
@@ -1131,7 +1131,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 31.0
@@ -1209,7 +1209,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "state",
               "var" : "chips",
@@ -1264,7 +1264,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 12.0
@@ -1317,7 +1317,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 10.0
@@ -1370,7 +1370,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 12.0
@@ -1423,7 +1423,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 10.0
@@ -1476,7 +1476,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 100.0
@@ -1529,7 +1529,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 80.0
@@ -1582,7 +1582,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 100.0
@@ -1635,7 +1635,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 80.0
@@ -1689,7 +1689,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 20.0
@@ -1698,7 +1698,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -1750,7 +1750,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 5.0
@@ -1814,7 +1814,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 10.0
@@ -1823,7 +1823,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -1902,7 +1902,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 8.0
@@ -1956,7 +1956,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 13.0
@@ -2010,7 +2010,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 1.5
@@ -2087,7 +2087,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "state",
               "var" : "chips",
@@ -2167,7 +2167,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "state",
               "var" : "chips",
@@ -2222,7 +2222,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 2.0
@@ -2275,7 +2275,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -2328,7 +2328,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -2381,7 +2381,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -2434,7 +2434,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 2.0
@@ -2488,7 +2488,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 50.0
@@ -2542,7 +2542,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 7.0
@@ -2594,7 +2594,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "RETRIGGERS",
+            "term" : "RETRIGGERS",
             "value" : {
               "type" : "const",
               "amount" : 1.0
@@ -2670,7 +2670,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "mult",
@@ -2749,7 +2749,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "mult",
@@ -2803,7 +2803,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "random",
               "min" : 0.0,
@@ -2870,7 +2870,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 1.5
@@ -2922,7 +2922,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "stat",
               "which" : "DECK_REMAINING",
@@ -2977,7 +2977,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "stat",
               "which" : "OWNED_JOKERS",
@@ -3032,7 +3032,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "stat",
               "which" : "DECK_ENH_COUNT",
@@ -3087,7 +3087,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "stat",
               "which" : "DECK_ENH_COUNT",
@@ -3310,7 +3310,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "xm",
@@ -3366,7 +3366,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 1.0
@@ -3429,7 +3429,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 2.0
@@ -3481,7 +3481,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 15.0
@@ -3547,7 +3547,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -3621,7 +3621,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -3673,7 +3673,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "stat",
               "which" : "EMPTY_JOKER_SLOTS",
@@ -3730,7 +3730,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 2.0
@@ -3782,7 +3782,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "RETRIGGERS",
+            "term" : "RETRIGGERS",
             "value" : {
               "type" : "const",
               "amount" : 2.0
@@ -3852,7 +3852,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -3927,7 +3927,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 2.0
@@ -4087,7 +4087,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "RETRIGGERS",
+            "term" : "RETRIGGERS",
             "value" : {
               "type" : "const",
               "amount" : 1.0
@@ -4147,7 +4147,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "RETRIGGERS",
+            "term" : "RETRIGGERS",
             "value" : {
               "type" : "const",
               "amount" : 1.0
@@ -4200,7 +4200,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -4252,7 +4252,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 2.0
@@ -4313,7 +4313,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -4369,7 +4369,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -4533,7 +4533,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "m",
@@ -4612,7 +4612,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "tarots",
@@ -4666,7 +4666,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "runVarStep",
               "which" : "MONEY",
@@ -4721,7 +4721,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "stat",
               "which" : "CARDS_BELOW_FULL",
@@ -4986,7 +4986,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "const",
               "amount" : 250.0
@@ -5044,7 +5044,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "heldExtreme",
               "lowest" : true,
@@ -5098,7 +5098,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "deckRankCount",
               "rankId" : 9,
@@ -5168,7 +5168,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "state",
               "var" : "bosses",
@@ -5233,7 +5233,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "runVar",
               "which" : "DISCARDS",
@@ -5852,7 +5852,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "x",
@@ -5922,7 +5922,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "x",
@@ -5994,7 +5994,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "stateStep",
               "var" : "d",
@@ -6085,7 +6085,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "x",
@@ -6331,7 +6331,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "x",
@@ -6439,7 +6439,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "clamp",
               "inner" : {
@@ -6517,7 +6517,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "clamp",
               "inner" : {
@@ -6595,7 +6595,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 8.0
@@ -6762,7 +6762,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "mult",
@@ -6856,7 +6856,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "runVar",
               "which" : "BLINDS_SKIPPED",
@@ -6945,7 +6945,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "RETRIGGERS",
+            "term" : "RETRIGGERS",
             "value" : {
               "type" : "const",
               "amount" : 1.0
@@ -6997,7 +6997,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "runVar",
               "which" : "OBELISK_STREAK",
@@ -7054,7 +7054,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -7133,7 +7133,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -7315,7 +7315,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "mult",
@@ -7396,7 +7396,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "xm",
@@ -7450,7 +7450,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "runVar",
               "which" : "UNIQUE_PLANETS",
@@ -7549,7 +7549,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 1.0
@@ -7931,7 +7931,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "count",
               "source" : "EVENT",
@@ -8033,7 +8033,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "CHIPS",
+            "term" : "CHIPS",
             "value" : {
               "type" : "state",
               "var" : "chips",
@@ -8089,7 +8089,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "DOLLARS",
+            "term" : "DOLLARS",
             "value" : {
               "type" : "const",
               "amount" : 4.0
@@ -8152,7 +8152,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 2.0
@@ -8206,7 +8206,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 1.5
@@ -8259,7 +8259,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 1.5
@@ -8311,7 +8311,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "otherJokersSellSum",
               "base" : 0.0,
@@ -8364,7 +8364,7 @@
           {
             "type" : "score",
             "op" : "ADD",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "handTypePlays",
               "base" : 1.0,
@@ -8417,7 +8417,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "const",
               "amount" : 3.0
@@ -8469,7 +8469,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "runVar",
               "which" : "LUCKY_TRIGGERS",
@@ -8555,7 +8555,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "state",
               "var" : "x",
@@ -8609,7 +8609,7 @@
           {
             "type" : "score",
             "op" : "MULTIPLY",
-            "subject" : "MULT",
+            "term" : "MULT",
             "value" : {
               "type" : "clamp",
               "inner" : {

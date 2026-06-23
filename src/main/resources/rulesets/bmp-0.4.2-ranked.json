@@ -37,7 +37,7 @@
               {
                 "type" : "score",
                 "op" : "ADD",
-                "subject" : "DOLLARS",
+                "term" : "DOLLARS",
                 "value" : {
                   "type" : "const",
                   "amount" : 3.0
@@ -64,7 +64,7 @@
               {
                 "type" : "score",
                 "op" : "ADD",
-                "subject" : "RETRIGGERS",
+                "term" : "RETRIGGERS",
                 "value" : {
                   "type" : "const",
                   "amount" : 1.0
@@ -91,7 +91,7 @@
               {
                 "type" : "score",
                 "op" : "ADD",
-                "subject" : "RETRIGGERS",
+                "term" : "RETRIGGERS",
                 "value" : {
                   "type" : "const",
                   "amount" : 1.0
@@ -322,7 +322,7 @@
               {
                 "type" : "score",
                 "op" : "MULTIPLY",
-                "subject" : "MULT",
+                "term" : "MULT",
                 "value" : {
                   "type" : "const",
                   "amount" : 4.0
@@ -331,7 +331,7 @@
               {
                 "type" : "score",
                 "op" : "ADD",
-                "subject" : "DOLLARS",
+                "term" : "DOLLARS",
                 "value" : {
                   "type" : "const",
                   "amount" : 10.0
@@ -389,7 +389,7 @@
               {
                 "type" : "score",
                 "op" : "MULTIPLY",
-                "subject" : "MULT",
+                "term" : "MULT",
                 "value" : {
                   "type" : "const",
                   "amount" : 10.0
@@ -444,7 +444,7 @@
               {
                 "type" : "score",
                 "op" : "ADD",
-                "subject" : "CHIPS",
+                "term" : "CHIPS",
                 "value" : {
                   "type" : "runVar",
                   "which" : "OPP_LIVES_BEHIND",
@@ -501,7 +501,7 @@
               {
                 "type" : "score",
                 "op" : "MULTIPLY",
-                "subject" : "MULT",
+                "term" : "MULT",
                 "value" : {
                   "type" : "clamp",
                   "inner" : {
@@ -563,7 +563,7 @@
               {
                 "type" : "score",
                 "op" : "ADD",
-                "subject" : "MULT",
+                "term" : "MULT",
                 "value" : {
                   "type" : "runVar",
                   "which" : "OPP_CARDS_SOLD",

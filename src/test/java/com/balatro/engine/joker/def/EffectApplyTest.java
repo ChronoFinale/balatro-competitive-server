@@ -37,8 +37,8 @@ class EffectApplyTest {
     }
 
     @Test
-    void additiveOnlySubjectsRejectMultiply() { // CHIPS has no x-accumulator slot — the empty grid cell fails loudly
-        assertThatThrownBy(() -> new Effect.Score(Effect.Operation.MULTIPLY, Effect.Subject.CHIPS, c(2)).apply(CTX))
+    void additiveOnlyTermsRejectMultiply() { // CHIPS has no x-accumulator slot — the empty grid cell fails loudly
+        assertThatThrownBy(() -> new Effect.Score(Effect.Operation.MULTIPLY, Effect.Term.CHIPS, c(2)).apply(CTX))
                 .isInstanceOf(IllegalStateException.class);
     }
 

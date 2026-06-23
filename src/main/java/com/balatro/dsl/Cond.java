@@ -1,6 +1,6 @@
 package com.balatro.dsl;
 
-import com.balatro.engine.joker.def.Subject;
+import com.balatro.engine.joker.def.Property;
 import com.balatro.engine.joker.def.*;
 
 
@@ -60,7 +60,7 @@ public final class Cond {
     public static Condition otherJokerRarity(String rarity) { return new Condition.OtherJokerRarity(rarity); }
 
     /** A run variable modulo {@code mod} equals {@code remainder} (Loyalty Card: every 6 hands). */
-    public static Condition runVarModulo(Subject which, int mod, int remainder) {
+    public static Condition runVarModulo(Property which, int mod, int remainder) {
         return new Condition.RunVarModulo(which, mod, remainder);
     }
 
@@ -83,7 +83,7 @@ public final class Cond {
     public static StateRef state(String var) { return new StateRef(var); }
 
     /** A live run-state quantity (money, hands left, ante, …) to compare against. */
-    public static Compare runVar(Subject v) { return new Compare(new Value.RunVar(v, 0, 1)); }
+    public static Compare runVar(Property v) { return new Compare(new Value.RunVar(v, 0, 1)); }
 
     /** Any {@link Value} (a card count, a derived quantity) to compare against. */
     public static Compare value(Value v) { return new Compare(v); }

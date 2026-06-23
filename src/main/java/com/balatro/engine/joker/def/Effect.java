@@ -63,15 +63,15 @@ public sealed interface Effect {
         return null;
     }
 
-    // --- readable factories for the common score cells (operation × subject), so authoring/tests don't
+    // --- readable factories for the common score cells (operation × term), so authoring/tests don't
     //     spell out both axes for every contribution. The grid is the model; these are the named cells. ---
-    static Score chips(Value v)      { return new Score(Operation.ADD, Subject.CHIPS, v); }
-    static Score mult(Value v)       { return new Score(Operation.ADD, Subject.MULT, v); }
-    static Score xMult(Value v)      { return new Score(Operation.MULTIPLY, Subject.MULT, v); }
-    static Score powMult(Value v)    { return new Score(Operation.POWER, Subject.MULT, v); }
-    static Score dollars(Value v)    { return new Score(Operation.ADD, Subject.DOLLARS, v); }
-    static Score retriggers(Value v) { return new Score(Operation.ADD, Subject.RETRIGGERS, v); }
-    static Score heldMult(Value v)   { return new Score(Operation.ADD, Subject.HELD_MULT, v); }
+    static Score chips(Value v)      { return new Score(Operation.ADD, Term.CHIPS, v); }
+    static Score mult(Value v)       { return new Score(Operation.ADD, Term.MULT, v); }
+    static Score xMult(Value v)      { return new Score(Operation.MULTIPLY, Term.MULT, v); }
+    static Score powMult(Value v)    { return new Score(Operation.POWER, Term.MULT, v); }
+    static Score dollars(Value v)    { return new Score(Operation.ADD, Term.DOLLARS, v); }
+    static Score retriggers(Value v) { return new Score(Operation.ADD, Term.RETRIGGERS, v); }
+    static Score heldMult(Value v)   { return new Score(Operation.ADD, Term.HELD_MULT, v); }
 
     /** Apply effects in order, chaining the non-null contributions into one {@code extra} chain. */
     static JokerEffect applyAll(List<Effect> effects, EvaluationContext ctx) {
@@ -91,11 +91,13 @@ public sealed interface Effect {
         return head;
     }
 
-    /** What a score contribution operates on — the slot, separated from the operation (docs 49/50). */
-    enum Subject { CHIPS, MULT, DOLLARS, RETRIGGERS, HELD_MULT }
+    /** A term of the score a contribution lands in — chips/mult (and the dollars/retriggers/held-mult
+     *  side-channels), separated from the {@link Operation}. The ephemeral scoring twin of a {@link Property}
+     *  (which is durable run state). (docs 49/50). */
+    enum Term { CHIPS, MULT, DOLLARS, RETRIGGERS, HELD_MULT }
 
     /**
-     * How a contribution combines with its subject — the operation, separated from the subject. ONE shared
+     * How a contribution combines with its term — the operation, separated from the term. ONE shared
      * verb vocabulary across scoring and money (and conceptually {@code Modify}); each effect supports the
      * subset that makes sense for it: scoring uses {@code ADD/MULTIPLY/POWER}, money uses
      * {@code ADD/SUBTRACT/MULTIPLY/DIVIDE/SET}. Unsupported cells are rejected loudly, not silently coerced.
@@ -103,15 +105,15 @@ public sealed interface Effect {
     enum Operation { ADD, SUBTRACT, MULTIPLY, DIVIDE, POWER, SET }
 
     /**
-     * A numeric contribution to the running score, modelled as {@code operation × subject × value} — e.g.
+     * A numeric contribution to the running score, modelled as {@code operation × term × value} — e.g.
      * {@code (ADD, CHIPS)} = +chips, {@code (MULTIPLY, MULT)} = ×mult (the old {@code XMULT}),
      * {@code (POWER, MULT)} = ^mult. The fused {@code Op} enum is gone: the two axes (what it does / what it
      * deals with) are independent, so empty cells (×chips) are expressible once an accumulator slot exists.
      */
-    record Score(Operation op, Subject subject, Value value) implements Effect {
+    record Score(Operation op, Term term, Value value) implements Effect {
         public JokerEffect apply(EvaluationContext ctx) {
             double v = value.resolve(ctx);
-            return switch (subject) {
+            return switch (term) {
                 case CHIPS -> { requireAdd(); yield v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips"); }
                 case DOLLARS -> { requireAdd(); yield v == 0 ? null : JokerEffect.dollars(Math.round(v)).msg("+$" + fmt(v)); }
                 case RETRIGGERS -> {
@@ -144,7 +146,7 @@ public sealed interface Effect {
          *  silently treating them as ADD. */
         private void requireAdd() {
             if (op != Operation.ADD) {
-                throw new IllegalStateException(op + " is not supported for subject " + subject
+                throw new IllegalStateException(op + " is not supported for term " + term
                         + " (only ADD; no accumulator slot for that cell)");
             }
         }

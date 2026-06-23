@@ -305,7 +305,7 @@
     if (val === null) return false; // probabilistic value -> unsupported
     // Mirrors Effect.Score.apply: a contribution is (operation, subject). Only MULT varies by operation;
     // the other subjects are additive-only.
-    switch (eff.subject) {
+    switch (eff.term) {
       case 'CHIPS': acc.chips += val; break;
       case 'HELD_MULT': acc.mult += val; break;
       case 'DOLLARS': break;           // no money in scoring math

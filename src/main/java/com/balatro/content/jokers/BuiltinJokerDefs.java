@@ -8,7 +8,7 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Effect.Subject;
+import com.balatro.engine.joker.def.Effect.Term;
 import static com.balatro.dsl.Cond.always;
 import static com.balatro.dsl.Cond.all;
 import static com.balatro.dsl.Cond.any;
@@ -85,8 +85,8 @@ public final class BuiltinJokerDefs {
     }
 
     /** "Each played [suit] gives +N Chips/Mult" gem joker (Arrowhead/Onyx Agate). Uncommon, $7. */
-    private static JokerDef gem(String key, String name, Suit suit, Subject subject, int amount) {
-        String unit = subject == Subject.CHIPS ? " Chips" : " Mult";
+    private static JokerDef gem(String key, String name, Suit suit, Term subject, int amount) {
+        String unit = subject == Term.CHIPS ? " Chips" : " Mult";
         return Jokers.of(key, name)
                 .forEachScored(card().suit(suit)).gives(Effect.Operation.ADD, subject, Val.of(amount))
                 .build();
@@ -259,8 +259,8 @@ public final class BuiltinJokerDefs {
                 typeXMult("j_tribe", "The Tribe", HandType.FLUSH, 2),
 
                 // --- gem suit jokers ---
-                gem("j_arrowhead", "Arrowhead", Suit.SPADES, Subject.CHIPS, 50),
-                gem("j_onyx_agate", "Onyx Agate", Suit.CLUBS, Subject.MULT, 7),
+                gem("j_arrowhead", "Arrowhead", Suit.SPADES, Term.CHIPS, 50),
+                gem("j_onyx_agate", "Onyx Agate", Suit.CLUBS, Term.MULT, 7),
 
                 // --- retrigger: played face cards trigger again ---
                 Jokers.of("j_sock_and_buskin", "Sock and Buskin")
@@ -334,7 +334,7 @@ public final class BuiltinJokerDefs {
                 // --- ScoredFirst: retrigger the first scored card (Hanging Chad) ---
                 Jokers.of("j_hanging_chad", "Hanging Chad")
                         .on(Trigger.REPETITION_PLAYED).when(card().isFirst())
-                        .gives(Effect.Operation.ADD, Subject.RETRIGGERS, Val.of(2)).build(),
+                        .gives(Effect.Operation.ADD, Term.RETRIGGERS, Val.of(2)).build(),
 
                 // --- ScoringContainsSuit: suit-coverage xMult jokers ---
                 Jokers.of("j_flower_pot", "Flower Pot")

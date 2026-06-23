@@ -127,9 +127,9 @@ public sealed interface Value {
         }
     }
 
-    /** Which live run-state quantity a {@link RunVar} reads. Implements {@link Subject}: the run/shop/economy
+    /** Which live run-state quantity a {@link RunVar} reads. Implements {@link Property}: the run/shop/economy
      *  bag, with the hand nouns now lifted out into {@link Hand}. */
-    enum Var implements Subject {
+    enum Var implements Property {
         // --- readable run-state quantities (a condition can read these) ---
         MONEY, CONSUMABLE_SLOTS, JOKER_SLOTS, ANTE, DISCARDS_USED,
         HANDS_PLAYED, HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS,
@@ -146,10 +146,10 @@ public sealed interface Value {
         ALLOW_SHOP_DUPLICATES, PLANETS_FREE, UNCAPPED_INTEREST }
 
     /** Read a live run-state quantity. Shared by {@link RunVar}, {@link RunVarStep}, and
-     *  {@code Condition.RunVarModulo} so the {@link Subject}→{@code RunState} mapping lives in one place.
+     *  {@code Condition.RunVarModulo} so the {@link Property}→{@code RunState} mapping lives in one place.
      *  Dispatches on the subject noun: {@link Hand} reads handle size/plays/discards, the rest fall to the
      *  {@link Var} bag. */
-    static double readVar(Subject which, EvaluationContext ctx) {
+    static double readVar(Property which, EvaluationContext ctx) {
         if (which instanceof Hand h) {
             return switch (h) {
                 case SIZE -> ctx.run.handSize;
@@ -182,7 +182,7 @@ public sealed interface Value {
     }
 
     /** {@code base + scale * (live run-state quantity)} (per dollar, per remaining hand, ...). */
-    record RunVar(Subject which, double base, double scale) implements Value {
+    record RunVar(Property which, double base, double scale) implements Value {
         public double resolve(EvaluationContext ctx) {
             if (ctx.run == null) return base;
             return base + scale * readVar(which, ctx);
@@ -193,7 +193,7 @@ public sealed interface Value {
      * {@code base + scale * floor(runVar / per)} — stepwise scaling (Bootstraps:
      * +2 Mult per $5 → base 0, scale 2, per 5 over MONEY).
      */
-    record RunVarStep(Subject which, double base, double scale, double per) implements Value {
+    record RunVarStep(Property which, double base, double scale, double per) implements Value {
         public double resolve(EvaluationContext ctx) {
             if (ctx.run == null || per == 0) return base;
             return base + scale * Math.floor(readVar(which, ctx) / per);

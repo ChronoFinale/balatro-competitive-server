@@ -1,6 +1,6 @@
 package com.balatro.dsl;
 
-import com.balatro.engine.joker.def.Subject;
+import com.balatro.engine.joker.def.Property;
 import com.balatro.engine.joker.def.*;
 
 
@@ -44,16 +44,16 @@ public final class Val {
     // --- live run-state quantities ---
 
     /** {@code base + scale * (run variable)} — the general form. */
-    public static Value runVar(Subject v, double base, double scale) { return new Value.RunVar(v, base, scale); }
+    public static Value runVar(Property v, double base, double scale) { return new Value.RunVar(v, base, scale); }
 
     /** {@code scale} per unit of a run variable (Banner: +30 Chips per remaining discard). */
-    public static Value perRunVar(Subject v, double scale) { return new Value.RunVar(v, 0, scale); }
+    public static Value perRunVar(Property v, double scale) { return new Value.RunVar(v, 0, scale); }
 
     /** {@code 1 + scale} per unit — the x-Mult convention over a run variable (Obelisk, Throwback). */
-    public static Value xPerRunVar(Subject v, double scale) { return new Value.RunVar(v, 1, scale); }
+    public static Value xPerRunVar(Property v, double scale) { return new Value.RunVar(v, 1, scale); }
 
     /** {@code base + scale * floor(runVar / per)} — stepwise run-var scaling (Bootstraps: +2 per $5). */
-    public static Value runVarStep(Subject v, double base, double scale, double per) {
+    public static Value runVarStep(Property v, double base, double scale, double per) {
         return new Value.RunVarStep(v, base, scale, per);
     }
 

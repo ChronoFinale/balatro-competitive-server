@@ -185,7 +185,7 @@ public final class Jokers {
 
         public RuleBuilder when(Condition c) { this.condition = c; return this; }
 
-        private Jokers commit(Effect.Operation op, Effect.Subject subject, Value v) {
+        private Jokers commit(Effect.Operation op, Effect.Term subject, Value v) {
             return effect(new Effect.Score(op, subject, v));
         }
 
@@ -195,26 +195,26 @@ public final class Jokers {
         // operation (add/multiply) is the verb; the Target is the subject — independent axes (docs 49/50).
 
         /** Add {@code v} to {@code t} (+Mult, +Chips, +$). */
-        public Jokers add(Target t, double v) { return commit(Effect.Operation.ADD, subjectOf(t), new Value.Const(v)); }
+        public Jokers add(Target t, double v) { return commit(Effect.Operation.ADD, termOf(t), new Value.Const(v)); }
 
-        public Jokers add(Target t, Value v) { return commit(Effect.Operation.ADD, subjectOf(t), v); }
+        public Jokers add(Target t, Value v) { return commit(Effect.Operation.ADD, termOf(t), v); }
 
         /** Multiply {@code t} by {@code v} (x Mult). */
         public Jokers multiply(Target t, double v) { return multiply(t, new Value.Const(v)); }
 
         public Jokers multiply(Target t, Value v) {
             if (t != Target.MULT) throw new IllegalArgumentException("multiply only supports MULT (x Mult); got " + t);
-            return commit(Effect.Operation.MULTIPLY, Effect.Subject.MULT, v);
+            return commit(Effect.Operation.MULTIPLY, Effect.Term.MULT, v);
         }
 
         /** Subtract {@code v} from {@code t} (e.g. -$) — money goes both ways. */
-        public Jokers subtract(Target t, double v) { return commit(Effect.Operation.ADD, subjectOf(t), new Value.Const(-v)); }
+        public Jokers subtract(Target t, double v) { return commit(Effect.Operation.ADD, termOf(t), new Value.Const(-v)); }
 
         /** Retrigger the matching card once (reads "for each … retrigger"). */
-        public Jokers retrigger() { return commit(Effect.Operation.ADD, Effect.Subject.RETRIGGERS, new Value.Const(1)); }
+        public Jokers retrigger() { return commit(Effect.Operation.ADD, Effect.Term.RETRIGGERS, new Value.Const(1)); }
 
         /** Effect with an explicit operation + subject and a {@link Value} (per-card counts, run vars, ...). */
-        public Jokers gives(Effect.Operation op, Effect.Subject subject, Value v) { return commit(op, subject, v); }
+        public Jokers gives(Effect.Operation op, Effect.Term subject, Value v) { return commit(op, subject, v); }
 
         // --- non-numeric effect terminals: read as verbs ---
 
@@ -233,11 +233,11 @@ public final class Jokers {
         /** Add a permanent copy of the scored card to the deck (DNA). */
         public Jokers copyScored() { return effect(new Effect.CopyScored()); }
 
-        private static Effect.Subject subjectOf(Target t) {
+        private static Effect.Term termOf(Target t) {
             return switch (t) {
-                case MULT -> Effect.Subject.MULT;
-                case CHIPS -> Effect.Subject.CHIPS;
-                case DOLLARS -> Effect.Subject.DOLLARS;
+                case MULT -> Effect.Term.MULT;
+                case CHIPS -> Effect.Term.CHIPS;
+                case DOLLARS -> Effect.Term.DOLLARS;
             };
         }
 

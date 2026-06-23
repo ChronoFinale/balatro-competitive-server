@@ -98,7 +98,7 @@ class JsonRulesetTest {
                 {
                   "when": "ON_SCORED",
                   "condition": { "type": "scoredSuit", "suit": "DIAMONDS" },
-                  "effects": [ { "type": "score", "op": "ADD", "subject": "MULT", "value": { "type": "prop", "name": "mult" } } ]
+                  "effects": [ { "type": "score", "op": "ADD", "term": "MULT", "value": { "type": "prop", "name": "mult" } } ]
                 }
               ]
             }

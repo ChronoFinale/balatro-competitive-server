@@ -1,15 +1,15 @@
 {
-  "version" : "fcfa72ed1dfa8772",
+  "version" : "bdf3428c78e8eca6",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
-      "sha256" : "31d10faea1d2dc5569a4984cc420d34eaccf08623a617132f0bd8cfc1efe47af",
-      "bytes" : 209291
+      "sha256" : "187f18cad6e1c7ea36506b686914d124f9f9d3f5dce2e45c53ff1ebec362eca3",
+      "bytes" : 208961
     },
     {
       "path" : "rulesets/bmp-0.4.2-ranked.json",
-      "sha256" : "0f821d82ca62c39fc9f3c5f6f27093e7d60206f7354110641e7961f16b6e83ad",
-      "bytes" : 16957
+      "sha256" : "39a5df3b0dbfdf18c78a8d545c5653c901d53d2bf9f2899f431e55767ef4b8f1",
+      "bytes" : 16930
     },
     {
       "path" : "content/decks.json",

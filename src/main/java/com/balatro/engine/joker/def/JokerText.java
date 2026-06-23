@@ -40,7 +40,7 @@ public final class JokerText {
     private static String effect(Effect.Score s) {
         if (!(s.value() instanceof Value.Const c)) return null; // PoC: constant magnitudes only
         String n = num(c.amount());
-        return switch (s.subject()) {
+        return switch (s.term()) {
             case CHIPS -> "+" + n + " Chips";
             case DOLLARS -> "+$" + n;
             case MULT -> switch (s.op()) {
