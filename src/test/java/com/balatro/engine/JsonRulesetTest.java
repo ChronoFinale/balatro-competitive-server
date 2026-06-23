@@ -13,7 +13,7 @@ import com.balatro.engine.joker.def.Condition;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.joker.def.JokerDef;
 import com.balatro.dsl.Jokers;
-import com.balatro.engine.joker.def.Target;
+import com.balatro.engine.joker.def.Effect;
 import com.balatro.dsl.Val;
 import com.balatro.engine.joker.def.Value;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +42,7 @@ class JsonRulesetTest {
         JokerDef built = Jokers.uncommon("j_dynamo", "Diamond Dynamo").cost(6)
                 .desc("+5 Mult per scored Diamond")
                 .prop("mult", 5)
-                .forEachScored(Cond.card().suit(Suit.DIAMONDS)).add(Target.MULT, Val.prop("mult"))
+                .forEachScored(Cond.card().suit(Suit.DIAMONDS)).add(Effect.Term.MULT, Val.prop("mult"))
                 .build();
 
         String asJson = json.writeValueAsString(built);
@@ -59,7 +59,7 @@ class JsonRulesetTest {
         // so the serialized form is a single "compare" type, not six bespoke ones.
         JokerDef built = Jokers.common("j_rich_test", "Rich Test").cost(3)
                 .desc("+10 Mult if you have $20 or more")
-                .whenHand(Cond.runVar(Value.Var.MONEY).atLeast(20)).add(Target.MULT, 10)
+                .whenHand(Cond.runVar(Value.Var.MONEY).atLeast(20)).add(Effect.Term.MULT, 10)
                 .build();
 
         String asJson = json.writeValueAsString(built);
@@ -73,7 +73,7 @@ class JsonRulesetTest {
         // Guards the twin merge: ScoredSuitIsTarget folded into ScoredSuit(suit=null, targetKey=...).
         JokerDef built = Jokers.uncommon("j_ancient_test", "Ancient Test").cost(8)
                 .desc("Each played card of the round's suit gives x1.5 Mult")
-                .forEachScored(Cond.card().suitIsTarget("ancientSuit")).multiply(Target.MULT, 1.5)
+                .forEachScored(Cond.card().suitIsTarget("ancientSuit")).multiply(Effect.Term.MULT, 1.5)
                 .build();
 
         JokerDef loaded = json.readValue(json.writeValueAsString(built), JokerDef.class);
@@ -116,7 +116,7 @@ class JsonRulesetTest {
         // change Suit.DIAMONDS into the String "DIAMONDS" only on the round-tripped copy.
         JokerDef built = Jokers.uncommon("j_suited", "Suited").cost(5).desc("metadata prop")
                 .prop("suit", Suit.DIAMONDS)
-                .forEachScored(Cond.card().suit(Suit.DIAMONDS)).add(Target.MULT, Val.of(1))
+                .forEachScored(Cond.card().suit(Suit.DIAMONDS)).add(Effect.Term.MULT, Val.of(1))
                 .build();
 
         assertThat(built.props().get("suit")).isEqualTo("DIAMONDS"); // stored as a String in-memory

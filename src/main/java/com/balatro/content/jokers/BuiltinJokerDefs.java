@@ -22,9 +22,9 @@ import static com.balatro.dsl.Cond.state;
 import static com.balatro.dsl.Cond.runVar;
 import static com.balatro.dsl.Cond.value;
 import com.balatro.engine.hand.HandMod;
-import static com.balatro.engine.joker.def.Target.CHIPS;
-import static com.balatro.engine.joker.def.Target.DOLLARS;
-import static com.balatro.engine.joker.def.Target.MULT;
+import static com.balatro.engine.joker.def.Effect.Term.CHIPS;
+import static com.balatro.engine.joker.def.Effect.Term.DOLLARS;
+import static com.balatro.engine.joker.def.Effect.Term.MULT;
 import java.util.List;
 
 /**

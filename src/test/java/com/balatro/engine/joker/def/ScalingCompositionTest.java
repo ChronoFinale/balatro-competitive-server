@@ -48,7 +48,7 @@ class ScalingCompositionTest {
 
     @Test
     void staticJokerIsJustAConstValue() { // +4 Mult, always — the degenerate (no accumulator) case
-        Joker flat = dj(Jokers.of("j_flat", "Flat").desc("+4 Mult").cost(2).whenHand().add(Target.MULT, 4).build());
+        Joker flat = dj(Jokers.of("j_flat", "Flat").desc("+4 Mult").cost(2).whenHand().add(Effect.Term.MULT, 4).build());
         assertThat(score(flat, null, 0).mult() - score(null, null, 0).mult()).isEqualTo(4.0);
     }
 
@@ -59,8 +59,8 @@ class ScalingCompositionTest {
         // things" needs no new machinery, because the read is not fused to the counter.
         Joker dynamo = dj(Jokers.of("j_dynamo", "Dynamo").desc("scales chips + xMult").cost(6)
                 .mutate(Trigger.CARD_ADDED).when(always()).gain("g", 1)
-                .whenHand().add(Target.CHIPS, Val.perState("g", 10))         // +10 Chips per g   (ADD, CHIPS)
-                .whenHand().multiply(Target.MULT, Val.state("g", 1.0, 0.1))  // x(1 + 0.1*g) Mult (MULTIPLY, MULT)
+                .whenHand().add(Effect.Term.CHIPS, Val.perState("g", 10))         // +10 Chips per g   (ADD, CHIPS)
+                .whenHand().multiply(Effect.Term.MULT, Val.state("g", 1.0, 0.1))  // x(1 + 0.1*g) Mult (MULTIPLY, MULT)
                 .build());
 
         ScoreResult without = score(null, null, 0);
@@ -75,7 +75,7 @@ class ScalingCompositionTest {
         // Hologram-shape: xMult grows with a counter. "Scaling xMult" = operation MULTIPLY + a State read.
         Joker holo = dj(Jokers.of("j_holo_test", "Holo").desc("xMult grows").cost(6)
                 .mutate(Trigger.CARD_ADDED).when(always()).gain("x", 0.25)
-                .whenHand().multiply(Target.MULT, Val.state("x", 1.0, 1.0)) // x(1 + x)
+                .whenHand().multiply(Effect.Term.MULT, Val.state("x", 1.0, 1.0)) // x(1 + x)
                 .build());
 
         ScoreResult without = score(null, null, 0);

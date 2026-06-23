@@ -8,9 +8,9 @@ import static com.balatro.dsl.Cond.card;
 import static com.balatro.dsl.Cond.discard;
 import static com.balatro.dsl.Cond.playedHand;
 import static com.balatro.dsl.Cond.state;
-import static com.balatro.engine.joker.def.Target.CHIPS;
-import static com.balatro.engine.joker.def.Target.DOLLARS;
-import static com.balatro.engine.joker.def.Target.MULT;
+import static com.balatro.engine.joker.def.Effect.Term.CHIPS;
+import static com.balatro.engine.joker.def.Effect.Term.DOLLARS;
+import static com.balatro.engine.joker.def.Effect.Term.MULT;
 
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.joker.Trigger;

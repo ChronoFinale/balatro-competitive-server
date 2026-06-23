@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.balatro.dsl.Jokers;
-import com.balatro.engine.joker.def.Target;
+import com.balatro.engine.joker.def.Effect;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,7 +35,7 @@ class JokerBuilderValidationTest {
     @Test
     void aFullyDeclaredJokerBuildsCleanly() {
         assertThatCode(() -> Jokers.common("j_ok", "Okay").cost(3).desc("+4 Mult")
-                .whenHand().add(Target.MULT, 4).build())
+                .whenHand().add(Effect.Term.MULT, 4).build())
                 .doesNotThrowAnyException();
     }
 }

@@ -11,7 +11,7 @@ import com.balatro.engine.card.Card;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.joker.def.JokerDef;
 import com.balatro.dsl.Jokers;
-import com.balatro.engine.joker.def.Target;
+import com.balatro.engine.joker.def.Effect;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -26,9 +26,9 @@ class JokerOrderTest {
     @Test
     void effectsApplyInJokerOrderNotAddThenMultiply() {
         JokerDef plus = Jokers.common("t_plus", "Plus").cost(1).desc("+10 Mult")
-                .whenHand().add(Target.MULT, 10).build();
+                .whenHand().add(Effect.Term.MULT, 10).build();
         JokerDef times = Jokers.common("t_times", "Times").cost(1).desc("x3 Mult")
-                .whenHand().multiply(Target.MULT, 3).build();
+                .whenHand().multiply(Effect.Term.MULT, 3).build();
 
         List<Card> pairOfKings = List.of(c(KING, HEARTS), c(KING, SPADES)); // 30 chips, base 2 Mult
 
