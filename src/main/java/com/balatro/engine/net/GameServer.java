@@ -62,6 +62,11 @@ import java.util.concurrent.TimeUnit;
  */
 public final class GameServer implements AutoCloseable {
 
+    /** The baseline mod/client version this server is built for. A thin client compares its own version to
+     *  this on bootstrap; if older, it prompts a restart-to-update (mod CODE needs a Lovely reboot, unlike
+     *  content/config which sync live). Bump when the shipped mod shell changes. */
+    public static final String MOD_VERSION = "0.1.0";
+
     private final Javalin app;
     private final Ruleset ruleset;
     private final CustomJokerStore jokerStore;
@@ -161,6 +166,23 @@ public final class GameServer implements AutoCloseable {
                 }
                 ctx.contentType("application/json");
                 ctx.result(resourceBytes("/" + p));   // path validated against the manifest list (no traversal)
+            });
+
+            // Bootstrap: the single "what should this client do now" call a thin client makes at launch. The
+            // mod shell is stable; everything variable (content version to sync, offered modes, feature flags,
+            // whether the mod CODE itself is out of date) comes from here — so behaviour changes server-side
+            // without redistributing the mod (only a mod-code change needs MOD_VERSION bumped + a reboot).
+            cfg.routes.get("/bootstrap", ctx -> {
+                ctx.header("Access-Control-Allow-Origin", "*");
+                String contentVersion = "";
+                try {
+                    contentVersion = json.readTree(resourceBytes("/content/manifest.json")).path("version").asText("");
+                } catch (Exception ignored) { /* no manifest -> empty version */ }
+                ctx.json(Map.of(
+                        "modVersion", MOD_VERSION,           // the mod compares its own version; older -> restart
+                        "contentVersion", contentVersion,    // sync /content if this differs from the cached one
+                        "rulesets", rulesetStore.names(),    // the modes/rulesets to offer in the lobby
+                        "features", Map.of("lobby", true, "queue", true)));
             });
 
             // Create a custom ruleset (a bundle that, with its joker pool, dictates a match).
