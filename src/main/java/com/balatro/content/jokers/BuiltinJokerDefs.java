@@ -508,7 +508,7 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 41: tags (Diet Cola) ---
                 Jokers.of("j_diet_cola", "Diet Cola")
-                        .runMod(RunMod.createsTagOnSell("tag_double")).build(),
+                        .on(Trigger.SELL_SELF).effect(new Effect.CreateTag("tag_double")).build(),
 
                 // --- batch 40: booster packs (Hallucination, Red Card) ---
                 Jokers.of("j_hallucination", "Hallucination")
@@ -559,7 +559,7 @@ public final class BuiltinJokerDefs {
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("rounds", 1)
                         .runMod(RunMod.duplicatesJokerOnSell(2)).build(),
                 Jokers.of("j_luchador", "Luchador")
-                        .runMod(RunMod.disablesBossOnSell()).build(),
+                        .on(Trigger.SELL_SELF).effect(new Effect.DisableBoss()).build(),
 
                 // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
                 Jokers.of("j_ceremonial", "Ceremonial Dagger")

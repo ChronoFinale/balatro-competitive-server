@@ -6418,7 +6418,20 @@
     "spriteUrl" : null,
     "spriteUrl2x" : null,
     "blueprintCompatible" : true,
-    "rules" : [ ],
+    "rules" : [
+      {
+        "when" : "SELL_SELF",
+        "condition" : {
+          "type" : "always"
+        },
+        "effects" : [
+          {
+            "type" : "createTag",
+            "tag" : "tag_double"
+          }
+        ]
+      }
+    ],
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
@@ -6428,7 +6441,7 @@
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : "tag_double"
+        "createsTag" : null
       },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
@@ -7032,7 +7045,19 @@
     "spriteUrl" : null,
     "spriteUrl2x" : null,
     "blueprintCompatible" : true,
-    "rules" : [ ],
+    "rules" : [
+      {
+        "when" : "SELL_SELF",
+        "condition" : {
+          "type" : "always"
+        },
+        "effects" : [
+          {
+            "type" : "disableBoss"
+          }
+        ]
+      }
+    ],
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
@@ -7040,7 +7065,7 @@
       "survivesLostBlindFraction" : 0.0,
       "blindSelectConsume" : "NONE",
       "onSell" : {
-        "disablesBoss" : true,
+        "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
         "createsTag" : null
       },

@@ -58,6 +58,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
     @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
     @JsonSubTypes.Type(value = Effect.DuplicateRandomConsumable.class, name = "duplicateRandomConsumable"),
+    @JsonSubTypes.Type(value = Effect.CreateTag.class, name = "createTag"),
 })
 public sealed interface Effect {
 
@@ -340,6 +341,9 @@ public sealed interface Effect {
 
     /** Create a (Negative) copy of a random held consumable, ignoring the slot cap (Perkeo on shop exit). */
     record DuplicateRandomConsumable() implements Effect {}
+
+    /** Grant a free skip {@code tag} (honouring a held Double Tag) — Diet Cola creates a Double Tag on sell. */
+    record CreateTag(String tag) implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {

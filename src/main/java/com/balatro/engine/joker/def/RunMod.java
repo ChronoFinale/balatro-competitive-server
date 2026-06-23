@@ -92,19 +92,10 @@ public record RunMod(boolean disablesBoss, double survivesLostBlindFraction,
         return capability(false, 0, BlindSelectConsume.NONE, sell, false, 0, 0, false);
     }
 
-    /** Luchador: sold during a boss blind, disable that boss's ability for the rest of the blind. */
-    public static RunMod disablesBossOnSell() {
-        return onSell(new OnSell(true, -1, null));
-    }
-
-    /** Invisible Joker: sold after {@code rounds}+ rounds owned, duplicate a random remaining joker. */
+    /** Invisible Joker: sold after {@code rounds}+ rounds owned, duplicate a random remaining joker.
+     *  (Luchador's disable-boss-on-sell and Diet Cola's tag-on-sell are SELL_SELF rules now, not capabilities.) */
     public static RunMod duplicatesJokerOnSell(int rounds) {
         return onSell(new OnSell(false, rounds, null));
-    }
-
-    /** Diet Cola: sold, create a free {@code tag}. */
-    public static RunMod createsTagOnSell(String tag) {
-        return onSell(new OnSell(false, -1, tag));
     }
 
     @com.fasterxml.jackson.annotation.JsonIgnore

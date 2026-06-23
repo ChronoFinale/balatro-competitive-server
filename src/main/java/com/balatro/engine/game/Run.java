@@ -878,9 +878,8 @@ public final class Run {
                     state.jokerState(js.get(idx)).put("bossDisabled", true);
                 }
             }
-            case Effect.DisableBoss ignored -> { // Verdant Leaf (on sell)
-                luchadorDisabledBoss = true;
-                refreshDebuffs();
+            case Effect.DisableBoss ignored -> { // Verdant Leaf (boss) / Luchador (sold during a boss)
+                if (boss != null) { luchadorDisabledBoss = true; refreshDebuffs(); }
             }
             case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
                 shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind()), PackCatalog.Size.valueOf(ap.size())));
@@ -914,6 +913,7 @@ public final class Run {
                     state.consumables.add(dup); // Negative copy ignores the slot cap
                 }
             }
+            case Effect.CreateTag ct -> grantTag(ct.tag());                 // Diet Cola (on sell)
             default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
@@ -1238,14 +1238,8 @@ public final class Run {
                     : state.queues.pick(state.jokers(), RngSources.INVISIBLE_DUP, rngCtx(), Joker::key, JOKER_QUALITY);
             state.addJoker(JokerLibrary.create(source.key()));
         }
-        // Diet Cola: sold, creates a free tag (Double Tag duplicates the next tag you gain).
-        if (onSell.createsTag() != null) state.tags.add(onSell.createsTag());
-        // Luchador: sold during a boss blind, disable that boss's ability for the rest of the blind (a joker
-        // capability). Verdant Leaf works the other way round — that's the boss's own SELL_CARD rule below.
-        if (boss != null && onSell.disablesBoss()) {
-            luchadorDisabledBoss = true;
-            refreshDebuffs();
-        }
+        // Luchador (DisableBoss) and Diet Cola (CreateTag) are the sold joker's own SELL_SELF rules now.
+        raiseSelfSellRules(sold);
         // A card was sold: remaining jokers react (Campfire gains x0.25 each), and the boss reacts
         // (Verdant Leaf: DisableBoss) — both through the same SELL_CARD trigger.
         GameEvents.raise(Trigger.SELL_CARD, state, rng, null);
@@ -1841,6 +1835,19 @@ public final class Run {
     /** Perkeo: leaving the shop, a SHOP_EXIT joker rule duplicates a random held consumable (data). */
     private void applyShopExit() {
         raiseJokerRules(Trigger.SHOP_EXIT);
+    }
+
+    /** Fire a just-sold joker's own SELL_SELF rules (Luchador disables the boss, Diet Cola makes a tag). */
+    private void raiseSelfSellRules(Joker sold) {
+        if (!(sold instanceof DataJoker dj)) return;
+        com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
+        ctx.run = state;
+        ctx.rng = rng;
+        for (Rule r : dj.def().rules()) {
+            if (r.when() != Trigger.SELL_SELF) continue;
+            if (r.condition() != null && !r.condition().test(ctx)) continue;
+            for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
+        }
     }
 
     /** Fire every owned data-joker's rules for a lifecycle {@code trigger} through the run-loop interpreter —
