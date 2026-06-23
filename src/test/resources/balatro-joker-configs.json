@@ -1,0 +1,794 @@
+{
+  "_source": "game.lua joker config blocks (gameplay magnitudes)",
+  "jokers": {
+    "j_joker": {
+      "config": "{mult = 4}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_greedy_joker": {
+      "config": "{extra = {s_mult = 3, suit = 'Diamonds'}}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_lusty_joker": {
+      "config": "{extra = {s_mult = 3, suit = 'Hearts'}}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_wrathful_joker": {
+      "config": "{extra = {s_mult = 3, suit = 'Spades'}}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_gluttenous_joker": {
+      "config": "{extra = {s_mult = 3, suit = 'Clubs'}}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_jolly": {
+      "config": "{t_mult = 8, type = 'Pair'}",
+      "magnitudes": [
+        8
+      ]
+    },
+    "j_zany": {
+      "config": "{t_mult = 12, type = 'Three of a Kind'}",
+      "magnitudes": [
+        12
+      ]
+    },
+    "j_mad": {
+      "config": "{t_mult = 10, type = 'Two Pair'}",
+      "magnitudes": [
+        10
+      ]
+    },
+    "j_crazy": {
+      "config": "{t_mult = 12, type = 'Straight'}",
+      "magnitudes": [
+        12
+      ]
+    },
+    "j_droll": {
+      "config": "{t_mult = 10, type = 'Flush'}",
+      "magnitudes": [
+        10
+      ]
+    },
+    "j_sly": {
+      "config": "{t_chips = 50, type = 'Pair'}",
+      "magnitudes": [
+        50
+      ]
+    },
+    "j_wily": {
+      "config": "{t_chips = 100, type = 'Three of a Kind'}",
+      "magnitudes": [
+        100
+      ]
+    },
+    "j_clever": {
+      "config": "{t_chips = 80, type = 'Two Pair'}",
+      "magnitudes": [
+        80
+      ]
+    },
+    "j_devious": {
+      "config": "{t_chips = 100, type = 'Straight'}",
+      "magnitudes": [
+        100
+      ]
+    },
+    "j_crafty": {
+      "config": "{t_chips = 80, type = 'Flush'}",
+      "magnitudes": [
+        80
+      ]
+    },
+    "j_half": {
+      "config": "{extra = {mult = 20, size = 3}}",
+      "magnitudes": [
+        20,
+        3
+      ]
+    },
+    "j_mime": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_credit_card": {
+      "config": "{extra = 20}",
+      "magnitudes": [
+        20
+      ]
+    },
+    "j_ceremonial": {
+      "config": "{mult = 0}",
+      "magnitudes": [
+        0
+      ]
+    },
+    "j_banner": {
+      "config": "{extra = 30}",
+      "magnitudes": [
+        30
+      ]
+    },
+    "j_mystic_summit": {
+      "config": "{extra = {mult = 15, d_remaining = 0}}",
+      "magnitudes": [
+        15,
+        0
+      ]
+    },
+    "j_marble": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_loyalty_card": {
+      "config": "{extra = {Xmult = 4, every = 5, remaining = \"5 remaining\"}}",
+      "magnitudes": [
+        4,
+        5
+      ]
+    },
+    "j_8_ball": {
+      "config": "{extra=4}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_misprint": {
+      "config": "{extra = {max = 23, min = 0}}",
+      "magnitudes": [
+        23,
+        0
+      ]
+    },
+    "j_dusk": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_chaos": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_fibonacci": {
+      "config": "{extra = 8}",
+      "magnitudes": [
+        8
+      ]
+    },
+    "j_steel_joker": {
+      "config": "{extra = 0.2}",
+      "magnitudes": [
+        0.2
+      ]
+    },
+    "j_scary_face": {
+      "config": "{extra = 30}",
+      "magnitudes": [
+        30
+      ]
+    },
+    "j_abstract": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_delayed_grat": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_hack": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_gros_michel": {
+      "config": "{extra = {odds = 6, mult = 15}}",
+      "magnitudes": [
+        6,
+        15
+      ]
+    },
+    "j_even_steven": {
+      "config": "{extra = 4}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_odd_todd": {
+      "config": "{extra = 31}",
+      "magnitudes": [
+        31
+      ]
+    },
+    "j_scholar": {
+      "config": "{extra = {mult = 4, chips = 20}}",
+      "magnitudes": [
+        4,
+        20
+      ]
+    },
+    "j_business": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_supernova": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_ride_the_bus": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_space": {
+      "config": "{extra = 4}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_egg": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_burglar": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_blackboard": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_runner": {
+      "config": "{extra = {chips = 0, chip_mod = 15}}",
+      "magnitudes": [
+        0,
+        15
+      ]
+    },
+    "j_ice_cream": {
+      "config": "{extra = {chips = 100, chip_mod = 5}}",
+      "magnitudes": [
+        100,
+        5
+      ]
+    },
+    "j_blue_joker": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_constellation": {
+      "config": "{extra = 0.1, Xmult = 1}",
+      "magnitudes": [
+        0.1,
+        1
+      ]
+    },
+    "j_hiker": {
+      "config": "{extra = 5}",
+      "magnitudes": [
+        5
+      ]
+    },
+    "j_faceless": {
+      "config": "{extra = {dollars = 5, faces = 3}}",
+      "magnitudes": [
+        5,
+        3
+      ]
+    },
+    "j_green_joker": {
+      "config": "{extra = {hand_add = 1, discard_sub = 1}}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_todo_list": {
+      "config": "{extra = {dollars = 4, poker_hand = 'High Card'}}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_cavendish": {
+      "config": "{extra = {odds = 1000, Xmult = 3}}",
+      "magnitudes": [
+        1000,
+        3
+      ]
+    },
+    "j_card_sharp": {
+      "config": "{extra = {Xmult = 3}}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_red_card": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_madness": {
+      "config": "{extra = 0.5}",
+      "magnitudes": [
+        0.5
+      ]
+    },
+    "j_square": {
+      "config": "{extra = {chips = 0, chip_mod = 4}}",
+      "magnitudes": [
+        0,
+        4
+      ]
+    },
+    "j_riff_raff": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_vampire": {
+      "config": "{extra = 0.1, Xmult = 1}",
+      "magnitudes": [
+        0.1,
+        1
+      ]
+    },
+    "j_hologram": {
+      "config": "{extra = 0.25, Xmult = 1}",
+      "magnitudes": [
+        0.25,
+        1
+      ]
+    },
+    "j_vagabond": {
+      "config": "{extra = 4}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_baron": {
+      "config": "{extra = 1.5}",
+      "magnitudes": [
+        1.5
+      ]
+    },
+    "j_cloud_9": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_rocket": {
+      "config": "{extra = {dollars = 1, increase = 2}}",
+      "magnitudes": [
+        1,
+        2
+      ]
+    },
+    "j_obelisk": {
+      "config": "{extra = 0.2, Xmult = 1}",
+      "magnitudes": [
+        0.2,
+        1
+      ]
+    },
+    "j_photograph": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_gift": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_turtle_bean": {
+      "config": "{extra = {h_size = 5, h_mod = 1}}",
+      "magnitudes": [
+        5,
+        1
+      ]
+    },
+    "j_erosion": {
+      "config": "{extra = 4}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_reserved_parking": {
+      "config": "{extra = {odds = 2, dollars = 1}}",
+      "magnitudes": [
+        2,
+        1
+      ]
+    },
+    "j_mail": {
+      "config": "{extra = 5}",
+      "magnitudes": [
+        5
+      ]
+    },
+    "j_to_the_moon": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_hallucination": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_fortune_teller": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_juggler": {
+      "config": "{h_size = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_drunkard": {
+      "config": "{d_size = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_stone": {
+      "config": "{extra = 25}",
+      "magnitudes": [
+        25
+      ]
+    },
+    "j_golden": {
+      "config": "{extra = 4}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_lucky_cat": {
+      "config": "{Xmult = 1, extra = 0.25}",
+      "magnitudes": [
+        1,
+        0.25
+      ]
+    },
+    "j_baseball": {
+      "config": "{extra = 1.5}",
+      "magnitudes": [
+        1.5
+      ]
+    },
+    "j_bull": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_trading": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_flash": {
+      "config": "{extra = 2, mult = 0}",
+      "magnitudes": [
+        2,
+        0
+      ]
+    },
+    "j_popcorn": {
+      "config": "{mult = 20, extra = 4}",
+      "magnitudes": [
+        20,
+        4
+      ]
+    },
+    "j_trousers": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_ancient": {
+      "config": "{extra = 1.5}",
+      "magnitudes": [
+        1.5
+      ]
+    },
+    "j_ramen": {
+      "config": "{Xmult = 2, extra = 0.01}",
+      "magnitudes": [
+        2,
+        0.01
+      ]
+    },
+    "j_walkie_talkie": {
+      "config": "{extra = {chips = 10, mult = 4}}",
+      "magnitudes": [
+        10,
+        4
+      ]
+    },
+    "j_selzer": {
+      "config": "{extra = 10}",
+      "magnitudes": [
+        10
+      ]
+    },
+    "j_castle": {
+      "config": "{extra = {chips = 0, chip_mod = 3}}",
+      "magnitudes": [
+        0,
+        3
+      ]
+    },
+    "j_smiley": {
+      "config": "{extra = 5}",
+      "magnitudes": [
+        5
+      ]
+    },
+    "j_campfire": {
+      "config": "{extra = 0.25}",
+      "magnitudes": [
+        0.25
+      ]
+    },
+    "j_ticket": {
+      "config": "{extra = 4}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_acrobat": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_sock_and_buskin": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_swashbuckler": {
+      "config": "{mult = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_troubadour": {
+      "config": "{extra = {h_size = 2, h_plays = -1}}",
+      "magnitudes": [
+        2,
+        -1
+      ]
+    },
+    "j_throwback": {
+      "config": "{extra = 0.25}",
+      "magnitudes": [
+        0.25
+      ]
+    },
+    "j_hanging_chad": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_rough_gem": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_bloodstone": {
+      "config": "{extra = {odds = 2, Xmult = 1.5}}",
+      "magnitudes": [
+        2,
+        1.5
+      ]
+    },
+    "j_arrowhead": {
+      "config": "{extra = 50}",
+      "magnitudes": [
+        50
+      ]
+    },
+    "j_onyx_agate": {
+      "config": "{extra = 7}",
+      "magnitudes": [
+        7
+      ]
+    },
+    "j_glass": {
+      "config": "{extra = 0.75, Xmult = 1}",
+      "magnitudes": [
+        0.75,
+        1
+      ]
+    },
+    "j_flower_pot": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_wee": {
+      "config": "{extra = {chips = 0, chip_mod = 8}}",
+      "magnitudes": [
+        0,
+        8
+      ]
+    },
+    "j_merry_andy": {
+      "config": "{d_size = 3, h_size = -1}",
+      "magnitudes": [
+        3,
+        -1
+      ]
+    },
+    "j_idol": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_seeing_double": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_matador": {
+      "config": "{extra = 8}",
+      "magnitudes": [
+        8
+      ]
+    },
+    "j_hit_the_road": {
+      "config": "{extra = 0.5}",
+      "magnitudes": [
+        0.5
+      ]
+    },
+    "j_duo": {
+      "config": "{Xmult = 2, type = 'Pair'}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_trio": {
+      "config": "{Xmult = 3, type = 'Three of a Kind'}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_family": {
+      "config": "{Xmult = 4, type = 'Four of a Kind'}",
+      "magnitudes": [
+        4
+      ]
+    },
+    "j_order": {
+      "config": "{Xmult = 3, type = 'Straight'}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_tribe": {
+      "config": "{Xmult = 2, type = 'Flush'}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_stuntman": {
+      "config": "{extra = {h_size = 2, chip_mod = 250}}",
+      "magnitudes": [
+        2,
+        250
+      ]
+    },
+    "j_invisible": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_satellite": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_shoot_the_moon": {
+      "config": "{extra = 13}",
+      "magnitudes": [
+        13
+      ]
+    },
+    "j_drivers_license": {
+      "config": "{extra = 3}",
+      "magnitudes": [
+        3
+      ]
+    },
+    "j_burnt": {
+      "config": "{h_size = 0, extra = 4}",
+      "magnitudes": [
+        0,
+        4
+      ]
+    },
+    "j_bootstraps": {
+      "config": "{extra = {mult = 2, dollars = 5}}",
+      "magnitudes": [
+        2,
+        5
+      ]
+    },
+    "j_caino": {
+      "config": "{extra = 1}",
+      "magnitudes": [
+        1
+      ]
+    },
+    "j_triboulet": {
+      "config": "{extra = 2}",
+      "magnitudes": [
+        2
+      ]
+    },
+    "j_yorick": {
+      "config": "{extra = {xmult = 1, discards = 23}}",
+      "magnitudes": [
+        1,
+        23
+      ]
+    }
+  }
+}
