@@ -51,6 +51,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.DisableRandomJoker.class, name = "disableRandomJoker"),
     @JsonSubTypes.Type(value = Effect.DisableBoss.class, name = "disableBoss"),
     @JsonSubTypes.Type(value = Effect.AddPack.class, name = "addPack"),
+    @JsonSubTypes.Type(value = Effect.CreateShopJoker.class, name = "createShopJoker"),
 })
 public sealed interface Effect {
 
@@ -310,6 +311,10 @@ public sealed interface Effect {
      *  {@code size} are the {@code PackCatalog.Kind}/{@code Size} names — strings so the model layer needn't
      *  depend on the game layer; {@code Run} resolves them when the shop opens. */
     record AddPack(String kind, String size) implements Effect {}
+
+    /** Add a free Joker to the next shop — of a given {@code rarity} (Rare/Uncommon tags), or a random one
+     *  with an {@code edition} (Foil/Holo/Polychrome/Negative tags). {@code rarity != null} wins. */
+    record CreateShopJoker(String rarity, Edition edition) implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {

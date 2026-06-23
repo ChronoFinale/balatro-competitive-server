@@ -3,6 +3,7 @@ package com.balatro.content;
 import com.balatro.engine.game.TagCatalog.Tag;
 import com.balatro.engine.game.TagCatalog.Timing;
 import com.balatro.engine.i18n.Loc;
+import com.balatro.engine.card.Edition;
 import com.balatro.engine.joker.def.Effect;
 import com.balatro.engine.joker.def.Value;
 import java.util.ArrayList;
@@ -15,12 +16,13 @@ public final class TagDefs {
 
     public static List<Tag> authored() {
         List<Tag> t = new ArrayList<>();
-        add(t, "tag_uncommon", "Uncommon Tag", true, Timing.ON_SHOP);
-        add(t, "tag_rare", "Rare Tag", true, Timing.ON_SHOP);
-        add(t, "tag_negative", "Negative Tag", false, Timing.ON_SHOP);
-        add(t, "tag_foil", "Foil Tag", true, Timing.ON_SHOP);
-        add(t, "tag_holo", "Holographic Tag", true, Timing.ON_SHOP);
-        add(t, "tag_polychrome", "Polychrome Tag", true, Timing.ON_SHOP);
+        // Free-joker tags are data: a free Joker (by rarity, or random with an edition) in the next shop.
+        add(t, "tag_uncommon", "Uncommon Tag", true, Timing.ON_SHOP, joker("Uncommon"));
+        add(t, "tag_rare", "Rare Tag", true, Timing.ON_SHOP, joker("Rare"));
+        add(t, "tag_negative", "Negative Tag", false, Timing.ON_SHOP, editioned(Edition.NEGATIVE));
+        add(t, "tag_foil", "Foil Tag", true, Timing.ON_SHOP, editioned(Edition.FOIL));
+        add(t, "tag_holo", "Holographic Tag", true, Timing.ON_SHOP, editioned(Edition.HOLOGRAPHIC));
+        add(t, "tag_polychrome", "Polychrome Tag", true, Timing.ON_SHOP, editioned(Edition.POLYCHROME));
         add(t, "tag_investment", "Investment Tag", true, Timing.ON_BOSS_DEFEAT);
         add(t, "tag_voucher", "Voucher Tag", true, Timing.ON_SHOP);
         add(t, "tag_boss", "Boss Tag", true, Timing.HELD);
@@ -52,6 +54,16 @@ public final class TagDefs {
     /** A booster pack in the next shop (Charm/Meteor/Buffoon/Standard/Ethereal). */
     private static Effect pack(String kind, String size) {
         return new Effect.AddPack(kind, size);
+    }
+
+    /** A free Joker of a rarity in the next shop (Rare/Uncommon). */
+    private static Effect joker(String rarity) {
+        return new Effect.CreateShopJoker(rarity, com.balatro.engine.card.Edition.NONE);
+    }
+
+    /** A free random Joker with an edition in the next shop (Foil/Holo/Polychrome/Negative). */
+    private static Effect editioned(com.balatro.engine.card.Edition ed) {
+        return new Effect.CreateShopJoker(null, ed);
     }
 
     private static void add(List<Tag> t, String key, String name, boolean ante1, Timing timing, Effect... effects) {

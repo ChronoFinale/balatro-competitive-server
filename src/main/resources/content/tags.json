@@ -5,7 +5,13 @@
     "description" : "Shop has a free Uncommon Joker",
     "ante1" : true,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "createShopJoker",
+        "rarity" : "Uncommon",
+        "edition" : "NONE"
+      }
+    ]
   },
   {
     "key" : "tag_rare",
@@ -13,7 +19,13 @@
     "description" : "Shop has a free Rare Joker",
     "ante1" : true,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "createShopJoker",
+        "rarity" : "Rare",
+        "edition" : "NONE"
+      }
+    ]
   },
   {
     "key" : "tag_negative",
@@ -21,7 +33,13 @@
     "description" : "Next base shop Joker is free and Negative",
     "ante1" : false,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "createShopJoker",
+        "rarity" : null,
+        "edition" : "NEGATIVE"
+      }
+    ]
   },
   {
     "key" : "tag_foil",
@@ -29,7 +47,13 @@
     "description" : "Next base shop Joker is free and Foil",
     "ante1" : true,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "createShopJoker",
+        "rarity" : null,
+        "edition" : "FOIL"
+      }
+    ]
   },
   {
     "key" : "tag_holo",
@@ -37,7 +61,13 @@
     "description" : "Next base shop Joker is free and Holographic",
     "ante1" : true,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "createShopJoker",
+        "rarity" : null,
+        "edition" : "HOLOGRAPHIC"
+      }
+    ]
   },
   {
     "key" : "tag_polychrome",
@@ -45,7 +75,13 @@
     "description" : "Next base shop Joker is free and Polychrome",
     "ante1" : true,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "createShopJoker",
+        "rarity" : null,
+        "edition" : "POLYCHROME"
+      }
+    ]
   },
   {
     "key" : "tag_investment",

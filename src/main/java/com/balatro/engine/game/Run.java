@@ -884,6 +884,10 @@ public final class Run {
             }
             case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
                 shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind()), PackCatalog.Size.valueOf(ap.size())));
+            case Effect.CreateShopJoker cj -> { // free-joker tags (Rare/Uncommon by rarity; Foil/Holo/Poly/Negative)
+                if (cj.rarity() != null) addFreeJoker(cj.rarity());
+                else addFreeEditionedJoker(cj.edition());
+            }
             default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
@@ -1884,12 +1888,6 @@ public final class Run {
                 continue;
             }
             switch (t) {
-                case "tag_rare" -> addFreeJoker("Rare");
-                case "tag_uncommon" -> addFreeJoker("Uncommon");
-                case "tag_foil" -> addFreeEditionedJoker(Edition.FOIL);
-                case "tag_holo" -> addFreeEditionedJoker(Edition.HOLOGRAPHIC);
-                case "tag_polychrome" -> addFreeEditionedJoker(Edition.POLYCHROME);
-                case "tag_negative" -> addFreeEditionedJoker(Edition.NEGATIVE);
                 case "tag_voucher" -> addTagVoucher();
                 case "tag_coupon" -> couponActive = true;
                 case "tag_d_six" -> d6Active = true;
