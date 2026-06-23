@@ -27,54 +27,19 @@ public final class TagCatalog {
     public record Tag(String key, String name, String description, boolean ante1, Timing timing) {}
 
     private static final Map<String, Tag> BY_KEY = new LinkedHashMap<>();
-    private static final List<Tag> AUTHORED = new ArrayList<>();   // built by put(); the DSL authoring source
 
     /** Banned in Standard Ranked multiplayer (PvP-blind interaction). */
     public static final Set<String> MP_BANNED = Set.of("tag_boss");
 
     static {
-        put("tag_uncommon", "Uncommon Tag", true, Timing.ON_SHOP);
-        put("tag_rare", "Rare Tag", true, Timing.ON_SHOP);
-        put("tag_negative", "Negative Tag", false, Timing.ON_SHOP);
-        put("tag_foil", "Foil Tag", true, Timing.ON_SHOP);
-        put("tag_holo", "Holographic Tag", true, Timing.ON_SHOP);
-        put("tag_polychrome", "Polychrome Tag", true, Timing.ON_SHOP);
-        put("tag_investment", "Investment Tag", true, Timing.ON_BOSS_DEFEAT);
-        put("tag_voucher", "Voucher Tag", true, Timing.ON_SHOP);
-        put("tag_boss", "Boss Tag", true, Timing.HELD);
-        put("tag_standard", "Standard Tag", false, Timing.ON_SHOP);
-        put("tag_charm", "Charm Tag", true, Timing.ON_SHOP);
-        put("tag_meteor", "Meteor Tag", false, Timing.ON_SHOP);
-        put("tag_buffoon", "Buffoon Tag", false, Timing.ON_SHOP);
-        put("tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP);
-        put("tag_coupon", "Coupon Tag", true, Timing.ON_SHOP);
-        put("tag_double", "Double Tag", true, Timing.HELD);
-        put("tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND);
-        put("tag_d_six", "D6 Tag", true, Timing.ON_SHOP);
-        put("tag_economy", "Economy Tag", true, Timing.IMMEDIATE);
-        put("tag_skip", "Speed Tag", true, Timing.IMMEDIATE);
-        put("tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE);
-        put("tag_handy", "Handy Tag", false, Timing.IMMEDIATE);
-        put("tag_garbage", "Garbage Tag", false, Timing.IMMEDIATE);
-        put("tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE);
-
-        // Runtime loads from /content/tags.json; the puts above are the DSL authoring (+ fallback).
+        // Runtime loads from /content/tags.json; the content is authored in com.balatro.content.TagDefs.
         List<Tag> tags;
         try {
             tags = com.balatro.engine.content.ContentStore.tags();
         } catch (RuntimeException e) {
-            tags = AUTHORED;
+            tags = com.balatro.content.TagDefs.authored();
         }
         for (Tag t : tags) BY_KEY.put(t.key(), t);
-    }
-
-    private static void put(String key, String name, boolean ante1, Timing timing) {
-        AUTHORED.add(new Tag(key, name, com.balatro.engine.i18n.Loc.text(key), ante1, timing));
-    }
-
-    /** The DSL authoring source for {@code content/tags.json} (also the fallback). */
-    public static List<Tag> authored() {
-        return List.copyOf(AUTHORED);
     }
 
     public static Tag get(String key) {

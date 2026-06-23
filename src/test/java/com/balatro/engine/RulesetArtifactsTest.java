@@ -91,7 +91,7 @@ class RulesetArtifactsTest {
     }
 
     @Test void tagsCompileToJsonAndRoundTrip() throws Exception {
-        var tags = com.balatro.engine.game.TagCatalog.authored();  // DSL source (runtime loads from JSON)
+        var tags = com.balatro.content.TagDefs.authored();  // DSL source (runtime loads from JSON)
         String json = JokerOverlays.writePretty(tags);
         gate(TAGS, json);
         assertThat(List.of(M.readValue(json, com.balatro.engine.game.TagCatalog.Tag[].class))).isEqualTo(tags);
