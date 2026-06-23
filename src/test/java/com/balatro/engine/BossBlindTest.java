@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.card.Card;
 import com.balatro.engine.game.Blinds.BlindType;
-import static com.balatro.engine.joker.def.Cond.card;
+import static com.balatro.dsl.Cond.card;
 
 import com.balatro.engine.game.BossBlind;
 import com.balatro.engine.game.BossCatalog;
@@ -213,7 +213,7 @@ class BossBlindTest {
     @Test
     void theMouthAllowsOnlyOneHandTypePerRound() { // hand-legality via the shared Cond language
         Run run = bossRunOn(Bosses.of("bl_mouth", "The Mouth").desc("one hand type")
-                .requirement(100).requires(com.balatro.engine.joker.def.Cond.playedHand().matchesRoundType()).build());
+                .requirement(100).requires(com.balatro.dsl.Cond.playedHand().matchesRoundType()).build());
 
         assertThat(run.play(new Intent.PlayHand(List.of(0, 1))).ok()).isTrue();  // Pair establishes the type
         assertThat(run.play(new Intent.PlayHand(List.of(0))).ok()).isFalse();    // High Card — different type, illegal
@@ -223,7 +223,7 @@ class BossBlindTest {
     @Test
     void theEyeForbidsRepeatHandTypesPerRound() { // hand-legality via the shared Cond language
         Run run = bossRunOn(Bosses.of("bl_eye", "The Eye").desc("no repeats")
-                .requirement(100).requires(com.balatro.engine.joker.def.Cond.playedHand().firstTimeThisRound()).build());
+                .requirement(100).requires(com.balatro.dsl.Cond.playedHand().firstTimeThisRound()).build());
 
         assertThat(run.play(new Intent.PlayHand(List.of(0, 1))).ok()).isTrue();  // Pair — first time, fine
         assertThat(run.play(new Intent.PlayHand(List.of(0, 1))).ok()).isFalse(); // Pair again — repeat, illegal
@@ -290,7 +290,7 @@ class BossBlindTest {
     void thePillarDebuffsCardsAlreadyPlayedThisAnte() {
         // The boss's debuff IS the shared "played this ante" card condition — no bespoke field.
         BossBlind pillar = Bosses.of("bl_pillar", "The Pillar").desc("x")
-                .debuffs(com.balatro.engine.joker.def.Cond.card().playedThisAnte()).build();
+                .debuffs(com.balatro.dsl.Cond.card().playedThisAnte()).build();
         Card fresh = c(KING, HEARTS);
         Card replayed = c(KING, HEARTS);
         replayed.playedThisAnte = true;
@@ -306,7 +306,7 @@ class BossBlindTest {
     @Test
     void playingAHandFlagsItsCardsAsPlayedThisAnte() { // the marking that feeds The Pillar
         Run run = bossRunOn(Bosses.of("bl_pillar", "The Pillar").desc("played-this-ante debuffed")
-                .requirement(100).debuffs(com.balatro.engine.joker.def.Cond.card().playedThisAnte()).build());
+                .requirement(100).debuffs(com.balatro.dsl.Cond.card().playedThisAnte()).build());
 
         Card played = run.state.hand.get(0);
         assertThat(played.playedThisAnte).isFalse();
@@ -343,7 +343,7 @@ class BossBlindTest {
     @Test
     void verdantLeafDebuffsEveryCardUntilAJokerIsSold() { // debuff-all + sell-to-disable framework
         Run run = bossRunOn(Bosses.of("bl_final_leaf", "Verdant Leaf").desc("all debuffed until a sell")
-                .requirement(100).debuffs(com.balatro.engine.joker.def.Cond.always()).disabledBySellingJoker().build());
+                .requirement(100).debuffs(com.balatro.dsl.Cond.always()).disabledBySellingJoker().build());
 
         assertThat(run.state.hand).allMatch(cardObj -> cardObj.debuffed); // every card debuffed at the boss
         assertThat(run.sellJoker(0)).isNull();                            // sell any Joker...

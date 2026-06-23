@@ -98,7 +98,7 @@ public sealed interface Condition {
      * is set) this round's rolled target suit under that key (Ancient/Castle/Idol-suit). One record, not
      * a literal/target pair. Stone cards never match; a Wild card matches any. */
     record ScoredSuit(Suit suit, String targetKey) implements Condition {
-        ScoredSuit(Suit suit) { this(suit, null); }
+        public ScoredSuit(Suit suit) { this(suit, null); }
         public boolean test(EvaluationContext ctx) {
             Card c = ctx.scoredCard;
             if (c == null) return false;
@@ -199,7 +199,7 @@ public sealed interface Condition {
      * The played hand is exactly a type — either a fixed {@code hand}, or (when {@code targetKey} is set)
      * this round's rolled target hand under that key (To Do List). One record, not a literal/target pair. */
     record HandIs(HandType hand, String targetKey) implements Condition {
-        HandIs(HandType hand) { this(hand, null); }
+        public HandIs(HandType hand) { this(hand, null); }
         public boolean test(EvaluationContext ctx) {
             if (ctx.handType == null) return false;
             HandType want = (targetKey == null) ? hand
@@ -269,11 +269,11 @@ public sealed interface Condition {
      */
     record Compare(Value value, Cmp cmp, double threshold) implements Condition {
         /** Compare a live run-state variable (Money/HandsLeft/Ante/…). */
-        Compare(Value.Var variable, Cmp cmp, double threshold) {
+        public Compare(Value.Var variable, Cmp cmp, double threshold) {
             this(new Value.RunVar(variable, 0, 1), cmp, threshold);
         }
         /** Compare a per-joker state counter (the old StateAtLeast, always GTE before). */
-        Compare(String selfStateVar, Cmp cmp, double threshold) {
+        public Compare(String selfStateVar, Cmp cmp, double threshold) {
             this(new Value.State(selfStateVar, 0, 1), cmp, threshold);
         }
         public boolean test(EvaluationContext ctx) {

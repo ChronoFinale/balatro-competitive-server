@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.dsl.*;
+
 import java.util.List;
 
 /**

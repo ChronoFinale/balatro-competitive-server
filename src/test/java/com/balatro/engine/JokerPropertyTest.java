@@ -12,9 +12,9 @@ import com.balatro.engine.card.Card;
 import com.balatro.engine.joker.JokerLibrary;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.joker.def.JokerDef;
-import com.balatro.engine.joker.def.Jokers;
+import com.balatro.dsl.Jokers;
 import com.balatro.engine.joker.def.Target;
-import com.balatro.engine.joker.def.Val;
+import com.balatro.dsl.Val;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

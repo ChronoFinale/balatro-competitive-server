@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.dsl.*;
+
 
 import com.balatro.engine.i18n.Loc;
 

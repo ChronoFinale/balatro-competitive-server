@@ -1,8 +1,8 @@
 package com.balatro.content;
 
-import static com.balatro.engine.joker.def.Cond.always;
-import static com.balatro.engine.joker.def.Cond.card;
-import static com.balatro.engine.joker.def.Cond.playedHand;
+import static com.balatro.dsl.Cond.always;
+import static com.balatro.dsl.Cond.card;
+import static com.balatro.dsl.Cond.playedHand;
 
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.game.BossBlind;

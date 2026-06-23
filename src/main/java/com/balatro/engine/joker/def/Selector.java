@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.dsl.*;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 

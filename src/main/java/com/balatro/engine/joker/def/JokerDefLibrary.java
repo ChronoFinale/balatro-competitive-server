@@ -1,11 +1,13 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.dsl.*;
+
 import com.balatro.content.jokers.*;
 
-import static com.balatro.engine.joker.def.Cond.card;
-import static com.balatro.engine.joker.def.Cond.discard;
-import static com.balatro.engine.joker.def.Cond.playedHand;
-import static com.balatro.engine.joker.def.Cond.state;
+import static com.balatro.dsl.Cond.card;
+import static com.balatro.dsl.Cond.discard;
+import static com.balatro.dsl.Cond.playedHand;
+import static com.balatro.dsl.Cond.state;
 import static com.balatro.engine.joker.def.Target.CHIPS;
 import static com.balatro.engine.joker.def.Target.DOLLARS;
 import static com.balatro.engine.joker.def.Target.MULT;

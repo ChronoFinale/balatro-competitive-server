@@ -8,13 +8,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Suit;
-import com.balatro.engine.joker.def.Cond;
+import com.balatro.dsl.Cond;
 import com.balatro.engine.joker.def.Condition;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.joker.def.JokerDef;
-import com.balatro.engine.joker.def.Jokers;
+import com.balatro.dsl.Jokers;
 import com.balatro.engine.joker.def.Target;
-import com.balatro.engine.joker.def.Val;
+import com.balatro.dsl.Val;
 import com.balatro.engine.joker.def.Value;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;

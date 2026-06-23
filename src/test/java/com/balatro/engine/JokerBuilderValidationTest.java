@@ -3,7 +3,7 @@ package com.balatro.engine;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-import com.balatro.engine.joker.def.Jokers;
+import com.balatro.dsl.Jokers;
 import com.balatro.engine.joker.def.Target;
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,6 @@
-package com.balatro.engine.joker.def;
+package com.balatro.dsl;
+
+import com.balatro.engine.joker.def.*;
 
 
 import com.balatro.engine.card.Enhancement;

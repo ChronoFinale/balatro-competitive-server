@@ -1,6 +1,7 @@
 package com.balatro.content.jokers;
 
 import com.balatro.engine.joker.def.*;
+import com.balatro.dsl.*;
 
 import com.balatro.engine.card.CardMod;
 import com.balatro.engine.card.Enhancement;
@@ -8,18 +9,18 @@ import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.Trigger;
 import com.balatro.engine.joker.def.Effect.Op;
-import static com.balatro.engine.joker.def.Cond.always;
-import static com.balatro.engine.joker.def.Cond.all;
-import static com.balatro.engine.joker.def.Cond.any;
-import static com.balatro.engine.joker.def.Cond.not;
-import static com.balatro.engine.joker.def.Cond.card;
-import static com.balatro.engine.joker.def.Cond.playedHand;
-import static com.balatro.engine.joker.def.Cond.held;
-import static com.balatro.engine.joker.def.Cond.discard;
-import static com.balatro.engine.joker.def.Cond.using;
-import static com.balatro.engine.joker.def.Cond.state;
-import static com.balatro.engine.joker.def.Cond.runVar;
-import static com.balatro.engine.joker.def.Cond.value;
+import static com.balatro.dsl.Cond.always;
+import static com.balatro.dsl.Cond.all;
+import static com.balatro.dsl.Cond.any;
+import static com.balatro.dsl.Cond.not;
+import static com.balatro.dsl.Cond.card;
+import static com.balatro.dsl.Cond.playedHand;
+import static com.balatro.dsl.Cond.held;
+import static com.balatro.dsl.Cond.discard;
+import static com.balatro.dsl.Cond.using;
+import static com.balatro.dsl.Cond.state;
+import static com.balatro.dsl.Cond.runVar;
+import static com.balatro.dsl.Cond.value;
 import com.balatro.engine.hand.HandMod;
 import static com.balatro.engine.joker.def.Target.CHIPS;
 import static com.balatro.engine.joker.def.Target.DOLLARS;
