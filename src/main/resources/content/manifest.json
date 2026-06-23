@@ -1,5 +1,5 @@
 {
-  "version" : "70b4ea1d8acfd8f2",
+  "version" : "0a45b9a0f77d5d15",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
@@ -23,8 +23,8 @@
     },
     {
       "path" : "content/tags.json",
-      "sha256" : "56450a38b7638a06b92a11520a5adbc7d3eee276fbf3c05bacff4ae603fda420",
-      "bytes" : 3940
+      "sha256" : "5e5540261c4084c16f9161544cb02192a4395db68d226f039be89018adbc3a27",
+      "bytes" : 5115
     },
     {
       "path" : "content/vouchers.json",

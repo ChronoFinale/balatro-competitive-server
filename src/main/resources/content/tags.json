@@ -4,167 +4,224 @@
     "name" : "Uncommon Tag",
     "description" : "Shop has a free Uncommon Joker",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_rare",
     "name" : "Rare Tag",
     "description" : "Shop has a free Rare Joker",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_negative",
     "name" : "Negative Tag",
     "description" : "Next base shop Joker is free and Negative",
     "ante1" : false,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_foil",
     "name" : "Foil Tag",
     "description" : "Next base shop Joker is free and Foil",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_holo",
     "name" : "Holographic Tag",
     "description" : "Next base shop Joker is free and Holographic",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_polychrome",
     "name" : "Polychrome Tag",
     "description" : "Next base shop Joker is free and Polychrome",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_investment",
     "name" : "Investment Tag",
     "description" : "Gain $25 after defeating the next Boss Blind",
     "ante1" : true,
-    "timing" : "ON_BOSS_DEFEAT"
+    "timing" : "ON_BOSS_DEFEAT",
+    "effects" : [ ]
   },
   {
     "key" : "tag_voucher",
     "name" : "Voucher Tag",
     "description" : "Adds one Voucher to the next shop",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_boss",
     "name" : "Boss Tag",
     "description" : "Rerolls the Boss Blind",
     "ante1" : true,
-    "timing" : "HELD"
+    "timing" : "HELD",
+    "effects" : [ ]
   },
   {
     "key" : "tag_standard",
     "name" : "Standard Tag",
     "description" : "Free Mega Standard Pack",
     "ante1" : false,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_charm",
     "name" : "Charm Tag",
     "description" : "Free Mega Arcana Pack",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_meteor",
     "name" : "Meteor Tag",
     "description" : "Free Mega Celestial Pack",
     "ante1" : false,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_buffoon",
     "name" : "Buffoon Tag",
     "description" : "Free Mega Buffoon Pack",
     "ante1" : false,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_ethereal",
     "name" : "Ethereal Tag",
     "description" : "Free Spectral Pack",
     "ante1" : false,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_coupon",
     "name" : "Coupon Tag",
     "description" : "Initial shop cards & packs are free",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_double",
     "name" : "Double Tag",
     "description" : "Gives a copy of the next selected tag",
     "ante1" : true,
-    "timing" : "HELD"
+    "timing" : "HELD",
+    "effects" : [ ]
   },
   {
     "key" : "tag_juggle",
     "name" : "Juggle Tag",
     "description" : "+3 hand size next round",
     "ante1" : true,
-    "timing" : "NEXT_BLIND"
+    "timing" : "NEXT_BLIND",
+    "effects" : [ ]
   },
   {
     "key" : "tag_d_six",
     "name" : "D6 Tag",
     "description" : "Rerolls in the next shop start at $0",
     "ante1" : true,
-    "timing" : "ON_SHOP"
+    "timing" : "ON_SHOP",
+    "effects" : [ ]
   },
   {
     "key" : "tag_economy",
     "name" : "Economy Tag",
     "description" : "Doubles your money (max $40 gain)",
     "ante1" : true,
-    "timing" : "IMMEDIATE"
+    "timing" : "IMMEDIATE",
+    "effects" : [ ]
   },
   {
     "key" : "tag_skip",
     "name" : "Speed Tag",
     "description" : "$5 per blind skipped this run",
     "ante1" : true,
-    "timing" : "IMMEDIATE"
+    "timing" : "IMMEDIATE",
+    "effects" : [
+      {
+        "type" : "adjustMoney",
+        "op" : "ADD",
+        "amount" : {
+          "type" : "runVar",
+          "which" : "BLINDS_SKIPPED",
+          "base" : 0.0,
+          "scale" : 5.0
+        }
+      }
+    ]
   },
   {
     "key" : "tag_orbital",
     "name" : "Orbital Tag",
     "description" : "Upgrade your most-played hand by 3 levels",
     "ante1" : false,
-    "timing" : "IMMEDIATE"
+    "timing" : "IMMEDIATE",
+    "effects" : [ ]
   },
   {
     "key" : "tag_handy",
     "name" : "Handy Tag",
     "description" : "$1 per hand played this run",
     "ante1" : false,
-    "timing" : "IMMEDIATE"
+    "timing" : "IMMEDIATE",
+    "effects" : [
+      {
+        "type" : "adjustMoney",
+        "op" : "ADD",
+        "amount" : {
+          "type" : "runVar",
+          "which" : "HANDS_PLAYED_TOTAL",
+          "base" : 0.0,
+          "scale" : 1.0
+        }
+      }
+    ]
   },
   {
     "key" : "tag_garbage",
     "name" : "Garbage Tag",
     "description" : "$1 per unused discard this run",
     "ante1" : false,
-    "timing" : "IMMEDIATE"
+    "timing" : "IMMEDIATE",
+    "effects" : [
+      {
+        "type" : "adjustMoney",
+        "op" : "ADD",
+        "amount" : {
+          "type" : "runVar",
+          "which" : "CARDS_DISCARDED_TOTAL",
+          "base" : 0.0,
+          "scale" : 1.0
+        }
+      }
+    ]
   },
   {
     "key" : "tag_top_up",
     "name" : "Top-Up Tag",
     "description" : "Create up to 2 Common Jokers",
     "ante1" : false,
-    "timing" : "IMMEDIATE"
+    "timing" : "IMMEDIATE",
+    "effects" : [ ]
   }
 ]

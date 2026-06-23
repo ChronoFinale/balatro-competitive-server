@@ -204,6 +204,7 @@ export interface Tag {
   description?: string;
   ante1: boolean;
   timing?: "IMMEDIATE" | "ON_SHOP" | "ON_BOSS_DEFEAT" | "NEXT_BLIND" | "HELD";
+  effects: Effect[];
 }
 
 export interface Voucher {

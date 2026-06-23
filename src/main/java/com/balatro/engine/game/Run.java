@@ -827,7 +827,7 @@ public final class Run {
         for (Rule r : boss.rules()) {
             if (r.when() != trigger) continue;
             if (r.condition() != null && !r.condition().test(ctx)) continue;
-            for (Effect e : r.effects()) applyBossEffect(e, ctx);
+            for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
         }
     }
 
@@ -839,9 +839,10 @@ public final class Run {
         });
     }
 
-    /** The run-loop interpreter for a boss effect (the action-side twin of {@link #applyConsumableEffect}):
-     *  resolve a {@link Value} against the run and mutate authoritative state. */
-    private void applyBossEffect(Effect e, com.balatro.engine.joker.EvaluationContext ctx) {
+    /** The run-loop effect interpreter (the action-side twin of {@link #applyConsumableEffect}): resolve a
+     *  {@link Value} against the run and mutate authoritative state. Shared by bosses (per-hand/blind/sell
+     *  rules) and tags (Speed/Handy/Garbage money gains) — any effect fired outside the scoring pipeline. */
+    private void applyRunLoopEffect(Effect e, com.balatro.engine.joker.EvaluationContext ctx) {
         switch (e) {
             case Effect.AdjustMoney am -> {
                 double v = am.amount().resolve(ctx); // a magnitude; the verb carries the direction
@@ -1830,11 +1831,16 @@ public final class Run {
     }
 
     private void applyImmediateTag(String key) {
+        TagCatalog.Tag tag = TagCatalog.get(key);
+        if (tag != null && !tag.effects().isEmpty()) { // data-driven tags (Speed/Handy/Garbage: AdjustMoney)
+            com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
+            ctx.run = state;
+            ctx.rng = rng;
+            for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
+            return;
+        }
         switch (key) {
             case "tag_economy" -> state.money += Math.min(state.money, 40);   // double money, max +$40
-            case "tag_skip" -> state.money += 5 * state.blindsSkipped;        // $5 per blind skipped
-            case "tag_handy" -> state.money += state.handsPlayedTotal;         // $1 per hand played
-            case "tag_garbage" -> state.money += state.cardsDiscardedTotal;    // ~$1 per discard this run
             case "tag_orbital" -> {
                 HandType best = HandType.HIGH_CARD;
                 int most = -1;
