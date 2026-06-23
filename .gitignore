@@ -22,6 +22,10 @@ Thumbs.db
 # Local-only Balatro atlases (extracted game assets — never commit; see README)
 /web-assets/
 
-# standalone Almanac demo build output
-client/demo/dist-almanac/
+# Generated content DATA (~10k lines) — produced by `./gradlew generateContent`, not committed.
+# The type contract (client/src/generated/content-types.ts) IS committed.
+client/src/generated/content.ts
+
+# Throwaway client viewers / build output (the real viewer is `npm run dev`)
+client/demo/
 client/almanac-static.html

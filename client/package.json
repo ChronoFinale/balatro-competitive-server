@@ -6,7 +6,10 @@
   "author": "ChronoFinale",
   "license": "AGPL-3.0",
   "scripts": {
+    "generate": "cd .. && gradlew.bat generateContent",
+    "predev": "node -e \"require('fs').existsSync('src/generated/content.ts')||process.exit(1)\" || npm run generate",
     "dev": "electron-vite dev",
+    "prebuild": "npm run generate",
     "build": "electron-vite build",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json"
