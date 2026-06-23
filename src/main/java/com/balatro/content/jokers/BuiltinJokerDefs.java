@@ -558,7 +558,7 @@ public final class BuiltinJokerDefs {
                         .on(Trigger.SHOP_EXIT).effect(new Effect.DuplicateRandomConsumable()).build(),
                 Jokers.of("j_invisible", "Invisible Joker")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("rounds", 1)
-                        .runMod(RunMod.duplicatesJokerOnSell(2)).build(),
+                        .on(Trigger.SELL_SELF).effect(new Effect.DuplicateRandomJoker(2)).build(),
                 Jokers.of("j_luchador", "Luchador")
                         .on(Trigger.SELL_SELF).effect(new Effect.DisableBoss()).build(),
 

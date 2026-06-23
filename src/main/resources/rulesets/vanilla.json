@@ -36,11 +36,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -89,11 +84,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -142,11 +132,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -195,11 +180,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -246,11 +226,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -294,11 +269,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -344,11 +314,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -393,11 +358,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -443,11 +403,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -491,11 +446,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -540,11 +490,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -615,11 +560,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -700,11 +640,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -730,11 +665,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -762,11 +692,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -812,11 +737,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -868,11 +788,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -918,11 +833,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -968,11 +878,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1016,11 +921,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1065,11 +965,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1141,11 +1036,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1190,11 +1080,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1239,11 +1124,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1288,11 +1168,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1337,11 +1212,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1386,11 +1256,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1435,11 +1300,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1484,11 +1344,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1533,11 +1388,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1592,11 +1442,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1640,11 +1485,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1709,11 +1549,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1784,11 +1619,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1834,11 +1664,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1884,11 +1709,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -1959,11 +1779,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2035,11 +1850,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2084,11 +1894,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2133,11 +1938,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2182,11 +1982,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2231,11 +2026,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2280,11 +2070,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2330,11 +2115,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2380,11 +2160,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2428,11 +2203,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2502,11 +2272,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2577,11 +2342,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2627,11 +2387,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2688,11 +2443,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2739,11 +2489,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2790,11 +2535,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2841,11 +2581,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2892,11 +2627,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2945,11 +2675,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -2998,11 +2723,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3102,11 +2822,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3152,11 +2867,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3211,11 +2921,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3273,11 +2978,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3335,11 +3035,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3391,11 +3086,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3442,11 +3132,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3492,11 +3177,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3540,11 +3220,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3606,11 +3281,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3677,11 +3347,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3709,11 +3374,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3741,11 +3401,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3773,11 +3428,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3821,11 +3471,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3877,11 +3522,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3926,11 +3566,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -3974,11 +3609,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4031,11 +3661,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4083,11 +3708,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4115,11 +3735,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4147,11 +3762,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4237,11 +3847,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4312,11 +3917,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4363,11 +3963,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4414,11 +4009,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4450,11 +4040,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4486,11 +4071,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4527,11 +4107,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4568,11 +4143,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4609,11 +4179,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4663,11 +4228,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4713,11 +4273,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4763,11 +4318,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4829,11 +4379,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4890,11 +4435,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -4953,11 +4493,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5003,11 +4538,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5064,11 +4594,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5136,11 +4661,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5188,11 +4708,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5238,11 +4753,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5288,11 +4798,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5353,11 +4858,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5402,11 +4902,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5469,11 +4964,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5535,11 +5025,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5604,11 +5089,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5690,11 +5170,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5795,11 +5270,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5858,11 +5328,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5924,11 +5389,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -5974,11 +5434,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6048,11 +5503,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6122,11 +5572,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6170,11 +5615,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6213,11 +5653,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6266,11 +5701,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6340,11 +5770,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6376,11 +5801,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6426,11 +5846,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6456,11 +5871,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 4,
       "pvpSkipBonus" : false
@@ -6505,11 +5915,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6555,11 +5960,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6606,11 +6006,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6684,11 +6079,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6726,11 +6116,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6766,6 +6151,18 @@
             "scope" : "SELF"
           }
         ]
+      },
+      {
+        "when" : "SELL_SELF",
+        "condition" : {
+          "type" : "always"
+        },
+        "effects" : [
+          {
+            "type" : "duplicateRandomJoker",
+            "minRoundsOwned" : 2
+          }
+        ]
       }
     ],
     "handMods" : [ ],
@@ -6773,11 +6170,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : 2,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6815,11 +6207,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6886,11 +6273,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -6976,11 +6358,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7026,11 +6403,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7056,11 +6428,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : true,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7115,11 +6482,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7145,11 +6507,6 @@
     "runMod" : {
       "disablesBoss" : true,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7192,11 +6549,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7239,11 +6591,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7275,11 +6622,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7311,11 +6653,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7347,11 +6684,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7377,11 +6709,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.25,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7413,11 +6740,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7467,11 +6789,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7561,11 +6878,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7611,11 +6923,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7670,11 +6977,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7720,11 +7022,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7769,11 +7066,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7818,11 +7110,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7867,11 +7154,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7915,11 +7197,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -7965,11 +7242,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -8047,11 +7319,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false
@@ -8121,11 +7388,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "onSell" : {
-        "disablesBoss" : false,
-        "duplicatesJokerAfterRounds" : -1,
-        "createsTag" : null
-      },
       "doublesProbability" : false,
       "handSizeDecayStart" : 0,
       "pvpSkipBonus" : false

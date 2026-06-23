@@ -912,6 +912,17 @@ public final class Run {
                 }
             }
             case Effect.CreateTag ct -> grantTag(ct.tag());                 // Diet Cola (on sell)
+            case Effect.DuplicateRandomJoker dj -> { // Invisible Joker (sold after N rounds owned)
+                int rounds = ((Number) ctx.selfState().getOrDefault("rounds", 0)).intValue();
+                if (rounds >= dj.minRoundsOwned() && !state.jokers().isEmpty()
+                        && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
+                    // MP copies the rightmost (deterministic); single-player a random one by identity.
+                    Joker source = ruleset.capabilities().duplicateRightmost()
+                            ? state.jokers().get(state.jokers().size() - 1)
+                            : state.queues.pick(state.jokers(), RngSources.INVISIBLE_DUP, rngCtx(), Joker::key, JOKER_QUALITY);
+                    state.addJoker(JokerLibrary.create(source.key()));
+                }
+            }
             default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
@@ -1223,20 +1234,8 @@ public final class Run {
         state.cardsSoldSinceLastPvp++; // feeds the opponent's Taxes joker
         int bonus = state.jokerInt(sold, "sellBonus", 0);
         state.money += Math.max(1, sold.info().cost() / 2) + bonus; // sell value (+ Egg/Gift bonus)
-        // The sold joker's own SELL_SELF reactions, read from its data capabilities (no key strings).
-        RunMod.OnSell onSell = (sold instanceof DataJoker dj) ? dj.def().runMod().onSell() : RunMod.OnSell.NONE;
-        // Invisible Joker: sold after >=N rounds owned, duplicate a random remaining joker.
-        if (onSell.duplicatesJokerAfterRounds() >= 0
-                && state.jokerInt(sold, "rounds", 0) >= onSell.duplicatesJokerAfterRounds()
-                && !state.jokers().isEmpty() && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
-            // MP: copy the rightmost remaining joker (deterministic + comparable between players);
-            // single-player picks a random remaining joker by identity (order-independent).
-            Joker source = ruleset.capabilities().duplicateRightmost()
-                    ? state.jokers().get(state.jokers().size() - 1)
-                    : state.queues.pick(state.jokers(), RngSources.INVISIBLE_DUP, rngCtx(), Joker::key, JOKER_QUALITY);
-            state.addJoker(JokerLibrary.create(source.key()));
-        }
-        // Luchador (DisableBoss) and Diet Cola (CreateTag) are the sold joker's own SELL_SELF rules now.
+        // The sold joker's own SELL_SELF rules: Invisible (duplicate a joker), Luchador (disable boss),
+        // Diet Cola (create a tag) — all data now, fired through the run-loop interpreter.
         raiseSelfSellRules(sold);
         // A card was sold: remaining jokers react (Campfire gains x0.25 each), and the boss reacts
         // (Verdant Leaf: DisableBoss) — both through the same SELL_CARD trigger.
@@ -1841,6 +1840,8 @@ public final class Run {
         com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
         ctx.run = state;
         ctx.rng = rng;
+        ctx.jokers = List.of(sold); // self() = the sold joker, so its state (e.g. "rounds") is readable
+        ctx.selfIndex = 0;
         for (Rule r : dj.def().rules()) {
             if (r.when() != Trigger.SELL_SELF) continue;
             if (r.condition() != null && !r.condition().test(ctx)) continue;
