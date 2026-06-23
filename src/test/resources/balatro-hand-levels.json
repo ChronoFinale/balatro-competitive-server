@@ -1,0 +1,77 @@
+{
+  "_source": "D:/BalatroMod/Balatro/game.lua G.GAME.hands",
+  "hands": {
+    "Flush Five": {
+      "baseChips": 160,
+      "baseMult": 16,
+      "levelChips": 50,
+      "levelMult": 3
+    },
+    "Flush House": {
+      "baseChips": 140,
+      "baseMult": 14,
+      "levelChips": 40,
+      "levelMult": 4
+    },
+    "Five of a Kind": {
+      "baseChips": 120,
+      "baseMult": 12,
+      "levelChips": 35,
+      "levelMult": 3
+    },
+    "Straight Flush": {
+      "baseChips": 100,
+      "baseMult": 8,
+      "levelChips": 40,
+      "levelMult": 4
+    },
+    "Four of a Kind": {
+      "baseChips": 60,
+      "baseMult": 7,
+      "levelChips": 30,
+      "levelMult": 3
+    },
+    "Full House": {
+      "baseChips": 40,
+      "baseMult": 4,
+      "levelChips": 25,
+      "levelMult": 2
+    },
+    "Flush": {
+      "baseChips": 35,
+      "baseMult": 4,
+      "levelChips": 15,
+      "levelMult": 2
+    },
+    "Straight": {
+      "baseChips": 30,
+      "baseMult": 4,
+      "levelChips": 30,
+      "levelMult": 3
+    },
+    "Three of a Kind": {
+      "baseChips": 30,
+      "baseMult": 3,
+      "levelChips": 20,
+      "levelMult": 2
+    },
+    "Two Pair": {
+      "baseChips": 20,
+      "baseMult": 2,
+      "levelChips": 20,
+      "levelMult": 1
+    },
+    "Pair": {
+      "baseChips": 10,
+      "baseMult": 2,
+      "levelChips": 15,
+      "levelMult": 1
+    },
+    "High Card": {
+      "baseChips": 5,
+      "baseMult": 1,
+      "levelChips": 10,
+      "levelMult": 1
+    }
+  }
+}
