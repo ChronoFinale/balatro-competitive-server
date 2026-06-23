@@ -110,7 +110,7 @@ class RulesetArtifactsTest {
 
     @Test void consumablesCompileToJsonAndRoundTrip() throws Exception {
         // Tarots/planets/spectrals — name/description/type + their Effect-union shape for the client.
-        var cs = com.balatro.engine.consumable.TarotCatalog.authored();  // DSL source (runtime loads from JSON)
+        var cs = com.balatro.content.ConsumableDefs.authored();  // DSL source (runtime loads from JSON)
         String json = JokerOverlays.writePretty(cs);
         gate(CONSUMABLES, json);
         assertThat(List.of(M.readValue(json, com.balatro.engine.consumable.Consumable[].class))).isEqualTo(cs);
