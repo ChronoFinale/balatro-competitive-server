@@ -420,6 +420,7 @@ public sealed interface Condition {
      */
     record Chance(int numerator, int denominator, String seedKey) implements Condition {
         public boolean test(EvaluationContext ctx) {
+            if (ctx.preview) return false; // preview shows the guaranteed floor — a gate never procs
             int probNum = ctx.run != null ? ctx.run.probabilityNumerator : 1;
             return ctx.nextProb(seedKey) < (double) (numerator * probNum) / denominator;
         }

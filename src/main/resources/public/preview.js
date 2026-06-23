@@ -187,7 +187,7 @@
         return unknown ? null : false;
       }
       case 'not': { const t = condTest(cond.inner, ctx); return t === null ? null : !t; }
-      case 'chance': return null; // probabilistic — signal "unsupported" -> caller falls back
+      case 'chance': return false; // preview floors probabilistic gates — they never proc (mirrors server)
       case 'bossDefeated': return null; // end-of-round only; never used in scoring
       case 'handPlayedThisRound':
         return (((ctx.run.counters && ctx.run.counters.handTypesThisRound) || []).indexOf(ctx.handType) >= 0);
@@ -282,7 +282,7 @@
         return v.base + v.scale * (v.lowest ? Math.min(...vals) : Math.max(...vals));
       }
       case 'deckRankCount': return null; // deck rank composition isn't shipped; end-of-round only
-      case 'random': return null; // probabilistic -> fall back
+      case 'random': return v.min; // preview floors a random magnitude to its minimum (mirrors server)
       default: return null;
     }
   }

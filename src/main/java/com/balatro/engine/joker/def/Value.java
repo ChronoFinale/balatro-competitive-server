@@ -241,6 +241,7 @@ public sealed interface Value {
      */
     record Random(double min, double max, String seedKey) implements Value {
         public double resolve(EvaluationContext ctx) {
+            if (ctx.preview) return min; // preview shows the guaranteed floor (the minimum magnitude)
             double roll = ctx.nextProb(seedKey);
             return min + Math.floor(roll * (max - min + 1));
         }
