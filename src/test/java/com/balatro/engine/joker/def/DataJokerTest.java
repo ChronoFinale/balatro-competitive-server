@@ -1,5 +1,6 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.engine.joker.def.Hand;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.card.Card;
@@ -252,7 +253,7 @@ class DataJokerTest {
                 .isEqualTo(8);
         assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 1; }))).isNull();
 
-        DataJoker finisher = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.HANDS_LEFT, Condition.Cmp.EQ, 0), Subject.MULT, 4);
+        DataJoker finisher = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Hand.PLAYS, Condition.Cmp.EQ, 0), Subject.MULT, 4);
         assertThat(finisher.calculate(fresh(finisher, c -> { c.phase = Trigger.JOKER_MAIN; c.run.handsLeft = 0; })).mult)
                 .isEqualTo(4);
     }

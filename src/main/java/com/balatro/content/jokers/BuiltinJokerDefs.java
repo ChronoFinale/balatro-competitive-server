@@ -180,11 +180,11 @@ public final class BuiltinJokerDefs {
                         .whenHand(playedHand().containsPair()).add(MULT, 8).build(),
 
                 Jokers.of("j_mystic_summit", "Mystic Summit")
-                        .whenHand(runVar(Value.Var.DISCARDS_LEFT).exactly(0)).add(MULT, 15).build(),
+                        .whenHand(runVar(Hand.DISCARDS).exactly(0)).add(MULT, 15).build(),
 
                 // --- run-state scaling ---
                 Jokers.of("j_banner", "Banner")
-                        .whenHand().add(CHIPS, Val.runVar(Value.Var.DISCARDS_LEFT, 0, 30)).build(),
+                        .whenHand().add(CHIPS, Val.runVar(Hand.DISCARDS, 0, 30)).build(),
 
                 Jokers.of("j_bull", "Bull")
                         .whenHand().add(CHIPS, Val.runVar(Value.Var.MONEY, 0, 2)).build(),
@@ -325,7 +325,7 @@ public final class BuiltinJokerDefs {
                         .on(Trigger.END_OF_ROUND).when(Cond.chance(1, 1000, "cavendish"))
                         .effect(new Effect.DestroySelf()).build(),
                 Jokers.of("j_acrobat", "Acrobat")
-                        .whenHand(runVar(Value.Var.HANDS_LEFT).atMost(1)).multiply(MULT, 3).build(),
+                        .whenHand(runVar(Hand.PLAYS).atMost(1)).multiply(MULT, 3).build(),
                 Jokers.of("j_joker_stencil", "Joker Stencil")
                         .whenHand().multiply(MULT, Val.stat(Value.Which.EMPTY_JOKER_SLOTS, 1.0, 1.0, null)).build(),
                 Jokers.of("j_triboulet", "Triboulet")
@@ -358,7 +358,7 @@ public final class BuiltinJokerDefs {
                 Jokers.of("j_mime", "Mime")
                         .on(Trigger.REPETITION_HELD).retrigger().build(),
                 Jokers.of("j_dusk", "Dusk")
-                        .on(Trigger.REPETITION_PLAYED).when(runVar(Value.Var.HANDS_LEFT).atMost(1)).retrigger().build(),
+                        .on(Trigger.REPETITION_PLAYED).when(runVar(Hand.PLAYS).atMost(1)).retrigger().build(),
 
                 // --- Gold-card economy when scored ---
                 Jokers.of("j_golden_ticket", "Golden Ticket")
@@ -396,18 +396,18 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 6: passive standing modifiers (folded at blind start, like deck/voucher mods) ---
                 modJoker("j_juggler", "Juggler",
-                        Modify.add(Value.Var.HAND_SIZE, 1)),
+                        Modify.add(Hand.SIZE, 1)),
                 modJoker("j_drunkard", "Drunkard",
-                        Modify.add(Value.Var.DISCARDS_LEFT, 1)),
+                        Modify.add(Hand.DISCARDS, 1)),
                 modJoker("j_troubadour", "Troubadour",
-                        Modify.add(Value.Var.HANDS_LEFT, -1), Modify.add(Value.Var.HAND_SIZE, 2)),
+                        Modify.add(Hand.PLAYS, -1), Modify.add(Hand.SIZE, 2)),
                 modJoker("j_merry_andy", "Merry Andy",
-                        Modify.add(Value.Var.DISCARDS_LEFT, 3), Modify.add(Value.Var.HAND_SIZE, -1)),
+                        Modify.add(Hand.DISCARDS, 3), Modify.add(Hand.SIZE, -1)),
                 Jokers.of("j_burglar", "Burglar")
-                        .mods(Modify.add(Value.Var.HANDS_LEFT, 3)).runMod(RunMod.locksDiscards()).build(),
+                        .mods(Modify.add(Hand.PLAYS, 3)).runMod(RunMod.locksDiscards()).build(),
                 Jokers.of("j_stuntman", "Stuntman")
                         .whenHand().add(CHIPS, 250)
-                        .mods(Modify.add(Value.Var.HAND_SIZE, -2)).build(),
+                        .mods(Modify.add(Hand.SIZE, -2)).build(),
 
                 // --- batch 7: held-card extreme value ---
                 Jokers.of("j_raised_fist", "Raised Fist")
@@ -421,7 +421,7 @@ public final class BuiltinJokerDefs {
                         .atEndOfRound().add(DOLLARS, Val.state("bosses", 1, 2)).build(),
                 Jokers.of("j_delayed_gratification", "Delayed Gratification")
                         .atEndOfRound().when(not(runVar(Value.Var.DISCARDS_USED).atLeast(1)))
-                        .add(DOLLARS, Val.runVar(Value.Var.DISCARDS_LEFT, 0, 2)).build(),
+                        .add(DOLLARS, Val.runVar(Hand.DISCARDS, 0, 2)).build(),
 
                 // --- batch 9: consumable creation ---
                 Jokers.of("j_8_ball", "8 Ball")

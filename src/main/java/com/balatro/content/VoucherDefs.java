@@ -1,5 +1,6 @@
 package com.balatro.content;
 
+import com.balatro.engine.joker.def.Hand;
 import com.balatro.engine.game.VoucherCatalog.Voucher;
 import com.balatro.engine.i18n.Loc;
 import com.balatro.engine.joker.def.Modify;
@@ -34,12 +35,12 @@ public final class VoucherDefs {
         pair("v_directors_cut", "Director's Cut", "v_retcon", "Retcon");
         pair("v_paint_brush", "Paint Brush", "v_palette", "Palette");
 
-        addMods("v_grabber", Modify.add(Value.Var.HANDS_LEFT, 1));
-        addMods("v_nacho_tong", Modify.add(Value.Var.HANDS_LEFT, 1));
-        addMods("v_wasteful", Modify.add(Value.Var.DISCARDS_LEFT, 1));
-        addMods("v_recyclomancy", Modify.add(Value.Var.DISCARDS_LEFT, 1));
-        addMods("v_paint_brush", Modify.add(Value.Var.HAND_SIZE, 1));
-        addMods("v_palette", Modify.add(Value.Var.HAND_SIZE, 1));
+        addMods("v_grabber", Modify.add(Hand.PLAYS, 1));
+        addMods("v_nacho_tong", Modify.add(Hand.PLAYS, 1));
+        addMods("v_wasteful", Modify.add(Hand.DISCARDS, 1));
+        addMods("v_recyclomancy", Modify.add(Hand.DISCARDS, 1));
+        addMods("v_paint_brush", Modify.add(Hand.SIZE, 1));
+        addMods("v_palette", Modify.add(Hand.SIZE, 1));
         addMods("v_antimatter", Modify.add(Value.Var.JOKER_SLOTS, 1));
         addMods("v_crystal_ball", Modify.add(Value.Var.CONSUMABLE_SLOTS, 1));
         addMods("v_omen_globe", Modify.add(Value.Var.CONSUMABLE_SLOTS, 1));
@@ -57,8 +58,8 @@ public final class VoucherDefs {
         addMods("v_tarot_tycoon", Modify.max(Value.Var.TAROT_RATE, 16));
         addMods("v_planet_merchant", Modify.max(Value.Var.PLANET_RATE, 8));
         addMods("v_planet_tycoon", Modify.max(Value.Var.PLANET_RATE, 16));
-        addMods("v_hieroglyph", Modify.add(Value.Var.WIN_ANTE, -1), Modify.add(Value.Var.HANDS_LEFT, -1));
-        addMods("v_petroglyph", Modify.add(Value.Var.WIN_ANTE, -1), Modify.add(Value.Var.DISCARDS_LEFT, -1));
+        addMods("v_hieroglyph", Modify.add(Value.Var.WIN_ANTE, -1), Modify.add(Hand.PLAYS, -1));
+        addMods("v_petroglyph", Modify.add(Value.Var.WIN_ANTE, -1), Modify.add(Hand.DISCARDS, -1));
         addMods("v_directors_cut", Modify.max(Value.Var.BOSS_REROLLS_PER_ANTE, 1));
         addMods("v_retcon", Modify.max(Value.Var.BOSS_REROLLS_PER_ANTE, 9999));
         addMods("v_observatory", Modify.max(Value.Var.HELD_PLANET_MULT, 1.5));

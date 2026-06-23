@@ -277,8 +277,8 @@
   }
   // Live run quantities, including the shipped run-long counters (decay jokers).
   function runVarValue(which, r) {
-    const map = { MONEY: r.money, HANDS_LEFT: r.handsLeft, DISCARDS_LEFT: r.discardsLeft,
-      HAND_SIZE: r.handSize, ANTE: r.ante };
+    const map = { MONEY: r.money, PLAYS: r.handsLeft, DISCARDS: r.discardsLeft,
+      SIZE: r.handSize, ANTE: r.ante };
     if (which in map) return map[which] || 0;
     return (r.counters && r.counters[which]) || 0;
   }

@@ -907,7 +907,7 @@
           "type" : "compare",
           "value" : {
             "type" : "runVar",
-            "which" : "DISCARDS_LEFT",
+            "which" : "DISCARDS",
             "base" : 0.0,
             "scale" : 1.0
           },
@@ -973,7 +973,7 @@
             "subject" : "CHIPS",
             "value" : {
               "type" : "runVar",
-              "which" : "DISCARDS_LEFT",
+              "which" : "DISCARDS",
               "base" : 0.0,
               "scale" : 30.0
             }
@@ -3610,7 +3610,7 @@
           "type" : "compare",
           "value" : {
             "type" : "runVar",
-            "which" : "HANDS_LEFT",
+            "which" : "PLAYS",
             "base" : 0.0,
             "scale" : 1.0
           },
@@ -4136,7 +4136,7 @@
           "type" : "compare",
           "value" : {
             "type" : "runVar",
-            "which" : "HANDS_LEFT",
+            "which" : "PLAYS",
             "base" : 0.0,
             "scale" : 1.0
           },
@@ -4770,7 +4770,7 @@
     "handMods" : [ ],
     "mods" : [
       {
-        "variable" : "HAND_SIZE",
+        "variable" : "SIZE",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -4810,7 +4810,7 @@
     "handMods" : [ ],
     "mods" : [
       {
-        "variable" : "DISCARDS_LEFT",
+        "variable" : "DISCARDS",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -4850,12 +4850,12 @@
     "handMods" : [ ],
     "mods" : [
       {
-        "variable" : "HANDS_LEFT",
+        "variable" : "PLAYS",
         "op" : "ADD",
         "value" : -1.0
       },
       {
-        "variable" : "HAND_SIZE",
+        "variable" : "SIZE",
         "op" : "ADD",
         "value" : 2.0
       }
@@ -4895,12 +4895,12 @@
     "handMods" : [ ],
     "mods" : [
       {
-        "variable" : "DISCARDS_LEFT",
+        "variable" : "DISCARDS",
         "op" : "ADD",
         "value" : 3.0
       },
       {
-        "variable" : "HAND_SIZE",
+        "variable" : "SIZE",
         "op" : "ADD",
         "value" : -1.0
       }
@@ -4940,7 +4940,7 @@
     "handMods" : [ ],
     "mods" : [
       {
-        "variable" : "HANDS_LEFT",
+        "variable" : "PLAYS",
         "op" : "ADD",
         "value" : 3.0
       }
@@ -4998,7 +4998,7 @@
     "handMods" : [ ],
     "mods" : [
       {
-        "variable" : "HAND_SIZE",
+        "variable" : "SIZE",
         "op" : "ADD",
         "value" : -2.0
       }
@@ -5236,7 +5236,7 @@
             "subject" : "DOLLARS",
             "value" : {
               "type" : "runVar",
-              "which" : "DISCARDS_LEFT",
+              "which" : "DISCARDS",
               "base" : 0.0,
               "scale" : 2.0
             }

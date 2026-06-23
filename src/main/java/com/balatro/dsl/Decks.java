@@ -1,5 +1,6 @@
 package com.balatro.dsl;
 
+import com.balatro.engine.joker.def.Hand;
 import com.balatro.engine.game.*;
 import com.balatro.engine.game.DeckCatalog.DeckType;
 
@@ -42,15 +43,15 @@ public final class Decks {
 
     public Decks desc(String d) { this.desc = d; return this; }
 
-    public Decks hands(int n) { resourceMods.add(Modify.add(Value.Var.HANDS_LEFT, n)); return this; }
+    public Decks hands(int n) { resourceMods.add(Modify.add(Hand.PLAYS, n)); return this; }
 
-    public Decks discards(int n) { resourceMods.add(Modify.add(Value.Var.DISCARDS_LEFT, n)); return this; }
+    public Decks discards(int n) { resourceMods.add(Modify.add(Hand.DISCARDS, n)); return this; }
 
     public Decks jokerSlots(int n) { resourceMods.add(Modify.add(Value.Var.JOKER_SLOTS, n)); return this; }
 
     public Decks money(int n) { resourceMods.add(Modify.add(Value.Var.MONEY, n)); return this; }
 
-    public Decks handSize(int n) { resourceMods.add(Modify.add(Value.Var.HAND_SIZE, n)); return this; }
+    public Decks handSize(int n) { resourceMods.add(Modify.add(Hand.SIZE, n)); return this; }
 
     public Decks consumableSlots(int n) { resourceMods.add(Modify.add(Value.Var.CONSUMABLE_SLOTS, n)); return this; }
 

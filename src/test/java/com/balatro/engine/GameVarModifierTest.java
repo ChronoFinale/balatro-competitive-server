@@ -1,5 +1,6 @@
 package com.balatro.engine;
 
+import com.balatro.engine.joker.def.Hand;
 import static com.balatro.engine.TestSupport.jokers;
 import static com.balatro.engine.TestSupport.stoneDeck;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,10 +28,10 @@ class GameVarModifierTest {
     void foldResolvesSetThenAddThenMultiply() {
         // SET replaces the base (a boss override beats the ruleset default), then ADDs, then MULTIPLYs.
         List<Modify> mods = List.of(
-                Modify.add(Value.Var.HANDS_LEFT, 3),       // Burglar
-                Modify.set(Value.Var.HANDS_LEFT, 1),       // Needle (override)
-                Modify.multiply(Value.Var.HANDS_LEFT, 2)); // hypothetical doubler
-        assertThat(Modify.fold(4, Value.Var.HANDS_LEFT, mods)).isEqualTo((1 + 3) * 2);
+                Modify.add(Hand.PLAYS, 3),       // Burglar
+                Modify.set(Hand.PLAYS, 1),       // Needle (override)
+                Modify.multiply(Hand.PLAYS, 2)); // hypothetical doubler
+        assertThat(Modify.fold(4, Hand.PLAYS, mods)).isEqualTo((1 + 3) * 2);
     }
 
     @Test

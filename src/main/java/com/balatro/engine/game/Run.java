@@ -1,5 +1,6 @@
 package com.balatro.engine.game;
 
+import com.balatro.engine.joker.def.Hand;
 import com.balatro.dsl.*;
 import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Edition;
@@ -291,7 +292,7 @@ public final class Run {
         // The Serpent: subsequent refills draw a fixed count instead of filling to hand size.
         // The Serpent: draw a fixed count instead of filling to hand size — a Modify on DRAW_COUNT, folded
         // alongside every other resource (a disabled boss contributes no mods, so it falls back to -1).
-        state.drawCountOverride = (int) Modify.fold(-1, Value.Var.DRAW_COUNT, resourceMods());
+        state.drawCountOverride = (int) Modify.fold(-1, Hand.DRAW_COUNT, resourceMods());
         for (Joker j : state.jokers()) state.jokerState(j).put("bossDisabled", false); // Crimson Heart re-arms each blind
         jokersHidden = false; // reset; Amber Acorn's BLIND_SELECTED rule re-hides + shuffles the Jokers
         raiseBossRules(Trigger.BLIND_SELECTED, null);
@@ -654,7 +655,7 @@ public final class Run {
             int start = dj.def().runMod().handSizeDecayStart();            // Turtle Bean (dynamic, by rounds owned)
             if (start > 0) {
                 int acq = state.jokerInt(j, "acqRounds", 0);
-                all.add(Modify.add(Value.Var.HAND_SIZE, Math.max(0, start - (state.roundsPlayedTotal - acq))));
+                all.add(Modify.add(Hand.SIZE, Math.max(0, start - (state.roundsPlayedTotal - acq))));
             }
         }
         for (String v : state.vouchers) {                                 // vouchers: Grabber/Wasteful/Paint Brush
@@ -663,11 +664,11 @@ public final class Run {
         }
         if (anyOwnedRunMod(RunMod::pvpSkipBonus)) {                        // Skip-Off (Nemesis): +1 hand & discard / skip
             int diff = Math.max(0, state.blindsSkipped - state.oppBlindsSkipped);
-            all.add(Modify.add(Value.Var.HANDS_LEFT, diff));
-            all.add(Modify.add(Value.Var.DISCARDS_LEFT, diff));
+            all.add(Modify.add(Hand.PLAYS, diff));
+            all.add(Modify.add(Hand.DISCARDS, diff));
         }
         if (state.pizzaBlindsLeft > 0) {                                  // Pizza (PvP): temporary +discards
-            all.add(Modify.add(Value.Var.DISCARDS_LEFT, state.pizzaDiscardBonus));
+            all.add(Modify.add(Hand.DISCARDS, state.pizzaDiscardBonus));
             state.pizzaBlindsLeft--;
         }
         return all;
@@ -676,11 +677,11 @@ public final class Run {
     /** Fold every resource Modify onto each game variable at blind start (Burglar's "no discards" last). */
     private void applyResourceMods() {
         List<Modify> mods = resourceMods();
-        state.handsLeft = Math.max(1, (int) Modify.fold(ruleset.hands(), Value.Var.HANDS_LEFT, mods));
-        int discards = (int) Modify.fold(baseDiscards(), Value.Var.DISCARDS_LEFT, mods);
+        state.handsLeft = Math.max(1, (int) Modify.fold(ruleset.hands(), Hand.PLAYS, mods));
+        int discards = (int) Modify.fold(baseDiscards(), Hand.DISCARDS, mods);
         if (anyOwnedRunMod(RunMod::noDiscards)) discards = 0;             // Burglar: no discards at all
         state.discardsLeft = Math.max(0, discards);
-        state.handSize = Math.max(1, (int) Modify.fold(ruleset.handSize(), Value.Var.HAND_SIZE, mods));
+        state.handSize = Math.max(1, (int) Modify.fold(ruleset.handSize(), Hand.SIZE, mods));
     }
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */

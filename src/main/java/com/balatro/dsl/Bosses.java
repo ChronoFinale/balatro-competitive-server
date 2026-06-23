@@ -1,5 +1,6 @@
 package com.balatro.dsl;
 
+import com.balatro.engine.joker.def.Hand;
 import com.balatro.engine.game.*;
 
 import com.balatro.engine.joker.Trigger;
@@ -57,13 +58,13 @@ public final class Bosses {
     public Bosses reward(int r) { this.reward = r; return this; }
 
     /** The Needle: this round has exactly {@code n} hands ({@code set(HANDS_LEFT, n)}). */
-    public Bosses hands(int n) { mods.add(Modify.set(Value.Var.HANDS_LEFT, n)); return this; }
+    public Bosses hands(int n) { mods.add(Modify.set(Hand.PLAYS, n)); return this; }
 
     /** The Water: this round has exactly {@code n} discards ({@code set(DISCARDS_LEFT, n)}). */
-    public Bosses discards(int n) { mods.add(Modify.set(Value.Var.DISCARDS_LEFT, n)); return this; }
+    public Bosses discards(int n) { mods.add(Modify.set(Hand.DISCARDS, n)); return this; }
 
     /** The Manacle: {@code delta} hand size ({@code add(HAND_SIZE, delta)}). */
-    public Bosses handSize(int delta) { mods.add(Modify.add(Value.Var.HAND_SIZE, delta)); return this; }
+    public Bosses handSize(int delta) { mods.add(Modify.add(Hand.SIZE, delta)); return this; }
 
     /** Cards matching {@code cond} don't score — reuses the joker condition vocabulary
      *  ({@code Cond.card().suit(CLUBS)}, {@code Cond.card().isFace()}). */
@@ -128,7 +129,7 @@ public final class Bosses {
 
     /** The Serpent: after each play or discard, always draw exactly {@code n} cards (no refill to size) —
      *  a {@code Modify} on the draw count, the same resource-modifier family as hands/discards/hand-size. */
-    public Bosses drawsExactly(int n) { mods.add(Modify.set(Value.Var.DRAW_COUNT, n)); return this; }
+    public Bosses drawsExactly(int n) { mods.add(Modify.set(Hand.DRAW_COUNT, n)); return this; }
 
     /** The Hook: after each played hand, discard {@code n} random held cards (then refill) —
      *  {@code DiscardRandomHeld(n)}. */

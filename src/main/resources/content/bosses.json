@@ -89,7 +89,7 @@
     "reward" : 5,
     "mods" : [
       {
-        "variable" : "HAND_SIZE",
+        "variable" : "SIZE",
         "op" : "ADD",
         "value" : -1.0
       }
@@ -145,7 +145,7 @@
     "reward" : 5,
     "mods" : [
       {
-        "variable" : "HANDS_LEFT",
+        "variable" : "PLAYS",
         "op" : "SET",
         "value" : 1.0
       }
@@ -167,7 +167,7 @@
     "reward" : 5,
     "mods" : [
       {
-        "variable" : "DISCARDS_LEFT",
+        "variable" : "DISCARDS",
         "op" : "SET",
         "value" : 0.0
       }

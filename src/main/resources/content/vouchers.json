@@ -185,7 +185,7 @@
     "upgradeKey" : "v_nacho_tong",
     "mods" : [
       {
-        "variable" : "HANDS_LEFT",
+        "variable" : "PLAYS",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -199,7 +199,7 @@
     "upgradeKey" : null,
     "mods" : [
       {
-        "variable" : "HANDS_LEFT",
+        "variable" : "PLAYS",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -213,7 +213,7 @@
     "upgradeKey" : "v_recyclomancy",
     "mods" : [
       {
-        "variable" : "DISCARDS_LEFT",
+        "variable" : "DISCARDS",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -227,7 +227,7 @@
     "upgradeKey" : null,
     "mods" : [
       {
-        "variable" : "DISCARDS_LEFT",
+        "variable" : "DISCARDS",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -385,7 +385,7 @@
         "value" : -1.0
       },
       {
-        "variable" : "HANDS_LEFT",
+        "variable" : "PLAYS",
         "op" : "ADD",
         "value" : -1.0
       }
@@ -404,7 +404,7 @@
         "value" : -1.0
       },
       {
-        "variable" : "DISCARDS_LEFT",
+        "variable" : "DISCARDS",
         "op" : "ADD",
         "value" : -1.0
       }
@@ -446,7 +446,7 @@
     "upgradeKey" : "v_palette",
     "mods" : [
       {
-        "variable" : "HAND_SIZE",
+        "variable" : "SIZE",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -460,7 +460,7 @@
     "upgradeKey" : null,
     "mods" : [
       {
-        "variable" : "HAND_SIZE",
+        "variable" : "SIZE",
         "op" : "ADD",
         "value" : 1.0
       }

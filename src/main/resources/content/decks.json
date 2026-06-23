@@ -18,7 +18,7 @@
     "description" : "+1 discard each round",
     "resourceMods" : [
       {
-        "variable" : "DISCARDS_LEFT",
+        "variable" : "DISCARDS",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -37,7 +37,7 @@
     "description" : "+1 hand each round",
     "resourceMods" : [
       {
-        "variable" : "HANDS_LEFT",
+        "variable" : "PLAYS",
         "op" : "ADD",
         "value" : 1.0
       }
@@ -80,7 +80,7 @@
         "value" : 1.0
       },
       {
-        "variable" : "HANDS_LEFT",
+        "variable" : "PLAYS",
         "op" : "ADD",
         "value" : -1.0
       }
@@ -118,7 +118,7 @@
     "description" : "+2 hand size, -1 Joker slot",
     "resourceMods" : [
       {
-        "variable" : "HAND_SIZE",
+        "variable" : "SIZE",
         "op" : "ADD",
         "value" : 2.0
       },

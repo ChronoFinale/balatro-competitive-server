@@ -1,5 +1,6 @@
 package com.balatro.engine.game;
 
+import com.balatro.engine.joker.def.Hand;
 import com.balatro.engine.joker.def.Modify;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -127,10 +127,11 @@ public sealed interface Value {
         }
     }
 
-    /** Which live run-state quantity a {@link RunVar} reads. */
-    enum Var {
+    /** Which live run-state quantity a {@link RunVar} reads. Implements {@link Subject}: the run/shop/economy
+     *  bag, with the hand nouns now lifted out into {@link Hand}. */
+    enum Var implements Subject {
         // --- readable run-state quantities (a condition can read these) ---
-        MONEY, HANDS_LEFT, DISCARDS_LEFT, HAND_SIZE, CONSUMABLE_SLOTS, JOKER_SLOTS, ANTE, DISCARDS_USED,
+        MONEY, CONSUMABLE_SLOTS, JOKER_SLOTS, ANTE, DISCARDS_USED,
         HANDS_PLAYED, HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS,
         UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD,
         // --- derived economy/shop policy variables: written by Modifys (folded in EconomyConfig /
@@ -139,22 +140,26 @@ public sealed interface Value {
         SHOP_SLOTS, PRICE_MULTIPLIER, REROLL_DISCOUNT, EDITION_MULTIPLIER, POLY_MULTIPLIER,
         TAROT_RATE, PLANET_RATE, WIN_ANTE, BOSS_REROLLS_PER_ANTE, HELD_PLANET_MULT,
         CELESTIAL_MOST_PLAYED, SHOP_PLAYING_CARD_RATE, SHOP_CARDS_ENHANCED, FREE_REROLLS, SPECTRAL_RATE,
-        // Per-blind draw-count override: -1 = refill to hand size; >0 = draw exactly N (The Serpent), as a
-        // Modify like hands/discards/hand-size — "draw on refill" is literally a modifier on the draw count.
-        DRAW_COUNT,
         // Boolean policies (fold to >= 1 when any owner grants them): Showman lets owned cards reappear
         // in shop/creation pools; Astronomer makes shop Planets free; To the Moon adds an uncapped extra
         // $1/$5 interest tier (the formula coupling stays in EconomyConfig — this var only flags it).
         ALLOW_SHOP_DUPLICATES, PLANETS_FREE, UNCAPPED_INTEREST }
 
     /** Read a live run-state quantity. Shared by {@link RunVar}, {@link RunVarStep}, and
-     *  {@code Condition.RunVarModulo} so the {@link Var}→{@code RunState} mapping lives in one place. */
-    static double readVar(Var which, EvaluationContext ctx) {
-        return switch (which) {
+     *  {@code Condition.RunVarModulo} so the {@link Subject}→{@code RunState} mapping lives in one place.
+     *  Dispatches on the subject noun: {@link Hand} reads handle size/plays/discards, the rest fall to the
+     *  {@link Var} bag. */
+    static double readVar(Subject which, EvaluationContext ctx) {
+        if (which instanceof Hand h) {
+            return switch (h) {
+                case SIZE -> ctx.run.handSize;
+                case PLAYS -> ctx.run.handsLeft;
+                case DISCARDS -> ctx.run.discardsLeft;
+                case DRAW_COUNT -> throw new UnsupportedOperationException("DRAW_COUNT is write-only");
+            };
+        }
+        return switch ((Var) which) {
             case MONEY -> ctx.run.money;
-            case HANDS_LEFT -> ctx.run.handsLeft;
-            case DISCARDS_LEFT -> ctx.run.discardsLeft;
-            case HAND_SIZE -> ctx.run.handSize;
             case CONSUMABLE_SLOTS -> ctx.run.consumableSlots;
             case JOKER_SLOTS -> ctx.run.jokerSlots;
             case ANTE -> ctx.run.ante;
@@ -177,7 +182,7 @@ public sealed interface Value {
     }
 
     /** {@code base + scale * (live run-state quantity)} (per dollar, per remaining hand, ...). */
-    record RunVar(Var which, double base, double scale) implements Value {
+    record RunVar(Subject which, double base, double scale) implements Value {
         public double resolve(EvaluationContext ctx) {
             if (ctx.run == null) return base;
             return base + scale * readVar(which, ctx);
@@ -188,7 +193,7 @@ public sealed interface Value {
      * {@code base + scale * floor(runVar / per)} — stepwise scaling (Bootstraps:
      * +2 Mult per $5 → base 0, scale 2, per 5 over MONEY).
      */
-    record RunVarStep(Var which, double base, double scale, double per) implements Value {
+    record RunVarStep(Subject which, double base, double scale, double per) implements Value {
         public double resolve(EvaluationContext ctx) {
             if (ctx.run == null || per == 0) return base;
             return base + scale * Math.floor(readVar(which, ctx) / per);

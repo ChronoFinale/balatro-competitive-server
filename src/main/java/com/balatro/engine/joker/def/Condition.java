@@ -269,8 +269,8 @@ public sealed interface Condition {
      * Convenience constructors cover the two common sources directly.
      */
     record Compare(Value value, Cmp cmp, double threshold) implements Condition {
-        /** Compare a live run-state variable (Money/HandsLeft/Ante/…). */
-        public Compare(Value.Var variable, Cmp cmp, double threshold) {
+        /** Compare a live run-state variable (Money/Hand.PLAYS/Ante/…). */
+        public Compare(Subject variable, Cmp cmp, double threshold) {
             this(new Value.RunVar(variable, 0, 1), cmp, threshold);
         }
         /** Compare a per-joker state counter (the old StateAtLeast, always GTE before). */
@@ -340,7 +340,7 @@ public sealed interface Condition {
     }
 
     /** A run variable modulo {@code mod} equals {@code remainder} (Loyalty Card: every 6 hands). */
-    record RunVarModulo(Value.Var which, int mod, int remainder) implements Condition {
+    record RunVarModulo(Subject which, int mod, int remainder) implements Condition {
         public boolean test(EvaluationContext ctx) {
             if (ctx.run == null || mod == 0) return false;
             return Math.floorMod((long) Value.readVar(which, ctx), mod) == remainder;
