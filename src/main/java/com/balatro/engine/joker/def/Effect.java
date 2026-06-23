@@ -56,6 +56,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.GrantJokers.class, name = "grantJokers"),
     @JsonSubTypes.Type(value = Effect.AddShopVoucher.class, name = "addShopVoucher"),
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
+    @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
 })
 public sealed interface Effect {
 
@@ -332,6 +333,9 @@ public sealed interface Effect {
     /** Set a shop policy flag for the next shop: {@code "COUPON"} (free initial items) or {@code "D6"}
      *  ($0 base reroll) — Coupon / D6 tags. */
     record ShopFlag(String flag) implements Effect {}
+
+    /** Bump the hand size by {@code delta} for the current round (Juggle tag: +3 this blind). */
+    record AdjustHandSize(int delta) implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {

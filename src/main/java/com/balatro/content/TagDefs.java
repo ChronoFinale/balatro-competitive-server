@@ -23,7 +23,8 @@ public final class TagDefs {
         add(t, "tag_foil", "Foil Tag", true, Timing.ON_SHOP, editioned(Edition.FOIL));
         add(t, "tag_holo", "Holographic Tag", true, Timing.ON_SHOP, editioned(Edition.HOLOGRAPHIC));
         add(t, "tag_polychrome", "Polychrome Tag", true, Timing.ON_SHOP, editioned(Edition.POLYCHROME));
-        add(t, "tag_investment", "Investment Tag", true, Timing.ON_BOSS_DEFEAT);
+        add(t, "tag_investment", "Investment Tag", true, Timing.ON_BOSS_DEFEAT,
+                new Effect.AdjustMoney(Effect.Operation.ADD, new Value.Const(25)));
         add(t, "tag_boss", "Boss Tag", true, Timing.HELD);
         // Pack tags are data: a booster pack appears in the next shop — AddPack(kind, size).
         add(t, "tag_standard", "Standard Tag", false, Timing.ON_SHOP, pack("STANDARD", "MEGA"));
@@ -33,7 +34,7 @@ public final class TagDefs {
         add(t, "tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP, pack("SPECTRAL", "NORMAL"));
         add(t, "tag_coupon", "Coupon Tag", true, Timing.ON_SHOP, new Effect.ShopFlag("COUPON"));
         add(t, "tag_double", "Double Tag", true, Timing.HELD);
-        add(t, "tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND);
+        add(t, "tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND, new Effect.AdjustHandSize(3));
         add(t, "tag_d_six", "D6 Tag", true, Timing.ON_SHOP, new Effect.ShopFlag("D6"));
         add(t, "tag_voucher", "Voucher Tag", true, Timing.ON_SHOP, new Effect.AddShopVoucher());
         // Economy: gain min(money, 40) — AdjustMoney(ADD, clamp(money, 0, 40)) — a double, capped at +$40.

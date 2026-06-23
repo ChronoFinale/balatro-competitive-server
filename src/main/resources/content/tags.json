@@ -89,7 +89,16 @@
     "description" : "Gain $25 after defeating the next Boss Blind",
     "ante1" : true,
     "timing" : "ON_BOSS_DEFEAT",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "adjustMoney",
+        "op" : "ADD",
+        "amount" : {
+          "type" : "const",
+          "amount" : 25.0
+        }
+      }
+    ]
   },
   {
     "key" : "tag_boss",
@@ -196,7 +205,12 @@
     "description" : "+3 hand size next round",
     "ante1" : true,
     "timing" : "NEXT_BLIND",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "adjustHandSize",
+        "delta" : 3
+      }
+    ]
   },
   {
     "key" : "tag_d_six",

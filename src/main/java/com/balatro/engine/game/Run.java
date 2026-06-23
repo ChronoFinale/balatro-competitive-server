@@ -907,6 +907,7 @@ public final class Run {
                 if ("COUPON".equals(sf.flag())) couponActive = true;
                 else if ("D6".equals(sf.flag())) d6Active = true;
             }
+            case Effect.AdjustHandSize ah -> state.handSize += ah.delta();  // Juggle tag (+3 this round)
             default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
@@ -1865,21 +1866,25 @@ public final class Run {
         for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
     }
 
-    /** NEXT_BLIND tags, applied at blind start (before the hand is dealt). */
+    /** NEXT_BLIND tags, applied at blind start (Juggle: +3 hand size — a data AdjustHandSize effect). */
     private void applyBlindTags() {
-        if (state.tags.remove("tag_juggle")) state.handSize += 3; // Juggle: +3 hand size this round
+        applyHeldTagsOfTiming(TagCatalog.Timing.NEXT_BLIND);
     }
 
-    /** ON_SHOP tags: resolve held tags that act on the shop when it opens (free packs / free
-     *  jokers / editioned-and-free jokers / an extra voucher / Coupon / D6). Consumes each. */
+    /** ON_SHOP tags resolve as data when the shop opens (packs / free-jokers / voucher / coupon / d6). */
     private void applyShopTags() {
         if (shop == null) return;
-        List<String> shopTags = state.tags.stream()
-                .filter(t -> TagCatalog.timing(t) == TagCatalog.Timing.ON_SHOP).toList();
-        for (String t : shopTags) {
-            state.tags.remove(t); // consume one instance
-            TagCatalog.Tag tag = TagCatalog.get(t); // ON_SHOP tags are data: packs/free-jokers/voucher/coupon/d6
+        applyHeldTagsOfTiming(TagCatalog.Timing.ON_SHOP);
+    }
+
+    /** Resolve and consume every held tag of {@code timing}, applying its data {@link Effect}s through the
+     *  shared run-loop interpreter. The one place held tags turn into behaviour. */
+    private void applyHeldTagsOfTiming(TagCatalog.Timing timing) {
+        List<String> held = state.tags.stream().filter(t -> TagCatalog.timing(t) == timing).toList();
+        for (String key : held) {
+            TagCatalog.Tag tag = TagCatalog.get(key);
             if (tag == null) continue;
+            state.tags.remove(key); // consume one instance
             com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
             ctx.run = state;
             ctx.rng = rng;
@@ -1912,15 +1917,11 @@ public final class Run {
         shop.items().add(new Shop.Item(Shop.Kind.JOKER, key, info.name(), info.description(), 0, info.rarity(), ed));
     }
 
-    /** ON_BOSS_DEFEAT tags: each held Investment Tag pays $25 after a boss is beaten. */
+    /** ON_BOSS_DEFEAT tags resolve as data after a boss is beaten (Investment: +$25 each). */
     private void applyBossDefeatTags() {
-        long inv = state.tags.stream().filter(t -> t.equals("tag_investment")).count();
-        if (inv > 0) {
-            state.tags.removeIf(t -> t.equals("tag_investment"));
-            state.money += (int) (25 * inv);
-        }
+        applyHeldTagsOfTiming(TagCatalog.Timing.ON_BOSS_DEFEAT);
         // Anaglyph Deck: gain a Double Tag after defeating each Boss Blind (back.lua:111-120).
-        state.tags.addAll(deckType.onBossDefeatTags()); // Anaglyph: Double Tag after each Boss
+        state.tags.addAll(deckType.onBossDefeatTags());
     }
 
     /** Roll this shop's two booster packs from the game-long packs queue (kept across rerolls). */
