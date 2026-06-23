@@ -147,7 +147,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,
@@ -202,7 +201,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,
@@ -237,7 +235,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,
@@ -272,7 +269,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,
@@ -337,7 +333,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,
@@ -393,7 +388,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,
@@ -448,7 +442,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,
@@ -508,7 +501,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,
@@ -563,7 +555,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "blindSelectConsume" : "NONE",
           "onSell" : {
             "disablesBoss" : false,
             "duplicatesJokerAfterRounds" : -1,

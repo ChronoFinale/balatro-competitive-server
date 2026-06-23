@@ -36,7 +36,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -91,7 +90,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -146,7 +144,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -201,7 +198,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -254,7 +250,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -304,7 +299,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -356,7 +350,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -407,7 +400,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -459,7 +451,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -509,7 +500,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -560,7 +550,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -637,7 +626,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -724,7 +712,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -756,7 +743,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -790,7 +776,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -842,7 +827,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -900,7 +884,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -952,7 +935,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1004,7 +986,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1054,7 +1035,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1105,7 +1085,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1183,7 +1162,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1234,7 +1212,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1285,7 +1262,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1336,7 +1312,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1387,7 +1362,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1438,7 +1412,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1489,7 +1462,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1540,7 +1512,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1591,7 +1562,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1652,7 +1622,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1702,7 +1671,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1773,7 +1741,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1850,7 +1817,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1902,7 +1868,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -1954,7 +1919,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2031,7 +1995,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2109,7 +2072,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2160,7 +2122,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2211,7 +2172,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2262,7 +2222,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2313,7 +2272,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2364,7 +2322,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2416,7 +2373,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2468,7 +2424,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2518,7 +2473,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2594,7 +2548,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2671,7 +2624,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2723,7 +2675,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2786,7 +2737,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2839,7 +2789,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2892,7 +2841,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2945,7 +2893,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -2998,7 +2945,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3053,7 +2999,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3108,7 +3053,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3214,7 +3158,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3266,7 +3209,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3327,7 +3269,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3391,7 +3332,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3455,7 +3395,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3513,7 +3452,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3566,7 +3504,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3618,7 +3555,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3668,7 +3604,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3736,7 +3671,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3809,7 +3743,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3843,7 +3776,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3877,7 +3809,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3911,7 +3842,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -3961,7 +3891,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4019,7 +3948,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4070,7 +3998,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4120,7 +4047,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4179,7 +4105,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4233,7 +4158,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4267,7 +4191,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4301,7 +4224,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4393,7 +4315,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4470,7 +4391,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4523,7 +4443,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4576,7 +4495,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4614,7 +4532,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4652,7 +4569,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4695,7 +4611,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4738,7 +4653,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4781,7 +4695,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4837,7 +4750,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4889,7 +4801,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -4941,7 +4852,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5009,7 +4919,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5072,7 +4981,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5137,7 +5045,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5189,7 +5096,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5252,7 +5158,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5326,7 +5231,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5380,7 +5284,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5432,7 +5335,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5484,7 +5386,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5551,7 +5452,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5602,7 +5502,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5671,7 +5570,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5739,7 +5637,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5810,7 +5707,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -5898,7 +5794,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6005,7 +5900,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6070,7 +5964,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6138,7 +6031,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6190,7 +6082,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6266,7 +6157,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6342,7 +6232,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6392,7 +6281,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6437,7 +6325,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6492,7 +6379,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6568,7 +6454,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6606,7 +6491,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6658,7 +6542,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6690,7 +6573,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6741,7 +6623,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6793,7 +6674,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6846,7 +6726,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6926,7 +6805,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -6970,7 +6848,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7019,7 +6896,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : 2,
@@ -7063,7 +6939,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7116,6 +6991,19 @@
             }
           }
         ]
+      },
+      {
+        "when" : "BLIND_SELECTED",
+        "condition" : {
+          "type" : "always"
+        },
+        "effects" : [
+          {
+            "type" : "destroyOtherJoker",
+            "scope" : "RIGHT_NEIGHBOR",
+            "gainMult" : true
+          }
+        ]
       }
     ],
     "handMods" : [ ],
@@ -7123,7 +7011,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "RIGHT_NEIGHBOR",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7195,6 +7082,19 @@
             }
           }
         ]
+      },
+      {
+        "when" : "BLIND_SELECTED",
+        "condition" : {
+          "type" : "always"
+        },
+        "effects" : [
+          {
+            "type" : "destroyOtherJoker",
+            "scope" : "RANDOM_OTHER",
+            "gainMult" : false
+          }
+        ]
       }
     ],
     "handMods" : [ ],
@@ -7202,7 +7102,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "RANDOM_OTHER",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7254,7 +7153,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7286,7 +7184,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7347,7 +7244,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7379,7 +7275,6 @@
     "runMod" : {
       "disablesBoss" : true,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7428,7 +7323,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7477,7 +7371,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7515,7 +7408,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7553,7 +7445,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7591,7 +7482,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7623,7 +7513,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.25,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7661,7 +7550,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7717,7 +7605,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7813,7 +7700,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7865,7 +7751,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7926,7 +7811,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -7978,7 +7862,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -8029,7 +7912,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -8080,7 +7962,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -8131,7 +8012,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -8181,7 +8061,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -8233,7 +8112,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -8317,7 +8195,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,
@@ -8393,7 +8270,6 @@
     "runMod" : {
       "disablesBoss" : false,
       "survivesLostBlindFraction" : 0.0,
-      "blindSelectConsume" : "NONE",
       "onSell" : {
         "disablesBoss" : false,
         "duplicatesJokerAfterRounds" : -1,

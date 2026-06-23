@@ -339,16 +339,17 @@ public final class Run {
         List<Joker> js = state.jokers();
         // Ceremonial Dagger (RIGHT_NEIGHBOR): any blind; eats its right neighbour, gains 2x its sell value as Mult.
         for (int i = 0; i < js.size(); i++) {
-            if (blindSelectConsume(js.get(i)) != RunMod.BlindSelectConsume.RIGHT_NEIGHBOR || i + 1 >= js.size()) continue;
+            Effect.DestroyOtherJoker d = jokerDestroyer(js.get(i));
+            if (d == null || !"RIGHT_NEIGHBOR".equals(d.scope()) || i + 1 >= js.size()) continue;
             if (state.jokerFlag(js.get(i + 1), "eternal")) continue; // eternal can't be eaten
             Joker victim = js.remove(i + 1);
-            int gain = 2 * Math.max(1, victim.info().cost() / 2);
-            state.addJokerInt(js.get(i), "mult", gain);
+            if (d.gainMult()) state.addJokerInt(js.get(i), "mult", 2 * Math.max(1, victim.info().cost() / 2));
         }
         if (blind == BlindType.BOSS) return; // random joker-eaters (Madness) don't trigger on boss blinds
         // Madness (RANDOM_OTHER): Small/Big only; the ×0.5 Mult rides a state-write rule, this is just "eat a joker".
         for (int i = 0; i < js.size(); i++) {
-            if (blindSelectConsume(js.get(i)) != RunMod.BlindSelectConsume.RANDOM_OTHER) continue;
+            Effect.DestroyOtherJoker d = jokerDestroyer(js.get(i));
+            if (d == null || !"RANDOM_OTHER".equals(d.scope())) continue;
             List<Joker> others = new ArrayList<>();
             for (int k = 0; k < js.size(); k++) { // eternal jokers can't be destroyed -> excluded as targets
                 if (k != i && !state.jokerFlag(js.get(k), "eternal")) others.add(js.get(k));
@@ -362,9 +363,15 @@ public final class Run {
         }
     }
 
-    /** A joker's blind-select consume capability (NONE if it isn't a data joker). */
-    private static RunMod.BlindSelectConsume blindSelectConsume(Joker j) {
-        return (j instanceof DataJoker dj) ? dj.def().runMod().blindSelectConsume() : RunMod.BlindSelectConsume.NONE;
+    /** A joker's blind-select "eat a joker" intent as DATA — its {@code BLIND_SELECTED} {@link
+     *  Effect.DestroyOtherJoker} rule, or null. The careful destruction stays engine machinery above. */
+    private static Effect.DestroyOtherJoker jokerDestroyer(Joker j) {
+        if (!(j instanceof DataJoker dj)) return null;
+        for (Rule r : dj.def().rules()) {
+            if (r.when() != Trigger.BLIND_SELECTED) continue;
+            for (Effect e : r.effects()) if (e instanceof Effect.DestroyOtherJoker d) return d;
+        }
+        return null;
     }
 
     /** Whether the active boss has an ability (a debuff or a hand/discard/size override). */

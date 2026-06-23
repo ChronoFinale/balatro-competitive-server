@@ -59,6 +59,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
     @JsonSubTypes.Type(value = Effect.DuplicateRandomConsumable.class, name = "duplicateRandomConsumable"),
     @JsonSubTypes.Type(value = Effect.CreateTag.class, name = "createTag"),
+    @JsonSubTypes.Type(value = Effect.DestroyOtherJoker.class, name = "destroyOtherJoker"),
 })
 public sealed interface Effect {
 
@@ -344,6 +345,11 @@ public sealed interface Effect {
 
     /** Grant a free skip {@code tag} (honouring a held Double Tag) — Diet Cola creates a Double Tag on sell. */
     record CreateTag(String tag) implements Effect {}
+
+    /** At blind select, eat another owned Joker: {@code "RIGHT_NEIGHBOR"} (Ceremonial Dagger — and with
+     *  {@code gainMult}, gain 2× the victim's sell value as this joker's Mult) or {@code "RANDOM_OTHER"}
+     *  (Madness, Small/Big only). The careful index/eternal handling stays in {@code Run}; this is the intent. */
+    record DestroyOtherJoker(String scope, boolean gainMult) implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {
