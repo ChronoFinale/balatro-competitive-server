@@ -173,9 +173,20 @@
         return cv === null ? null : cmp(cond.cmp, cv, cond.threshold);
       }
       case 'heldAllSuits': return (ctx.held || []).every((x) => cond.suits.some((s) => isSuit(x, s)));
-      case 'and': return cond.all.every((x) => condTest(x, ctx));
-      case 'or': return cond.any.some((x) => condTest(x, ctx));
-      case 'not': return !condTest(cond.inner, ctx);
+      // Three-valued (Kleene) logic: condTest returns true/false/null, where null = "unsupported,
+      // fall back to the server". The combinators MUST propagate null — collapsing it to a boolean
+      // (the old .every/.some/!) silently mis-scores any chance/native condition nested in and/or/not.
+      case 'and': {
+        let unknown = false;
+        for (const x of cond.all) { const t = condTest(x, ctx); if (t === false) return false; if (t === null) unknown = true; }
+        return unknown ? null : true;
+      }
+      case 'or': {
+        let unknown = false;
+        for (const x of cond.any) { const t = condTest(x, ctx); if (t === true) return true; if (t === null) unknown = true; }
+        return unknown ? null : false;
+      }
+      case 'not': { const t = condTest(cond.inner, ctx); return t === null ? null : !t; }
       case 'chance': return null; // probabilistic — signal "unsupported" -> caller falls back
       case 'bossDefeated': return null; // end-of-round only; never used in scoring
       case 'handPlayedThisRound':

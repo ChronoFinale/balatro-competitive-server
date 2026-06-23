@@ -284,6 +284,17 @@ class PreviewFixtureGenerator {
         scenario("card-sharp", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
                 List.of(), run -> run.handTypesThisRound.add(HandType.PAIR), "j_card_sharp");
 
+        // Exhaustive baseline sweep: every joker solo on a fixed Pair, so the preview-mirror
+        // harness covers the WHOLE catalog, not just the hand-picked stateful cases above. A joker
+        // whose preview is unsupported (probabilistic/native) returns null and is skipped by the
+        // harness; one that returns a wrong number is caught. This is what makes a vocabulary
+        // refactor that desyncs preview.js fail the build for ANY joker, not only the 52 below.
+        List<Card> basePair = play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES),
+                c(Rank.TWO, Suit.CLUBS), c(Rank.THREE, Suit.CLUBS), c(Rank.FOUR, Suit.DIAMONDS));
+        for (String key : JokerDefLibrary.all().keySet()) {
+            scenario("all:" + key, basePair, List.of(), key);
+        }
+
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
     }
