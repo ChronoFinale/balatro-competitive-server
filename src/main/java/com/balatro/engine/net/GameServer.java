@@ -136,91 +136,91 @@ public final class GameServer implements AutoCloseable {
                 }
             });
 
-            // ---- Joker builder: define a joker as data, persist + register it ----
-
-            // The building-block vocabulary the builder UI renders (driven by real enums).
-            cfg.routes.get("/jokers/schema", ctx -> ctx.json(BuilderSchema.build()));
-
-            // List every custom joker authored so far.
-            cfg.routes.get("/jokers", ctx -> ctx.json(jokerStore.all()));
-
-            // Every joker selectable for a ruleset pool (curated built-ins + custom).
-            cfg.routes.get("/jokers/available", ctx -> ctx.json(availableJokers()));
-
-            // Rulesets the lobby/builder can use (curated + custom).
-            cfg.routes.get("/rulesets", ctx -> ctx.json(rulesetStore.all()));
-
-            registerContentSyncRoutes(cfg);
-
-            // Create a custom ruleset (a bundle that, with its joker pool, dictates a match).
-            cfg.routes.post("/rulesets", ctx -> {
-                try {
-                    Ruleset r = json.readValue(ctx.body(), Ruleset.class);
-                    ctx.json(rulesetStore.save(r));
-                } catch (IllegalArgumentException e) {
-                    ctx.status(400).json(Map.of("error", String.valueOf(e.getMessage())));
-                } catch (Exception e) {
-                    ctx.status(400).json(Map.of("error", "invalid ruleset: " + e.getMessage()));
-                }
-            });
-
-            // Composable bundles (content overlays + capabilities + mode). GET lists; POST registers a
-            // custom mode at runtime (validated by resolving its content), joining the selectable rulesets.
-            cfg.routes.get("/bundles", ctx -> ctx.json(com.balatro.engine.state.BundleCatalog.names()));
-            cfg.routes.post("/bundles", ctx -> {
-                try {
-                    var b = json.readValue(ctx.body(), com.balatro.engine.state.RulesetBundle.class);
-                    b.content(); // validate it resolves (known base + every overlay exists)
-                    com.balatro.engine.state.BundleCatalog.register(b);
-                    ctx.json(Map.of("name", b.name(), "registered", true));
-                } catch (Exception e) {
-                    ctx.status(400).json(Map.of("error", "invalid bundle: " + e.getMessage()));
-                }
-            });
-
-            // Create/replace a custom joker from a JokerDef JSON body.
-            cfg.routes.post("/jokers", ctx -> {
-                try {
-                    JokerDef def = json.readValue(ctx.body(), JokerDef.class);
-                    ctx.json(jokerStore.save(def));
-                } catch (IllegalArgumentException e) {
-                    ctx.status(400).json(Map.of("error", e.getMessage()));
-                } catch (Exception e) {
-                    ctx.status(400).json(Map.of("error", "invalid joker definition: " + e.getMessage()));
-                }
-            });
-
-            // Upload a sprite (raw PNG body) for an existing joker; scale = 1 or 2.
-            cfg.routes.post("/jokers/{key}/sprite/{scale}", ctx -> {
-                try {
-                    JokerDef updated = jokerStore.saveSprite(
-                            ctx.pathParam("key"),
-                            Integer.parseInt(ctx.pathParam("scale")),
-                            ctx.bodyAsBytes());
-                    ctx.json(updated);
-                } catch (IllegalArgumentException e) { // incl. NumberFormatException
-                    ctx.status(400).json(Map.of("error", String.valueOf(e.getMessage())));
-                }
-            });
-
-            // Serve uploaded custom sprites (traversal-safe, under the store dir).
-            cfg.routes.get("/custom/{name}", ctx -> {
-                java.nio.file.Path f = jokerStore.resolveAsset(ctx.pathParam("name"));
-                if (f != null && java.nio.file.Files.isRegularFile(f)) {
-                    if (f.toString().endsWith(".png")) ctx.contentType("image/png");
-                    ctx.result(java.nio.file.Files.readAllBytes(f));
-                } else {
-                    ctx.status(404);
-                }
-            });
-
-            registerAuthRoutes(cfg);
+            registerBuilderRoutes(cfg);    // joker builder: schema, list, save, sprite, custom assets
+            registerRulesetRoutes(cfg);    // custom rulesets + composable bundles
+            registerContentSyncRoutes(cfg); // delta-sync manifest/files + bootstrap
+            registerAuthRoutes(cfg);       // OAuth + dev login
 
             // Game socket (WebSocket transport).
             cfg.routes.ws("/game", ws -> {
                 ws.onMessage(ctx -> handle(new WsConnection(ctx), ctx.message()));
                 ws.onClose(ctx -> dropSession(ctx.sessionId()));
             });
+        });
+    }
+
+    /** Joker builder: the building-block vocabulary the UI renders, the custom-joker list + the pool of
+     *  every selectable joker, create/replace a joker from JSON, sprite upload, and serving custom assets. */
+    private void registerBuilderRoutes(io.javalin.config.JavalinConfig cfg) {
+        // The building-block vocabulary the builder UI renders (driven by real enums).
+        cfg.routes.get("/jokers/schema", ctx -> ctx.json(BuilderSchema.build()));
+        // List every custom joker authored so far.
+        cfg.routes.get("/jokers", ctx -> ctx.json(jokerStore.all()));
+        // Every joker selectable for a ruleset pool (curated built-ins + custom).
+        cfg.routes.get("/jokers/available", ctx -> ctx.json(availableJokers()));
+        // Create/replace a custom joker from a JokerDef JSON body.
+        cfg.routes.post("/jokers", ctx -> {
+            try {
+                JokerDef def = json.readValue(ctx.body(), JokerDef.class);
+                ctx.json(jokerStore.save(def));
+            } catch (IllegalArgumentException e) {
+                ctx.status(400).json(Map.of("error", e.getMessage()));
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", "invalid joker definition: " + e.getMessage()));
+            }
+        });
+        // Upload a sprite (raw PNG body) for an existing joker; scale = 1 or 2.
+        cfg.routes.post("/jokers/{key}/sprite/{scale}", ctx -> {
+            try {
+                JokerDef updated = jokerStore.saveSprite(
+                        ctx.pathParam("key"),
+                        Integer.parseInt(ctx.pathParam("scale")),
+                        ctx.bodyAsBytes());
+                ctx.json(updated);
+            } catch (IllegalArgumentException e) { // incl. NumberFormatException
+                ctx.status(400).json(Map.of("error", String.valueOf(e.getMessage())));
+            }
+        });
+        // Serve uploaded custom sprites (traversal-safe, under the store dir).
+        cfg.routes.get("/custom/{name}", ctx -> {
+            java.nio.file.Path f = jokerStore.resolveAsset(ctx.pathParam("name"));
+            if (f != null && java.nio.file.Files.isRegularFile(f)) {
+                if (f.toString().endsWith(".png")) ctx.contentType("image/png");
+                ctx.result(java.nio.file.Files.readAllBytes(f));
+            } else {
+                ctx.status(404);
+            }
+        });
+    }
+
+    /** Custom rulesets + composable bundles: list the rulesets a lobby can use, save a custom ruleset, and
+     *  list/register composable bundles (a new mode authored as JSON, validated by resolving its content). */
+    private void registerRulesetRoutes(io.javalin.config.JavalinConfig cfg) {
+        // Rulesets the lobby/builder can use (curated + custom).
+        cfg.routes.get("/rulesets", ctx -> ctx.json(rulesetStore.all()));
+        // Create a custom ruleset (a bundle that, with its joker pool, dictates a match).
+        cfg.routes.post("/rulesets", ctx -> {
+            try {
+                Ruleset r = json.readValue(ctx.body(), Ruleset.class);
+                ctx.json(rulesetStore.save(r));
+            } catch (IllegalArgumentException e) {
+                ctx.status(400).json(Map.of("error", String.valueOf(e.getMessage())));
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", "invalid ruleset: " + e.getMessage()));
+            }
+        });
+        // Composable bundles (content overlays + capabilities + mode). GET lists; POST registers a custom
+        // mode at runtime (validated by resolving its content), joining the selectable rulesets.
+        cfg.routes.get("/bundles", ctx -> ctx.json(com.balatro.engine.state.BundleCatalog.names()));
+        cfg.routes.post("/bundles", ctx -> {
+            try {
+                var b = json.readValue(ctx.body(), com.balatro.engine.state.RulesetBundle.class);
+                b.content(); // validate it resolves (known base + every overlay exists)
+                com.balatro.engine.state.BundleCatalog.register(b);
+                ctx.json(Map.of("name", b.name(), "registered", true));
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", "invalid bundle: " + e.getMessage()));
+            }
         });
     }
 
