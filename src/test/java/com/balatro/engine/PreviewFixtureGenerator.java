@@ -294,6 +294,16 @@ class PreviewFixtureGenerator {
         for (String key : JokerDefLibrary.all().keySet()) {
             scenario("all:" + key, basePair, List.of(), key);
         }
+        // Second sweep on a richer state — a Heart Flush of face cards, final hand, no discards left,
+        // money on hand, deeper ante — so flush/final-hand/money/face/ante jokers actually fire instead
+        // of scoring an inert base. A divergence on any joker's ACTIVE path now fails the build too.
+        List<Card> faceFlush = play(c(Rank.KING, Suit.HEARTS), c(Rank.QUEEN, Suit.HEARTS),
+                c(Rank.JACK, Suit.HEARTS), c(Rank.TEN, Suit.HEARTS), c(Rank.NINE, Suit.HEARTS));
+        for (String key : JokerDefLibrary.all().keySet()) {
+            scenario("flush:" + key, faceFlush, List.of(c(Rank.EIGHT, Suit.HEARTS)), run -> {
+                run.money = 20; run.handsLeft = 1; run.discardsLeft = 0; run.ante = 4;
+            }, key);
+        }
 
         Files.createDirectories(Path.of("build"));
         Files.write(Path.of("build/preview-fixtures.json"), json.writeValueAsBytes(fixtures));
