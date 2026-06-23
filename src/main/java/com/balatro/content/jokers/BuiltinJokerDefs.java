@@ -554,7 +554,7 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
                 Jokers.of("j_perkeo", "Perkeo")
-                        .runMod(RunMod.consumableDuplicator()).build(),
+                        .on(Trigger.SHOP_EXIT).effect(new Effect.DuplicateRandomConsumable()).build(),
                 Jokers.of("j_invisible", "Invisible Joker")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("rounds", 1)
                         .runMod(RunMod.duplicatesJokerOnSell(2)).build(),

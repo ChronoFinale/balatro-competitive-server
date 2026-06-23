@@ -908,6 +908,12 @@ public final class Run {
                 else if ("D6".equals(sf.flag())) d6Active = true;
             }
             case Effect.AdjustHandSize ah -> state.handSize += ah.delta();  // Juggle tag (+3 this round)
+            case Effect.DuplicateRandomConsumable ignored -> { // Perkeo (shop exit)
+                if (!state.consumables.isEmpty()) {
+                    String dup = state.queues.pick(state.consumables, RngSources.PERKEO_DUP, rngCtx(), s -> s, (a, b) -> 0);
+                    state.consumables.add(dup); // Negative copy ignores the slot cap
+                }
+            }
             default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
@@ -1832,11 +1838,29 @@ public final class Run {
         return m;
     }
 
-    /** Perkeo: leaving the shop, create a (Negative) copy of a random held consumable. */
+    /** Perkeo: leaving the shop, a SHOP_EXIT joker rule duplicates a random held consumable (data). */
     private void applyShopExit() {
-        if (!anyOwnedRunMod(m -> m.duplicatesConsumableOnShopExit()) || state.consumables.isEmpty()) return;
-        String dup = state.queues.pick(state.consumables, RngSources.PERKEO_DUP, rngCtx(), s -> s, (a, b) -> 0);
-        state.consumables.add(dup); // Negative copy ignores the slot cap
+        raiseJokerRules(Trigger.SHOP_EXIT);
+    }
+
+    /** Fire every owned data-joker's rules for a lifecycle {@code trigger} through the run-loop interpreter —
+     *  the joker-side twin of {@link #raiseBossRules}. Used for capability effects (Perkeo on shop exit) that
+     *  mutate run state, which the scoring/GameEvents paths don't apply. */
+    private void raiseJokerRules(Trigger trigger) {
+        com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
+        ctx.run = state;
+        ctx.rng = rng;
+        ctx.jokers = state.jokers();
+        List<Joker> owned = state.jokers();
+        for (int i = 0; i < owned.size(); i++) {
+            if (!(owned.get(i) instanceof DataJoker dj)) continue;
+            ctx.selfIndex = i;
+            for (Rule r : dj.def().rules()) {
+                if (r.when() != trigger) continue;
+                if (r.condition() != null && !r.condition().test(ctx)) continue;
+                for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
+            }
+        }
     }
 
     /** Grant a tag, honoring a held Double Tag (which duplicates the next tag gained). */

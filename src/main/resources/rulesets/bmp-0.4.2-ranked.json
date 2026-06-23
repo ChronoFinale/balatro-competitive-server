@@ -155,7 +155,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
@@ -211,7 +210,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
@@ -247,7 +245,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 3,
           "pvpSkipBonus" : false
         },
@@ -283,7 +280,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : true
         },
@@ -349,7 +345,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
@@ -406,7 +401,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
@@ -462,7 +456,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
@@ -523,7 +516,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },
@@ -579,7 +571,6 @@
           },
           "doublesProbability" : false,
           "handSizeDecayStart" : 0,
-          "duplicatesConsumableOnShopExit" : false,
           "pvpShopSpendDenominator" : 0,
           "pvpSkipBonus" : false
         },

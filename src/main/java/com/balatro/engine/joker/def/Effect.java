@@ -57,6 +57,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AddShopVoucher.class, name = "addShopVoucher"),
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
     @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
+    @JsonSubTypes.Type(value = Effect.DuplicateRandomConsumable.class, name = "duplicateRandomConsumable"),
 })
 public sealed interface Effect {
 
@@ -336,6 +337,9 @@ public sealed interface Effect {
 
     /** Bump the hand size by {@code delta} for the current round (Juggle tag: +3 this blind). */
     record AdjustHandSize(int delta) implements Effect {}
+
+    /** Create a (Negative) copy of a random held consumable, ignoring the slot cap (Perkeo on shop exit). */
+    record DuplicateRandomConsumable() implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {
