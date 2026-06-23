@@ -52,6 +52,10 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.DisableBoss.class, name = "disableBoss"),
     @JsonSubTypes.Type(value = Effect.AddPack.class, name = "addPack"),
     @JsonSubTypes.Type(value = Effect.CreateShopJoker.class, name = "createShopJoker"),
+    @JsonSubTypes.Type(value = Effect.LevelMostPlayedHand.class, name = "levelMostPlayedHand"),
+    @JsonSubTypes.Type(value = Effect.GrantJokers.class, name = "grantJokers"),
+    @JsonSubTypes.Type(value = Effect.AddShopVoucher.class, name = "addShopVoucher"),
+    @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
 })
 public sealed interface Effect {
 
@@ -315,6 +319,19 @@ public sealed interface Effect {
     /** Add a free Joker to the next shop — of a given {@code rarity} (Rare/Uncommon tags), or a random one
      *  with an {@code edition} (Foil/Holo/Polychrome/Negative tags). {@code rarity != null} wins. */
     record CreateShopJoker(String rarity, Edition edition) implements Effect {}
+
+    /** Level up the most-played poker hand by {@code levels} (Orbital tag). */
+    record LevelMostPlayedHand(int levels) implements Effect {}
+
+    /** Grant {@code count} free Jokers of {@code rarity} directly to the player, up to joker slots (Top-Up tag). */
+    record GrantJokers(String rarity, int count) implements Effect {}
+
+    /** Add an extra Voucher to the next shop (Voucher tag). */
+    record AddShopVoucher() implements Effect {}
+
+    /** Set a shop policy flag for the next shop: {@code "COUPON"} (free initial items) or {@code "D6"}
+     *  ($0 base reroll) — Coupon / D6 tags. */
+    record ShopFlag(String flag) implements Effect {}
 
     /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
     record DestroySelf() implements Effect {

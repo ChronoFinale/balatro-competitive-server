@@ -888,6 +888,25 @@ public final class Run {
                 if (cj.rarity() != null) addFreeJoker(cj.rarity());
                 else addFreeEditionedJoker(cj.edition());
             }
+            case Effect.LevelMostPlayedHand lm -> { // Orbital tag
+                com.balatro.engine.hand.HandType best = mostPlayedHand();
+                if (best == null) best = com.balatro.engine.hand.HandType.HIGH_CARD;
+                for (int i = 0; i < lm.levels(); i++) state.levelUpHand(best);
+            }
+            case Effect.GrantJokers gj -> { // Top-Up tag: free jokers straight to the player
+                List<String> pool = JokerLibrary.keysByRarity(gj.rarity());
+                if (!pool.isEmpty()) {
+                    var q = state.queues.queue(RngSources.TAG_TOPUP, r -> pool.get(r.nextInt(pool.size())));
+                    for (int i = 0; i < gj.count() && state.jokers().size() < state.jokerSlots; i++) {
+                        state.addJoker(JokerLibrary.create(q.next(), ruleset.jokerVariant()));
+                    }
+                }
+            }
+            case Effect.AddShopVoucher ignored -> addTagVoucher();          // Voucher tag
+            case Effect.ShopFlag sf -> {                                    // Coupon / D6 tags
+                if ("COUPON".equals(sf.flag())) couponActive = true;
+                else if ("D6".equals(sf.flag())) d6Active = true;
+            }
             default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
@@ -1836,34 +1855,14 @@ public final class Run {
         }
     }
 
+    /** IMMEDIATE tags: resolve their data {@link Effect}s on claim (Economy/Speed/Handy/Garbage/Orbital/Top-Up). */
     private void applyImmediateTag(String key) {
         TagCatalog.Tag tag = TagCatalog.get(key);
-        if (tag != null && !tag.effects().isEmpty()) { // data-driven tags (Speed/Handy/Garbage: AdjustMoney)
-            com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
-            ctx.run = state;
-            ctx.rng = rng;
-            for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
-            return;
-        }
-        switch (key) {
-            case "tag_economy" -> state.money += Math.min(state.money, 40);   // double money, max +$40
-            case "tag_orbital" -> {
-                HandType best = HandType.HIGH_CARD;
-                int most = -1;
-                for (var e : state.handTypePlays.entrySet()) {
-                    if (e.getValue() > most) { most = e.getValue(); best = e.getKey(); }
-                }
-                for (int i = 0; i < 3; i++) state.levelUpHand(best);           // +3 levels to most-played
-            }
-            case "tag_top_up" -> {                                            // up to 2 Common Jokers
-                List<String> commons = JokerLibrary.keysByRarity("Common");
-                var q = state.queues.queue(RngSources.TAG_TOPUP, r -> commons.get(r.nextInt(commons.size())));
-                for (int i = 0; i < 2 && state.jokers().size() < state.jokerSlots && !commons.isEmpty(); i++) {
-                    state.addJoker(JokerLibrary.create(q.next(), ruleset.jokerVariant()));
-                }
-            }
-            default -> { /* not an immediate tag */ }
-        }
+        if (tag == null || tag.effects().isEmpty()) return;
+        com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
+        ctx.run = state;
+        ctx.rng = rng;
+        for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
     }
 
     /** NEXT_BLIND tags, applied at blind start (before the hand is dealt). */
@@ -1879,20 +1878,12 @@ public final class Run {
                 .filter(t -> TagCatalog.timing(t) == TagCatalog.Timing.ON_SHOP).toList();
         for (String t : shopTags) {
             state.tags.remove(t); // consume one instance
-            TagCatalog.Tag tag = TagCatalog.get(t);
-            if (tag != null && !tag.effects().isEmpty()) { // data-driven (pack tags: AddPack)
-                com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
-                ctx.run = state;
-                ctx.rng = rng;
-                for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
-                continue;
-            }
-            switch (t) {
-                case "tag_voucher" -> addTagVoucher();
-                case "tag_coupon" -> couponActive = true;
-                case "tag_d_six" -> d6Active = true;
-                default -> { /* unmodelled ON_SHOP tag */ }
-            }
+            TagCatalog.Tag tag = TagCatalog.get(t); // ON_SHOP tags are data: packs/free-jokers/voucher/coupon/d6
+            if (tag == null) continue;
+            com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
+            ctx.run = state;
+            ctx.rng = rng;
+            for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
         }
     }
 

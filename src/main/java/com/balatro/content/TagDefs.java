@@ -24,7 +24,6 @@ public final class TagDefs {
         add(t, "tag_holo", "Holographic Tag", true, Timing.ON_SHOP, editioned(Edition.HOLOGRAPHIC));
         add(t, "tag_polychrome", "Polychrome Tag", true, Timing.ON_SHOP, editioned(Edition.POLYCHROME));
         add(t, "tag_investment", "Investment Tag", true, Timing.ON_BOSS_DEFEAT);
-        add(t, "tag_voucher", "Voucher Tag", true, Timing.ON_SHOP);
         add(t, "tag_boss", "Boss Tag", true, Timing.HELD);
         // Pack tags are data: a booster pack appears in the next shop — AddPack(kind, size).
         add(t, "tag_standard", "Standard Tag", false, Timing.ON_SHOP, pack("STANDARD", "MEGA"));
@@ -32,14 +31,18 @@ public final class TagDefs {
         add(t, "tag_meteor", "Meteor Tag", false, Timing.ON_SHOP, pack("CELESTIAL", "MEGA"));
         add(t, "tag_buffoon", "Buffoon Tag", false, Timing.ON_SHOP, pack("BUFFOON", "MEGA"));
         add(t, "tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP, pack("SPECTRAL", "NORMAL"));
-        add(t, "tag_coupon", "Coupon Tag", true, Timing.ON_SHOP);
+        add(t, "tag_coupon", "Coupon Tag", true, Timing.ON_SHOP, new Effect.ShopFlag("COUPON"));
         add(t, "tag_double", "Double Tag", true, Timing.HELD);
         add(t, "tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND);
-        add(t, "tag_d_six", "D6 Tag", true, Timing.ON_SHOP);
-        add(t, "tag_economy", "Economy Tag", true, Timing.IMMEDIATE);
+        add(t, "tag_d_six", "D6 Tag", true, Timing.ON_SHOP, new Effect.ShopFlag("D6"));
+        add(t, "tag_voucher", "Voucher Tag", true, Timing.ON_SHOP, new Effect.AddShopVoucher());
+        // Economy: gain min(money, 40) — AdjustMoney(ADD, clamp(money, 0, 40)) — a double, capped at +$40.
+        add(t, "tag_economy", "Economy Tag", true, Timing.IMMEDIATE,
+                new Effect.AdjustMoney(Effect.Operation.ADD,
+                        new Value.Clamp(new Value.RunVar(Value.Var.MONEY, 0, 1), 0, 40)));
         // The money tags are data: gain $ per run-state quantity — AdjustMoney(ADD, runVar * scale).
         add(t, "tag_skip", "Speed Tag", true, Timing.IMMEDIATE, gain(Value.Var.BLINDS_SKIPPED, 5));
-        add(t, "tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE);
+        add(t, "tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE, new Effect.LevelMostPlayedHand(3));
         add(t, "tag_handy", "Handy Tag", false, Timing.IMMEDIATE, gain(Value.Var.HANDS_PLAYED_TOTAL, 1));
         add(t, "tag_garbage", "Garbage Tag", false, Timing.IMMEDIATE, gain(Value.Var.CARDS_DISCARDED_TOTAL, 1));
         add(t, "tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE);

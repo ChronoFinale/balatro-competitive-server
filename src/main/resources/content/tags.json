@@ -92,14 +92,6 @@
     "effects" : [ ]
   },
   {
-    "key" : "tag_voucher",
-    "name" : "Voucher Tag",
-    "description" : "Adds one Voucher to the next shop",
-    "ante1" : true,
-    "timing" : "ON_SHOP",
-    "effects" : [ ]
-  },
-  {
     "key" : "tag_boss",
     "name" : "Boss Tag",
     "description" : "Rerolls the Boss Blind",
@@ -183,7 +175,12 @@
     "description" : "Initial shop cards & packs are free",
     "ante1" : true,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "shopFlag",
+        "flag" : "COUPON"
+      }
+    ]
   },
   {
     "key" : "tag_double",
@@ -207,7 +204,24 @@
     "description" : "Rerolls in the next shop start at $0",
     "ante1" : true,
     "timing" : "ON_SHOP",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "shopFlag",
+        "flag" : "D6"
+      }
+    ]
+  },
+  {
+    "key" : "tag_voucher",
+    "name" : "Voucher Tag",
+    "description" : "Adds one Voucher to the next shop",
+    "ante1" : true,
+    "timing" : "ON_SHOP",
+    "effects" : [
+      {
+        "type" : "addShopVoucher"
+      }
+    ]
   },
   {
     "key" : "tag_economy",
@@ -215,7 +229,23 @@
     "description" : "Doubles your money (max $40 gain)",
     "ante1" : true,
     "timing" : "IMMEDIATE",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "adjustMoney",
+        "op" : "ADD",
+        "amount" : {
+          "type" : "clamp",
+          "inner" : {
+            "type" : "runVar",
+            "which" : "MONEY",
+            "base" : 0.0,
+            "scale" : 1.0
+          },
+          "min" : 0.0,
+          "max" : 40.0
+        }
+      }
+    ]
   },
   {
     "key" : "tag_skip",
@@ -242,7 +272,12 @@
     "description" : "Upgrade your most-played hand by 3 levels",
     "ante1" : false,
     "timing" : "IMMEDIATE",
-    "effects" : [ ]
+    "effects" : [
+      {
+        "type" : "levelMostPlayedHand",
+        "levels" : 3
+      }
+    ]
   },
   {
     "key" : "tag_handy",
