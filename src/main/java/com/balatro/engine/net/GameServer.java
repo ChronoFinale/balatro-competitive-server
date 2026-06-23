@@ -543,30 +543,7 @@ public final class GameServer implements AutoCloseable {
             }
 
             switch (type) {
-                case "newRun" -> {
-                    // Optional ruleset by NAME — the client picks from listRulesets (curated + bundles +
-                    // custom). Unknown/absent falls back to the server default. The server resolves it; the
-                    // client only sends a name, never the ruleset's content (anti-cheat).
-                    String rsName = msg.path("ruleset").asText("");
-                    Ruleset rs = rsName.isEmpty() ? ruleset : rulesetStore.get(rsName);
-                    if (rs == null) rs = ruleset;
-                    // Optional difficulty stake (White..Gold / 1..8) and deck (e.g. "d_blue"); both
-                    // default sensibly (White; the ruleset's deck) if absent.
-                    com.balatro.engine.state.Stake stake =
-                            com.balatro.engine.state.Stake.parse(msg.path("stake").asText(null));
-                    com.balatro.engine.game.DeckCatalog.DeckType deck =
-                            com.balatro.engine.game.DeckCatalog.get(
-                                    msg.path("deck").asText(rs.deckType()));
-                    // SERVER generates the seed (anti-cheat: the client must not pick a favorable one). A
-                    // seed is honored only if explicitly supplied (dev/testing/reproducible wire tests);
-                    // otherwise every run is fresh-random (PvP matches share one seed via createLobby).
-                    String seedArg = msg.path("seed").asText("");
-                    String seed = seedArg.isEmpty() ? com.balatro.engine.rng.Seeds.random() : seedArg;
-                    Run run = new Run(rs, seed, stake, deck);
-                    run.viewLocale = msg.path("locale").asText("en"); // server renders ClientView text in this locale
-                    runs.put(players.get(conn.sessionId()), run); // keyed by identity, survives reconnect
-                    conn.send(ok(seq, run));
-                }
+                case "newRun" -> handleNewRun(conn, seq, msg);
                 case "setLocale" -> {
                     Run r = runs.get(players.get(conn.sessionId()));
                     if (r != null) {
@@ -656,6 +633,26 @@ public final class GameServer implements AutoCloseable {
         m.put("cost", cost);
         m.put("custom", custom);
         return m;
+    }
+
+    /** Start a solo run. The client sends only NAMES (ruleset/deck/stake) — never content, never a chosen
+     *  seed (anti-cheat): the server resolves each, defaults sensibly, and generates the seed itself (a
+     *  supplied seed is honored only for dev/reproducible wire tests). The run is keyed by identity so it
+     *  survives reconnect. */
+    private void handleNewRun(Connection conn, long seq, JsonNode msg) {
+        String rsName = msg.path("ruleset").asText("");
+        Ruleset rs = rsName.isEmpty() ? ruleset : rulesetStore.get(rsName);
+        if (rs == null) rs = ruleset;
+        com.balatro.engine.state.Stake stake =
+                com.balatro.engine.state.Stake.parse(msg.path("stake").asText(null));
+        com.balatro.engine.game.DeckCatalog.DeckType deck =
+                com.balatro.engine.game.DeckCatalog.get(msg.path("deck").asText(rs.deckType()));
+        String seedArg = msg.path("seed").asText("");
+        String seed = seedArg.isEmpty() ? com.balatro.engine.rng.Seeds.random() : seedArg;
+        Run run = new Run(rs, seed, stake, deck);
+        run.viewLocale = msg.path("locale").asText("en"); // server renders ClientView text in this locale
+        runs.put(players.get(conn.sessionId()), run); // keyed by identity, survives reconnect
+        conn.send(ok(seq, run));
     }
 
     /** The player's authoritative Run: their match's run if in a match, else their solo run. */
