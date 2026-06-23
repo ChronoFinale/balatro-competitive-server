@@ -50,12 +50,16 @@ e.g. `.scales(MULT).by(1).on(handPlayed).resetWhen(faceScored)` compiling to the
 
 ## Plan (diff-guarded slices, builder stays stable so the 141 jokers don't churn)
 
-1. **Scoring `Op` → `(Operation, Subject)`.** Behavior-identical map (each old `Op` → its cell), so golden
-   fixtures validate by construction. `TIMES_CHIPS`/`POWER_CHIPS` become expressible. Mirror in the client
-   preview interpreter; regenerate artifacts.
+1. **Scoring `Op` → `(Operation, Subject)`.** ✅ DONE (commit 52c2f27). `Operation {ADD, MULTIPLY, POWER}` ×
+   `Subject {CHIPS, MULT, DOLLARS, RETRIGGERS, HELD_MULT}`; `XMULT` = `(MULTIPLY, MULT)`. Behavior-identical
+   (each old `Op` → its cell), golden fixtures unchanged. Empty cells (`MULTIPLY × CHIPS`) are now expressible
+   but reject loudly until an accumulator slot exists. Mirrored in `preview.js`; readable `Effect.chips/mult/
+   xMult/…` factories; `BuilderSchema` exposes `scoreOperations` + `scoreSubjects`.
 2. **Unify the operation enum** so money (`AdjustMoney`) and scoring share one `Operation` vocabulary, money
-   being subject = MONEY.
-3. **Scaling/static recipes** in the builder — declarative sugar over `Value.State` + `MutateState`.
+   being subject = MONEY. (`Modify` is already `(subject=Var, op, value)` — a third instance of the shape.)
+3. **Scaling/static recipes** in the builder — declarative sugar over `Value.State` + `MutateState`. Must
+   keep the accumulator separate from the read so one counter can feed multiple subjects (chips + mult + xMult)
+   and scale `xMult` (`MULTIPLY, MULT`), not only `+mult`.
 
 Genuinely structural, stays code: the interpreter, RNG, the `chips × mult` arithmetic and its canonical
 within-source order (ADD before MULTIPLY before POWER). See [49](49-bespoke-logic-audit.md).
