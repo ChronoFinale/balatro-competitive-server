@@ -391,17 +391,19 @@ public final class Run {
         return false;
     }
 
-    /** Mr Bones: survive a failed blind (and self-destruct) if at least 25% of the requirement was scored. */
-    private boolean mrBonesSaves() {
+    private int survivingJoker = -1; // set by a SurviveBlind effect during raiseJokerRules(BLIND_LOST)
+
+    /** A failed blind, as a hookable Blind-lifecycle event: raise {@code BLIND_LOST} over the joker rules.
+     *  A {@link Effect.SurviveBlind} (Mr Bones, gated on {@code BLIND_PROGRESS} >= 0.25) marks its joker as
+     *  the saver; we consume it and the run continues. No more bespoke capability — the blind is a noun. */
+    private boolean survivesLostBlind() {
         if (requirement <= 0) return false;
-        // Mr Bones (data capability): survive — and self-destruct — if you reached its score fraction.
-        for (int i = 0; i < state.jokers().size(); i++) {
-            if (!(state.jokers().get(i) instanceof DataJoker dj)) continue;
-            double fraction = dj.def().runMod().survivesLostBlindFraction();
-            if (fraction > 0 && state.roundScore >= requirement * fraction) {
-                state.jokers().remove(i);
-                return true;
-            }
+        state.blindProgress = (double) state.roundScore / requirement;
+        survivingJoker = -1;
+        raiseJokerRules(Trigger.BLIND_LOST);
+        if (survivingJoker >= 0 && survivingJoker < state.jokers().size()) {
+            state.jokers().remove(survivingJoker); // consume the saver, after iteration (no concurrent mod)
+            return true;
         }
         return false;
     }
@@ -796,7 +798,7 @@ public final class Run {
             } else if (state.roundScore >= requirement) {
                 winBlind();
             } else if (state.handsLeft <= 0) {
-                if (mrBonesSaves()) {
+                if (survivesLostBlind()) {
                     winBlind(); // Mr Bones prevents the death (and is consumed)
                 } else {
                     // Attrition: dying to a blind costs a life (match handles it), not the run.
@@ -874,6 +876,9 @@ public final class Run {
             }
             case Effect.DisableBoss ignored -> { // Verdant Leaf (boss) / Luchador (sold during a boss)
                 if (boss != null) { luchadorDisabledBoss = true; refreshDebuffs(); }
+            }
+            case Effect.SurviveBlind ignored -> { // Mr Bones: this joker (ctx.selfIndex) saves the lost blind
+                if (survivingJoker < 0) survivingJoker = ctx.selfIndex; // first saver wins; consumed by caller
             }
             case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
                 shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind()), PackCatalog.Size.valueOf(ap.size())));

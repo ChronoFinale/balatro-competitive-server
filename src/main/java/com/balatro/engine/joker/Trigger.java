@@ -31,6 +31,7 @@ public enum Trigger {
 
     // ---- lifecycle (raised by GameEvents) ----
     BLIND_SELECTED,     // a blind is chosen (the boss's blind-start effects: Amber Acorn flip+shuffle)
+    BLIND_LOST,         // a blind was failed (hands out, score < requirement) — Mr Bones can survive it
     PRE_HAND,           // before a played hand scores (the boss's pre-hand effects: Crimson Heart joker-disable)
     ON_HAND_PLAYED,     // a hand was played + scored (the boss's per-hand effects: Tooth/Ox/Arm/Hook)
     FIRST_HAND_DRAWN,   // first hand of the round dealt

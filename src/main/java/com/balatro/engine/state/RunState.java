@@ -35,6 +35,7 @@ public final class RunState {
     public int roundsPlayedTotal = 0;     // Popcorn
     public int cardsDiscardedTotal = 0;   // Ramen / Yorick
     public int luckyTriggersTotal = 0;    // Lucky Cat
+    public double blindProgress = 0;      // roundScore/requirement at blind-loss, for a BLIND_LOST rule to read (Mr Bones)
     // Per-poker-hand play tracking (Supernova counts run-long; Card Sharp checks this round).
     public final Map<HandType, Integer> handTypePlays = new EnumMap<>(HandType.class);
     public final java.util.Set<HandType> handTypesThisRound = java.util.EnumSet.noneOf(HandType.class);

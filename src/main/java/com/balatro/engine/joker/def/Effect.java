@@ -50,6 +50,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.FlipAndShuffleJokers.class, name = "flipAndShuffleJokers"),
     @JsonSubTypes.Type(value = Effect.DisableRandomJoker.class, name = "disableRandomJoker"),
     @JsonSubTypes.Type(value = Effect.DisableBoss.class, name = "disableBoss"),
+    @JsonSubTypes.Type(value = Effect.SurviveBlind.class, name = "surviveBlind"),
     @JsonSubTypes.Type(value = Effect.AddPack.class, name = "addPack"),
     @JsonSubTypes.Type(value = Effect.CreateShopJoker.class, name = "createShopJoker"),
     @JsonSubTypes.Type(value = Effect.LevelMostPlayedHand.class, name = "levelMostPlayedHand"),
@@ -315,6 +316,10 @@ public sealed interface Effect {
 
     /** Disable this boss's ability for the rest of the blind (Verdant Leaf, when any Joker is sold). */
     record DisableBoss() implements Effect {}
+
+    /** Mr Bones: survive a failed blind (the run continues) and consume the joker that did it. Emitted from
+     *  a {@code BLIND_LOST} rule gated on {@code BLIND_PROGRESS} — the Blind lifecycle made hookable. */
+    record SurviveBlind() implements Effect {}
 
     /** Add a booster pack to the next shop (Charm/Meteor/Buffoon/Standard/Ethereal tags). {@code kind} and
      *  {@code size} are the {@code PackCatalog.Kind}/{@code Size} names — strings so the model layer needn't

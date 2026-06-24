@@ -146,7 +146,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -193,7 +192,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -240,7 +238,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -267,7 +264,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : true
         },
@@ -327,7 +323,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -375,7 +370,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -422,7 +416,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -474,7 +467,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -521,7 +513,6 @@
         "mods" : [ ],
         "runMod" : {
           "disablesBoss" : false,
-          "survivesLostBlindFraction" : 0.0,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },

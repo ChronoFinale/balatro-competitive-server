@@ -600,9 +600,12 @@ public final class BuiltinJokerDefs {
                 Jokers.of("j_astronomer", "Astronomer")
                         .mods(Modify.max(Value.Var.PLANETS_FREE, 1)).build(),
 
-                // --- batch 26: Run-level hooks (To the Moon interest); Mr Bones is a passive capability ---
-                runModJoker("j_mr_bones", "Mr. Bones",
-                        RunMod.survivesLostBlind(0.25)),
+                // --- batch 26: Run-level hooks (To the Moon interest) ---
+                // Mr Bones: survive a failed blind (and self-destruct) if you reached 25% of the requirement.
+                // A data rule on the Blind lifecycle — BLIND_LOST gated on BLIND_PROGRESS — not a RunMod.
+                Jokers.of("j_mr_bones", "Mr. Bones")
+                        .on(Trigger.BLIND_LOST).when(Cond.runVar(Value.Var.BLIND_PROGRESS).atLeast(0.25))
+                        .effect(new Effect.SurviveBlind()).build(),
                 Jokers.of("j_to_the_moon", "To the Moon")
                         .mods(Modify.max(Value.Var.UNCAPPED_INTEREST, 1)).build(),
 
