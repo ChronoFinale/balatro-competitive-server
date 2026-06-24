@@ -50,7 +50,8 @@ public final class CardModifiers {
      *  dollars effect). Red (retrigger), Blue (held->planet) and Purple (discard->tarot) live elsewhere:
      *  Red is a retrigger pass, Blue/Purple are run-loop, not per-card scoring. */
     public static final Map<Seal, List<Effect>> SEAL = Map.of(
-            Seal.GOLD, List.of(Effect.dollars(n(3))));
+            Seal.GOLD, List.of(Effect.dollars(n(3))),
+            Seal.RED, List.of(Effect.retriggers(n(1)))); // applied in the retrigger pass, not the score pass
 
     /** A "1 in {@code denom}" gate rolled on a dedicated stream (preserving Balatro's per-effect queue). */
     private static Condition chanceOn(int denom, String stream) {

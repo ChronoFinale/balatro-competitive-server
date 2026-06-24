@@ -308,9 +308,18 @@ public final class ScoringEngine {
     private int retriggers(Card card, Trigger phase, EvaluationContext ctx,
                            List<Joker> jokers, Acc acc) {
         int reps = 1;
-        if (card.seal == Seal.RED) {
-            reps += 1;
-            log(acc, "Red Seal", "retrigger", "Retrigger");
+        // Seal retriggers are DATA: Red Seal = Score(ADD, RETRIGGERS, 1) in CardModifiers.SEAL, resolved here
+        // in the retrigger pass (the scoring pass ignores RETRIGGERS, so the same effect is a no-op there).
+        for (com.balatro.engine.joker.def.Effect e
+                : com.balatro.engine.card.CardModifiers.SEAL.getOrDefault(card.seal, java.util.List.of())) {
+            if (e instanceof com.balatro.engine.joker.def.Effect.Score s
+                    && s.term() == com.balatro.engine.joker.def.Effect.Term.RETRIGGERS) {
+                JokerEffect je = s.apply(ctx);
+                if (je != null && je.repetitions > 0) {
+                    reps += je.repetitions;
+                    log(acc, "Red Seal", "retrigger", "Retrigger");
+                }
+            }
         }
         for (int i = 0; i < jokers.size(); i++) {
             ctx.phase = phase;
