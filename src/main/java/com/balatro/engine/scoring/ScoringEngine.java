@@ -355,10 +355,8 @@ public final class ScoringEngine {
         }
         // Edition scoring is DATA: Foil +50 chips, Holo +10 mult, Poly x1.5 mult — same Effect.Score path.
         applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.EDITION.get(card.edition), ctx, card);
-        if (card.seal == Seal.GOLD) {
-            if (!preview) run.money += 3;
-            log(acc, card.toString(), "dollars", "+$3 (Gold Seal)");
-        }
+        // Seal scoring is DATA: Gold = +$3 (Effect.dollars, credited at end). Red/Blue/Purple are elsewhere.
+        applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.SEAL.get(card.seal), ctx, card);
     }
 
     /** Apply a card modifier's scoring effects (enhancement/edition) through the joker interpreter. */

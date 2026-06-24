@@ -44,6 +44,12 @@ public final class CardModifiers {
     public static final Map<Enhancement, List<Effect>> HELD = Map.of(
             Enhancement.STEEL, List.of(Effect.xMult(n(1.5))));
 
+    /** Seal scoring effects — Gold = +$3 when the card scores (credited at end of scoring, like any
+     *  dollars effect). Red (retrigger), Blue (held->planet) and Purple (discard->tarot) live elsewhere:
+     *  Red is a retrigger pass, Blue/Purple are run-loop, not per-card scoring. */
+    public static final Map<Seal, List<Effect>> SEAL = Map.of(
+            Seal.GOLD, List.of(Effect.dollars(n(3))));
+
     /** A "1 in {@code denom}" gate rolled on a dedicated stream (preserving Balatro's per-effect queue). */
     private static Condition chanceOn(int denom, String stream) {
         return new Condition.Chance(new Odds(1, denom), stream, stream);
