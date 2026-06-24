@@ -259,12 +259,8 @@ public final class Run {
         // Plasma Deck (ante_scaling=2): blinds are 2x larger. Our tables are even, so doubling the
         // rounded requirement equals doubling inside get_blind_amount.
         requirement *= deckType.blindSizeMult();
-        applyResourceMods(); // fold every resource Modify (deck/boss/joker/voucher/skip-off/pizza) at once
+        applyResourceMods(); // fold every resource Modify (deck/boss/joker/voucher/skip-off/pizza/Oops!) at once
         applyJokerDestroyers(); // Ceremonial Dagger / Madness eat a joker at blind select
-        // Oops! All 6s doubles every listed probability (numerator) per copy owned (a data capability).
-        long oops = state.jokers().stream()
-                .filter(j -> j instanceof DataJoker dj && dj.def().runMod().doublesProbability()).count();
-        state.probabilityNumerator = 1 << Math.min((int) oops, 8);
         rollRoundTargets();  // The Idol / Ancient targets, re-rolled each blind
         int deckBefore = composition.size();
         boolean bossNow = blind == BlindType.BOSS;
@@ -679,6 +675,9 @@ public final class Run {
         int discards = (int) Modify.fold(baseDiscards(), Hand.DISCARDS, mods);
         state.discardsLeft = Math.max(0, discards);
         state.handSize = Math.max(1, (int) Modify.fold(ruleset.handSize(), Hand.SIZE, mods));
+        // Oops! All 6s scales every "1 in X" threshold: each copy is a Modify.multiply(PROBABILITY_MULTIPLIER, 2),
+        // so the fold from base 1 gives 2^copies — replacing the old bespoke 1<<oopsCount capability count.
+        state.probabilityNumerator = Math.max(1, (int) Modify.fold(1, Value.Var.PROBABILITY_MULTIPLIER, mods));
     }
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */

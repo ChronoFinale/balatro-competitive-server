@@ -147,7 +147,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -195,7 +194,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -243,7 +241,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -271,7 +268,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : true
         },
@@ -329,7 +325,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -378,7 +373,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -426,7 +420,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -479,7 +472,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -527,7 +519,6 @@
         "runMod" : {
           "disablesBoss" : false,
           "survivesLostBlindFraction" : 0.0,
-          "doublesProbability" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },

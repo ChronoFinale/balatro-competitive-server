@@ -141,6 +141,9 @@ public sealed interface Value {
         SHOP_SLOTS, PRICE_MULTIPLIER, REROLL_DISCOUNT, EDITION_MULTIPLIER, POLY_MULTIPLIER,
         TAROT_RATE, PLANET_RATE, WIN_ANTE, BOSS_REROLLS_PER_ANTE, HELD_PLANET_MULT,
         CELESTIAL_MOST_PLAYED, SHOP_PLAYING_CARD_RATE, SHOP_CARDS_ENHANCED, FREE_REROLLS, SPECTRAL_RATE,
+        // The "1 in X" odds multiplier (base 1): Oops! All 6s contributes MULTIPLY 2 per copy, so the
+        // fold gives 2^copies — every probability threshold is scaled by it (Run.probabilityNumerator).
+        PROBABILITY_MULTIPLIER,
         // Boolean policies (fold to >= 1 when any owner grants them): Showman lets owned cards reappear
         // in shop/creation pools; Astronomer makes shop Planets free; To the Moon adds an uncapped extra
         // $1/$5 interest tier (the formula coupling stays in EconomyConfig — this var only flags it).

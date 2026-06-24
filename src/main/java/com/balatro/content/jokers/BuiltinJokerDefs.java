@@ -578,7 +578,7 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 30: Oops! All 6s (probability doubler) + Reserved Parking ---
                 Jokers.of("j_oops", "Oops! All 6s")
-                        .runMod(RunMod.probabilityDoubler()).build(),
+                        .mods(Modify.multiply(Value.Var.PROBABILITY_MULTIPLIER, 2)).build(),
                 Jokers.of("j_reserved_parking", "Reserved Parking")
                         .forEachHeld(Cond.all(card().isFace(), Cond.chance(1, 2, "reserved_parking"))).add(DOLLARS, 1).build(),
 
