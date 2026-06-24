@@ -145,7 +145,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -191,7 +190,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -237,7 +235,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -263,7 +260,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : true
         },
@@ -322,7 +318,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -369,7 +364,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -415,7 +409,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -466,7 +459,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },
@@ -512,7 +504,6 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "disablesBoss" : false,
           "handSizeDecayStart" : 0,
           "pvpSkipBonus" : false
         },

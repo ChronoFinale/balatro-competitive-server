@@ -2,43 +2,30 @@ package com.balatro.engine.joker.def;
 
 /**
  * The static, non-scoring <b>capabilities</b> a joker has — passive behavioural switches the run checks at the
- * right moment, which are NOT expressible as a number on a game variable (those live in {@link JokerDef#mods()},
- * the same {@link Modify} vocabulary decks/bosses/vouchers use — e.g. Burglar's "no discards" is
- * {@code min(Hand.DISCARDS, 0)}, and Oops! All 6s's "double every probability" is
- * {@code multiply(Value.Var.PROBABILITY_MULTIPLIER, 2)}). What's left is genuinely passive / read-side:
- * {@code disablesBoss} (Chicot — a boss-ability toggle, not a variable), {@code handSizeDecayStart}
- * (Turtle Bean — a <i>dynamic</i> Hand.SIZE contribution that decays by round), and {@code pvpSkipBonus}
- * (Skip Off). None affect the per-hand score, and none are events.
- *
- * <p>Every event-driven joker behaviour is a data RULE now (Perkeo SHOP_EXIT, Luchador/Diet Cola/Invisible
- * SELL_SELF, Madness/Ceremonial BLIND_SELECTED, Penny Pincher SHOP_ENTER, <b>Mr Bones BLIND_LOST</b>) — not a
- * capability. The Blind lifecycle is hookable now, so "survive a lost blind" is a rule, not a RunMod field.
+ * right moment. After this session most of the old residents became grammar: Oops! All 6s is
+ * {@code multiply(PROBABILITY_MULTIPLIER, 2)}, Mr Bones is a {@code BLIND_LOST} rule, Chicot is a
+ * {@code max(BOSS_ABILITY_DISABLED, 1)} policy. What's left is two genuinely <i>dynamic</i> contributions —
+ * a value that changes per round / per PvP state, which a static {@link Modify} (a constant) can't yet hold:
+ * {@code handSizeDecayStart} (Turtle Bean — +N hand size decaying by round) and {@code pvpSkipBonus}
+ * (Skip-Off — +hands/discards per blind skipped vs the Nemesis). Both drop out once {@code Modify} carries a
+ * {@code Value} instead of a {@code double}. None affect the per-hand score, and none are events.
  */
-public record RunMod(boolean disablesBoss, int handSizeDecayStart, boolean pvpSkipBonus) {
+public record RunMod(int handSizeDecayStart, boolean pvpSkipBonus) {
 
-    public static final RunMod NONE = new RunMod(false, 0, false);
-
-    private static RunMod capability(boolean disablesBoss, int handSizeDecayStart, boolean pvpSkipBonus) {
-        return new RunMod(disablesBoss, handSizeDecayStart, pvpSkipBonus);
-    }
-
-    /** Chicot: while owned, every Boss Blind's ability is disabled. */
-    public static RunMod bossDisabler() {
-        return capability(true, 0, false);
-    }
+    public static final RunMod NONE = new RunMod(0, false);
 
     /** Turtle Bean: +{@code start} hand size, decaying by 1 each round since acquired (floors at 0). */
     public static RunMod decayingHandSize(int start) {
-        return capability(false, start, false);
+        return new RunMod(start, false);
     }
 
     /** Skip-Off (Nemesis): +1 hand and +1 discard per extra blind skipped vs your Nemesis. */
     public static RunMod skipBonus() {
-        return capability(false, 0, true);
+        return new RunMod(0, true);
     }
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isNone() {
-        return !disablesBoss && handSizeDecayStart == 0 && !pvpSkipBonus;
+        return handSizeDecayStart == 0 && !pvpSkipBonus;
     }
 }

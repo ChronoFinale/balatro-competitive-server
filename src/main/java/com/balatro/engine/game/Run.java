@@ -380,7 +380,11 @@ public final class Run {
 
     /** The boss blind's ability is off — Chicot (always) or Luchador (sold this blind). */
     private boolean bossDisabled() {
-        return luchadorDisabledBoss || anyOwnedRunMod(m -> m.disablesBoss()); // Chicot: a data capability
+        // Chicot is a dynamic boolean policy now (mods(max(BOSS_ABILITY_DISABLED, 1))), folded from the
+        // owned jokers — same pattern as Showman/Astronomer — so it re-arms the boss if Chicot is sold.
+        return luchadorDisabledBoss
+                || com.balatro.engine.joker.def.DataJoker.policyEnabled(
+                        state.jokers(), Value.Var.BOSS_ABILITY_DISABLED);
     }
 
     /** True if any owned (data) joker grants a passive {@link RunMod} capability matching {@code test}. */

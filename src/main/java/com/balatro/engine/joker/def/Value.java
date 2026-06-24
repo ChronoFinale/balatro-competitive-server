@@ -147,7 +147,10 @@ public sealed interface Value {
         // Boolean policies (fold to >= 1 when any owner grants them): Showman lets owned cards reappear
         // in shop/creation pools; Astronomer makes shop Planets free; To the Moon adds an uncapped extra
         // $1/$5 interest tier (the formula coupling stays in EconomyConfig — this var only flags it).
-        ALLOW_SHOP_DUPLICATES, PLANETS_FREE, UNCAPPED_INTEREST }
+        ALLOW_SHOP_DUPLICATES, PLANETS_FREE, UNCAPPED_INTEREST,
+        // Chicot: while owned, the Boss Blind's ability is disabled — a dynamic policy folded from the owned
+        // jokers (sell Chicot and the boss re-arms), read synchronously at blind setup like the others above.
+        BOSS_ABILITY_DISABLED }
 
     /** Read a live run-state quantity. Shared by {@link RunVar}, {@link RunVarStep}, and
      *  {@code Condition.RunVarModulo} so the {@link Property}→{@code RunState} mapping lives in one place.

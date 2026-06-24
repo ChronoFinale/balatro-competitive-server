@@ -583,8 +583,10 @@ public final class BuiltinJokerDefs {
                         .forEachHeld(Cond.all(card().isFace(), Cond.chance(1, 2, "reserved_parking"))).add(DOLLARS, 1).build(),
 
                 // --- batch 29: boss-ability disable (Chicot) — a passive capability, expressed as data ---
-                runModJoker("j_chicot", "Chicot",
-                        RunMod.bossDisabler()),
+                // Chicot: while owned, every Boss Blind's ability is disabled — a dynamic boolean policy
+                // (Modify on BOSS_ABILITY_DISABLED, folded from owned jokers), not a RunMod capability.
+                Jokers.of("j_chicot", "Chicot")
+                        .mods(Modify.max(Value.Var.BOSS_ABILITY_DISABLED, 1)).build(),
 
                 // --- batch 28: sell-value bonus (Egg, Gift Card) ---
                 Jokers.of("j_egg", "Egg").counters("sellBonus")
