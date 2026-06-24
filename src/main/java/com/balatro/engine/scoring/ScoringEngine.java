@@ -117,7 +117,7 @@ public final class ScoringEngine {
             if (card.debuffed) continue;
             int reps = retriggers(card, Trigger.REPETITION_PLAYED, ctx, jokers, acc);
             for (int r = 0; r < reps; r++) {
-                applyCardScored(acc, card, run, queues, preview);
+                applyCardScored(acc, card, run, queues, preview, ctx);
                 for (int i = 0; i < jokers.size(); i++) {
                     if (perished(run, jokers.get(i))) continue;
                     ctx.phase = Trigger.ON_SCORED;
@@ -327,11 +327,9 @@ public final class ScoringEngine {
     }
 
     /** Card base + enhancement + edition + seal, applied as one ordered entry. */
-    private void applyCardScored(Acc acc, Card card, RunState run, QueueSet queues, boolean preview) {
-        long chips = card.baseChips();
-        if (card.enhancement == Enhancement.STONE) chips += 50;
-        if (card.enhancement == Enhancement.BONUS) chips += 30;
-        chips += card.permaChips; // permanent per-card chip bonus (Hiker etc.)
+    private void applyCardScored(Acc acc, Card card, RunState run, QueueSet queues, boolean preview,
+            com.balatro.engine.joker.EvaluationContext ctx) {
+        long chips = card.baseChips() + card.permaChips; // card face value + permanent bonus (Hiker etc.)
         if (chips != 0) {
             acc.chips = acc.chips.add(BigNum.of(chips));
             log(acc, card.toString(), "chips", "+" + chips + " Chips");
@@ -340,10 +338,9 @@ public final class ScoringEngine {
             acc.mult = acc.mult.add(BigNum.of(card.permaMult)); // permanent per-card mult bonus
             log(acc, card.toString(), "mult", "+" + fmt(card.permaMult) + " Mult");
         }
-        if (card.enhancement == Enhancement.MULT) {
-            acc.mult = acc.mult.add(BigNum.of(4));
-            log(acc, card.toString(), "mult", "+4 Mult");
-        }
+        // Enhancement scoring is DATA now: Bonus/Mult/Stone are Effect.Score, interpreted like a joker
+        // (the structural "Stone always scores / no rank-suit" stays in the scoring-set selection above).
+        applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.ENHANCEMENT.get(card.enhancement), ctx, card);
         if (card.enhancement == Enhancement.LUCKY && !preview) {
             // Two independent game-long hit/miss queues: 1-in-5 for +20 Mult,
             // 1-in-15 for +$20. Each Lucky trigger pops the next roll; the
@@ -370,19 +367,20 @@ public final class ScoringEngine {
                 acc.destroyed.add(card);
             }
         }
-        applyCardEdition(acc, card);
+        // Edition scoring is DATA: Foil +50 chips, Holo +10 mult, Poly x1.5 mult — same Effect.Score path.
+        applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.EDITION.get(card.edition), ctx, card);
         if (card.seal == Seal.GOLD) {
             if (!preview) run.money += 3;
             log(acc, card.toString(), "dollars", "+$3 (Gold Seal)");
         }
     }
 
-    private void applyCardEdition(Acc acc, Card card) {
-        switch (card.edition) {
-            case FOIL -> { acc.chips = acc.chips.add(BigNum.of(50)); log(acc, card.toString(), "chips", "+50 Chips (Foil)"); }
-            case HOLOGRAPHIC -> { acc.mult = acc.mult.add(BigNum.of(10)); log(acc, card.toString(), "mult", "+10 Mult (Holo)"); }
-            case POLYCHROME -> { acc.mult = acc.mult.multiply(1.5); log(acc, card.toString(), "xmult", "x1.5 Mult (Poly)"); }
-            default -> { }
+    /** Apply a card modifier's scoring effects (enhancement/edition) through the joker interpreter. */
+    private void applyCardModifierEffects(Acc acc, java.util.List<com.balatro.engine.joker.def.Effect> effects,
+            com.balatro.engine.joker.EvaluationContext ctx, Card card) {
+        if (effects == null) return;
+        for (com.balatro.engine.joker.def.Effect e : effects) {
+            if (e instanceof com.balatro.engine.joker.def.Effect.Score s) apply(acc, s.apply(ctx), card.toString());
         }
     }
 
