@@ -344,14 +344,12 @@ public final class ScoringEngine {
         // Lucky is DATA now: chance(1/5 on lucky_mult) -> +20 Mult, chance(1/15 on lucky_money) -> +$20,
         // rolled on the same dedicated streams (so determinism is byte-identical). Chance floors in preview.
         applyCardModifierRules(acc, com.balatro.engine.card.CardModifiers.PROBABILISTIC.get(card.enhancement), ctx, card, run);
-        if (card.enhancement == Enhancement.GLASS) {
-            double glassMult = run.capabilities.glassMult(); // mode knob (vanilla 2.0, ranked-MP 1.5)
-            acc.mult = acc.mult.multiply(glassMult);
-            log(acc, card.toString(), "xmult", "x" + fmt(glassMult) + " Mult");
-            if (!preview && queues.roll(RngSources.GLASS, run.rngContext()) < 0.25) { // break queue (1-in-4)
-                card.destroyed = true;
-                acc.destroyed.add(card);
-            }
+        // Glass x-mult is DATA (ENHANCEMENT table, reads GLASS_MULT). Only the 1-in-4 shatter — a structural
+        // card destruction on its own RNG queue — stays here.
+        if (card.enhancement == Enhancement.GLASS && !preview
+                && queues.roll(RngSources.GLASS, run.rngContext()) < 0.25) {
+            card.destroyed = true;
+            acc.destroyed.add(card);
         }
         // Edition scoring is DATA: Foil +50 chips, Holo +10 mult, Poly x1.5 mult — same Effect.Score path.
         applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.EDITION.get(card.edition), ctx, card);

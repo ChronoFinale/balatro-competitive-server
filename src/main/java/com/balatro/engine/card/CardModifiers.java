@@ -32,7 +32,9 @@ public final class CardModifiers {
     public static final Map<Enhancement, List<Effect>> ENHANCEMENT = Map.of(
             Enhancement.BONUS, List.of(Effect.chips(n(30))),  // +30 Chips
             Enhancement.MULT, List.of(Effect.mult(n(4))),     // +4 Mult
-            Enhancement.STONE, List.of(Effect.chips(n(50)))); // +50 Chips (the no-rank/always-scores part is structural)
+            Enhancement.STONE, List.of(Effect.chips(n(50))),  // +50 Chips (the no-rank/always-scores part is structural)
+            // Glass x-mult reads GLASS_MULT (2.0 vanilla / 1.5 ranked-MP); the 1-in-4 shatter stays structural.
+            Enhancement.GLASS, List.of(Effect.xMult(new Value.RunVar(Value.Var.GLASS_MULT, 0, 1))));
 
     /** Card edition scoring effects — fully data: Foil +50 chips, Holo +10 mult, Poly x1.5 mult. */
     public static final Map<Edition, List<Effect>> EDITION = Map.of(
