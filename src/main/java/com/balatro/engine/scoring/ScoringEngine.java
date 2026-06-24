@@ -150,7 +150,7 @@ public final class ScoringEngine {
             ctx.scoredCard = card;
             int reps = retriggers(card, Trigger.REPETITION_HELD, ctx, jokers, acc);
             for (int r = 0; r < reps; r++) {
-                applyCardHeld(acc, card);
+                applyCardHeld(acc, card, ctx);
                 for (int i = 0; i < jokers.size(); i++) {
                     ctx.phase = Trigger.ON_HELD;
                     ctx.selfIndex = i;
@@ -384,12 +384,9 @@ public final class ScoringEngine {
         }
     }
 
-    /** Held-in-hand card effects (Steel x1.5 mult while held). */
-    private void applyCardHeld(Acc acc, Card card) {
-        if (card.enhancement == Enhancement.STEEL) {
-            acc.mult = acc.mult.multiply(1.5);
-            log(acc, card.toString(), "xmult", "x1.5 Mult (Steel)");
-        }
+    /** Held-in-hand card effects (Steel x1.5 mult while held) — data, via the joker interpreter. */
+    private void applyCardHeld(Acc acc, Card card, com.balatro.engine.joker.EvaluationContext ctx) {
+        applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.HELD.get(card.enhancement), ctx, card);
     }
 
     /** Entry point: resolve the source label, then apply per SMODS calculation order. */

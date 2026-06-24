@@ -35,4 +35,8 @@ public final class CardModifiers {
             Edition.FOIL, List.of(Effect.chips(n(50))),
             Edition.HOLOGRAPHIC, List.of(Effect.mult(n(10))),
             Edition.POLYCHROME, List.of(Effect.xMult(n(1.5))));
+
+    /** Held-in-hand enhancement scoring (Steel x1.5 mult while the card is held, not played). */
+    public static final Map<Enhancement, List<Effect>> HELD = Map.of(
+            Enhancement.STEEL, List.of(Effect.xMult(n(1.5))));
 }
