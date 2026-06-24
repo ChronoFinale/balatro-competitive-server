@@ -298,7 +298,8 @@
                 "numerator" : 1,
                 "denominator" : 4
               },
-              "seedKey" : "gambling"
+              "seedKey" : "gambling",
+              "stream" : null
             },
             "effects" : [
               {

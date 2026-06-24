@@ -341,23 +341,9 @@ public final class ScoringEngine {
         // Enhancement scoring is DATA now: Bonus/Mult/Stone are Effect.Score, interpreted like a joker
         // (the structural "Stone always scores / no rank-suit" stays in the scoring-set selection above).
         applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.ENHANCEMENT.get(card.enhancement), ctx, card);
-        if (card.enhancement == Enhancement.LUCKY && !preview) {
-            // Two independent game-long hit/miss queues: 1-in-5 for +20 Mult,
-            // 1-in-15 for +$20. Each Lucky trigger pops the next roll; the
-            // threshold honors probabilityNumerator (Oops! All 6s). Skipped entirely in
-            // preview: the selection preview shows the guaranteed floor (matching real
-            // Balatro and the client preview.js), never a throwaway-seed roll.
-            if (queues.roll(RngSources.LUCKY_MULT, run.rngContext()) < run.probabilityNumerator / 5.0) {
-                acc.mult = acc.mult.add(BigNum.of(20));
-                log(acc, card.toString(), "mult", "Lucky! +20 Mult");
-                run.luckyTriggersTotal++; // Lucky Cat counts triggers
-            }
-            if (queues.roll(RngSources.LUCKY_MONEY, run.rngContext()) < run.probabilityNumerator / 15.0) {
-                run.money += 20;
-                run.luckyTriggersTotal++;
-                log(acc, card.toString(), "dollars", "Lucky! +$20");
-            }
-        }
+        // Lucky is DATA now: chance(1/5 on lucky_mult) -> +20 Mult, chance(1/15 on lucky_money) -> +$20,
+        // rolled on the same dedicated streams (so determinism is byte-identical). Chance floors in preview.
+        applyCardModifierRules(acc, com.balatro.engine.card.CardModifiers.PROBABILISTIC.get(card.enhancement), ctx, card, run);
         if (card.enhancement == Enhancement.GLASS) {
             double glassMult = run.capabilities.glassMult(); // mode knob (vanilla 2.0, ranked-MP 1.5)
             acc.mult = acc.mult.multiply(glassMult);
@@ -381,6 +367,18 @@ public final class ScoringEngine {
         if (effects == null) return;
         for (com.balatro.engine.joker.def.Effect e : effects) {
             if (e instanceof com.balatro.engine.joker.def.Effect.Score s) apply(acc, s.apply(ctx), card.toString());
+        }
+    }
+
+    /** Apply a card modifier's PROBABILISTIC rules (Lucky): each rule whose {@link Condition} procs on its
+     *  dedicated stream contributes its score/dollars effects. The chance floors to false in preview. */
+    private void applyCardModifierRules(Acc acc, java.util.List<com.balatro.engine.joker.def.Rule> rules,
+            com.balatro.engine.joker.EvaluationContext ctx, Card card, RunState run) {
+        if (rules == null) return;
+        for (com.balatro.engine.joker.def.Rule r : rules) {
+            if (!r.condition().test(ctx)) continue;
+            applyCardModifierEffects(acc, r.effects(), ctx, card);
+            if (card.enhancement == Enhancement.LUCKY) run.luckyTriggersTotal++; // Lucky Cat counts each proc
         }
     }
 

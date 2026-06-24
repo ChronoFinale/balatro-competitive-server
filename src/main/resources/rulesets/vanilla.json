@@ -2374,7 +2374,8 @@
                 "numerator" : 1,
                 "denominator" : 2
               },
-              "seedKey" : "bloodstone"
+              "seedKey" : "bloodstone",
+              "stream" : null
             }
           ]
         },
@@ -2845,7 +2846,8 @@
                 "numerator" : 1,
                 "denominator" : 2
               },
-              "seedKey" : "business_card"
+              "seedKey" : "business_card",
+              "stream" : null
             }
           ]
         },
@@ -2911,7 +2913,8 @@
             "numerator" : 1,
             "denominator" : 6
           },
-          "seedKey" : "gros_michel"
+          "seedKey" : "gros_michel",
+          "stream" : null
         },
         "effects" : [
           {
@@ -2969,7 +2972,8 @@
             "numerator" : 1,
             "denominator" : 1000
           },
-          "seedKey" : "cavendish"
+          "seedKey" : "cavendish",
+          "stream" : null
         },
         "effects" : [
           {
@@ -4387,7 +4391,8 @@
                 "numerator" : 1,
                 "denominator" : 4
               },
-              "seedKey" : "8ball"
+              "seedKey" : "8ball",
+              "stream" : null
             }
           ]
         },
@@ -4796,7 +4801,8 @@
             "numerator" : 1,
             "denominator" : 4
           },
-          "seedKey" : "space"
+          "seedKey" : "space",
+          "stream" : null
         },
         "effects" : [
           {
@@ -5580,7 +5586,8 @@
             "numerator" : 1,
             "denominator" : 2
           },
-          "seedKey" : "hallucination"
+          "seedKey" : "hallucination",
+          "stream" : null
         },
         "effects" : [
           {
@@ -6353,7 +6360,8 @@
                 "numerator" : 1,
                 "denominator" : 2
               },
-              "seedKey" : "reserved_parking"
+              "seedKey" : "reserved_parking",
+              "stream" : null
             }
           ]
         },

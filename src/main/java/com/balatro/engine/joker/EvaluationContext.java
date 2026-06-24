@@ -68,6 +68,15 @@ public final class EvaluationContext {
      * same procs; falls back to a transient set for bare-state/preview contexts.
      */
     public double nextProb(String seedKey) {
+        // Every Chance joker (Bloodstone, Business Card, …) is one PROB source: game-long normally,
+        // but a per-hand PvP variant inside a Nemesis blind (the Run rewinds it each hand) so equal
+        // hands proc equally regardless of hands-left. The routing lives in QueueSet.resolve.
+        return nextProbOn(RngSources.PROB.sub(seedKey));
+    }
+
+    /** Pop the next roll [0,1) from an EXPLICIT source — used when a Chance rolls on a dedicated stream
+     *  (Lucky's {@code lucky_mult}/{@code lucky_money}, Glass's {@code glass}) rather than the shared PROB. */
+    public double nextProbOn(com.balatro.engine.rng.RngSource source) {
         QueueSet qs;
         RngContext ctx;
         if (preview) {
@@ -80,10 +89,7 @@ public final class EvaluationContext {
             qs = new QueueSet(rng != null ? rng : new RandomStreams("prob"));
             ctx = RngContext.of(0, false, true);
         }
-        // Every Chance joker (Bloodstone, Business Card, …) is one PROB source: game-long normally,
-        // but a per-hand PvP variant inside a Nemesis blind (the Run rewinds it each hand) so equal
-        // hands proc equally regardless of hands-left. The routing lives in QueueSet.resolve.
-        return qs.roll(RngSources.PROB.sub(seedKey), ctx);
+        return qs.roll(source, ctx);
     }
 
     /** Persistent, server-only per-joker state (e.g. Ride the Bus streak). */

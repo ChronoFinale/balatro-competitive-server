@@ -418,12 +418,25 @@ public sealed interface Condition {
      * a roll from a game-long queue keyed by {@code seedKey}, so both players get
      * identical procs. Compose with {@link And} for "this card AND a chance".
      */
-    record Chance(Odds odds, String seedKey) implements Condition {
+    /**
+     * A probabilistic gate at {@link Odds}, rolled off a game-long queue. {@code stream} names a DEDICATED
+     * source ({@code lucky_mult}, {@code glass}) for the card modifiers whose rolls Balatro keeps on their
+     * own stream; when null/blank the roll uses the shared {@code prob:seedKey} source (Bloodstone et al.).
+     */
+    record Chance(Odds odds, String seedKey, String stream) implements Condition {
+        /** Shared-PROB chance (the common case): rolls on {@code prob:seedKey}. */
+        public Chance(Odds odds, String seedKey) {
+            this(odds, seedKey, null);
+        }
+
         public boolean test(EvaluationContext ctx) {
             if (ctx.preview) return false; // preview shows the guaranteed floor — a gate never procs
             int probMult = ctx.run != null ? ctx.run.probabilityNumerator : 1;
             // The roll comes off the game-long queue; PROBABILITY_MULTIPLIER (Oops!) scales the threshold.
-            return ctx.nextProb(seedKey) < (double) (odds.numerator() * probMult) / odds.denominator();
+            double roll = (stream == null || stream.isBlank())
+                    ? ctx.nextProb(seedKey)
+                    : ctx.nextProbOn(com.balatro.engine.rng.RngSource.of(stream).pvpPerHand());
+            return roll < (double) (odds.numerator() * probMult) / odds.denominator();
         }
     }
 

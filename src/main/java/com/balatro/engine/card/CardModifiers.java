@@ -1,6 +1,10 @@
 package com.balatro.engine.card;
 
+import com.balatro.engine.joker.Trigger;
+import com.balatro.engine.joker.def.Condition;
 import com.balatro.engine.joker.def.Effect;
+import com.balatro.engine.joker.def.Odds;
+import com.balatro.engine.joker.def.Rule;
 import com.balatro.engine.joker.def.Value;
 import java.util.List;
 import java.util.Map;
@@ -39,4 +43,17 @@ public final class CardModifiers {
     /** Held-in-hand enhancement scoring (Steel x1.5 mult while the card is held, not played). */
     public static final Map<Enhancement, List<Effect>> HELD = Map.of(
             Enhancement.STEEL, List.of(Effect.xMult(n(1.5))));
+
+    /** A "1 in {@code denom}" gate rolled on a dedicated stream (preserving Balatro's per-effect queue). */
+    private static Condition chanceOn(int denom, String stream) {
+        return new Condition.Chance(new Odds(1, denom), stream, stream);
+    }
+
+    /** Probabilistic enhancement scoring — Lucky: 1-in-5 for +20 Mult (lucky_mult stream), 1-in-15 for +$20
+     *  (lucky_money stream). Order matters (mult queue advances before money), so the list order is fixed.
+     *  The Lucky Cat counter (luckyTriggersTotal) is bumped per proc by the scorer — the one coupling left. */
+    public static final Map<Enhancement, List<Rule>> PROBABILISTIC = Map.of(
+            Enhancement.LUCKY, List.of(
+                    new Rule(Trigger.ON_SCORED, chanceOn(5, "lucky_mult"), List.of(Effect.mult(n(20)))),
+                    new Rule(Trigger.ON_SCORED, chanceOn(15, "lucky_money"), List.of(Effect.dollars(n(20))))));
 }
