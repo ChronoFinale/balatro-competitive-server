@@ -387,14 +387,6 @@ public final class Run {
                         state.jokers(), Value.Var.BOSS_ABILITY_DISABLED);
     }
 
-    /** True if any owned (data) joker grants a passive {@link RunMod} capability matching {@code test}. */
-    private boolean anyOwnedRunMod(java.util.function.Predicate<RunMod> test) {
-        for (Joker j : state.jokers()) {
-            if (j instanceof DataJoker dj && test.test(dj.def().runMod())) return true;
-        }
-        return false;
-    }
-
     private int survivingJoker = -1; // set by a SurviveBlind effect during raiseJokerRules(BLIND_LOST)
 
     /** A failed blind, as a hookable Blind-lifecycle event: raise {@code BLIND_LOST} over the joker rules.
@@ -675,11 +667,7 @@ public final class Run {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) all.addAll(def.mods());
         }
-        if (anyOwnedRunMod(RunMod::pvpSkipBonus)) {                        // Skip-Off (Nemesis): +1 hand & discard / skip
-            int diff = Math.max(0, state.blindsSkipped - state.opponent.blindsSkipped);
-            all.add(Modify.add(Hand.PLAYS, diff));
-            all.add(Modify.add(Hand.DISCARDS, diff));
-        }
+        // Skip-Off's +hands/+discards is a dynamic Modify carried by the joker's own mods() now (a Diff Value).
         if (state.pizzaBlindsLeft > 0) {                                  // Pizza (PvP): temporary +discards
             all.add(Modify.add(Hand.DISCARDS, state.pizzaDiscardBonus));
             state.pizzaBlindsLeft--;
@@ -690,14 +678,15 @@ public final class Run {
     /** Fold every resource Modify onto each game variable at blind start (Burglar's "no discards" last). */
     private void applyResourceMods() {
         List<Modify> mods = resourceMods();
-        state.handsLeft = Math.max(1, (int) Modify.fold(ruleset.hands(), Hand.PLAYS, mods));
+        var ctx = runLoopContext(); // some mods are dynamic Values now (Skip-Off reads the PvP state)
+        state.handsLeft = Math.max(1, (int) Modify.fold(ruleset.hands(), Hand.PLAYS, mods, ctx));
         // Burglar's "no discards" is a Modify.min(Hand.DISCARDS, 0) — the fold's MIN beats any discard-adder.
-        int discards = (int) Modify.fold(baseDiscards(), Hand.DISCARDS, mods);
+        int discards = (int) Modify.fold(baseDiscards(), Hand.DISCARDS, mods, ctx);
         state.discardsLeft = Math.max(0, discards);
-        state.handSize = Math.max(1, (int) Modify.fold(ruleset.handSize(), Hand.SIZE, mods));
+        state.handSize = Math.max(1, (int) Modify.fold(ruleset.handSize(), Hand.SIZE, mods, ctx));
         // Oops! All 6s scales every "1 in X" threshold: each copy is a Modify.multiply(PROBABILITY_MULTIPLIER, 2),
         // so the fold from base 1 gives 2^copies — replacing the old bespoke 1<<oopsCount capability count.
-        state.probabilityNumerator = Math.max(1, (int) Modify.fold(1, Value.Var.PROBABILITY_MULTIPLIER, mods));
+        state.probabilityNumerator = Math.max(1, (int) Modify.fold(1, Value.Var.PROBABILITY_MULTIPLIER, mods, ctx));
     }
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */

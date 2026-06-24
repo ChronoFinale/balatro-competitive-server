@@ -145,8 +145,7 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : false
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },
@@ -190,8 +189,7 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : false
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },
@@ -235,8 +233,7 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : false
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },
@@ -258,10 +255,58 @@
         "blueprintCompatible" : true,
         "rules" : [ ],
         "handMods" : [ ],
-        "mods" : [ ],
+        "mods" : [
+          {
+            "variable" : "PLAYS",
+            "op" : "ADD",
+            "value" : {
+              "type" : "clamp",
+              "inner" : {
+                "type" : "diff",
+                "left" : {
+                  "type" : "runVar",
+                  "which" : "BLINDS_SKIPPED",
+                  "base" : 0.0,
+                  "scale" : 1.0
+                },
+                "right" : {
+                  "type" : "runVar",
+                  "which" : "OPP_BLINDS_SKIPPED",
+                  "base" : 0.0,
+                  "scale" : 1.0
+                }
+              },
+              "min" : 0.0,
+              "max" : 1.0E9
+            }
+          },
+          {
+            "variable" : "DISCARDS",
+            "op" : "ADD",
+            "value" : {
+              "type" : "clamp",
+              "inner" : {
+                "type" : "diff",
+                "left" : {
+                  "type" : "runVar",
+                  "which" : "BLINDS_SKIPPED",
+                  "base" : 0.0,
+                  "scale" : 1.0
+                },
+                "right" : {
+                  "type" : "runVar",
+                  "which" : "OPP_BLINDS_SKIPPED",
+                  "base" : 0.0,
+                  "scale" : 1.0
+                }
+              },
+              "min" : 0.0,
+              "max" : 1.0E9
+            }
+          }
+        ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : true
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },
@@ -318,8 +363,7 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : false
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },
@@ -364,8 +408,7 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : false
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },
@@ -409,8 +452,7 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : false
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },
@@ -459,8 +501,7 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : false
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },
@@ -504,8 +545,7 @@
         "handMods" : [ ],
         "mods" : [ ],
         "runMod" : {
-          "handSizeDecayStart" : 0,
-          "pvpSkipBonus" : false
+          "handSizeDecayStart" : 0
         },
         "copy" : null,
         "props" : { },

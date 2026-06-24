@@ -28,6 +28,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Value.HeldExtreme.class, name = "heldExtreme"),
     @JsonSubTypes.Type(value = Value.DeckRankCount.class, name = "deckRankCount"),
     @JsonSubTypes.Type(value = Value.Clamp.class, name = "clamp"),
+    @JsonSubTypes.Type(value = Value.Diff.class, name = "diff"),
     @JsonSubTypes.Type(value = Value.HandTypePlays.class, name = "handTypePlays"),
     @JsonSubTypes.Type(value = Value.OtherJokersSellSum.class, name = "otherJokersSellSum"),
     @JsonSubTypes.Type(value = Value.Random.class, name = "random"),
@@ -88,6 +89,14 @@ public sealed interface Value {
         }
     }
 
+    /** The difference of two values, {@code left − right} — the missing arithmetic that lets one quantity be
+     *  defined relative to another (Skip-Off: how many blinds you've skipped beyond the Nemesis). */
+    record Diff(Value left, Value right) implements Value {
+        public double resolve(EvaluationContext ctx) {
+            return left.resolve(ctx) - right.resolve(ctx);
+        }
+    }
+
     /** {@code base + scale * floor(state / per)} — stepwise state scaling (Yorick: x1 per 23 discarded). */
     record StateStep(String var, double base, double scale, double per) implements Value {
         public double resolve(EvaluationContext ctx) {
@@ -133,7 +142,7 @@ public sealed interface Value {
         // --- readable run-state quantities (a condition can read these) ---
         MONEY, CONSUMABLE_SLOTS, JOKER_SLOTS, ANTE, DISCARDS_USED,
         HANDS_PLAYED, HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS,
-        UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD,
+        UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD,
         OPP_SHOP_SPENT, GLASS_MULT, BLIND_PROGRESS,
         // --- derived economy/shop policy variables: written by Modifys (folded in EconomyConfig /
         //     ShopEconomy), not yet read by any condition. Reading one throws (see readVar). ---
@@ -179,6 +188,7 @@ public sealed interface Value {
             case UNIQUE_PLANETS -> ctx.run.planetsUsedThisRun.size();
             case OBELISK_STREAK -> ctx.run.obeliskStreak;
             case BLINDS_SKIPPED -> ctx.run.blindsSkipped;
+            case OPP_BLINDS_SKIPPED -> ctx.run.opponent.blindsSkipped;
             case OPP_LIVES_BEHIND -> Math.max(0, ctx.run.opponent.lives - ctx.run.myLives);
             case OPP_HANDS_LEFT -> ctx.run.opponent.handsLeft;
             case OPP_CARDS_SOLD -> ctx.run.opponent.cardsSold;

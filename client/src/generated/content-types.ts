@@ -84,12 +84,13 @@ export type EffectType =
   | "shopFlag"
   | "surviveBlind";
 
-/** 14 discriminators the server dispatches on — the client must handle exactly these. */
+/** 15 discriminators the server dispatches on — the client must handle exactly these. */
 export type ValueType =
   | "clamp"
   | "const"
   | "count"
   | "deckRankCount"
+  | "diff"
   | "handTypePlays"
   | "heldExtreme"
   | "otherJokersSellSum"

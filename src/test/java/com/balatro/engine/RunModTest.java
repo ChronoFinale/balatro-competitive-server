@@ -34,6 +34,16 @@ class RunModTest {
     }
 
     @Test
+    void skipOffGivesPlusHandsAndDiscardsPerBlindSkippedAheadOfNemesis() {
+        // Skip-Off is a DYNAMIC Modify now: add(PLAYS/DISCARDS, clamp(blindsSkipped − opp.blindsSkipped, 0, ∞)).
+        Run run = new Run(std, "SO", stoneDeck(400), jokers("j_skip_off"));
+        run.skipBlind(); // skip the Small Blind -> 1 ahead of the (solo: 0) Nemesis; re-folds at the Big
+        assertThat(run.state.blindsSkipped).isEqualTo(1);
+        assertThat(run.state.handsLeft).isEqualTo(std.hands() + 1);
+        assertThat(run.state.discardsLeft).isEqualTo(std.discards() + 1);
+    }
+
+    @Test
     void hologramGainsWhenMarbleAddsACard() {
         // Marble adds a Stone card at blind select -> CARD_ADDED -> Hologram gains x0.25.
         Run run = new Run(std, "H", stoneDeck(400), jokers("j_hologram", "j_marble"));

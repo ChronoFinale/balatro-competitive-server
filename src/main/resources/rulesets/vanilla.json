@@ -34,8 +34,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : {
@@ -79,8 +78,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : {
@@ -124,8 +122,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : {
@@ -169,8 +166,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : {
@@ -212,8 +208,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -252,8 +247,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -294,8 +288,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -335,8 +328,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -377,8 +369,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -417,8 +408,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -458,8 +448,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -525,8 +514,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -602,8 +590,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -624,8 +611,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : {
       "selector" : "RIGHT_NEIGHBOR"
@@ -648,8 +634,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : {
       "selector" : "LEFTMOST"
@@ -690,8 +675,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -738,8 +722,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -780,8 +763,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -822,8 +804,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -862,8 +843,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -903,8 +883,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -971,8 +950,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1012,8 +990,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1053,8 +1030,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1094,8 +1070,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1135,8 +1110,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1176,8 +1150,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1217,8 +1190,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1258,8 +1230,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1299,8 +1270,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1350,8 +1320,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1390,8 +1359,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1451,8 +1419,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1518,8 +1485,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1560,8 +1526,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1602,8 +1567,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1669,8 +1633,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1737,8 +1700,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1778,8 +1740,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1819,8 +1780,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1860,8 +1820,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1901,8 +1860,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1942,8 +1900,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -1984,8 +1941,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2026,8 +1982,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2066,8 +2021,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2132,8 +2086,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2199,8 +2152,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2241,8 +2193,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2297,8 +2248,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2340,8 +2290,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2383,8 +2332,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2426,8 +2374,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2469,8 +2416,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2514,8 +2460,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2559,8 +2504,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2655,8 +2599,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2697,8 +2640,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2751,8 +2693,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2808,8 +2749,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2865,8 +2805,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2913,8 +2852,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2956,8 +2894,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -2998,8 +2935,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3038,8 +2974,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3096,8 +3031,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3159,8 +3093,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3183,8 +3116,7 @@
     ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3207,8 +3139,7 @@
     ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3231,8 +3162,7 @@
     ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3271,8 +3201,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3319,8 +3248,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3360,8 +3288,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3400,8 +3327,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3449,8 +3375,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3493,8 +3418,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3517,8 +3441,7 @@
     ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3541,8 +3464,7 @@
     ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3623,8 +3545,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3690,8 +3611,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3733,8 +3653,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3776,8 +3695,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3807,8 +3725,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3838,8 +3755,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3877,8 +3793,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3916,8 +3831,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -3955,8 +3869,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4004,8 +3917,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4046,8 +3958,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4088,8 +3999,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4146,8 +4056,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4199,8 +4108,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4257,8 +4165,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4299,8 +4206,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4352,8 +4258,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4416,8 +4321,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4460,8 +4364,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4502,8 +4405,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4544,8 +4446,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4601,8 +4502,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4645,8 +4545,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4704,8 +4603,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4762,8 +4660,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4823,8 +4720,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4901,8 +4797,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -4998,8 +4893,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5053,8 +4947,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5111,8 +5004,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5153,8 +5045,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5219,8 +5110,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5285,8 +5175,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5325,8 +5214,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5360,8 +5248,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5408,8 +5295,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5474,8 +5360,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5505,8 +5390,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5547,8 +5431,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5569,8 +5452,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 4,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 4
     },
     "copy" : null,
     "props" : { },
@@ -5610,8 +5492,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5652,8 +5533,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5695,8 +5575,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5765,8 +5644,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5799,8 +5677,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5850,8 +5727,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5884,8 +5760,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -5947,8 +5822,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6029,8 +5903,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6071,8 +5944,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6102,8 +5974,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6156,8 +6027,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6187,8 +6057,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6226,8 +6095,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6265,8 +6133,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6296,8 +6163,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6327,8 +6193,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6358,8 +6223,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6400,8 +6264,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6431,8 +6294,7 @@
       }
     ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6477,8 +6339,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6563,8 +6424,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6605,8 +6465,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6656,8 +6515,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6698,8 +6556,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6739,8 +6596,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6780,8 +6636,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6821,8 +6676,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6861,8 +6715,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6903,8 +6756,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -6977,8 +6829,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },
@@ -7043,8 +6894,7 @@
     "handMods" : [ ],
     "mods" : [ ],
     "runMod" : {
-      "handSizeDecayStart" : 0,
-      "pvpSkipBonus" : false
+      "handSizeDecayStart" : 0
     },
     "copy" : null,
     "props" : { },

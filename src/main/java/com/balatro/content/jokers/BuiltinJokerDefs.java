@@ -45,6 +45,14 @@ public final class BuiltinJokerDefs {
     private BuiltinJokerDefs() {}
 
     /** Suit → +3 Mult per played card of that suit (Greedy/Lusty/Wrathful/Gluttonous family). */
+    /** Skip-Off's amount: how many blinds you've skipped beyond the Nemesis, floored at 0 — a Value, so the
+     *  same Modify works as the PvP state moves (clamp(blindsSkipped − opp.blindsSkipped, 0, ∞)). */
+    private static Value skipDiff() {
+        return new Value.Clamp(new Value.Diff(
+                new Value.RunVar(Value.Var.BLINDS_SKIPPED, 0, 1),
+                new Value.RunVar(Value.Var.OPP_BLINDS_SKIPPED, 0, 1)), 0, 1e9);
+    }
+
     private static JokerDef suitMult(String key, String name, Suit suit) {
         // Templated: the suit and the mult are declared PROPERTIES, and the effect is a function over them.
         // Greedy/Lusty/Wrathful/Gluttonous are this one definition with different props.
@@ -116,8 +124,10 @@ public final class BuiltinJokerDefs {
                         .on(Trigger.SHOP_ENTER).effect(new Effect.AdjustMoney(Effect.Operation.ADD,
                                 new Value.RunVarStep(Value.Var.OPP_SHOP_SPENT, 0, 1, 3))).build(),
                 // Skip-Off / Let's Go Gambling.
+                // Skip-Off: +1 Hand and +1 Discard per extra blind skipped vs the Nemesis — a DYNAMIC Modify
+                // (the amount is a Value: clamp(blindsSkipped − opp.blindsSkipped, 0, ∞)), not a RunMod.
                 Jokers.of("j_skip_off", "Skip-Off")
-                        .runMod(RunMod.skipBonus()).build(),
+                        .mods(Modify.add(Hand.PLAYS, skipDiff()), Modify.add(Hand.DISCARDS, skipDiff())).build(),
                 Jokers.of("j_lets_go_gambling", "Let's Go Gambling")
                         .whenHand(Cond.chance(1, 4, "gambling"))
                         .effect(Effect.xMult(Val.of(4)), Effect.dollars(Val.of(10))).build(),
