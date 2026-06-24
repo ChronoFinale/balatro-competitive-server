@@ -157,13 +157,13 @@ public final class BuiltinJokerDefs {
                         .atEndOfRound().add(DOLLARS, 4).build(),
                 Jokers.of("j_faceless", "Faceless Joker")
                         .whenDiscarding(discard().faces(3)).add(DOLLARS, 5).build(),
-                Jokers.of("j_constellation", "Constellation")
+                Jokers.of("j_constellation", "Constellation").counters("planets")
                         .whenUsing("Planet").gain("planets", 1)
                         .whenHand(state("planets").atLeast(1))
                         .multiply(MULT, Val.xPerState("planets", 0.1)).build(),
                 // Ride the Bus — a STATEFUL RESET: streak breaks to 0 on a scoring face, else +1, then +streak Mult.
                 // The last hand-coded joker, now data too (mutations only fire at blueprintDepth 0, as before).
-                Jokers.of("j_ride_the_bus", "Ride the Bus")
+                Jokers.of("j_ride_the_bus", "Ride the Bus").counters("streak")
                         .beforeScoring(playedHand().hasFace()).reset("streak")
                         .beforeScoring(playedHand().hasNoFace()).gain("streak", 1)
                         .whenHand().add(MULT, Val.state("streak")).build(),
@@ -198,7 +198,7 @@ public final class BuiltinJokerDefs {
                         .forEachScored(card().odd()).add(CHIPS, 31).build(),
 
                 // --- stateful: gains chips as you play exactly-4-card hands ---
-                Jokers.of("j_square", "Square Joker")
+                Jokers.of("j_square", "Square Joker").counters("chips")
                         .beforeScoring(playedHand().sizeExactly(4)).gain("chips", 4)
                         .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
 
@@ -243,12 +243,12 @@ public final class BuiltinJokerDefs {
                         .forEachHeld(card().rankBetween(13, 13)).multiply(MULT, 1.5).build(),
 
                 // --- stateful: gains +15 Chips whenever the played hand contains a Straight ---
-                Jokers.of("j_runner", "Runner")
+                Jokers.of("j_runner", "Runner").counters("chips")
                         .beforeScoring(playedHand().contains(HandType.STRAIGHT)).gain("chips", 15)
                         .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
 
                 // --- stateful: gains +8 Chips for each played 2 ---
-                Jokers.of("j_wee", "Wee Joker")
+                Jokers.of("j_wee", "Wee Joker").counters("chips")
                         .mutate(Trigger.ON_SCORED).when(card().rankBetween(2, 2)).gain("chips", 8)
                         .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
 
@@ -268,12 +268,12 @@ public final class BuiltinJokerDefs {
                         .retriggerEachScored(card().isFace()).build(),
 
                 // --- stateful: gains +2 Mult per shop reroll ---
-                Jokers.of("j_flash", "Flash Card")
+                Jokers.of("j_flash", "Flash Card").counters("mult")
                         .mutate(Trigger.REROLL_SHOP).when(always()).gain("mult", 2)
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult")).build(),
 
                 // --- stateful: gains +2 Mult whenever the played hand contains a Two Pair ---
-                Jokers.of("j_trousers", "Spare Trousers")
+                Jokers.of("j_trousers", "Spare Trousers").counters("mult")
                         .beforeScoring(playedHand().contains(HandType.TWO_PAIR)).gain("mult", 2)
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult")).build(),
 
@@ -303,7 +303,7 @@ public final class BuiltinJokerDefs {
                         .forEachScored(card().isFace()).mutateCard(CardMod.setEnhancement(Enhancement.GOLD)).build(),
 
                 // --- MUTATE_CARD + stateful xMult: Vampire strips enhancements and grows ---
-                Jokers.of("j_vampire", "Vampire")
+                Jokers.of("j_vampire", "Vampire").counters("xm")
                         .mutate(Trigger.ON_SCORED).when(not(card().enhancement(Enhancement.NONE))).gain("xm", 0.1)
                         .forEachScored(not(card().enhancement(Enhancement.NONE)))
                         .mutateCard(CardMod.removeEnhancement())
@@ -381,11 +381,11 @@ public final class BuiltinJokerDefs {
                         .handMod(HandMod.SPLASH).build(),
 
                 // --- batch 4: lifecycle counter-scaling (state ships to client, JOKER_MAIN reads it) ---
-                Jokers.of("j_green_joker", "Green Joker")
+                Jokers.of("j_green_joker", "Green Joker").counters("m")
                         .beforeScoring(always()).gain("m", 1)
                         .mutate(Trigger.PRE_DISCARD).when(always()).gain("m", -1)
                         .whenHand(state("m").atLeast(1)).add(MULT, Val.state("m")).build(),
-                Jokers.of("j_fortune_teller", "Fortune Teller")
+                Jokers.of("j_fortune_teller", "Fortune Teller").counters("tarots")
                         .whenUsing("Tarot").gain("tarots", 1)
                         .whenHand(state("tarots").atLeast(1)).add(MULT, Val.state("tarots")).build(),
 
@@ -417,7 +417,7 @@ public final class BuiltinJokerDefs {
                 // --- batch 8: end-of-round economy (END_OF_ROUND credits DOLLARS) ---
                 Jokers.of("j_cloud_9", "Cloud 9")
                         .atEndOfRound().add(DOLLARS, Val.deckRankCount(9, 0, 1)).build(),
-                Jokers.of("j_rocket", "Rocket")
+                Jokers.of("j_rocket", "Rocket").counters("bosses")
                         .mutate(Trigger.END_OF_ROUND).when(Cond.bossDefeated()).gain("bosses", 1)
                         .atEndOfRound().add(DOLLARS, Val.state("bosses", 1, 2)).build(),
                 Jokers.of("j_delayed_gratification", "Delayed Gratification")
@@ -457,16 +457,16 @@ public final class BuiltinJokerDefs {
                 Jokers.of("j_space", "Space Joker")
                         .whenHand(Cond.chance(1, 4, "space")).levelUpHand(1).build(),
                 // --- batch 13: destruction-counting xMult (CARD_DESTROYED) ---
-                Jokers.of("j_glass_joker", "Glass Joker")
+                Jokers.of("j_glass_joker", "Glass Joker").counters("x")
                         .whenCardDestroyed(card().enhancement(Enhancement.GLASS)).gain("x", 0.75)
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
-                Jokers.of("j_canio", "Canio")
+                Jokers.of("j_canio", "Canio").counters("x")
                         .whenCardDestroyed(card().isFace()).gain("x", 1)
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
-                Jokers.of("j_yorick", "Yorick")
+                Jokers.of("j_yorick", "Yorick").counters("d")
                         .mutate(Trigger.PRE_DISCARD).when(always()).gainPerCard("d", 1, always())
                         .whenHand().multiply(MULT, Val.stateStep("d", 1.0, 1.0, 23)).build(),
-                Jokers.of("j_hit_the_road", "Hit the Road")
+                Jokers.of("j_hit_the_road", "Hit the Road").counters("x")
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("x")
                         // +0.5 per Jack in the discarded set
                         .mutate(Trigger.PRE_DISCARD).when(always()).gainPerCard("x", 0.5, card().rankBetween(11, 11))
@@ -474,7 +474,7 @@ public final class BuiltinJokerDefs {
 
                 // count discards this round (reset at blind select); mutations run before rules,
                 // so on the first discard the counter is exactly 1 when the rule is checked.
-                Jokers.of("j_burnt", "Burnt Joker")
+                Jokers.of("j_burnt", "Burnt Joker").counters("discards")
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("discards")
                         .mutate(Trigger.PRE_DISCARD).when(always()).gain("discards", 1)
                         .whenDiscarding(Cond.all(state("discards").atLeast(1), not(state("discards").atLeast(2))))
@@ -485,7 +485,7 @@ public final class BuiltinJokerDefs {
                         .forEachScored(Cond.all(playedHand().sizeExactly(1),
                                 not(runVar(Value.Var.HANDS_PLAYED).atLeast(1))))
                         .copyScored().build(),
-                Jokers.of("j_hologram", "Hologram")
+                Jokers.of("j_hologram", "Hologram").counters("x")
                         .mutate(Trigger.CARD_ADDED).when(always()).gain("x", 0.25)
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
                 Jokers.of("j_certificate", "Certificate")
@@ -515,7 +515,7 @@ public final class BuiltinJokerDefs {
                 Jokers.of("j_hallucination", "Hallucination")
                         .on(Trigger.OPEN_BOOSTER).when(Cond.chance(1, 2, "hallucination"))
                         .create(CreateSpec.Kind.TAROT).build(),
-                Jokers.of("j_red_card", "Red Card")
+                Jokers.of("j_red_card", "Red Card").counters("mult")
                         .mutate(Trigger.SKIP_BOOSTER).when(always()).gain("mult", 3)
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult")).build(),
 
@@ -556,18 +556,18 @@ public final class BuiltinJokerDefs {
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
                 Jokers.of("j_perkeo", "Perkeo")
                         .on(Trigger.SHOP_EXIT).effect(new Effect.DuplicateRandomConsumable()).build(),
-                Jokers.of("j_invisible", "Invisible Joker")
+                Jokers.of("j_invisible", "Invisible Joker").counters("rounds")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("rounds", 1)
                         .on(Trigger.SELL_SELF).effect(new Effect.DuplicateRandomJoker(2)).build(),
                 Jokers.of("j_luchador", "Luchador")
                         .on(Trigger.SELL_SELF).effect(new Effect.DisableBoss()).build(),
 
                 // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
-                Jokers.of("j_ceremonial", "Ceremonial Dagger")
+                Jokers.of("j_ceremonial", "Ceremonial Dagger").counters("mult")
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult"))
                         .on(Trigger.BLIND_SELECTED).effect(new Effect.DestroyOtherJoker("RIGHT_NEIGHBOR", true)).build(),
                 // x0.5 Mult is a state-write rule; eating a random joker is a BLIND_SELECTED destroy rule.
-                Jokers.of("j_madness", "Madness")
+                Jokers.of("j_madness", "Madness").counters("xm")
                         .mutate(Trigger.BLIND_SELECTED).when(not(Cond.bossBlind())).gain("xm", 0.5)
                         .whenHand(state("xm").atLeast(0.5)).multiply(MULT, Val.state("xm", 1.0, 1.0))
                         .on(Trigger.BLIND_SELECTED).effect(new Effect.DestroyOtherJoker("RANDOM_OTHER", false)).build(),
@@ -587,9 +587,9 @@ public final class BuiltinJokerDefs {
                         RunMod.bossDisabler()),
 
                 // --- batch 28: sell-value bonus (Egg, Gift Card) ---
-                Jokers.of("j_egg", "Egg")
+                Jokers.of("j_egg", "Egg").counters("sellBonus")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("sellBonus", 3).build(),
-                Jokers.of("j_gift_card", "Gift Card")
+                Jokers.of("j_gift_card", "Gift Card").counters("sellBonus")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gainEveryJoker("sellBonus", 1).build(),
 
                 // --- batch 27: shop/economy hooks (Credit Card, Chaos, Astronomer) ---
@@ -612,7 +612,7 @@ public final class BuiltinJokerDefs {
                                 card().rankIsTarget("rebateRankId"), 0, 5)).build(),
 
                 // --- batch 24: more dynamic targets (Castle chips, To Do List money) ---
-                Jokers.of("j_castle", "Castle")
+                Jokers.of("j_castle", "Castle").counters("chips")
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("chips")
                         .mutate(Trigger.PRE_DISCARD).when(always()).gainPerCard("chips", 3, card().suitIsTarget("castleSuit"))
                         .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
@@ -643,7 +643,7 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, Val.runVar(Value.Var.LUCKY_TRIGGERS, 1, 0.25)).build(),
 
                 // --- batch 19: sell action (Campfire) ---
-                Jokers.of("j_campfire", "Campfire")
+                Jokers.of("j_campfire", "Campfire").counters("x")
                         .mutate(Trigger.SELL_CARD).when(always()).gain("x", 0.25)
                         .mutate(Trigger.END_OF_ROUND).when(Cond.bossDefeated()).reset("x")
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),

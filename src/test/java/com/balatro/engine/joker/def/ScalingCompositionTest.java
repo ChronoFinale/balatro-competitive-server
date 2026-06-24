@@ -57,7 +57,7 @@ class ScalingCompositionTest {
         // A single counter "g" read TWICE: as +10 Chips per g AND as x(1 + 0.1*g) Mult. The accumulator
         // (gain on CARD_ADDED) and the two reads are independent rules over the same var — "scale multiple
         // things" needs no new machinery, because the read is not fused to the counter.
-        Joker dynamo = dj(Jokers.of("j_dynamo", "Dynamo").desc("scales chips + xMult").cost(6)
+        Joker dynamo = dj(Jokers.of("j_dynamo", "Dynamo").desc("scales chips + xMult").cost(6).counters("g")
                 .mutate(Trigger.CARD_ADDED).when(always()).gain("g", 1)
                 .whenHand().add(Effect.Term.CHIPS, Val.perState("g", 10))         // +10 Chips per g   (ADD, CHIPS)
                 .whenHand().multiply(Effect.Term.MULT, Val.state("g", 1.0, 0.1))  // x(1 + 0.1*g) Mult (MULTIPLY, MULT)
@@ -73,7 +73,7 @@ class ScalingCompositionTest {
     @Test
     void scalingXMultIsJustMultiplyWithAStateValue() {
         // Hologram-shape: xMult grows with a counter. "Scaling xMult" = operation MULTIPLY + a State read.
-        Joker holo = dj(Jokers.of("j_holo_test", "Holo").desc("xMult grows").cost(6)
+        Joker holo = dj(Jokers.of("j_holo_test", "Holo").desc("xMult grows").cost(6).counters("x")
                 .mutate(Trigger.CARD_ADDED).when(always()).gain("x", 0.25)
                 .whenHand().multiply(Effect.Term.MULT, Val.state("x", 1.0, 1.0)) // x(1 + x)
                 .build());

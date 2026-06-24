@@ -38,6 +38,7 @@ public final class Jokers {
     private final List<Rule> rules = new ArrayList<>();
     private final List<HandMod> handMods = new ArrayList<>();
     private final List<Modify> varMods = new ArrayList<>();
+    private final java.util.Set<String> declaredCounters = new java.util.LinkedHashSet<>();
     private RunMod runMod = RunMod.NONE;
     private final java.util.Map<String, Object> props = new java.util.LinkedHashMap<>();
     private final java.util.Map<String, Object> state = new java.util.LinkedHashMap<>();
@@ -143,6 +144,34 @@ public final class Jokers {
     /** Escape hatch: append a fully-built {@link Rule} (a trigger/effect combination without a fluent verb). */
     public Jokers rule(Rule r) { rules.add(r); return this; }
 
+    /**
+     * Register this joker's scaling COUNTERS — the named state it accumulates into and reads back. Every
+     * state key the rules touch ({@code gain}/{@code set}/{@code reset} writes and {@code Val.state} reads,
+     * plus engine-written keys this joker reads) must be declared here, or {@link #build()} throws. This is
+     * the Counter primitive's safety: a typo can't silently create an orphan key — an unregistered counter
+     * fails the build, not a runtime no-op (the old magic-string trap).
+     */
+    public Jokers counters(String... names) {
+        java.util.Collections.addAll(declaredCounters, names);
+        return this;
+    }
+
+    private static final com.fasterxml.jackson.databind.ObjectMapper COUNTER_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
+
+    /** Collect every state key the rules read or write (mutateState / state / stateStep), via the def tree. */
+    private static void collectCounters(com.fasterxml.jackson.databind.JsonNode node, java.util.Set<String> out) {
+        if (node.isObject()) {
+            String t = node.path("type").asText("");
+            if ((t.equals("mutateState") || t.equals("state") || t.equals("stateStep")) && node.has("var")) {
+                out.add(node.get("var").asText());
+            }
+            node.forEach(c -> collectCounters(c, out));
+        } else if (node.isArray()) {
+            node.forEach(c -> collectCounters(c, out));
+        }
+    }
+
     public JokerDef build() {
         // Fail loud and COMPLETE: list every missing required field by name, so you never have to guess
         // what a joker needs (the error is the documentation). Identity (key/name/rarity) is enforced by
@@ -160,6 +189,16 @@ public final class Jokers {
         if (!missing.isEmpty()) {
             throw new IllegalStateException(
                     "Joker '" + key + "' is missing required: " + String.join(", ", missing));
+        }
+        // Counter registration: every state key the rules touch must be declared via .counters(...).
+        java.util.Set<String> usedCounters = new java.util.TreeSet<>();
+        collectCounters(COUNTER_MAPPER.valueToTree(rules), usedCounters);
+        java.util.Set<String> unregistered = new java.util.TreeSet<>(usedCounters);
+        unregistered.removeAll(declaredCounters);
+        if (!unregistered.isEmpty()) {
+            throw new IllegalStateException("Joker '" + key + "' uses unregistered counter(s) " + unregistered
+                    + " — declare them with .counters(" + String.join(", ",
+                    unregistered.stream().map(c -> '"' + c + '"').toList()) + ")");
         }
         if (!atlasSet) { // sprite location is data, not code: read it from the ground-truth metadata table
             int[] a = JokerMeta.atlas(key);
