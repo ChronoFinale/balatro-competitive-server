@@ -45,10 +45,7 @@ public enum Stake {
     SPECTRAL     (10, "Spectral Stake",     true,  4,  0, true,  true,  true),
     SPECTRAL_PLUS(11, "Spectral+ Stake",    true,  5,  0, true,  true,  true);
 
-    /** Sticker tuning constants (game.lua:1914-1915, mechanics doc). */
-    public static final int PERISHABLE_ROUNDS = 5;
-    public static final int RENTAL_RATE = 3;
-    public static final double STICKER_CHANCE = 0.30;
+    // Sticker tuning constants now live on the Sticker primitive (com.balatro.engine.card.Sticker).
 
     /** stake_level (1..11) — selection order, and a stable id for the wire. */
     public final int level;
@@ -106,7 +103,7 @@ public enum Stake {
         return eternalsInShop;
     }
 
-    /** Shop jokers may roll the Perishable sticker (debuffed after {@link #PERISHABLE_ROUNDS} rounds). */
+    /** Shop jokers may roll the Perishable sticker (see {@link com.balatro.engine.card.Sticker}). */
     public boolean perishablesInShop() {
         return perishablesInShop;
     }
