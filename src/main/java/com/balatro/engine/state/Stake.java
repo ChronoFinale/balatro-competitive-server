@@ -77,6 +77,20 @@ public enum Stake {
         return smallBlindNoReward;
     }
 
+    /**
+     * The stake's resource MODIFIERS — the same {@link com.balatro.engine.joker.def.Modify} vocabulary a
+     * deck/voucher/joker carries, folded by {@code Run} alongside them. A Stake is a Balatro-world primitive
+     * (you select it) whose behaviour is modifiers: Blue+'s "−1 discard" is {@code add(Hand.DISCARDS, −1)}
+     * here, not a bespoke int the run reads. (Scaling → a Blind-requirement Modify and the sticker stakes →
+     * the joker-sticker Modifier are the remaining pieces, pending those primitives.)
+     */
+    public java.util.List<com.balatro.engine.joker.def.Modify> mods() {
+        return discardDelta != 0
+                ? java.util.List.of(com.balatro.engine.joker.def.Modify.add(
+                        com.balatro.engine.joker.def.Hand.DISCARDS, discardDelta))
+                : java.util.List.of();
+    }
+
     /** Required-score scaling tier (selects the blind requirement curve). 1..5; >3 are BMP MP tiers. */
     public int scaling() {
         return scaling;

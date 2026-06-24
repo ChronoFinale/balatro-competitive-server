@@ -630,7 +630,7 @@ public final class Run {
 
     /** Per-blind base discards: the ruleset default reduced by the stake (Blue: -1), floored at 0. */
     private int baseDiscards() {
-        return Math.max(0, ruleset.discards() + stake.discardDelta());
+        return ruleset.discards(); // the stake's −1 (Blue+) is now a Modify in resourceMods(), folded below
     }
 
     /**
@@ -643,6 +643,7 @@ public final class Run {
     private List<Modify> resourceMods() {
         List<Modify> all = new ArrayList<>();
         all.addAll(deckType.mods());                                       // deck: Blue/Red/Painted/...
+        all.addAll(stake.mods());                                          // stake: Blue+ −1 discard (a Modify now)
         if (boss != null && !bossDisabled()) all.addAll(boss.mods());      // boss: Needle/Water/Manacle (SET/add)
         for (Joker j : state.jokers()) {                                   // jokers: flat deltas + Turtle decay
             if (!(j instanceof DataJoker dj)) continue;
