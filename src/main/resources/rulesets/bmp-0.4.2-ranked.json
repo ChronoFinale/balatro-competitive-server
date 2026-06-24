@@ -294,8 +294,10 @@
             "when" : "JOKER_MAIN",
             "condition" : {
               "type" : "chance",
-              "numerator" : 1,
-              "denominator" : 4,
+              "odds" : {
+                "numerator" : 1,
+                "denominator" : 4
+              },
               "seedKey" : "gambling"
             },
             "effects" : [

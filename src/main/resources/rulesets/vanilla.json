@@ -2370,8 +2370,10 @@
             },
             {
               "type" : "chance",
-              "numerator" : 1,
-              "denominator" : 2,
+              "odds" : {
+                "numerator" : 1,
+                "denominator" : 2
+              },
               "seedKey" : "bloodstone"
             }
           ]
@@ -2839,8 +2841,10 @@
             },
             {
               "type" : "chance",
-              "numerator" : 1,
-              "denominator" : 2,
+              "odds" : {
+                "numerator" : 1,
+                "denominator" : 2
+              },
               "seedKey" : "business_card"
             }
           ]
@@ -2903,8 +2907,10 @@
         "when" : "END_OF_ROUND",
         "condition" : {
           "type" : "chance",
-          "numerator" : 1,
-          "denominator" : 6,
+          "odds" : {
+            "numerator" : 1,
+            "denominator" : 6
+          },
           "seedKey" : "gros_michel"
         },
         "effects" : [
@@ -2959,8 +2965,10 @@
         "when" : "END_OF_ROUND",
         "condition" : {
           "type" : "chance",
-          "numerator" : 1,
-          "denominator" : 1000,
+          "odds" : {
+            "numerator" : 1,
+            "denominator" : 1000
+          },
           "seedKey" : "cavendish"
         },
         "effects" : [
@@ -4375,8 +4383,10 @@
             },
             {
               "type" : "chance",
-              "numerator" : 1,
-              "denominator" : 4,
+              "odds" : {
+                "numerator" : 1,
+                "denominator" : 4
+              },
               "seedKey" : "8ball"
             }
           ]
@@ -4782,8 +4792,10 @@
         "when" : "JOKER_MAIN",
         "condition" : {
           "type" : "chance",
-          "numerator" : 1,
-          "denominator" : 4,
+          "odds" : {
+            "numerator" : 1,
+            "denominator" : 4
+          },
           "seedKey" : "space"
         },
         "effects" : [
@@ -5564,8 +5576,10 @@
         "when" : "OPEN_BOOSTER",
         "condition" : {
           "type" : "chance",
-          "numerator" : 1,
-          "denominator" : 2,
+          "odds" : {
+            "numerator" : 1,
+            "denominator" : 2
+          },
           "seedKey" : "hallucination"
         },
         "effects" : [
@@ -6335,8 +6349,10 @@
             },
             {
               "type" : "chance",
-              "numerator" : 1,
-              "denominator" : 2,
+              "odds" : {
+                "numerator" : 1,
+                "denominator" : 2
+              },
               "seedKey" : "reserved_parking"
             }
           ]

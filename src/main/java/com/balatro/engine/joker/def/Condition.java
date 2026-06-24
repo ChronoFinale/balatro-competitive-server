@@ -418,11 +418,12 @@ public sealed interface Condition {
      * a roll from a game-long queue keyed by {@code seedKey}, so both players get
      * identical procs. Compose with {@link And} for "this card AND a chance".
      */
-    record Chance(int numerator, int denominator, String seedKey) implements Condition {
+    record Chance(Odds odds, String seedKey) implements Condition {
         public boolean test(EvaluationContext ctx) {
             if (ctx.preview) return false; // preview shows the guaranteed floor — a gate never procs
-            int probNum = ctx.run != null ? ctx.run.probabilityNumerator : 1;
-            return ctx.nextProb(seedKey) < (double) (numerator * probNum) / denominator;
+            int probMult = ctx.run != null ? ctx.run.probabilityNumerator : 1;
+            // The roll comes off the game-long queue; PROBABILITY_MULTIPLIER (Oops!) scales the threshold.
+            return ctx.nextProb(seedKey) < (double) (odds.numerator() * probMult) / odds.denominator();
         }
     }
 

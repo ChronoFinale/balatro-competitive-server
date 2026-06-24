@@ -50,7 +50,7 @@ public final class Cond {
 
     /** A {@code numerator}-in-{@code denominator} probabilistic gate, popped from a queue keyed by {@code seed}. */
     public static Condition chance(int numerator, int denominator, String seed) {
-        return new Condition.Chance(numerator, denominator, seed);
+        return new Condition.Chance(new com.balatro.engine.joker.def.Odds(numerator, denominator), seed);
     }
 
     /** Fewer than {@code max} hands have been played since this joker was acquired (Seltzer). */
