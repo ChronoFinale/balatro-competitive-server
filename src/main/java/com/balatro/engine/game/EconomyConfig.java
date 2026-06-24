@@ -26,7 +26,6 @@ public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInt
 
     /** Fold the currently-owned sources into the effective economy. Pure — no side effects. */
     public static EconomyConfig resolve(DeckCatalog.DeckType deck, Set<String> vouchers, List<Joker> jokers) {
-        boolean green = deck.greenEconomy();                 // Green Deck: $2/hand, $1/discard payout rates
         // Interest cap is folded from the deck + voucher data: Seed Money/Money Tree raise it (MAX),
         // Green Deck's no-interest lowers it to 0 (MIN, which runs after MAX so no voucher can claw it back).
         List<Modify> mods = new ArrayList<>(deck.mods());
@@ -41,7 +40,9 @@ public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInt
         boolean noInterest = cap <= 0;                       // derived — Green caps interest at 0
         int minMoney = (int) Modify.fold(0, Value.Var.MIN_MONEY, mods); // Credit Card: min(MIN_MONEY, -20)
         boolean moon = Modify.fold(0, Value.Var.UNCAPPED_INTEREST, mods) >= 1; // To the Moon: +$1/$5 uncapped
-        return new EconomyConfig(green ? 2 : 1, green ? 1 : 0, noInterest, cap, moon, minMoney);
+        int perHand = (int) Modify.fold(1, Value.Var.MONEY_PER_HAND, mods);    // Green Deck sets $2 (base 1)
+        int perDiscard = (int) Modify.fold(0, Value.Var.MONEY_PER_DISCARD, mods); // Green Deck sets $1 (base 0)
+        return new EconomyConfig(perHand, perDiscard, noInterest, cap, moon, minMoney);
     }
 
     /** $ from remaining hands + remaining discards. */

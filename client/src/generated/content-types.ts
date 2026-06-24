@@ -185,7 +185,6 @@ export interface DeckType {
   name: string;
   description?: string;
   resourceMods: Modify[];
-  greenEconomy: boolean;
   composition?: "STANDARD" | "NO_FACES" | "CHECKERED" | "ERRATIC";
   startingVouchers: string[];
   startingConsumables: string[];

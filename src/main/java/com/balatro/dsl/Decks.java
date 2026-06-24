@@ -26,7 +26,6 @@ public final class Decks {
     private final String name;
     private String desc = "";
     private final List<Modify> resourceMods = new ArrayList<>();
-    private boolean greenEconomy = false;
     private Composition composition = Composition.STANDARD;
     private final List<String> vouchers = new ArrayList<>();
     private final List<String> consumables = new ArrayList<>();
@@ -56,8 +55,10 @@ public final class Decks {
     public Decks consumableSlots(int n) { resourceMods.add(Modify.add(Value.Var.CONSUMABLE_SLOTS, n)); return this; }
 
     public Decks greenEconomy() {
-        this.greenEconomy = true;                                      // $2/hand, $1/discard payout rates
-        resourceMods.add(Modify.min(Value.Var.INTEREST_CAP, 0));      // ...and no interest (caps it at 0, MIN beats any voucher MAX)
+        // Green Deck economy, fully as Modify data: $2/hand, $1/discard payout, and no interest.
+        resourceMods.add(Modify.set(Value.Var.MONEY_PER_HAND, 2));    // $2 per remaining hand (base 1)
+        resourceMods.add(Modify.set(Value.Var.MONEY_PER_DISCARD, 1)); // $1 per remaining discard (base 0)
+        resourceMods.add(Modify.min(Value.Var.INTEREST_CAP, 0));      // no interest (MIN beats any voucher MAX)
         return this;
     }
 
@@ -88,7 +89,7 @@ public final class Decks {
         // Description is localization data: default from Loc keyed by deck key when not set explicitly.
         String text = desc.isEmpty() ? com.balatro.engine.i18n.Loc.text(key) : desc;
         return new DeckType(key, name, text, List.copyOf(resourceMods),
-                greenEconomy, composition,
+                composition,
                 List.copyOf(vouchers), List.copyOf(consumables),
                 balanceChipsMult, blindSizeMult, List.copyOf(onBossDefeatTags));
     }

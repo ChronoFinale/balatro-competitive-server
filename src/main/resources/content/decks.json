@@ -4,7 +4,6 @@
     "name" : "Base Deck",
     "description" : "No modifiers",
     "resourceMods" : [ ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -26,7 +25,6 @@
         }
       }
     ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -48,7 +46,6 @@
         }
       }
     ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -70,7 +67,6 @@
         }
       }
     ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -100,7 +96,6 @@
         }
       }
     ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -114,6 +109,22 @@
     "description" : "No interest; $2 per remaining hand, $1 per discard",
     "resourceMods" : [
       {
+        "variable" : "MONEY_PER_HAND",
+        "op" : "SET",
+        "value" : {
+          "type" : "const",
+          "amount" : 2.0
+        }
+      },
+      {
+        "variable" : "MONEY_PER_DISCARD",
+        "op" : "SET",
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
+      },
+      {
         "variable" : "INTEREST_CAP",
         "op" : "MIN",
         "value" : {
@@ -122,7 +133,6 @@
         }
       }
     ],
-    "greenEconomy" : true,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -152,7 +162,6 @@
         }
       }
     ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -165,7 +174,6 @@
     "name" : "Abandoned Deck",
     "description" : "No face cards (no Jacks/Queens/Kings)",
     "resourceMods" : [ ],
-    "greenEconomy" : false,
     "composition" : "NO_FACES",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -178,7 +186,6 @@
     "name" : "Checkered Deck",
     "description" : "26 Spades + 26 Hearts",
     "resourceMods" : [ ],
-    "greenEconomy" : false,
     "composition" : "CHECKERED",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -191,7 +198,6 @@
     "name" : "Erratic Deck",
     "description" : "All ranks and suits are randomized",
     "resourceMods" : [ ],
-    "greenEconomy" : false,
     "composition" : "ERRATIC",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -204,7 +210,6 @@
     "name" : "Magic Deck",
     "description" : "Start with the Crystal Ball voucher and 2 The Fool tarots",
     "resourceMods" : [ ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [
       "v_crystal_ball"
@@ -231,7 +236,6 @@
         }
       }
     ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [
       "v_telescope"
@@ -246,7 +250,6 @@
     "name" : "Zodiac Deck",
     "description" : "Start with Tarot Merchant, Planet Merchant, and Overstock vouchers",
     "resourceMods" : [ ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [
       "v_tarot_merchant",
@@ -272,7 +275,6 @@
         }
       }
     ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [
@@ -287,7 +289,6 @@
     "name" : "Anaglyph Deck",
     "description" : "Double Tag after defeating each Boss Blind",
     "resourceMods" : [ ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],
@@ -302,7 +303,6 @@
     "name" : "Plasma Deck",
     "description" : "Balance chips and mult; blinds are 2x larger",
     "resourceMods" : [ ],
-    "greenEconomy" : false,
     "composition" : "STANDARD",
     "startingVouchers" : [ ],
     "startingConsumables" : [ ],

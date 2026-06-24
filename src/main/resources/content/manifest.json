@@ -1,5 +1,5 @@
 {
-  "version" : "3dc6fe027ea5a81b",
+  "version" : "2b1cf4f38be2602c",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
@@ -13,8 +13,8 @@
     },
     {
       "path" : "content/decks.json",
-      "sha256" : "22e2d16cbda56e1d76bce60756bcf380dcf1cbaa8202257fad6140fb06fce55a",
-      "bytes" : 7509
+      "sha256" : "c69f0820f91521b49707112fe0627d6bc79e351ab644dee508f537ac8dba34e0",
+      "bytes" : 7387
     },
     {
       "path" : "content/bosses.json",

@@ -11,9 +11,6 @@ import java.util.Map;
  * select). A deck shifts starting money, joker slots, and per-blind hands/discards;
  * a few have special economy (Green). The base deck has no modifiers. The match's
  * {@link com.balatro.engine.state.Ruleset} names the deck; {@code Run} applies it.
- *
- * @param greenEconomy end-of-round economy of the Green Deck: no interest, but $2 per
- *                     remaining hand and $1 per remaining discard.
  */
 public final class DeckCatalog {
 
@@ -31,7 +28,6 @@ public final class DeckCatalog {
                            // per-blind resource changes as data: Blue = add(Hand.PLAYS,1), Painted =
                            // add(Hand.SIZE,2), Black = add(JOKER_SLOTS,1)+add(Hand.PLAYS,-1) — folded by Run.
                            List<Modify> resourceMods,
-                           boolean greenEconomy,
                            Composition composition,
                            List<String> startingVouchers, List<String> startingConsumables,
                            // special-behaviour data (de-hardcoded from Run/ScoringEngine):
@@ -55,7 +51,7 @@ public final class DeckCatalog {
 
         /** Does this deck change anything vs the plain 52-card base? (Base Deck is the one legit no-op.) */
         public boolean hasEffect() {
-            return !resourceMods.isEmpty() || greenEconomy
+            return !resourceMods.isEmpty()
                     || composition != Composition.STANDARD || !startingVouchers.isEmpty()
                     || !startingConsumables.isEmpty() || balanceChipsMult
                     || blindSizeMult != 1 || !onBossDefeatTags.isEmpty();
