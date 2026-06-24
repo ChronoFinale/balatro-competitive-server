@@ -3800,7 +3800,10 @@
       {
         "variable" : "SIZE",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "runMod" : {
@@ -3828,7 +3831,10 @@
       {
         "variable" : "DISCARDS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "runMod" : {
@@ -3856,12 +3862,18 @@
       {
         "variable" : "PLAYS",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       },
       {
         "variable" : "SIZE",
         "op" : "ADD",
-        "value" : 2.0
+        "value" : {
+          "type" : "const",
+          "amount" : 2.0
+        }
       }
     ],
     "runMod" : {
@@ -3889,12 +3901,18 @@
       {
         "variable" : "DISCARDS",
         "op" : "ADD",
-        "value" : 3.0
+        "value" : {
+          "type" : "const",
+          "amount" : 3.0
+        }
       },
       {
         "variable" : "SIZE",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       }
     ],
     "runMod" : {
@@ -3922,12 +3940,18 @@
       {
         "variable" : "PLAYS",
         "op" : "ADD",
-        "value" : 3.0
+        "value" : {
+          "type" : "const",
+          "amount" : 3.0
+        }
       },
       {
         "variable" : "DISCARDS",
         "op" : "MIN",
-        "value" : 0.0
+        "value" : {
+          "type" : "const",
+          "amount" : 0.0
+        }
       }
     ],
     "runMod" : {
@@ -3973,7 +3997,10 @@
       {
         "variable" : "SIZE",
         "op" : "ADD",
-        "value" : -2.0
+        "value" : {
+          "type" : "const",
+          "amount" : -2.0
+        }
       }
     ],
     "runMod" : {
@@ -5471,7 +5498,10 @@
       {
         "variable" : "ALLOW_SHOP_DUPLICATES",
         "op" : "MAX",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "runMod" : {
@@ -6065,7 +6095,10 @@
       {
         "variable" : "PROBABILITY_MULTIPLIER",
         "op" : "MULTIPLY",
-        "value" : 2.0
+        "value" : {
+          "type" : "const",
+          "amount" : 2.0
+        }
       }
     ],
     "runMod" : {
@@ -6147,7 +6180,10 @@
       {
         "variable" : "BOSS_ABILITY_DISABLED",
         "op" : "MAX",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "runMod" : {
@@ -6253,7 +6289,10 @@
       {
         "variable" : "MIN_MONEY",
         "op" : "MIN",
-        "value" : -20.0
+        "value" : {
+          "type" : "const",
+          "amount" : -20.0
+        }
       }
     ],
     "runMod" : {
@@ -6281,7 +6320,10 @@
       {
         "variable" : "FREE_REROLLS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "runMod" : {
@@ -6309,7 +6351,10 @@
       {
         "variable" : "PLANETS_FREE",
         "op" : "MAX",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "runMod" : {
@@ -6379,7 +6424,10 @@
       {
         "variable" : "UNCAPPED_INTEREST",
         "op" : "MAX",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "runMod" : {

@@ -9,7 +9,10 @@
       {
         "variable" : "SHOP_SLOTS",
         "op" : "MAX",
-        "value" : 3.0
+        "value" : {
+          "type" : "const",
+          "amount" : 3.0
+        }
       }
     ]
   },
@@ -23,7 +26,10 @@
       {
         "variable" : "SHOP_SLOTS",
         "op" : "MAX",
-        "value" : 4.0
+        "value" : {
+          "type" : "const",
+          "amount" : 4.0
+        }
       }
     ]
   },
@@ -37,7 +43,10 @@
       {
         "variable" : "PRICE_MULTIPLIER",
         "op" : "MIN",
-        "value" : 0.75
+        "value" : {
+          "type" : "const",
+          "amount" : 0.75
+        }
       }
     ]
   },
@@ -51,7 +60,10 @@
       {
         "variable" : "PRICE_MULTIPLIER",
         "op" : "MIN",
-        "value" : 0.5
+        "value" : {
+          "type" : "const",
+          "amount" : 0.5
+        }
       }
     ]
   },
@@ -65,12 +77,18 @@
       {
         "variable" : "EDITION_MULTIPLIER",
         "op" : "MAX",
-        "value" : 2.0
+        "value" : {
+          "type" : "const",
+          "amount" : 2.0
+        }
       },
       {
         "variable" : "POLY_MULTIPLIER",
         "op" : "MAX",
-        "value" : 3.0
+        "value" : {
+          "type" : "const",
+          "amount" : 3.0
+        }
       }
     ]
   },
@@ -84,12 +102,18 @@
       {
         "variable" : "EDITION_MULTIPLIER",
         "op" : "MAX",
-        "value" : 4.0
+        "value" : {
+          "type" : "const",
+          "amount" : 4.0
+        }
       },
       {
         "variable" : "POLY_MULTIPLIER",
         "op" : "MAX",
-        "value" : 7.0
+        "value" : {
+          "type" : "const",
+          "amount" : 7.0
+        }
       }
     ]
   },
@@ -103,7 +127,10 @@
       {
         "variable" : "REROLL_DISCOUNT",
         "op" : "ADD",
-        "value" : 2.0
+        "value" : {
+          "type" : "const",
+          "amount" : 2.0
+        }
       }
     ]
   },
@@ -117,7 +144,10 @@
       {
         "variable" : "REROLL_DISCOUNT",
         "op" : "ADD",
-        "value" : 2.0
+        "value" : {
+          "type" : "const",
+          "amount" : 2.0
+        }
       }
     ]
   },
@@ -131,7 +161,10 @@
       {
         "variable" : "CONSUMABLE_SLOTS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -145,7 +178,10 @@
       {
         "variable" : "CONSUMABLE_SLOTS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -159,7 +195,10 @@
       {
         "variable" : "CELESTIAL_MOST_PLAYED",
         "op" : "MAX",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -173,7 +212,10 @@
       {
         "variable" : "HELD_PLANET_MULT",
         "op" : "MAX",
-        "value" : 1.5
+        "value" : {
+          "type" : "const",
+          "amount" : 1.5
+        }
       }
     ]
   },
@@ -187,7 +229,10 @@
       {
         "variable" : "PLAYS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -201,7 +246,10 @@
       {
         "variable" : "PLAYS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -215,7 +263,10 @@
       {
         "variable" : "DISCARDS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -229,7 +280,10 @@
       {
         "variable" : "DISCARDS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -243,7 +297,10 @@
       {
         "variable" : "TAROT_RATE",
         "op" : "MAX",
-        "value" : 8.0
+        "value" : {
+          "type" : "const",
+          "amount" : 8.0
+        }
       }
     ]
   },
@@ -257,7 +314,10 @@
       {
         "variable" : "TAROT_RATE",
         "op" : "MAX",
-        "value" : 16.0
+        "value" : {
+          "type" : "const",
+          "amount" : 16.0
+        }
       }
     ]
   },
@@ -271,7 +331,10 @@
       {
         "variable" : "PLANET_RATE",
         "op" : "MAX",
-        "value" : 8.0
+        "value" : {
+          "type" : "const",
+          "amount" : 8.0
+        }
       }
     ]
   },
@@ -285,7 +348,10 @@
       {
         "variable" : "PLANET_RATE",
         "op" : "MAX",
-        "value" : 16.0
+        "value" : {
+          "type" : "const",
+          "amount" : 16.0
+        }
       }
     ]
   },
@@ -299,7 +365,10 @@
       {
         "variable" : "INTEREST_CAP",
         "op" : "MAX",
-        "value" : 10.0
+        "value" : {
+          "type" : "const",
+          "amount" : 10.0
+        }
       }
     ]
   },
@@ -313,7 +382,10 @@
       {
         "variable" : "INTEREST_CAP",
         "op" : "MAX",
-        "value" : 20.0
+        "value" : {
+          "type" : "const",
+          "amount" : 20.0
+        }
       }
     ]
   },
@@ -335,7 +407,10 @@
       {
         "variable" : "JOKER_SLOTS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -349,7 +424,10 @@
       {
         "variable" : "SHOP_PLAYING_CARD_RATE",
         "op" : "MAX",
-        "value" : 4.0
+        "value" : {
+          "type" : "const",
+          "amount" : 4.0
+        }
       }
     ]
   },
@@ -363,12 +441,18 @@
       {
         "variable" : "SHOP_PLAYING_CARD_RATE",
         "op" : "MAX",
-        "value" : 4.0
+        "value" : {
+          "type" : "const",
+          "amount" : 4.0
+        }
       },
       {
         "variable" : "SHOP_CARDS_ENHANCED",
         "op" : "MAX",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -382,12 +466,18 @@
       {
         "variable" : "WIN_ANTE",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       },
       {
         "variable" : "PLAYS",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       }
     ]
   },
@@ -401,12 +491,18 @@
       {
         "variable" : "WIN_ANTE",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       },
       {
         "variable" : "DISCARDS",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       }
     ]
   },
@@ -420,7 +516,10 @@
       {
         "variable" : "BOSS_REROLLS_PER_ANTE",
         "op" : "MAX",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -434,7 +533,10 @@
       {
         "variable" : "BOSS_REROLLS_PER_ANTE",
         "op" : "MAX",
-        "value" : 9999.0
+        "value" : {
+          "type" : "const",
+          "amount" : 9999.0
+        }
       }
     ]
   },
@@ -448,7 +550,10 @@
       {
         "variable" : "SIZE",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
@@ -462,7 +567,10 @@
       {
         "variable" : "SIZE",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   }

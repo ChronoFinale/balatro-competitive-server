@@ -1,10 +1,10 @@
 {
-  "version" : "4b8a4cd91f497f41",
+  "version" : "12a29939badc7ad2",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
-      "sha256" : "fee55e5c9232ab64a2aa8e7684a2f760909481e7a060036d26da869f443c0350",
-      "bytes" : 153507
+      "sha256" : "8f0cbf4b73903d8fc3ee47c548976217b9d903d0d461d6596dcda02f104945df",
+      "bytes" : 154483
     },
     {
       "path" : "rulesets/bmp-0.4.2-ranked.json",
@@ -13,13 +13,13 @@
     },
     {
       "path" : "content/decks.json",
-      "sha256" : "564d04245fc91848be4f600f4afcf2fe76ca1910617bf009072a8a07bb5bd57d",
-      "bytes" : 6899
+      "sha256" : "22e2d16cbda56e1d76bce60756bcf380dcf1cbaa8202257fad6140fb06fce55a",
+      "bytes" : 7509
     },
     {
       "path" : "content/bosses.json",
-      "sha256" : "70b255bf0879c2741375e7a36bb51cb994109c20c3d3816830edd9b2f74fb114",
-      "bytes" : 13090
+      "sha256" : "3aa62e17f5d169abb3fd9ec8200cd4e966c8dfdb3a96cd999dd1bca6fe09cac3",
+      "bytes" : 13334
     },
     {
       "path" : "content/tags.json",
@@ -28,8 +28,8 @@
     },
     {
       "path" : "content/vouchers.json",
-      "sha256" : "2893be05064348016f7dfeddd9c9d2c54d919b4d07b01cad463e866064a479bf",
-      "bytes" : 9661
+      "sha256" : "7beabf32bcb223ed4f3541b1a719147098b38d99699d9fc4416a43d35b563468",
+      "bytes" : 11857
     },
     {
       "path" : "content/consumables.json",

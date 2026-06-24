@@ -153,7 +153,7 @@ export interface JokerDef {
 export interface Modify {
   variable?: unknown;
   op?: "ADD" | "SET" | "MULTIPLY" | "MAX" | "MIN";
-  value: number;
+  value?: Value;
 }
 
 export interface FaceDownRule {

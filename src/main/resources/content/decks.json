@@ -20,7 +20,10 @@
       {
         "variable" : "DISCARDS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "greenEconomy" : false,
@@ -39,7 +42,10 @@
       {
         "variable" : "PLAYS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "greenEconomy" : false,
@@ -58,7 +64,10 @@
       {
         "variable" : "MONEY",
         "op" : "ADD",
-        "value" : 10.0
+        "value" : {
+          "type" : "const",
+          "amount" : 10.0
+        }
       }
     ],
     "greenEconomy" : false,
@@ -77,12 +86,18 @@
       {
         "variable" : "JOKER_SLOTS",
         "op" : "ADD",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       },
       {
         "variable" : "PLAYS",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       }
     ],
     "greenEconomy" : false,
@@ -101,7 +116,10 @@
       {
         "variable" : "INTEREST_CAP",
         "op" : "MIN",
-        "value" : 0.0
+        "value" : {
+          "type" : "const",
+          "amount" : 0.0
+        }
       }
     ],
     "greenEconomy" : true,
@@ -120,12 +138,18 @@
       {
         "variable" : "SIZE",
         "op" : "ADD",
-        "value" : 2.0
+        "value" : {
+          "type" : "const",
+          "amount" : 2.0
+        }
       },
       {
         "variable" : "JOKER_SLOTS",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       }
     ],
     "greenEconomy" : false,
@@ -201,7 +225,10 @@
       {
         "variable" : "CONSUMABLE_SLOTS",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       }
     ],
     "greenEconomy" : false,
@@ -239,7 +266,10 @@
       {
         "variable" : "SPECTRAL_RATE",
         "op" : "MAX",
-        "value" : 2.0
+        "value" : {
+          "type" : "const",
+          "amount" : 2.0
+        }
       }
     ],
     "greenEconomy" : false,

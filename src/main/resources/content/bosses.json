@@ -91,7 +91,10 @@
       {
         "variable" : "SIZE",
         "op" : "ADD",
-        "value" : -1.0
+        "value" : {
+          "type" : "const",
+          "amount" : -1.0
+        }
       }
     ],
     "debuff" : null,
@@ -147,7 +150,10 @@
       {
         "variable" : "PLAYS",
         "op" : "SET",
-        "value" : 1.0
+        "value" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ],
     "debuff" : null,
@@ -169,7 +175,10 @@
       {
         "variable" : "DISCARDS",
         "op" : "SET",
-        "value" : 0.0
+        "value" : {
+          "type" : "const",
+          "amount" : 0.0
+        }
       }
     ],
     "debuff" : null,
@@ -465,7 +474,10 @@
       {
         "variable" : "DRAW_COUNT",
         "op" : "SET",
-        "value" : 3.0
+        "value" : {
+          "type" : "const",
+          "amount" : 3.0
+        }
       }
     ],
     "debuff" : null,
