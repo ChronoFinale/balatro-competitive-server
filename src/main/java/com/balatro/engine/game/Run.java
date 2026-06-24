@@ -654,14 +654,8 @@ public final class Run {
         all.addAll(deckType.mods());                                       // deck: Blue/Red/Painted/...
         all.addAll(stake.mods());                                          // stake: Blue+ −1 discard (a Modify now)
         if (boss != null && !bossDisabled()) all.addAll(boss.mods());      // boss: Needle/Water/Manacle (SET/add)
-        for (Joker j : state.jokers()) {                                   // jokers: flat deltas + Turtle decay
-            if (!(j instanceof DataJoker dj)) continue;
-            all.addAll(dj.def().mods());                                   // standing var modifiers (Juggler/Chaos/…)
-            int start = dj.def().runMod().handSizeDecayStart();            // Turtle Bean (dynamic, by rounds owned)
-            if (start > 0) {
-                int acq = state.jokerInt(j, "acqRounds", 0);
-                all.add(Modify.add(Hand.SIZE, Math.max(0, start - (state.roundsPlayedTotal - acq))));
-            }
+        for (Joker j : state.jokers()) {                                   // jokers: flat + dynamic var modifiers
+            if (j instanceof DataJoker dj) all.addAll(dj.def().mods());     // Juggler/Chaos/Skip-Off/Turtle Bean
         }
         for (String v : state.vouchers) {                                 // vouchers: Grabber/Wasteful/Paint Brush
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);

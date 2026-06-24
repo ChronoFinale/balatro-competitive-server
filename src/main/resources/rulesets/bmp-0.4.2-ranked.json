@@ -144,9 +144,7 @@
         ],
         "handMods" : [ ],
         "mods" : [ ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }
@@ -188,9 +186,7 @@
         ],
         "handMods" : [ ],
         "mods" : [ ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }
@@ -232,9 +228,7 @@
         ],
         "handMods" : [ ],
         "mods" : [ ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }
@@ -305,9 +299,7 @@
             }
           }
         ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }
@@ -362,9 +354,7 @@
         ],
         "handMods" : [ ],
         "mods" : [ ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }
@@ -407,9 +397,7 @@
         ],
         "handMods" : [ ],
         "mods" : [ ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }
@@ -451,9 +439,7 @@
         ],
         "handMods" : [ ],
         "mods" : [ ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }
@@ -500,9 +486,7 @@
         ],
         "handMods" : [ ],
         "mods" : [ ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }
@@ -544,9 +528,7 @@
         ],
         "handMods" : [ ],
         "mods" : [ ],
-        "runMod" : {
-          "handSizeDecayStart" : 0
-        },
+        "runMod" : { },
         "copy" : null,
         "props" : { },
         "state" : { }

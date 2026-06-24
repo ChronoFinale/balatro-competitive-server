@@ -53,6 +53,14 @@ public final class BuiltinJokerDefs {
                 new Value.RunVar(Value.Var.OPP_BLINDS_SKIPPED, 0, 1)), 0, 1e9);
     }
 
+    /** Turtle Bean's decaying hand-size bonus: {@code max(0, start − roundsPlayed)} — a Value, so the one
+     *  Modify decays itself each round (the old acqRounds was always 0, so it's run-level, not per-instance). */
+    private static Value turtleBeanDecay(int start) {
+        return new Value.Clamp(new Value.Diff(
+                new Value.Const(start),
+                new Value.RunVar(Value.Var.ROUNDS_PLAYED, 0, 1)), 0, 1e9);
+    }
+
     private static JokerDef suitMult(String key, String name, Suit suit) {
         // Templated: the suit and the mult are declared PROPERTIES, and the effect is a function over them.
         // Greedy/Lusty/Wrathful/Gluttonous are this one definition with different props.
@@ -538,9 +546,10 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, Val.runVar(Value.Var.BLINDS_SKIPPED, 1, 0.25)).build(),
 
                 // --- batch 37: "since acquired" jokers via acquire-stamp (Turtle Bean, Seltzer) ---
+                // Turtle Bean: +4 hand size (BMP 0.4.2; vanilla +5), decaying by 1 each round — a DYNAMIC
+                // Modify now (the amount is a Value: clamp(4 − roundsPlayed, 0, ∞)), not a RunMod.
                 Jokers.of("j_turtle_bean", "Turtle Bean")
-                         // BMP 0.4.2: +4 (vanilla +5)
-                        .runMod(RunMod.decayingHandSize(4)).build(),
+                        .mods(Modify.add(Hand.SIZE, turtleBeanDecay(4))).build(),
                 Jokers.of("j_seltzer", "Seltzer")
                         .on(Trigger.REPETITION_PLAYED).when(Cond.handsSinceAcquired(10)).retrigger().build(),
 
@@ -671,10 +680,6 @@ public final class BuiltinJokerDefs {
                         .effect(new Effect.DestroySelf()).build());
     }
 
-    /** A joker whose only effect is a passive per-blind capability {@link RunMod} (Chicot, Mr Bones). */
-    private static JokerDef runModJoker(String key, String name, RunMod mod) {
-        return Jokers.of(key, name).runMod(mod).build();
-    }
 
     /** A joker whose only effect is standing variable {@link Modify}s (Juggler, Drunkard, Troubadour…). */
     private static JokerDef modJoker(String key, String name, Modify... mods) {

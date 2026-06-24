@@ -33,9 +33,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : {
       "mult" : 3,
@@ -77,9 +75,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : {
       "mult" : 3,
@@ -121,9 +117,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : {
       "mult" : 3,
@@ -165,9 +159,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : {
       "mult" : 3,
@@ -207,9 +199,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -246,9 +236,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -287,9 +275,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -327,9 +313,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -368,9 +352,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -407,9 +389,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -447,9 +427,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -513,9 +491,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -589,9 +565,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -610,9 +584,7 @@
     "rules" : [ ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : {
       "selector" : "RIGHT_NEIGHBOR"
     },
@@ -633,9 +605,7 @@
     "rules" : [ ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : {
       "selector" : "LEFTMOST"
     },
@@ -674,9 +644,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -721,9 +689,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -762,9 +728,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -803,9 +767,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -842,9 +804,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -882,9 +842,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -949,9 +907,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -989,9 +945,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1029,9 +983,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1069,9 +1021,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1109,9 +1059,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1149,9 +1097,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1189,9 +1135,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1229,9 +1173,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1269,9 +1211,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1319,9 +1259,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1358,9 +1296,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1418,9 +1354,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1484,9 +1418,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1525,9 +1457,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1566,9 +1496,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1632,9 +1560,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1699,9 +1625,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1739,9 +1663,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1779,9 +1701,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1819,9 +1739,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1859,9 +1777,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1899,9 +1815,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1940,9 +1854,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -1981,9 +1893,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2020,9 +1930,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2085,9 +1993,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2151,9 +2057,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2192,9 +2096,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2247,9 +2149,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2289,9 +2189,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2331,9 +2229,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2373,9 +2269,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2415,9 +2309,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2459,9 +2351,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2503,9 +2393,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2598,9 +2486,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2639,9 +2525,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2692,9 +2576,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2748,9 +2630,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2804,9 +2684,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2851,9 +2729,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2893,9 +2769,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2934,9 +2808,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -2973,9 +2845,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3030,9 +2900,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3092,9 +2960,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3115,9 +2981,7 @@
       "FOUR_FINGERS"
     ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3138,9 +3002,7 @@
       "SHORTCUT"
     ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3161,9 +3023,7 @@
       "SMEARED"
     ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3200,9 +3060,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3247,9 +3105,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3287,9 +3143,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3326,9 +3180,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3374,9 +3226,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3417,9 +3267,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3440,9 +3288,7 @@
       "PAREIDOLIA"
     ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3463,9 +3309,7 @@
       "SPLASH"
     ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3544,9 +3388,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3610,9 +3452,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3652,9 +3492,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3694,9 +3532,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3724,9 +3560,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3754,9 +3588,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3792,9 +3624,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3830,9 +3660,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3868,9 +3696,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3916,9 +3742,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3957,9 +3781,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -3998,9 +3820,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4055,9 +3875,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4107,9 +3925,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4164,9 +3980,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4205,9 +4019,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4257,9 +4069,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4320,9 +4130,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4363,9 +4171,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4404,9 +4210,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4445,9 +4249,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4501,9 +4303,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4544,9 +4344,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4602,9 +4400,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4659,9 +4455,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4719,9 +4513,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4796,9 +4588,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4892,9 +4682,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -4946,9 +4734,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5003,9 +4789,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5044,9 +4828,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5109,9 +4891,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5174,9 +4954,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5213,9 +4991,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5247,9 +5023,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5294,9 +5068,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5359,9 +5131,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5389,9 +5159,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5430,9 +5198,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5450,10 +5216,31 @@
     "blueprintCompatible" : true,
     "rules" : [ ],
     "handMods" : [ ],
-    "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 4
-    },
+    "mods" : [
+      {
+        "variable" : "SIZE",
+        "op" : "ADD",
+        "value" : {
+          "type" : "clamp",
+          "inner" : {
+            "type" : "diff",
+            "left" : {
+              "type" : "const",
+              "amount" : 4.0
+            },
+            "right" : {
+              "type" : "runVar",
+              "which" : "ROUNDS_PLAYED",
+              "base" : 0.0,
+              "scale" : 1.0
+            }
+          },
+          "min" : 0.0,
+          "max" : 1.0E9
+        }
+      }
+    ],
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5491,9 +5278,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5532,9 +5317,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5574,9 +5357,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5643,9 +5424,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5676,9 +5455,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5726,9 +5503,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5759,9 +5534,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5821,9 +5594,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5902,9 +5673,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5943,9 +5712,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -5973,9 +5740,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6026,9 +5791,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6056,9 +5819,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6094,9 +5855,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6132,9 +5891,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6162,9 +5919,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6192,9 +5947,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6222,9 +5975,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6263,9 +6014,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6293,9 +6042,7 @@
         }
       }
     ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6338,9 +6085,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6423,9 +6168,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6464,9 +6207,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6514,9 +6255,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6555,9 +6294,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6595,9 +6332,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6635,9 +6370,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6675,9 +6408,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6714,9 +6445,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6755,9 +6484,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6828,9 +6555,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
@@ -6893,9 +6618,7 @@
     ],
     "handMods" : [ ],
     "mods" : [ ],
-    "runMod" : {
-      "handSizeDecayStart" : 0
-    },
+    "runMod" : { },
     "copy" : null,
     "props" : { },
     "state" : { }
