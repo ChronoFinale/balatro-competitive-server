@@ -676,7 +676,7 @@ public final class Run {
             if (def != null) all.addAll(def.mods());
         }
         if (anyOwnedRunMod(RunMod::pvpSkipBonus)) {                        // Skip-Off (Nemesis): +1 hand & discard / skip
-            int diff = Math.max(0, state.blindsSkipped - state.oppBlindsSkipped);
+            int diff = Math.max(0, state.blindsSkipped - state.opponent.blindsSkipped);
             all.add(Modify.add(Hand.PLAYS, diff));
             all.add(Modify.add(Hand.DISCARDS, diff));
         }
@@ -1802,9 +1802,9 @@ public final class Run {
         counters.put("offeredTagName", state.offeredTag == null ? ""
                 : (TagCatalog.get(state.offeredTag) != null ? TagCatalog.get(state.offeredTag).name() : state.offeredTag));
         counters.put("heldTags", new ArrayList<>(state.tags));
-        counters.put("OPP_LIVES_BEHIND", Math.max(0, state.oppLives - state.myLives));
-        counters.put("OPP_HANDS_LEFT", state.oppHandsLeft);
-        counters.put("OPP_CARDS_SOLD", state.oppCardsSold);
+        counters.put("OPP_LIVES_BEHIND", Math.max(0, state.opponent.lives - state.myLives));
+        counters.put("OPP_HANDS_LEFT", state.opponent.handsLeft);
+        counters.put("OPP_CARDS_SOLD", state.opponent.cardsSold);
         return counters;
     }
 

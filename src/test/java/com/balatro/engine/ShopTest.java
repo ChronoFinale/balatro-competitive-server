@@ -173,7 +173,7 @@ class ShopTest {
         base.play(all); // win Small -> shop
         Run pp = new Run(std, "PP", heartsKings(200),
                 jokers("j_joker", "j_joker", "j_joker", "j_penny_pincher"));
-        pp.state.oppShopSpentLastAnte = 9; // nemesis spent $9 last ante -> $3 on entering the shop
+        pp.state.opponent.shopSpentLastAnte = 9; // nemesis spent $9 last ante -> $3 on entering the shop
         pp.play(all);
         assertThat(pp.phase).isEqualTo(Run.Phase.SHOP);
         assertThat(pp.state.money - base.state.money).isEqualTo(3); // only difference is Penny Pincher

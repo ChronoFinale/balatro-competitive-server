@@ -179,10 +179,10 @@ public sealed interface Value {
             case UNIQUE_PLANETS -> ctx.run.planetsUsedThisRun.size();
             case OBELISK_STREAK -> ctx.run.obeliskStreak;
             case BLINDS_SKIPPED -> ctx.run.blindsSkipped;
-            case OPP_LIVES_BEHIND -> Math.max(0, ctx.run.oppLives - ctx.run.myLives);
-            case OPP_HANDS_LEFT -> ctx.run.oppHandsLeft;
-            case OPP_CARDS_SOLD -> ctx.run.oppCardsSold;
-            case OPP_SHOP_SPENT -> ctx.run.oppShopSpentLastAnte;
+            case OPP_LIVES_BEHIND -> Math.max(0, ctx.run.opponent.lives - ctx.run.myLives);
+            case OPP_HANDS_LEFT -> ctx.run.opponent.handsLeft;
+            case OPP_CARDS_SOLD -> ctx.run.opponent.cardsSold;
+            case OPP_SHOP_SPENT -> ctx.run.opponent.shopSpentLastAnte;
             case GLASS_MULT -> ctx.run.capabilities.glassMult(); // Glass card x-mult: 2.0 vanilla, 1.5 ranked-MP
             case BLIND_PROGRESS -> ctx.run.blindProgress; // roundScore / requirement at blind-loss (Mr Bones)
             // Policy variables are Modify write-targets folded by EconomyConfig/ShopEconomy, not

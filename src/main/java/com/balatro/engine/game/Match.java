@@ -186,11 +186,11 @@ public final class Match {
 
     private static void applyOpponent(Side me, Side opp) {
         me.run.state.myLives = me.lives;
-        me.run.state.oppLives = opp.lives;
-        me.run.state.oppHandsLeft = opp.run.state.handsLeft;
-        me.run.state.oppCardsSold = opp.run.state.cardsSoldSinceLastPvp;
-        me.run.state.oppBlindsSkipped = opp.run.state.blindsSkipped;
-        me.run.state.oppShopSpentLastAnte = opp.run.state.shopSpentLastAnte;
+        me.run.state.opponent.lives = opp.lives;
+        me.run.state.opponent.handsLeft = opp.run.state.handsLeft;
+        me.run.state.opponent.cardsSold = opp.run.state.cardsSoldSinceLastPvp;
+        me.run.state.opponent.blindsSkipped = opp.run.state.blindsSkipped;
+        me.run.state.opponent.shopSpentLastAnte = opp.run.state.shopSpentLastAnte;
     }
 
     private void announce(Side me, Side opp, long myScore, long oppScore, Side loser) {

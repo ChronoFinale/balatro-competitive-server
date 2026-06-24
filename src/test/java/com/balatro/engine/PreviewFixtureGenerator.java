@@ -240,11 +240,11 @@ class PreviewFixtureGenerator {
 
         // 45. Defensive Joker: +125 Chips per life behind (2 behind -> +250)
         scenario("defensive", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
-                List.of(), run -> { run.oppLives = 3; run.myLives = 1; }, "j_defensive_joker");
+                List.of(), run -> { run.opponent.lives = 3; run.myLives = 1; }, "j_defensive_joker");
 
         // 46. Conjoined: in a PvP blind, x(1 + 0.5*oppHandsLeft) capped at x3 (4 left -> x3)
         scenario("conjoined", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
-                List.of(), run -> { run.inPvpBlind = true; run.oppHandsLeft = 4; }, "j_conjoined");
+                List.of(), run -> { run.inPvpBlind = true; run.opponent.handsLeft = 4; }, "j_conjoined");
 
         // 43. Throwback after 2 blinds skipped -> x(1 + 0.25*2) = x1.5
         scenario("throwback", play(c(Rank.KING, Suit.HEARTS), c(Rank.KING, Suit.SPADES)),
@@ -421,9 +421,9 @@ class PreviewFixtureGenerator {
         counters.put("inPvpBlind", run.inPvpBlind);
         counters.put("bossHalveBase", run.bossHalveBase);
         counters.put("multiplayer", run.capabilities.restrictedPools());
-        counters.put("OPP_LIVES_BEHIND", Math.max(0, run.oppLives - run.myLives));
-        counters.put("OPP_HANDS_LEFT", run.oppHandsLeft);
-        counters.put("OPP_CARDS_SOLD", run.oppCardsSold);
+        counters.put("OPP_LIVES_BEHIND", Math.max(0, run.opponent.lives - run.myLives));
+        counters.put("OPP_HANDS_LEFT", run.opponent.handsLeft);
+        counters.put("OPP_CARDS_SOLD", run.opponent.cardsSold);
         m.put("counters", counters);
         return m;
     }

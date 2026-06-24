@@ -57,15 +57,12 @@ public final class RunState {
     public final java.util.Set<HandType> heldPlanetHands = java.util.EnumSet.noneOf(HandType.class);
     public String lastTarotPlanetUsed = null; // The Fool copies whatever this was (excludes The Fool itself)
     public int myLives = 0;            // your Attrition lives
-    public int oppLives = 0;           // nemesis lives (Defensive Joker)
-    public int oppHandsLeft = 0;       // nemesis hands left in the current PvP blind (Conjoined)
-    public int oppCardsSold = 0;       // nemesis cards sold since the last PvP blind (Taxes)
-    public int oppBlindsSkipped = 0;   // nemesis blinds skipped (Skip-Off)
+    /** The Nemesis as a first-class noun — the opponent's PvP state (was the scattered opp* ints). */
+    public final Opponent opponent = new Opponent();
     public int cardsSoldSinceLastPvp = 0; // your sells since the last PvP (feeds the opponent's Taxes)
     public int shopSpentThisAnte = 0;     // money spent in the shop this ante
     public int shopSpentLastAnte = 0;     // snapshot at ante rollover
     public int bossRerollsThisAnte = 0;   // Director's Cut/Retcon: boss rerolls used this ante
-    public int oppShopSpentLastAnte = 0;  // nemesis shop spend last ante (Penny Pincher)
     public int pizzaDiscardBonus = 0;     // temporary +discards from Pizza
     public int pizzaBlindsLeft = 0;       // blinds the Pizza discard bonus still applies for
 
