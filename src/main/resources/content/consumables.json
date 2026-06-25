@@ -799,8 +799,11 @@
     "maxTargets" : 1,
     "effects" : [
       {
-        "type" : "copySelected",
-        "copies" : 2
+        "type" : "copy",
+        "selector" : {
+          "type" : "selected"
+        },
+        "count" : 2
       }
     ]
   },

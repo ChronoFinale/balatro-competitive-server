@@ -26,7 +26,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.Create.class, name = "create"),
     @JsonSubTypes.Type(value = Effect.Destroy.class, name = "destroy"),
     @JsonSubTypes.Type(value = Effect.LevelUpHand.class, name = "levelUpHand"),
-    @JsonSubTypes.Type(value = Effect.CopyScored.class, name = "copyScored"),
+    @JsonSubTypes.Type(value = Effect.Copy.class, name = "copy"),
     @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
     // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
     @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
@@ -34,7 +34,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.JokerEdition.class, name = "jokerEdition"),
     @JsonSubTypes.Type(value = Effect.Generate.class, name = "generate"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
-    @JsonSubTypes.Type(value = Effect.CopySelected.class, name = "copySelected"),
     @JsonSubTypes.Type(value = Effect.OverwriteSelected.class, name = "overwriteSelected"),
     @JsonSubTypes.Type(value = Effect.CopyRandomJoker.class, name = "copyRandomJoker"),
     @JsonSubTypes.Type(value = Effect.CopyLastConsumable.class, name = "copyLastConsumable"),
@@ -226,11 +225,17 @@ public sealed interface Effect {
         }
     }
 
-    /** Add a permanent copy of the scored card to the deck (DNA). */
-    record CopyScored() implements Effect {
+    /**
+     * Copy what the {@link Selector} names, {@code count} times — the card-copy verb (the target is an
+     * argument, not baked into the name). {@code Focus} sets the scoring-time flag that adds a permanent
+     * copy of the scored card to the deck (DNA); {@code Selected} is resolved by {@code Run}'s consumable
+     * interpreter, duplicating the chosen card {@code count}× into hand+deck (Cryptid). Same internal flag
+     * for the scoring-time case — only the authored verb is unified.
+     */
+    record Copy(Selector selector, int count) implements Effect {
         public JokerEffect apply(EvaluationContext ctx) {
             JokerEffect e = new JokerEffect();
-            e.copyScored = true;
+            if (selector instanceof Selector.Focus) e.copyScored = true; // DNA: copy the scored card to the deck
             return e;
         }
     }
@@ -274,9 +279,6 @@ public sealed interface Effect {
 
     /** Convert EVERY card in hand to one random suit (Sigil) or rank (Ouija); Ouija also -1 hand size. */
     record ConvertHand(boolean toRandomSuit, boolean toRandomRank, int handSizeDelta) implements Effect {}
-
-    /** Create {@code copies} exact copies of the single selected card (Cryptid). */
-    record CopySelected(int copies) implements Effect {}
 
     /** Overwrite the first selected card with the attributes of the second (Death: left becomes right). */
     record OverwriteSelected() implements Effect {}

@@ -4662,7 +4662,11 @@
         },
         "effects" : [
           {
-            "type" : "copyScored"
+            "type" : "copy",
+            "selector" : {
+              "type" : "focus"
+            },
+            "count" : 1
           }
         ]
       }

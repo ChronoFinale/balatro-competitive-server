@@ -83,7 +83,7 @@ public final class Consumables {
     public Consumables convertHandToRank(int handSizeDelta) { return direct(new Effect.ConvertHand(false, true, handSizeDelta)); }
 
     /** Create {@code copies} exact copies of the single selected card (Cryptid). */
-    public Consumables copySelected(int copies) { return direct(new Effect.CopySelected(copies)); }
+    public Consumables copySelected(int copies) { return direct(new Effect.Copy(new Selector.Selected(), copies)); }
 
     /** Overwrite the first selected card with the second (Death). */
     public Consumables overwriteSelected() { return direct(new Effect.OverwriteSelected()); }

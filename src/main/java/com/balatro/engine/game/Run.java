@@ -1356,10 +1356,10 @@ public final class Run {
             case Effect.JokerEdition je -> applyJokerEdition(c, je);
             case Effect.Generate g -> applyGenerate(c, g);
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);
-            case Effect.CopySelected cs -> {
-                if (!targets.isEmpty()) {
+            case Effect.Copy cp -> { // consumable-context copy: duplicate the selected card cp.count()× (Cryptid)
+                if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) {
                     Card src = targets.get(0);
-                    for (int i = 0; i < cs.copies(); i++) {
+                    for (int i = 0; i < cp.count(); i++) {
                         Card dup = src.copy(); // fresh uid, same rank/suit/enh/edition/seal
                         composition.add(dup);
                         state.hand.add(dup);

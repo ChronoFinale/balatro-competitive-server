@@ -265,7 +265,7 @@ public final class Jokers {
         public Jokers levelUpHand(int levels) { return effect(new Effect.LevelUpHand(new Value.Const(levels))); }
 
         /** Add a permanent copy of the scored card to the deck (DNA). */
-        public Jokers copyScored() { return effect(new Effect.CopyScored()); }
+        public Jokers copyScored() { return effect(new Effect.Copy(new com.balatro.engine.joker.def.Selector.Focus(), 1)); }
 
         /** Commit a rule with one or more {@link Effect}s (compound effects = several in order). */
         public Jokers effect(Effect... effects) {
