@@ -77,3 +77,26 @@ explicit. Sealed `CreateTarget`/`Selector` hierarchies (not one fat record) keep
   deck-only) — i.e. it needs `streamSource` + `numberedOnly` + `addToHand`. Adding those to the flat record
   makes it worse. **Steps 2–4 should land together with the sealed `CreateTarget`/`Selector` hierarchy**
   (each per-kind record carries only its own fields), not by extending the flat record further.
+
+### Destroy/Copy cluster — confirmed NOT sliceable (do as one coherent pass)
+
+Investigated the destroyers' actual interpreters (not just the verb list). Unlike Create — which had a
+ready unified `Creation.apply` to route onto — the Destroy/Copy verbs split three ways, none independently
+foldable:
+
+- **`JokerEffect`-flag, scoring/event-time:** `DestroyScored` (`e.destroyScored`, Sixth Sense, mid-count-up),
+  `DestroyDiscarded` (`e.destroyEventCards`, Trading Card, PRE_DISCARD), `DestroySelf` (`e.destroySelf`,
+  Pizza, via `GameEvents`). These fire as boolean flags on the effect chain DURING scoring — folding them to
+  `Destroy(Selector.Scored/Discarded/Self)` means the interpreter must **route scoring-time selectors through
+  the scorer + replay stream** (design step 4, "last, carefully"). High blast radius (replay golden fixtures).
+- **Bespoke blind-select machinery:** `DestroyOtherJoker(scope, gainMult)` is *scanned out of joker rules*
+  (`jokerDestroyer`) and applied in two timing-specific loops (Ceremonial RIGHT_NEIGHBOR at any blind;
+  Madness RANDOM_OTHER at Small/Big), with `gainMult` doing a sell-value→mult write. Folding the verb name
+  doesn't remove this bespoke interpreter — the scope string + rider + special timing stay.
+- **Unfused control:** only `DestroyTargets(Selector)` goes through the unified `apply`/`resolveTargets`.
+
+The Copy cluster is the same shape (`CopyScored` scoring-time flag; `CopyRandomJoker`/`CopyLastConsumable`/
+`DuplicateRandom*` bespoke run-loop). **Conclusion:** this is one coherent refactor — build the sealed
+`Selector` extensions (Scored/Discarded/Self/OtherJoker, CopyMode) AND the scoring-time selector-routing in
+the scorer together, with the replay golden fixtures as the guardrail. It does NOT yield safe verb-by-verb
+commits the way Create 1a/1b did, so it should be its own focused pass, not sliced in piecemeal.
