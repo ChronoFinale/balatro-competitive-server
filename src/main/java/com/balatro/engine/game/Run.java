@@ -576,6 +576,9 @@ public final class Run {
     /** Apply one resolved {@link com.balatro.engine.exec.Command} — the single mutation+trace path that the
      *  action-effect families migrate onto (replacing the direct mutation in the interpreter switches). */
     private void apply(com.balatro.engine.exec.Command cmd) {
+        // Each case ONLY mutates. The trace is the structured command itself (added once below) — the engine
+        // never builds a human string; presentation/localization is the client's job, reading the command's
+        // typed fields. Same discipline as ClientView/ReplayEntry: the server emits data, not English.
         switch (cmd) {
             case com.balatro.engine.exec.Command.Money m -> {
                 int floor = minMoney();
@@ -588,64 +591,36 @@ public final class Run {
                     case SET -> Math.max(0, v);                            // The Ox: set to $0
                     case POWER -> throw new IllegalStateException("POWER is not a money operation");
                 };
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("money", m.op() + " " + v + " → $" + state.money));
             }
-            case com.balatro.engine.exec.Command.HandSize h -> {
-                state.handSize += h.delta();
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("handSize",
-                        (h.delta() >= 0 ? "+" : "") + h.delta() + " → " + state.handSize));
-            }
-            case com.balatro.engine.exec.Command.EditionJoker ej -> {
-                state.setJokerEdition(ej.target(), ej.edition());
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("edition",
-                        ej.target().name() + " → " + ej.edition()));
-            }
-            case com.balatro.engine.exec.Command.CopyJoker cj -> {
-                state.addJoker(JokerLibrary.create(cj.source().key(), cj.variant())); // copy has no edition
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("copyJoker", "copied " + cj.source().name()));
-            }
-            case com.balatro.engine.exec.Command.DestroyOtherJokers d -> {
-                state.jokers().removeIf(j -> j != d.keep());
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("destroyJokers", "kept only " + d.keep().name()));
-            }
+            case com.balatro.engine.exec.Command.HandSize h -> state.handSize += h.delta();
+            case com.balatro.engine.exec.Command.EditionJoker ej -> state.setJokerEdition(ej.target(), ej.edition());
+            case com.balatro.engine.exec.Command.CopyJoker cj ->
+                    state.addJoker(JokerLibrary.create(cj.source().key(), cj.variant())); // copy has no edition
+            case com.balatro.engine.exec.Command.DestroyOtherJokers d -> state.jokers().removeIf(j -> j != d.keep());
             case com.balatro.engine.exec.Command.CopyConsumable cc -> {
-                if (cc.ignoreSlotCap() || state.consumables.size() < state.consumableSlots) {
-                    state.consumables.add(cc.key());
-                    actionTrace.add(new com.balatro.engine.exec.TraceEntry("copyConsumable", "copied " + cc.key()));
-                }
+                if (cc.ignoreSlotCap() || state.consumables.size() < state.consumableSlots) state.consumables.add(cc.key());
             }
             case com.balatro.engine.exec.Command.DestroyCards dc -> {
                 dc.cards().forEach(t -> t.destroyed = true);
                 composition.removeIf(x -> x.destroyed);
                 state.hand.removeIf(x -> x.destroyed);
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("destroy", "destroyed " + dc.cards().size() + " card(s)"));
             }
-            case com.balatro.engine.exec.Command.MutateCards mc -> {
-                mc.cards().forEach(t -> mc.mod().applyTo(t));
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("mutate", "mutated " + mc.cards().size() + " card(s)"));
-            }
-            case com.balatro.engine.exec.Command.Create cr -> {
-                com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("create", cr.spec().count() + "× " + cr.spec().kind()));
-            }
+            case com.balatro.engine.exec.Command.MutateCards mc -> mc.cards().forEach(t -> mc.mod().applyTo(t));
+            case com.balatro.engine.exec.Command.Create cr -> com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
             case com.balatro.engine.exec.Command.AddCardsToDeck ac -> {
                 for (Card made : ac.cards()) { composition.add(made); state.hand.add(made); }
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("addCards", "+" + ac.cards().size() + " card(s)"));
             }
             case com.balatro.engine.exec.Command.OverwriteCard ow -> {
                 Card t = ow.target(), s = ow.source();
                 t.rank = s.rank; t.suit = s.suit; t.enhancement = s.enhancement; t.edition = s.edition; t.seal = s.seal;
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("overwrite", t + " ← " + s));
             }
             case com.balatro.engine.exec.Command.LevelHand lvl -> {
                 for (int i = 0; i < Math.abs(lvl.levels()); i++) {
                     if (lvl.levels() < 0) state.levelDownHand(lvl.hand()); else state.levelUpHand(lvl.hand());
                 }
-                actionTrace.add(new com.balatro.engine.exec.TraceEntry("levelHand",
-                        lvl.hand() + " " + (lvl.levels() >= 0 ? "+" : "") + lvl.levels()));
             }
-            default -> throw new IllegalStateException("command not yet applied: " + cmd);
         }
+        actionTrace.add(new com.balatro.engine.exec.TraceEntry(cmd)); // the structured command IS the trace
     }
 
     /** The effective shop rules, derived from owned jokers (Showman/Astronomer/Chaos). */
