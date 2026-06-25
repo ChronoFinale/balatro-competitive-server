@@ -76,6 +76,36 @@ argument, each byte-identical (golden + replay green):
 
 Effect subtypes: ~35 → ~27.
 
+## UPDATE — the fold is essentially complete (27 Effect subtypes, down from ~35)
+
+Every homogeneous fused-axis cluster is collapsed, and the big composite is gone:
+
+| Cluster | Result |
+|---|---|
+| Create | `Create(CreateSpec)` — GrantJokers, CreateShopJoker, pure-create generatives |
+| Destroy | `Destroy(Selector)` — 5 verbs |
+| Copy | `Copy(Selector, count)` — CopyScored, CopySelected, CopyLastConsumable, DuplicateRandomConsumable, DuplicateRandomJoker (5 of 6) |
+| Level | `LevelHands(Scope, Value)` — 3 verbs |
+| ConvertHand | `(Axis, delta)` — 2 booleans un-fused |
+| **Generate** | **DELETED** — generatives are now ordered `List<Effect>` (Destroy→Create→AddCards→AdjustMoney); MoneyOp gone too (recipes became `AdjustMoney(ADD, Clamp(Var,0,cap))` via the new `TOTAL_SELL_VALUE` Value) |
+
+Invisible's `minRoundsOwned` moved from a baked verb param to a real `Condition` gate — a model improvement,
+not just a rename.
+
+### The two that correctly STAY composite (the design's "don't over-unify" boundary)
+
+- **`CopyRandomJoker`** (Ankh): copy a random joker AND destroy all others. The destroy-others is coupled to
+  the single RNG target pick (destroy everything except the one being copied) — not a separable effect.
+- **`JokerEdition`** (Wheel/Ectoplasm/Hex): one RNG-picked target joker gets an edition, with a 1-in-N chance
+  gate, an optional hand-size delta, and Hex's destroy-others. The chance can't become a `Condition`
+  (consumables apply their `List<Effect>` unconditionally — no per-effect gate), and the destroy-others is
+  coupled like Ankh's. Decomposing would make it messier, not cleaner.
+
+### Genuinely atomic single-use verbs (leave)
+
+`DelevelPlayedHand`, `DiscardRandomHeld`, `DisableRandomJoker`, `DisableBoss`, `FlipAndShuffleJokers`,
+`OverwriteSelected`, `NemesisDelevel`, `CreateCards` — each a lone operation with no sibling sharing its axis.
+
 ## Remaining fused verbs (the RNG-provenance / heterogeneous tier — NOT quick renames)
 
 - **`Generate` (5 mixed consumables left).** Fully eliminating it needs: (a) the decomposed random-destroy
