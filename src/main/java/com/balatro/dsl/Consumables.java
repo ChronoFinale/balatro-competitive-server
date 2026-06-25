@@ -68,7 +68,9 @@ public final class Consumables {
     }
 
     /** Level up every poker hand by 1 (Black Hole). */
-    public Consumables levelAllHands() { return direct(new Effect.LevelAllHands()); }
+    public Consumables levelAllHands() {
+        return direct(new Effect.LevelHands(Effect.LevelHands.Scope.ALL, new com.balatro.engine.joker.def.Value.Const(1)));
+    }
 
     /** Add an edition to a random owned joker (Wheel of Fortune / Ectoplasm / Hex). */
     public Consumables jokerEdition(Edition edition, int chanceDenominator,

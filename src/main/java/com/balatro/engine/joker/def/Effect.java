@@ -25,12 +25,11 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.MutateCard.class, name = "mutateCard"),
     @JsonSubTypes.Type(value = Effect.Create.class, name = "create"),
     @JsonSubTypes.Type(value = Effect.Destroy.class, name = "destroy"),
-    @JsonSubTypes.Type(value = Effect.LevelUpHand.class, name = "levelUpHand"),
+    @JsonSubTypes.Type(value = Effect.LevelHands.class, name = "levelHands"),
     @JsonSubTypes.Type(value = Effect.Copy.class, name = "copy"),
     @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
     // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
     @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
-    @JsonSubTypes.Type(value = Effect.LevelAllHands.class, name = "levelAllHands"),
     @JsonSubTypes.Type(value = Effect.JokerEdition.class, name = "jokerEdition"),
     @JsonSubTypes.Type(value = Effect.Generate.class, name = "generate"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
@@ -48,7 +47,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.DisableBoss.class, name = "disableBoss"),
     @JsonSubTypes.Type(value = Effect.SurviveBlind.class, name = "surviveBlind"),
     @JsonSubTypes.Type(value = Effect.AddPack.class, name = "addPack"),
-    @JsonSubTypes.Type(value = Effect.LevelMostPlayedHand.class, name = "levelMostPlayedHand"),
     @JsonSubTypes.Type(value = Effect.AddShopVoucher.class, name = "addShopVoucher"),
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
     @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
@@ -214,10 +212,17 @@ public sealed interface Effect {
         }
     }
 
-    /** Level up the played poker hand by {@code levels} (Space / Burnt). */
-    record LevelUpHand(Value levels) implements Effect {
+    /**
+     * Level up poker hand(s) by {@code levels} — the hand-leveling verb, with the scope an argument
+     * instead of baked into the name (the old LevelUpHand/LevelAllHands/LevelMostPlayedHand). {@code PLAYED}
+     * is scoring-time — the hand just played (Space, Burnt) — and sets the same {@code levelUpHand} flag;
+     * {@code ALL} (Black Hole) and {@code MOST_PLAYED} (Orbital tag) are run-loop, applied by Run.
+     */
+    record LevelHands(Scope scope, Value levels) implements Effect {
+        public enum Scope { PLAYED, ALL, MOST_PLAYED }
+
         public JokerEffect apply(EvaluationContext ctx) {
-            if (ctx.handType == null) return null;
+            if (scope != Scope.PLAYED || ctx.handType == null) return null; // ALL/MOST_PLAYED are run-loop
             JokerEffect e = new JokerEffect();
             e.levelUpHand = ctx.handType;
             e.levelUpAmount = Math.max(1, (int) Math.round(levels.resolve(ctx)));
@@ -247,8 +252,6 @@ public sealed interface Effect {
     /** Add {@code count} new numbered cards (random rank/suit) with an enhancement to the deck (Incantation). */
     record CreateCards(int count, Enhancement enhancement) implements Effect {}
 
-    /** Level up every poker hand by 1 (Black Hole). */
-    record LevelAllHands() implements Effect {}
 
     /**
      * Add an edition to a random owned joker. {@code edition == NONE} means "a random Foil/Holo/Poly" (Wheel
@@ -328,8 +331,6 @@ public sealed interface Effect {
      *  depend on the game layer; {@code Run} resolves them when the shop opens. */
     record AddPack(String kind, String size) implements Effect {}
 
-    /** Level up the most-played poker hand by {@code levels} (Orbital tag). */
-    record LevelMostPlayedHand(int levels) implements Effect {}
 
     /** Add an extra Voucher to the next shop (Voucher tag). */
     record AddShopVoucher() implements Effect {}

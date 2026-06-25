@@ -35,7 +35,7 @@ public final class BuilderSchema {
         s.put("scoreOperations", names(Effect.Operation.values())); // Score verb: ADD / MULTIPLY / POWER
         s.put("scoreTerms", names(Effect.Term.values()));     // Score term: CHIPS / MULT / DOLLARS / …
         s.put("effectTypes", List.of(                        // the sealed Effect kinds
-                "score", "mutateCard", "create", "destroy", "levelUpHand",
+                "score", "mutateCard", "create", "destroy", "levelHands",
                 "copy", "mutateState", "grantDiscards"));
         s.put("valueTypes", List.of("const", "state", "count", "runVar"));
         s.put("mutationOps", names(Effect.MutateState.Op.values()));

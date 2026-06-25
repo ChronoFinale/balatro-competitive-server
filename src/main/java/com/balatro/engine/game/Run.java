@@ -895,11 +895,7 @@ public final class Run {
                     com.balatro.engine.consumable.Creation.apply(state, s, state.queues);
                 }
             }
-            case Effect.LevelMostPlayedHand lm -> { // Orbital tag
-                com.balatro.engine.hand.HandType best = mostPlayedHand();
-                if (best == null) best = com.balatro.engine.hand.HandType.HIGH_CARD;
-                for (int i = 0; i < lm.levels(); i++) state.levelUpHand(best);
-            }
+            case Effect.LevelHands lh -> applyLevelHands(lh); // Orbital tag (MOST_PLAYED)
             case Effect.AddShopVoucher ignored -> addTagVoucher();          // Voucher tag
             case Effect.ShopFlag sf -> {                                    // Coupon / D6 tags
                 if ("COUPON".equals(sf.flag())) couponActive = true;
@@ -1006,6 +1002,21 @@ public final class Run {
         for (String c : state.consumables) {
             PlanetCatalog.Planet p = PlanetCatalog.get(c);
             if (p != null) state.heldPlanetHands.add(p.hand());
+        }
+    }
+
+    /** Run-loop hand leveling — the ALL (Black Hole) and MOST_PLAYED (Orbital) scopes of {@link
+     *  Effect.LevelHands}; the PLAYED scope is scoring-time (the levelUpHand flag), never reaches here. */
+    private void applyLevelHands(Effect.LevelHands lh) {
+        int n = Math.max(1, (int) Math.round(lh.levels().resolve(runLoopContext())));
+        switch (lh.scope()) {
+            case ALL -> { for (HandType t : HandType.values()) for (int i = 0; i < n; i++) state.levelUpHand(t); }
+            case MOST_PLAYED -> {
+                HandType best = mostPlayedHand();
+                if (best == null) best = HandType.HIGH_CARD;
+                for (int i = 0; i < n; i++) state.levelUpHand(best);
+            }
+            case PLAYED -> { /* scoring-time; applied by the scorer via the levelUpHand flag */ }
         }
     }
 
@@ -1350,9 +1361,7 @@ public final class Run {
                     state.hand.add(made);  // and usable now
                 }
             }
-            case Effect.LevelAllHands ignored -> {
-                for (HandType t : HandType.values()) state.levelUpHand(t); // Black Hole
-            }
+            case Effect.LevelHands lh -> applyLevelHands(lh); // Black Hole (ALL)
             case Effect.JokerEdition je -> applyJokerEdition(c, je);
             case Effect.Generate g -> applyGenerate(c, g);
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);

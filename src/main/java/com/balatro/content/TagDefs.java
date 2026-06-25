@@ -43,7 +43,8 @@ public final class TagDefs {
                         new Value.Clamp(new Value.RunVar(Value.Var.MONEY, 0, 1), 0, 40)));
         // The money tags are data: gain $ per run-state quantity — AdjustMoney(ADD, runVar * scale).
         add(t, "tag_skip", "Speed Tag", true, Timing.IMMEDIATE, gain(Value.Var.BLINDS_SKIPPED, 5));
-        add(t, "tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE, new Effect.LevelMostPlayedHand(3));
+        add(t, "tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE, new Effect.LevelHands(
+                Effect.LevelHands.Scope.MOST_PLAYED, new com.balatro.engine.joker.def.Value.Const(3)));
         add(t, "tag_handy", "Handy Tag", false, Timing.IMMEDIATE, gain(Value.Var.HANDS_PLAYED_TOTAL, 1));
         add(t, "tag_garbage", "Garbage Tag", false, Timing.IMMEDIATE, gain(Value.Var.CARDS_DISCARDED_TOTAL, 1));
         // Top-Up: create up to 2 free Common Jokers for the player (real game: spawn_jokers = 2). One

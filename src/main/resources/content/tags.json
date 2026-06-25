@@ -348,8 +348,12 @@
     "timing" : "IMMEDIATE",
     "effects" : [
       {
-        "type" : "levelMostPlayedHand",
-        "levels" : 3
+        "type" : "levelHands",
+        "scope" : "MOST_PLAYED",
+        "levels" : {
+          "type" : "const",
+          "amount" : 3.0
+        }
       }
     ]
   },

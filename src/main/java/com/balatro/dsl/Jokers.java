@@ -262,7 +262,9 @@ public final class Jokers {
         public Jokers mutateCard(CardMod mod) { return effect(new Effect.MutateCard(new Selector.Focus(), mod)); }
 
         /** Level up the played poker hand by {@code levels} (Space, Burnt). */
-        public Jokers levelUpHand(int levels) { return effect(new Effect.LevelUpHand(new Value.Const(levels))); }
+        public Jokers levelUpHand(int levels) {
+            return effect(new Effect.LevelHands(Effect.LevelHands.Scope.PLAYED, new Value.Const(levels)));
+        }
 
         /** Add a permanent copy of the scored card to the deck (DNA). */
         public Jokers copyScored() { return effect(new Effect.Copy(new com.balatro.engine.joker.def.Selector.Focus(), 1)); }

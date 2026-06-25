@@ -4274,7 +4274,8 @@
         },
         "effects" : [
           {
-            "type" : "levelUpHand",
+            "type" : "levelHands",
+            "scope" : "PLAYED",
             "levels" : {
               "type" : "const",
               "amount" : 1.0
@@ -4607,7 +4608,8 @@
         },
         "effects" : [
           {
-            "type" : "levelUpHand",
+            "type" : "levelHands",
+            "scope" : "PLAYED",
             "levels" : {
               "type" : "const",
               "amount" : 1.0

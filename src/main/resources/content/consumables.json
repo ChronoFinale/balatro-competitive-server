@@ -450,7 +450,12 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "levelAllHands"
+        "type" : "levelHands",
+        "scope" : "ALL",
+        "levels" : {
+          "type" : "const",
+          "amount" : 1.0
+        }
       }
     ]
   },
