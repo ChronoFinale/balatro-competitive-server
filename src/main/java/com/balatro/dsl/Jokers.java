@@ -39,7 +39,6 @@ public final class Jokers {
     private final List<HandMod> handMods = new ArrayList<>();
     private final List<Modify> varMods = new ArrayList<>();
     private final java.util.Set<String> declaredCounters = new java.util.LinkedHashSet<>();
-    private RunMod runMod = RunMod.NONE;
     private final java.util.Map<String, Object> props = new java.util.LinkedHashMap<>();
     private final java.util.Map<String, Object> state = new java.util.LinkedHashMap<>();
 
@@ -138,9 +137,6 @@ public final class Jokers {
      *  add(FREE_REROLLS,1)} (Chaos). The SAME {@link Modify} vocabulary decks/vouchers use, folded by Run. */
     public Jokers mods(Modify... mods) { java.util.Collections.addAll(varMods, mods); return this; }
 
-    /** Attach the run-capability bag (boss disabler, probability doubler, hand-size decay, sell hooks…). */
-    public Jokers runMod(RunMod mod) { this.runMod = mod; return this; }
-
     /** Escape hatch: append a fully-built {@link Rule} (a trigger/effect combination without a fluent verb). */
     public Jokers rule(Rule r) { rules.add(r); return this; }
 
@@ -181,10 +177,9 @@ public final class Jokers {
         if (name == null || name.isBlank()) missing.add("name");
         if (!descSet && !JokerLoc.has(key)) missing.add("description (.desc, or be in the localization table)");
         if (!costSet && !JokerMeta.has(key)) missing.add("cost (.cost, or be in the metadata table)");
-        if (rules.isEmpty() && copy == null && handMods.isEmpty()
-                && varMods.isEmpty() && runMod.isNone()) {
+        if (rules.isEmpty() && copy == null && handMods.isEmpty() && varMods.isEmpty()) {
             // Every joker is data — there is no empty-def escape hatch. Express the effect as a rule/mod.
-            missing.add("behavior (.on / .mutate / .copies / .handMod / .mods / .runMod)");
+            missing.add("behavior (.on / .mutate / .copies / .handMod / .mods)");
         }
         if (!missing.isEmpty()) {
             throw new IllegalStateException(
@@ -211,7 +206,7 @@ public final class Jokers {
         String resolvedDesc = descSet ? desc : JokerLoc.description(key); // text is localization data, not code
         return new JokerDef(key, name, resolvedDesc, resolvedRarity, resolvedCost, atlasX, atlasY, null, null,
                 blueprintCompatible, List.copyOf(rules),
-                List.copyOf(handMods), List.copyOf(varMods), runMod, copy,
+                List.copyOf(handMods), List.copyOf(varMods), copy,
                 java.util.Map.copyOf(props), java.util.Map.copyOf(state));
     }
 

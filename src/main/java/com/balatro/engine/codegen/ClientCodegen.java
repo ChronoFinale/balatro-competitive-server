@@ -171,7 +171,7 @@ public final class ClientCodegen {
             case "rules" -> "Rule[]";
             case "handMods" -> "string[]";          // HandMod enum tokens (FOUR_FINGERS, SHORTCUT, …)
             case "mods" -> "Modify[]";
-            case "runMod", "copy" -> "Record<string, unknown>";   // optional (omitted when null)
+            case "copy" -> "Record<string, unknown>";   // optional (omitted when null)
             default -> tsType(rc.getGenericType());
         };
     }
@@ -186,7 +186,7 @@ public final class ClientCodegen {
         if (requiredField(rc.getName())) return false;
         return switch (rc.getName()) {
             case "rules", "handMods", "mods", "props", "state" -> false; // lists/maps: normalized non-null
-            case "runMod", "copy" -> true;
+            case "copy" -> true;
             default -> nullable(rc.getGenericType());
         };
     }

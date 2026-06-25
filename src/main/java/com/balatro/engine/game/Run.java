@@ -26,7 +26,6 @@ import com.balatro.engine.joker.def.Selector;
 import com.balatro.engine.joker.def.Modify;
 import com.balatro.engine.joker.def.Value;
 import com.balatro.engine.joker.def.JokerDef;
-import com.balatro.engine.joker.def.RunMod;
 import com.balatro.engine.net.CardView;
 import com.balatro.engine.net.ClientView;
 import com.balatro.engine.net.ServerUpdate;
@@ -1253,7 +1252,7 @@ public final class Run {
         return Math.max(0, base - shopEconomy().rerollDiscount()) + rerollsThisShop;
     }
 
-    /** Free rerolls granted this shop, folded from everything owned (Chaos = +1 via its RunMod). */
+    /** Free rerolls granted this shop, folded from everything owned (Chaos = +1 via its FREE_REROLLS Modify). */
     private int freeRerollsThisShop() {
         return (int) Modify.fold(0, Value.Var.FREE_REROLLS, resourceMods());
     }

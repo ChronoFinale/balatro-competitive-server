@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
  * is genuinely match-coordinated plumbing, not rule-shaped content. {@link #BEHAVIOR_IN_CODE} pins exactly
  * that set, so a new empty-def joker (a DSL regression) or a stale whitelist entry fails the build.
  *
- * <p>(Penny Pincher is NOT here: it carries a real {@code runMod} — data-declared, Run-applied — so it has
+ * <p>(Penny Pincher is NOT here: it carries a real SHOP_ENTER rule — data-declared, Run-applied — so it has
  * a wired effect. Hand-coded jokers aren't DataJokers; their effect lives in the class.)
  */
 class JokerCoverageTest {
@@ -33,7 +33,7 @@ class JokerCoverageTest {
 
     private static boolean hasWiredEffect(JokerDef d) {
         return !d.rules().isEmpty() || !d.handMods().isEmpty() || !d.mods().isEmpty()
-                || !d.runMod().isNone() || d.copy() != null;
+                || d.copy() != null;
     }
 
     @Test

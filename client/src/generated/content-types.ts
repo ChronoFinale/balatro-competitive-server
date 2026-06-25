@@ -145,7 +145,6 @@ export interface JokerDef {
   rules: Rule[];
   handMods: string[];
   mods: Modify[];
-  runMod?: Record<string, unknown>;
   copy?: Record<string, unknown>;
   props: Record<string, unknown>;
   state: Record<string, unknown>;

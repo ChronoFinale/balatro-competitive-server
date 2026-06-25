@@ -37,7 +37,7 @@ class JokerMagnitudeAuditTest {
     private static final Set<String> STRUCTURAL_OR_DERIVED = Set.of(
             "j_vagabond:4",    // "create Tarot if money <= 4" authored as not(money >= 5) — boundary literal is 5
             "j_turtle_bean:5", // intentional BMP 0.4.2 deviation: +4 hand size (vanilla +5), see the def comment
-            "j_turtle_bean:1", // h_mod: the -1/round decay is implicit in RunMod.decayingHandSize, not a literal
+            "j_turtle_bean:1", // h_mod: the -1/round decay is a dynamic Modify(SIZE, clamp(4−roundsPlayed)), not a literal
             "j_burnt:4");      // vanilla config extra=4 is vestigial — Burnt's code levels the first discard by 1
 
     @Test
