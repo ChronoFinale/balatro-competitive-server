@@ -50,7 +50,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
     @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
     @JsonSubTypes.Type(value = Effect.CreateTag.class, name = "createTag"),
-    @JsonSubTypes.Type(value = Effect.DuplicateRandomJoker.class, name = "duplicateRandomJoker"),
 })
 public sealed interface Effect {
 
@@ -332,10 +331,6 @@ public sealed interface Effect {
 
     /** Grant a free skip {@code tag} (honouring a held Double Tag) — Diet Cola creates a Double Tag on sell. */
     record CreateTag(String tag) implements Effect {}
-
-    /** When this joker is sold after at least {@code minRoundsOwned} rounds owned, duplicate a random
-     *  remaining Joker (the rightmost in MP) — Invisible Joker. Reads the source's {@code "rounds"} state. */
-    record DuplicateRandomJoker(int minRoundsOwned) implements Effect {}
 
     /** Grant a temporary discard bonus for {@code blinds} blinds, to this run or — when {@code toOpponent} —
      *  the Nemesis (Pizza). The Match supplies the opponent run on the context; {@code GameEvents} applies it. */

@@ -577,7 +577,9 @@ public final class BuiltinJokerDefs {
                         .on(Trigger.SHOP_EXIT).effect(new Effect.Copy(new com.balatro.engine.joker.def.Selector.RandomConsumable(), 1)).build(),
                 Jokers.of("j_invisible", "Invisible Joker").counters("rounds")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("rounds", 1)
-                        .on(Trigger.SELL_SELF).effect(new Effect.DuplicateRandomJoker(2)).build(),
+                        // The "owned ≥ 2 rounds" gate is a Condition, not baked into the verb; the effect is a plain Copy.
+                        .on(Trigger.SELL_SELF).when(Cond.state("rounds").atLeast(2))
+                        .effect(new Effect.Copy(new Selector.RandomJoker(), 1)).build(),
                 Jokers.of("j_luchador", "Luchador")
                         .on(Trigger.SELL_SELF).effect(new Effect.DisableBoss()).build(),
 

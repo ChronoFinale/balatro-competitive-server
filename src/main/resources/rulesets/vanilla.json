@@ -5436,12 +5436,23 @@
       {
         "when" : "SELL_SELF",
         "condition" : {
-          "type" : "always"
+          "type" : "compare",
+          "value" : {
+            "type" : "state",
+            "var" : "rounds",
+            "base" : 0.0,
+            "scale" : 1.0
+          },
+          "cmp" : "GTE",
+          "threshold" : 2.0
         },
         "effects" : [
           {
-            "type" : "duplicateRandomJoker",
-            "minRoundsOwned" : 2
+            "type" : "copy",
+            "selector" : {
+              "type" : "randomJoker"
+            },
+            "count" : 1
           }
         ]
       }

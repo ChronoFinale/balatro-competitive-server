@@ -902,24 +902,22 @@ public final class Run {
                 else if ("D6".equals(sf.flag())) d6Active = true;
             }
             case Effect.AdjustHandSize ah -> state.handSize += ah.delta();  // Juggle tag (+3 this round)
-            case Effect.Copy cp -> { // Perkeo (shop exit): Copy(RandomConsumable)
+            case Effect.Copy cp -> { // run-loop copies (the rounds-owned gate is now a Condition on the rule)
                 if (cp.selector() instanceof Selector.RandomConsumable && !state.consumables.isEmpty()) {
+                    // Perkeo (shop exit): a slot-cap-ignoring Negative copy of a random held consumable.
                     String dup = state.queues.pick(state.consumables, RngSources.PERKEO_DUP, rngCtx(), s -> s, (a, b) -> 0);
-                    state.consumables.add(dup); // Negative copy ignores the slot cap
-                }
-            }
-            case Effect.CreateTag ct -> grantTag(ct.tag());                 // Diet Cola (on sell)
-            case Effect.DuplicateRandomJoker dj -> { // Invisible Joker (sold after N rounds owned)
-                int rounds = ((Number) ctx.selfState().getOrDefault("rounds", 0)).intValue();
-                if (rounds >= dj.minRoundsOwned() && !state.jokers().isEmpty()
-                        && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
-                    // MP copies the rightmost (deterministic); single-player a random one by identity.
+                    state.consumables.add(dup);
+                } else if (cp.selector() instanceof Selector.RandomJoker
+                        && !state.jokers().isEmpty() && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
+                    // Invisible Joker (on sell): copy a joker — the rightmost in MP (deterministic), else a
+                    // random one by identity (INVISIBLE_DUP).
                     Joker source = ruleset.capabilities().duplicateRightmost()
                             ? state.jokers().get(state.jokers().size() - 1)
                             : state.queues.pick(state.jokers(), RngSources.INVISIBLE_DUP, rngCtx(), Joker::key, JOKER_QUALITY);
                     state.addJoker(JokerLibrary.create(source.key()));
                 }
             }
+            case Effect.CreateTag ct -> grantTag(ct.tag());                 // Diet Cola (on sell)
             default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
