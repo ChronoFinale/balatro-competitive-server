@@ -44,6 +44,9 @@ public final class Val {
 
     // --- live run-state quantities ---
 
+    /** The raw value of a run variable (Money/Ante/Hand.PLAYS/…). */
+    public static Value runVar(Property v) { return new Value.RunVar(v, 0, 1); }
+
     /** {@code base + scale * (run variable)} — the general form. */
     public static Value runVar(Property v, double base, double scale) { return new Value.RunVar(v, base, scale); }
 
@@ -99,6 +102,10 @@ public final class Val {
 
     /** Clamp an inner value to a floor (no upper bound) — the common decay case. */
     public static Value floorAt(double min, Value inner) { return new Value.Clamp(inner, min, 1e9); }
+
+    /** The difference {@code left − right} — one quantity defined relative to another (Skip-Off's
+     *  blinds-skipped-beyond-Nemesis, Turtle Bean's decay). Compose with {@link #floorAt} to clamp. */
+    public static Value diff(Value left, Value right) { return new Value.Diff(left, right); }
 
     /** A uniform random amount in {@code [min, max]} keyed by {@code seed} (Misprint). */
     public static Value random(double min, double max, String seed) { return new Value.Random(min, max, seed); }

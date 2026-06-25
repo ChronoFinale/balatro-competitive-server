@@ -49,17 +49,13 @@ public final class BuiltinJokerDefs {
     /** Skip-Off's amount: how many blinds you've skipped beyond the Nemesis, floored at 0 — a Value, so the
      *  same Modify works as the PvP state moves (clamp(blindsSkipped − opp.blindsSkipped, 0, ∞)). */
     private static Value skipDiff() {
-        return new Value.Clamp(new Value.Diff(
-                new Value.RunVar(Value.Var.BLINDS_SKIPPED, 0, 1),
-                new Value.RunVar(Value.Var.OPP_BLINDS_SKIPPED, 0, 1)), 0, 1e9);
+        return Val.floorAt(0, Val.diff(Val.runVar(Value.Var.BLINDS_SKIPPED), Val.runVar(Value.Var.OPP_BLINDS_SKIPPED)));
     }
 
     /** Turtle Bean's decaying hand-size bonus: {@code max(0, start − roundsPlayed)} — a Value, so the one
      *  Modify decays itself each round (the old acqRounds was always 0, so it's run-level, not per-instance). */
     private static Value turtleBeanDecay(int start) {
-        return new Value.Clamp(new Value.Diff(
-                new Value.Const(start),
-                new Value.RunVar(Value.Var.ROUNDS_PLAYED, 0, 1)), 0, 1e9);
+        return Val.floorAt(0, Val.diff(Val.of(start), Val.runVar(Value.Var.ROUNDS_PLAYED)));
     }
 
     private static JokerDef suitMult(String key, String name, Suit suit) {

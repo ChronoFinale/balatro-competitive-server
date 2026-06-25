@@ -42,10 +42,6 @@ public final class JokerEffect {
     public int grantDiscards;
     public int grantDiscardBlinds;
     public boolean grantToOpponent;
-    /** Swap the running chips and mult (Balatro {@code swap}). */
-    public boolean swap;
-    /** Balance chips and mult (Balatro {@code balance}); semantics TBD — no content uses it yet. */
-    public boolean balance;
     public String message;
     /** Attribution for the replay log; set by the engine/Blueprint. */
     public String source;

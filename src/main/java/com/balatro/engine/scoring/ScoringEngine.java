@@ -434,13 +434,6 @@ public final class ScoringEngine {
             acc.log.add(new ReplayEntry(src, "dollars", (e.dollars >= 0 ? "+$" : "-$") + Math.abs(e.dollars),
                     Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
         }
-        if (e.swap) {
-            BigNum c = acc.chips;
-            acc.chips = acc.mult;
-            acc.mult = c;
-            log(acc, src, "swap", "Swap Chips & Mult");
-        }
-        // e.balance: deferred — semantics unsettled (doc 30 open Q) and no content uses it yet.
     }
 
     /** Union the global hand modifiers granted by the player's data-driven jokers. */
