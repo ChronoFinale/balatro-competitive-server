@@ -600,6 +600,16 @@ public final class Run {
                 actionTrace.add(new com.balatro.engine.exec.TraceEntry("edition",
                         ej.target().name() + " → " + ej.edition()));
             }
+            case com.balatro.engine.exec.Command.DestroyCards dc -> {
+                dc.cards().forEach(t -> t.destroyed = true);
+                composition.removeIf(x -> x.destroyed);
+                state.hand.removeIf(x -> x.destroyed);
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("destroy", "destroyed " + dc.cards().size() + " card(s)"));
+            }
+            case com.balatro.engine.exec.Command.Create cr -> {
+                com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("create", cr.spec().count() + "× " + cr.spec().kind()));
+            }
             case com.balatro.engine.exec.Command.LevelHand lvl -> {
                 for (int i = 0; i < Math.abs(lvl.levels()); i++) {
                     if (lvl.levels() < 0) state.levelDownHand(lvl.hand()); else state.levelUpHand(lvl.hand());
@@ -922,7 +932,7 @@ public final class Run {
                     if (s.edition() == Edition.NONE) addFreeJoker(s.rarity()); // Rare/Uncommon by rarity
                     else addFreeEditionedJoker(s.edition());                   // Foil/Holo/Poly/Negative
                 } else { // PLAYER: jokers/consumables/cards straight into the run's slots (Top-Up tag)
-                    com.balatro.engine.consumable.Creation.apply(state, s, state.queues);
+                    apply(new com.balatro.engine.exec.Command.Create(s));
                 }
             }
             case Effect.LevelHands lh -> { // Orbital tag (MOST_PLAYED) / The Arm (PLAYED, -1 = delevel)
@@ -1182,9 +1192,8 @@ public final class Run {
     /** Purple Seal: each purple-sealed card discarded creates a random Tarot, room permitting. */
     private void applyPurpleSeals(int count) {
         for (int i = 0; i < count; i++) {
-            com.balatro.engine.consumable.Creation.apply(state,
-                    new com.balatro.grammar.CreateSpec(
-                            com.balatro.grammar.CreateSpec.Kind.TAROT), state.queues);
+            apply(new com.balatro.engine.exec.Command.Create(
+                    new com.balatro.grammar.CreateSpec(com.balatro.grammar.CreateSpec.Kind.TAROT)));
         }
     }
 
@@ -1395,15 +1404,13 @@ public final class Run {
             }
             case Effect.MutateCard mc -> resolveTargets(c, mc.selector(), targets).forEach(t -> mc.mod().applyTo(t));
             case Effect.Create cr -> // pure-create consumable (Emperor/High Priestess/Judgement/Soul)
-                com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
+                apply(new com.balatro.engine.exec.Command.Create(cr.spec()));
             case Effect.Destroy d -> { // consumable-context destroy
                 if (d.selector() instanceof Selector.Others o) { // Hex/Ankh: destroy every joker but the bound one
                     Joker keep = bindings.get(o.name());
                     if (keep != null) state.jokers().removeIf(j -> j != keep);
-                } else { // card selectors (Hanged Man)
-                    resolveTargets(c, d.selector(), targets).forEach(t -> t.destroyed = true);
-                    composition.removeIf(x -> x.destroyed);
-                    state.hand.removeIf(x -> x.destroyed);
+                } else { // card selectors (Hanged Man, Immolate): select the victims, then destroy them
+                    apply(new com.balatro.engine.exec.Command.DestroyCards(resolveTargets(c, d.selector(), targets)));
                 }
             }
             case Effect.CreateCards cr -> {
