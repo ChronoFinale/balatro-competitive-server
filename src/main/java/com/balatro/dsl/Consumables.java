@@ -6,10 +6,11 @@ import com.balatro.engine.card.CardMod;
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Effect.Generate.AddCards;
-import com.balatro.engine.joker.def.Effect.Generate.MoneyOp;
+import com.balatro.engine.joker.def.Effect.AddCards;
 import com.balatro.engine.joker.def.CreateSpec;
 import com.balatro.engine.joker.def.Selector;
+import com.balatro.engine.joker.def.Value;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,7 +20,8 @@ import java.util.List;
  *
  * <p>Two effect families: a <b>direct</b> effect ({@link #enhance}, {@link #destroySelected}, …) sets the
  * effect outright; the <b>generative</b> verbs ({@link #createTarots}, {@link #destroyInHand},
- * {@link #addFaceCards}, {@link #doubleMoney}, …) accumulate into one {@link Effect.Generate}.
+ * {@link #addFaceCards}, {@link #doubleMoney}, …) accumulate into an ordered {@code List<Effect>}
+ * (Destroy → Create → AddCards → AdjustMoney) — no fused composite verb.
  */
 public final class Consumables {
 
@@ -30,11 +32,12 @@ public final class Consumables {
     private int maxTargets;
     private Effect effect;
 
-    // generative accumulator (folded into one Generate at build() if any is set)
+    // generative accumulator — each piece becomes its own Effect in an ordered list at build()
+    // (destroy → create → add → money); no fused Generate composite.
     private CreateSpec create;
     private int destroyInHand;
     private AddCards add;
-    private MoneyOp money;
+    private Effect money; // an Effect.AdjustMoney
 
     private Consumables(String key, String name, ConsumableType type) {
         this.key = key;
@@ -124,34 +127,47 @@ public final class Consumables {
     /** Add {@code count} random enhanced ACES (Grim). */
     public Consumables addAces(int count) { this.add = new AddCards(AddCards.RankClass.ACE, count, null); return this; }
 
-    /** Double current money, capped at {@code cap} gain (Hermit). */
-    public Consumables doubleMoney(int cap) { this.money = new MoneyOp(MoneyOp.Kind.DOUBLE_CAP, cap); return this; }
+    /** Double current money, capped at {@code cap} gain (Hermit) = ADD min(MONEY, cap). */
+    public Consumables doubleMoney(int cap) { return money(Effect.Operation.ADD, clampedVar(Value.Var.MONEY, cap)); }
 
-    /** Gain the total joker sell value, capped at {@code cap} (Temperance). */
-    public Consumables gainSellValue(int cap) { this.money = new MoneyOp(MoneyOp.Kind.SELL_VALUE_CAP, cap); return this; }
+    /** Gain the total joker sell value, capped at {@code cap} (Temperance) = ADD min(TOTAL_SELL_VALUE, cap). */
+    public Consumables gainSellValue(int cap) { return money(Effect.Operation.ADD, clampedVar(Value.Var.TOTAL_SELL_VALUE, cap)); }
 
     /** Gain a flat {@code amount} (Immolate). */
-    public Consumables gainMoney(int amount) { this.money = new MoneyOp(MoneyOp.Kind.FLAT, amount); return this; }
+    public Consumables gainMoney(int amount) { return money(Effect.Operation.ADD, new Value.Const(amount)); }
 
     /** Set money to a fixed {@code value} (Wraith → $0). */
-    public Consumables setMoney(int value) { this.money = new MoneyOp(MoneyOp.Kind.SET, value); return this; }
+    public Consumables setMoney(int value) { return money(Effect.Operation.SET, new Value.Const(value)); }
+
+    private Consumables money(Effect.Operation op, Value amount) {
+        this.money = new Effect.AdjustMoney(op, amount);
+        return this;
+    }
+
+    /** {@code min(max(var, 0), cap)} — a "gain var, capped" amount (Hermit/Temperance). */
+    private static Value clampedVar(Value.Var v, int cap) {
+        return new Value.Clamp(new Value.RunVar(v, 0, 1), 0, cap);
+    }
 
     public Consumable build() {
-        if (effect == null) {
-            boolean generative = create != null || destroyInHand != 0 || add != null || money != null;
-            if (!generative) {
+        // A "generative" consumable is just an ordered List<Effect> — there is no Generate composite. The
+        // pieces apply in the same order the old Generate did: destroy random → create → add rank cards →
+        // money. Each is the same first-class Effect a joker/boss could use.
+        List<Effect> effects = new ArrayList<>();
+        if (effect != null) {
+            effects.add(effect);
+        } else {
+            if (destroyInHand != 0) effects.add(new Effect.Destroy(new Selector.RandomInHand(destroyInHand)));
+            if (create != null) effects.add(new Effect.Create(create));
+            if (add != null) effects.add(add);
+            if (money != null) effects.add(money);
+            if (effects.isEmpty()) {
                 throw new IllegalStateException("Consumable '" + key + "' has no effect — set one before build()");
             }
-            // A pure-create generative (Emperor, High Priestess, Judgement, The Soul) is just a Create — don't
-            // wrap a single create in the Generate composite. The Generate composite is for the genuine
-            // multi-step ones (destroy + create + add + money), where it models an ordered effect sequence.
-            effect = (create != null && destroyInHand == 0 && add == null && money == null)
-                    ? new Effect.Create(create)
-                    : new Effect.Generate(create, destroyInHand, add, money);
         }
         // Description is localization data: default from Loc keyed by consumable key when not set explicitly.
         String text = desc.isEmpty() ? com.balatro.engine.i18n.Loc.text(key) : desc;
-        return new Consumable(key, name, text, type, maxTargets, List.of(effect));
+        return new Consumable(key, name, text, type, maxTargets, List.copyOf(effects));
     }
 
     private Consumables direct(Effect e) {

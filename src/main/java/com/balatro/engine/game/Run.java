@@ -1365,7 +1365,8 @@ public final class Run {
             }
             case Effect.LevelHands lh -> applyLevelHands(lh); // Black Hole (ALL)
             case Effect.JokerEdition je -> applyJokerEdition(c, je);
-            case Effect.Generate g -> applyGenerate(c, g);
+            case Effect.AddCards a -> addRankClassCards(c, a);                  // Familiar / Grim rank-class adds
+            case Effect.AdjustMoney am -> applyRunLoopEffect(am, runLoopContext()); // Immolate/Hermit/Temperance/Wraith
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);
             case Effect.Copy cp -> { // consumable-context copy: duplicate the selected card cp.count()× (Cryptid)
                 if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) {
@@ -1412,7 +1413,9 @@ public final class Run {
                 for (int i = 0; i < r.count(); i++) {
                     List<Card> live = state.hand.stream().filter(x -> !x.destroyed && !out.contains(x)).toList();
                     if (live.isEmpty()) break;
-                    out.add(state.queues.pick(live, RngSources.consumable(c.key()).sub("select:" + i).composition(),
+                    // "destroy:i" sub-key matches the old Generate destroy stream, so Immolate/Familiar/Grim
+                    // (now Destroy(RandomInHand) in their effect list) draw the same cards — byte-identical.
+                    out.add(state.queues.pick(live, RngSources.consumable(c.key()).sub("destroy:" + i).composition(),
                             rngCtx(), Deck.CARD_GROUP, Deck.CARD_QUALITY));
                 }
                 yield out;
@@ -1475,32 +1478,7 @@ public final class Run {
         Enhancement.STONE, Enhancement.GOLD, Enhancement.WILD, Enhancement.LUCKY
     };
 
-    /**
-     * Apply a generative consumable: destroy random hand cards, create
-     * consumables/jokers/cards, add rank-class cards, then run a money op — in order.
-     */
-    private void applyGenerate(Consumable c, Effect.Generate g) {
-        // 1. destroy N random hand cards (and the same objects from the persistent deck).
-        for (int i = 0; i < g.destroyRandomInHand(); i++) {
-            List<Card> live = state.hand.stream().filter(x -> !x.destroyed).toList();
-            if (live.isEmpty()) break;
-            Card victim = state.queues.pick(live, RngSources.consumable(c.key()).sub("destroy:" + i).composition(),
-                    rngCtx(), Deck.CARD_GROUP, Deck.CARD_QUALITY);
-            victim.destroyed = true;
-        }
-        if (g.destroyRandomInHand() > 0) {
-            composition.removeIf(x -> x.destroyed);
-            state.hand.removeIf(x -> x.destroyed);
-        }
-        // 2. create consumables / jokers / cards from the spec (server-only, queue-driven).
-        if (g.create() != null) Creation.apply(state, g.create(), state.queues);
-        // 3. add rank-class cards with a fixed or random enhancement.
-        if (g.add() != null) addRankClassCards(c, g.add());
-        // 4. money op.
-        if (g.money() != null) applyMoneyOp(g.money());
-    }
-
-    private void addRankClassCards(Consumable c, Effect.Generate.AddCards add) {
+    private void addRankClassCards(Consumable c, Effect.AddCards add) {
         Rank[] pool = switch (add.rankClass()) {
             case FACE -> new Rank[]{Rank.JACK, Rank.QUEEN, Rank.KING};
             case ACE -> new Rank[]{Rank.ACE};
@@ -1515,21 +1493,6 @@ public final class Run {
             Card made = new Card(r, s, e, Edition.NONE, Seal.NONE);
             composition.add(made); // persistent deck (drawn next blind)
             state.hand.add(made);  // and usable now
-        }
-    }
-
-    private void applyMoneyOp(Effect.Generate.MoneyOp m) {
-        switch (m.kind()) {
-            case FLAT -> state.money = Math.max(0, state.money + m.amount());
-            case SET -> state.money = Math.max(0, m.amount());
-            case DOUBLE_CAP -> state.money += Math.min(state.money, m.amount()); // Hermit: double, gain ≤ cap
-            case SELL_VALUE_CAP -> {
-                int sell = 0;
-                for (Joker j : state.jokers()) {
-                    sell += Math.max(1, j.info().cost() / 2) + state.jokerInt(j, "sellBonus", 0);
-                }
-                state.money += Math.min(sell, m.amount()); // Temperance: total sell value, capped
-            }
         }
     }
 

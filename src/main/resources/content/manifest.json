@@ -1,5 +1,5 @@
 {
-  "version" : "ff00f4d2ae6030b3",
+  "version" : "ef33b5e4a0649f5c",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
@@ -33,8 +33,8 @@
     },
     {
       "path" : "content/consumables.json",
-      "sha256" : "7d8334b1f7e6344040adc5c62ecd5f1744db34cce0300e554ce1e0ec1d879b04",
-      "bytes" : 18130
+      "sha256" : "d07ad83bc5d47de7622bb962a6105e0a1aa2ccef5a070da246b55f7148acaf0a",
+      "bytes" : 18487
     },
     {
       "path" : "content/planets.json",

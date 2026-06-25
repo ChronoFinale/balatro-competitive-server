@@ -31,7 +31,7 @@ import java.util.List;
     // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
     @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
     @JsonSubTypes.Type(value = Effect.JokerEdition.class, name = "jokerEdition"),
-    @JsonSubTypes.Type(value = Effect.Generate.class, name = "generate"),
+    @JsonSubTypes.Type(value = Effect.AddCards.class, name = "addCards"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
     @JsonSubTypes.Type(value = Effect.OverwriteSelected.class, name = "overwriteSelected"),
     @JsonSubTypes.Type(value = Effect.CopyRandomJoker.class, name = "copyRandomJoker"),
@@ -261,23 +261,12 @@ public sealed interface Effect {
     record JokerEdition(Edition edition, int chanceDenominator,
                         int handSizeDelta, boolean destroyOtherJokers) implements Effect {}
 
-    /**
-     * The "generative" consumables (Emperor, High Priestess, Judgement, The Soul, Wraith, Hermit, Temperance,
-     * Immolate, Familiar, Grim). Applied in order, each part optional (null / 0 = skip): destroy N random hand
-     * cards, then create consumables/jokers/cards, then add rank-class cards, then run a money op.
-     */
-    record Generate(CreateSpec create, int destroyRandomInHand, AddCards add, MoneyOp money) implements Effect {
-
-        /** Add {@code count} cards of {@code rankClass}; {@code enhancement == null} = random per card. */
-        public record AddCards(RankClass rankClass, int count, Enhancement enhancement) {
-            public enum RankClass { FACE, ACE, NUMBER, ANY }
-        }
-
-        /** Double current money (capped), gain total joker sell value (capped), gain a flat amount, or set
-         *  money to a fixed value. {@code amount} is the cap / delta / target. */
-        public record MoneyOp(Kind kind, int amount) {
-            public enum Kind { DOUBLE_CAP, SELL_VALUE_CAP, FLAT, SET }
-        }
+    /** Add {@code count} cards of a {@code rankClass} (Familiar = 3 FACE, Grim = 2 ACE) with a fixed
+     *  {@code enhancement} ({@code null} = random per card) to hand+deck. (The old Generate composite is
+     *  gone — a generative consumable is now just an ordered {@code List<Effect>}: Destroy / Create / AddCards
+     *  / AdjustMoney.) */
+    record AddCards(RankClass rankClass, int count, Enhancement enhancement) implements Effect {
+        public enum RankClass { FACE, ACE, NUMBER, ANY }
     }
 
     /** Convert EVERY card in hand to one random {@code axis} — SUIT (Sigil) or RANK (Ouija) — with an

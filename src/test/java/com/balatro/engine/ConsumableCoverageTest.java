@@ -14,19 +14,15 @@ import org.junit.jupiter.api.Test;
  * The consumable half of the safety net (sibling of voucher/joker/tag coverage). The effect
  * <i>dispatch</i> is already compiler-safe — {@code applyConsumableEffect} switches over the sealed
  * {@link Effect}, so a new effect TYPE can't be silently dropped. What that can't catch
- * is a catalog ENTRY that carries a degenerate effect — a {@link Effect.Generate} with every
- * part empty does nothing, exactly the no-op trap Boss Tag fell into. So here: every Tarot/Spectral
- * has a non-empty effect list whose effects all do something, and every Planet targets a real hand.
+ * is a catalog ENTRY that carries no effect. So here: every Tarot/Spectral has a non-empty effect
+ * list whose effects all do something, and every Planet targets a real hand. (Since the Generate
+ * composite was eliminated, a generative consumable is an ordered List<Effect> of first-class effects
+ * — each does something by construction — so the empty-list check is the whole net.)
  */
 class ConsumableCoverageTest {
 
     private static boolean isDegenerate(Effect e) {
-        if (e == null) return true;
-        // Generate is the one effect whose parts are all optional — all-empty = a no-op.
-        if (e instanceof Effect.Generate g) {
-            return g.create() == null && g.destroyRandomInHand() == 0 && g.add() == null && g.money() == null;
-        }
-        return false; // every other effect type does something by construction
+        return e == null; // every effect type does something by construction; only a null/empty list is a no-op
     }
 
     @Test

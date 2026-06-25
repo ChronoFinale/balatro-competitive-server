@@ -14,7 +14,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The fluent {@link Consumables} builder produces the same records the catalog used to write by hand.
- * The interesting case is the generative folding: several verbs accumulate into one {@link Effect.Generate}.
+ * The interesting case is the generative decomposition: the verbs become an ordered {@code List<Effect>}
+ * (Destroy → Create → AddCards → AdjustMoney), not a fused Generate composite.
  */
 class ConsumablesBuilderTest {
 
@@ -28,26 +29,28 @@ class ConsumablesBuilderTest {
     }
 
     @Test
-    void generativeVerbsFoldIntoOneGenerate() {
-        // Wraith: create a Rare Joker AND set money to 0 -> a single Generate carrying both parts.
+    void generativeVerbsBecomeAnOrderedEffectList() {
+        // Wraith: create a Rare Joker AND set money to 0 -> [Create, AdjustMoney(SET, 0)].
         Consumable wraith = Consumables.spectral("c_w", "W").desc("d").createJoker("Rare").setMoney(0).build();
-        Effect.Generate g = (Effect.Generate) wraith.effects().get(0);
-        assertThat(g.create().kind()).isEqualTo(CreateSpec.Kind.JOKER);
-        assertThat(g.create().rarity()).isEqualTo("Rare");
-        assertThat(g.money().kind()).isEqualTo(Effect.Generate.MoneyOp.Kind.SET);
-        assertThat(g.money().amount()).isZero();
-        assertThat(g.destroyRandomInHand()).isZero();
-        assertThat(g.add()).isNull();
+        assertThat(wraith.effects()).hasSize(2);
+        Effect.Create create = (Effect.Create) wraith.effects().get(0);
+        assertThat(create.spec().kind()).isEqualTo(CreateSpec.Kind.JOKER);
+        assertThat(create.spec().rarity()).isEqualTo("Rare");
+        Effect.AdjustMoney money = (Effect.AdjustMoney) wraith.effects().get(1);
+        assertThat(money.op()).isEqualTo(Effect.Operation.SET);
+        assertThat(money.amount().resolve(null)).isZero(); // Const(0) resolves without a run
     }
 
     @Test
-    void destroyAndAddFoldTogether() {
-        // Familiar: destroy 1 in hand, add 3 face cards.
+    void destroyAndAddBecomeSeparateEffects() {
+        // Familiar: destroy 1 in hand, add 3 face cards -> [Destroy(RandomInHand 1), AddCards(FACE, 3)].
         Consumable familiar = Consumables.spectral("c_f", "F").desc("d").destroyInHand(1).addFaceCards(3).build();
-        Effect.Generate g = (Effect.Generate) familiar.effects().get(0);
-        assertThat(g.destroyRandomInHand()).isEqualTo(1);
-        assertThat(g.add().rankClass()).isEqualTo(Effect.Generate.AddCards.RankClass.FACE);
-        assertThat(g.add().count()).isEqualTo(3);
+        assertThat(familiar.effects()).hasSize(2);
+        Effect.Destroy destroy = (Effect.Destroy) familiar.effects().get(0);
+        assertThat(destroy.selector()).isInstanceOf(com.balatro.engine.joker.def.Selector.RandomInHand.class);
+        Effect.AddCards add = (Effect.AddCards) familiar.effects().get(1);
+        assertThat(add.rankClass()).isEqualTo(Effect.AddCards.RankClass.FACE);
+        assertThat(add.count()).isEqualTo(3);
     }
 
     @Test

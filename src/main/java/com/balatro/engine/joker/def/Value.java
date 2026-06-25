@@ -143,7 +143,7 @@ public sealed interface Value {
         MONEY, CONSUMABLE_SLOTS, JOKER_SLOTS, ANTE, DISCARDS_USED,
         HANDS_PLAYED, HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS,
         UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD,
-        OPP_SHOP_SPENT, GLASS_MULT, BLIND_PROGRESS,
+        OPP_SHOP_SPENT, GLASS_MULT, BLIND_PROGRESS, TOTAL_SELL_VALUE,
         // --- derived economy/shop policy variables: written by Modifys (folded in EconomyConfig /
         //     ShopEconomy), not yet read by any condition. Reading one throws (see readVar). ---
         INTEREST_CAP, MONEY_PER_HAND, MONEY_PER_DISCARD, MIN_MONEY,
@@ -195,6 +195,11 @@ public sealed interface Value {
             case OPP_SHOP_SPENT -> ctx.run.opponent.shopSpentLastAnte;
             case GLASS_MULT -> ctx.run.capabilities.glassMult(); // Glass card x-mult: 2.0 vanilla, 1.5 ranked-MP
             case BLIND_PROGRESS -> ctx.run.blindProgress; // roundScore / requirement at blind-loss (Mr Bones)
+            case TOTAL_SELL_VALUE -> { // sum of owned jokers' sell value (Temperance) — $max(1,cost/2)+sellBonus
+                int sell = 0;
+                for (var j : ctx.run.jokers()) sell += Math.max(1, j.info().cost() / 2) + ctx.run.jokerInt(j, "sellBonus", 0);
+                yield sell;
+            }
             // Policy variables are Modify write-targets folded by EconomyConfig/ShopEconomy, not
             // run-state a condition reads. If one ever needs to be readable, give it a mapping here.
             default -> throw new UnsupportedOperationException("not a readable run variable: " + which);

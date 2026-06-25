@@ -587,13 +587,18 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "generate",
-        "create" : null,
-        "destroyRandomInHand" : 0,
-        "add" : null,
-        "money" : {
-          "kind" : "DOUBLE_CAP",
-          "amount" : 20
+        "type" : "adjustMoney",
+        "op" : "ADD",
+        "amount" : {
+          "type" : "clamp",
+          "inner" : {
+            "type" : "runVar",
+            "which" : "MONEY",
+            "base" : 0.0,
+            "scale" : 1.0
+          },
+          "min" : 0.0,
+          "max" : 20.0
         }
       }
     ]
@@ -606,13 +611,18 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "generate",
-        "create" : null,
-        "destroyRandomInHand" : 0,
-        "add" : null,
-        "money" : {
-          "kind" : "SELL_VALUE_CAP",
-          "amount" : 50
+        "type" : "adjustMoney",
+        "op" : "ADD",
+        "amount" : {
+          "type" : "clamp",
+          "inner" : {
+            "type" : "runVar",
+            "which" : "TOTAL_SELL_VALUE",
+            "base" : 0.0,
+            "scale" : 1.0
+          },
+          "min" : 0.0,
+          "max" : 50.0
         }
       }
     ]
@@ -649,8 +659,8 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "generate",
-        "create" : {
+        "type" : "create",
+        "spec" : {
           "kind" : "JOKER",
           "count" : 1,
           "rarity" : "Rare",
@@ -661,12 +671,14 @@
           "dedup" : true,
           "destination" : "PLAYER",
           "edition" : "NONE"
-        },
-        "destroyRandomInHand" : 0,
-        "add" : null,
-        "money" : {
-          "kind" : "SET",
-          "amount" : 0
+        }
+      },
+      {
+        "type" : "adjustMoney",
+        "op" : "SET",
+        "amount" : {
+          "type" : "const",
+          "amount" : 0.0
         }
       }
     ]
@@ -679,13 +691,18 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "generate",
-        "create" : null,
-        "destroyRandomInHand" : 5,
-        "add" : null,
-        "money" : {
-          "kind" : "FLAT",
-          "amount" : 20
+        "type" : "destroy",
+        "selector" : {
+          "type" : "randomInHand",
+          "count" : 5
+        }
+      },
+      {
+        "type" : "adjustMoney",
+        "op" : "ADD",
+        "amount" : {
+          "type" : "const",
+          "amount" : 20.0
         }
       }
     ]
@@ -698,15 +715,17 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "generate",
-        "create" : null,
-        "destroyRandomInHand" : 1,
-        "add" : {
-          "rankClass" : "FACE",
-          "count" : 3,
-          "enhancement" : null
-        },
-        "money" : null
+        "type" : "destroy",
+        "selector" : {
+          "type" : "randomInHand",
+          "count" : 1
+        }
+      },
+      {
+        "type" : "addCards",
+        "rankClass" : "FACE",
+        "count" : 3,
+        "enhancement" : null
       }
     ]
   },
@@ -718,15 +737,17 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "generate",
-        "create" : null,
-        "destroyRandomInHand" : 1,
-        "add" : {
-          "rankClass" : "ACE",
-          "count" : 2,
-          "enhancement" : null
-        },
-        "money" : null
+        "type" : "destroy",
+        "selector" : {
+          "type" : "randomInHand",
+          "count" : 1
+        }
+      },
+      {
+        "type" : "addCards",
+        "rankClass" : "ACE",
+        "count" : 2,
+        "enhancement" : null
       }
     ]
   },

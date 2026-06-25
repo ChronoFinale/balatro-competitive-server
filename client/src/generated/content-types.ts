@@ -44,6 +44,7 @@ export type ConditionType =
 
 /** 30 discriminators the server dispatches on — the client must handle exactly these. */
 export type EffectType =
+  | "addCards"
   | "addPack"
   | "addShopVoucher"
   | "adjustHandSize"
@@ -63,7 +64,6 @@ export type EffectType =
   | "duplicateRandomConsumable"
   | "duplicateRandomJoker"
   | "flipAndShuffleJokers"
-  | "generate"
   | "grantDiscards"
   | "jokerEdition"
   | "levelHands"
