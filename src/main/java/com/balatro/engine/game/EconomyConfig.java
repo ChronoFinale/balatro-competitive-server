@@ -36,12 +36,12 @@ public record EconomyConfig(int moneyPerHand, int moneyPerDiscard, boolean noInt
         for (Joker j : jokers) {                             // jokers contribute the same Modify vocabulary
             if (j instanceof DataJoker dj) mods.addAll(dj.def().mods());
         }
-        int cap = (int) Modify.fold(BASE_INTEREST_CAP, Value.Var.INTEREST_CAP, mods);
+        int cap = (int) com.balatro.engine.eval.ModifyFolder.fold(BASE_INTEREST_CAP, Value.Var.INTEREST_CAP, mods);
         boolean noInterest = cap <= 0;                       // derived — Green caps interest at 0
-        int minMoney = (int) Modify.fold(0, Value.Var.MIN_MONEY, mods); // Credit Card: min(MIN_MONEY, -20)
-        boolean moon = Modify.fold(0, Value.Var.UNCAPPED_INTEREST, mods) >= 1; // To the Moon: +$1/$5 uncapped
-        int perHand = (int) Modify.fold(1, Value.Var.MONEY_PER_HAND, mods);    // Green Deck sets $2 (base 1)
-        int perDiscard = (int) Modify.fold(0, Value.Var.MONEY_PER_DISCARD, mods); // Green Deck sets $1 (base 0)
+        int minMoney = (int) com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.MIN_MONEY, mods); // Credit Card: min(MIN_MONEY, -20)
+        boolean moon = com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.UNCAPPED_INTEREST, mods) >= 1; // To the Moon: +$1/$5 uncapped
+        int perHand = (int) com.balatro.engine.eval.ModifyFolder.fold(1, Value.Var.MONEY_PER_HAND, mods);    // Green Deck sets $2 (base 1)
+        int perDiscard = (int) com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.MONEY_PER_DISCARD, mods); // Green Deck sets $1 (base 0)
         return new EconomyConfig(perHand, perDiscard, noInterest, cap, moon, minMoney);
     }
 

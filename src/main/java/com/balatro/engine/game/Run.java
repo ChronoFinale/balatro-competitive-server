@@ -136,7 +136,7 @@ public final class Run {
         state.capabilities = ruleset.capabilities(); // the mode's knobs (Glass mult, idol/dup/ouija/pools)
         state.jokerVariant = ruleset.jokerVariant();  // so server-side Creation applies MP joker reworks too
         state.balanceChipsMult = deckType.balanceChipsMult(); // Plasma Deck balances chips & mult
-        state.money = (int) Modify.fold(ruleset.startingMoney(), Value.Var.MONEY, deckType.mods()); // Yellow Deck: +$10
+        state.money = (int) com.balatro.engine.eval.ModifyFolder.fold(ruleset.startingMoney(), Value.Var.MONEY, deckType.mods()); // Yellow Deck: +$10
         // (deck/voucher/joker economy is RESOLVED at end of round from the owned sources — see endOfRoundMoney)
         state.rng = rng;
         state.order = ruleset.order();
@@ -166,7 +166,7 @@ public final class Run {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) mods.addAll(def.mods());
         }
-        return Modify.fold(base, var, mods);
+        return com.balatro.engine.eval.ModifyFolder.fold(base, var, mods);
     }
 
     private int voucherFold(Value.Var var, int base) {
@@ -182,8 +182,8 @@ public final class Run {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
             if (def != null) mods.addAll(def.mods());
         }
-        state.consumableSlots = (int) Modify.fold(BASE_CONSUMABLE_SLOTS, Value.Var.CONSUMABLE_SLOTS, mods);
-        state.jokerSlots = (int) Modify.fold(BASE_JOKER_SLOTS, Value.Var.JOKER_SLOTS, mods);
+        state.consumableSlots = (int) com.balatro.engine.eval.ModifyFolder.fold(BASE_CONSUMABLE_SLOTS, Value.Var.CONSUMABLE_SLOTS, mods);
+        state.jokerSlots = (int) com.balatro.engine.eval.ModifyFolder.fold(BASE_JOKER_SLOTS, Value.Var.JOKER_SLOTS, mods);
     }
 
     /** Reshape the starting composition for decks that change it (game.lua:636-642). */
@@ -288,7 +288,7 @@ public final class Run {
         // The Serpent: subsequent refills draw a fixed count instead of filling to hand size.
         // The Serpent: draw a fixed count instead of filling to hand size — a Modify on DRAW_COUNT, folded
         // alongside every other resource (a disabled boss contributes no mods, so it falls back to -1).
-        state.drawCountOverride = (int) Modify.fold(-1, Hand.DRAW_COUNT, resourceMods());
+        state.drawCountOverride = (int) com.balatro.engine.eval.ModifyFolder.fold(-1, Hand.DRAW_COUNT, resourceMods());
         for (Joker j : state.jokers()) state.jokerState(j).put("bossDisabled", false); // Crimson Heart re-arms each blind
         jokersHidden = false; // reset; Amber Acorn's BLIND_SELECTED rule re-hides + shuffles the Jokers
         raiseBossRules(Trigger.BLIND_SELECTED, null);
@@ -676,14 +676,14 @@ public final class Run {
     private void applyResourceMods() {
         List<Modify> mods = resourceMods();
         var ctx = runLoopContext(); // some mods are dynamic Values now (Skip-Off reads the PvP state)
-        state.handsLeft = Math.max(1, (int) Modify.fold(ruleset.hands(), Hand.PLAYS, mods, ctx));
+        state.handsLeft = Math.max(1, (int) com.balatro.engine.eval.ModifyFolder.fold(ruleset.hands(), Hand.PLAYS, mods, ctx));
         // Burglar's "no discards" is a Modify.min(Hand.DISCARDS, 0) — the fold's MIN beats any discard-adder.
-        int discards = (int) Modify.fold(baseDiscards(), Hand.DISCARDS, mods, ctx);
+        int discards = (int) com.balatro.engine.eval.ModifyFolder.fold(baseDiscards(), Hand.DISCARDS, mods, ctx);
         state.discardsLeft = Math.max(0, discards);
-        state.handSize = Math.max(1, (int) Modify.fold(ruleset.handSize(), Hand.SIZE, mods, ctx));
+        state.handSize = Math.max(1, (int) com.balatro.engine.eval.ModifyFolder.fold(ruleset.handSize(), Hand.SIZE, mods, ctx));
         // Oops! All 6s scales every "1 in X" threshold: each copy is a Modify.multiply(PROBABILITY_MULTIPLIER, 2),
         // so the fold from base 1 gives 2^copies — replacing the old bespoke 1<<oopsCount capability count.
-        state.probabilityNumerator = Math.max(1, (int) Modify.fold(1, Value.Var.PROBABILITY_MULTIPLIER, mods, ctx));
+        state.probabilityNumerator = Math.max(1, (int) com.balatro.engine.eval.ModifyFolder.fold(1, Value.Var.PROBABILITY_MULTIPLIER, mods, ctx));
     }
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */
@@ -1271,7 +1271,7 @@ public final class Run {
 
     /** Free rerolls granted this shop, folded from everything owned (Chaos = +1 via its FREE_REROLLS Modify). */
     private int freeRerollsThisShop() {
-        return (int) Modify.fold(0, Value.Var.FREE_REROLLS, resourceMods());
+        return (int) com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.FREE_REROLLS, resourceMods());
     }
 
     /** Reroll the shop offerings. Returns null on success, else a reason. */

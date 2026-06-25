@@ -31,7 +31,7 @@ class GameVarModifierTest {
                 Modify.add(Hand.PLAYS, 3),       // Burglar
                 Modify.set(Hand.PLAYS, 1),       // Needle (override)
                 Modify.multiply(Hand.PLAYS, 2)); // hypothetical doubler
-        assertThat(Modify.fold(4, Hand.PLAYS, mods)).isEqualTo((1 + 3) * 2);
+        assertThat(com.balatro.engine.eval.ModifyFolder.fold(4, Hand.PLAYS, mods)).isEqualTo((1 + 3) * 2);
     }
 
     @Test

@@ -52,7 +52,7 @@ public final class DataJoker implements Joker {
     public static boolean policyEnabled(java.util.List<com.balatro.engine.joker.Joker> jokers, Value.Var var) {
         java.util.List<Modify> mods = new java.util.ArrayList<>();
         for (var j : jokers) if (j instanceof DataJoker dj) mods.addAll(dj.def().mods());
-        return Modify.fold(0, var, mods) >= 1;
+        return com.balatro.engine.eval.ModifyFolder.fold(0, var, mods) >= 1;
     }
 
     @Override

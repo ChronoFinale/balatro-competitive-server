@@ -44,15 +44,15 @@ public record ShopEconomy(int slots, double priceMultiplier, int rerollDiscount,
             if (def != null) mods.addAll(def.mods());
         }
         return new ShopEconomy(
-                (int) Modify.fold(BASE_SHOP_SLOTS, Value.Var.SHOP_SLOTS, mods),
-                Modify.fold(1.0, Value.Var.PRICE_MULTIPLIER, mods),
-                (int) Modify.fold(0, Value.Var.REROLL_DISCOUNT, mods),
-                Modify.fold(1.0, Value.Var.EDITION_MULTIPLIER, mods),
-                Modify.fold(1.0, Value.Var.POLY_MULTIPLIER, mods),
-                (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.TAROT_RATE, mods),
-                (int) Modify.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.PLANET_RATE, mods),
-                (int) Modify.fold(0, Value.Var.SPECTRAL_RATE, mods),
-                (int) Modify.fold(0, Value.Var.SHOP_PLAYING_CARD_RATE, mods),
-                Modify.fold(0, Value.Var.SHOP_CARDS_ENHANCED, mods) >= 1);
+                (int) com.balatro.engine.eval.ModifyFolder.fold(BASE_SHOP_SLOTS, Value.Var.SHOP_SLOTS, mods),
+                com.balatro.engine.eval.ModifyFolder.fold(1.0, Value.Var.PRICE_MULTIPLIER, mods),
+                (int) com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.REROLL_DISCOUNT, mods),
+                com.balatro.engine.eval.ModifyFolder.fold(1.0, Value.Var.EDITION_MULTIPLIER, mods),
+                com.balatro.engine.eval.ModifyFolder.fold(1.0, Value.Var.POLY_MULTIPLIER, mods),
+                (int) com.balatro.engine.eval.ModifyFolder.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.TAROT_RATE, mods),
+                (int) com.balatro.engine.eval.ModifyFolder.fold(BASE_CONSUMABLE_WEIGHT, Value.Var.PLANET_RATE, mods),
+                (int) com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.SPECTRAL_RATE, mods),
+                (int) com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.SHOP_PLAYING_CARD_RATE, mods),
+                com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.SHOP_CARDS_ENHANCED, mods) >= 1);
     }
 }
