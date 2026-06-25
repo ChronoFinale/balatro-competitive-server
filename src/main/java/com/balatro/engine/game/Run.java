@@ -1343,6 +1343,8 @@ public final class Run {
     private void applyConsumableEffect(Consumable c, Effect e, List<Card> targets) {
         switch (e) {
             case Effect.MutateCard mc -> resolveTargets(c, mc.selector(), targets).forEach(t -> mc.mod().applyTo(t));
+            case Effect.Create cr -> // pure-create consumable (Emperor/High Priestess/Judgement/Soul)
+                com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
             case Effect.Destroy d -> { // consumable-context destroy resolves card selectors (Hanged Man)
                 resolveTargets(c, d.selector(), targets).forEach(t -> t.destroyed = true);
                 composition.removeIf(x -> x.destroyed);

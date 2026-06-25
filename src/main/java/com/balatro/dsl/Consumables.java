@@ -142,7 +142,12 @@ public final class Consumables {
             if (!generative) {
                 throw new IllegalStateException("Consumable '" + key + "' has no effect — set one before build()");
             }
-            effect = new Effect.Generate(create, destroyInHand, add, money);
+            // A pure-create generative (Emperor, High Priestess, Judgement, The Soul) is just a Create — don't
+            // wrap a single create in the Generate composite. The Generate composite is for the genuine
+            // multi-step ones (destroy + create + add + money), where it models an ordered effect sequence.
+            effect = (create != null && destroyInHand == 0 && add == null && money == null)
+                    ? new Effect.Create(create)
+                    : new Effect.Generate(create, destroyInHand, add, money);
         }
         // Description is localization data: default from Loc keyed by consumable key when not set explicitly.
         String text = desc.isEmpty() ? com.balatro.engine.i18n.Loc.text(key) : desc;
