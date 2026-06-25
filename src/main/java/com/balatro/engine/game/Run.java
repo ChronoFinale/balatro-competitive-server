@@ -618,6 +618,11 @@ public final class Run {
                 for (Card made : ac.cards()) { composition.add(made); state.hand.add(made); }
                 actionTrace.add(new com.balatro.engine.exec.TraceEntry("addCards", "+" + ac.cards().size() + " card(s)"));
             }
+            case com.balatro.engine.exec.Command.OverwriteCard ow -> {
+                Card t = ow.target(), s = ow.source();
+                t.rank = s.rank; t.suit = s.suit; t.enhancement = s.enhancement; t.edition = s.edition; t.seal = s.seal;
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("overwrite", t + " ← " + s));
+            }
             case com.balatro.engine.exec.Command.LevelHand lvl -> {
                 for (int i = 0; i < Math.abs(lvl.levels()); i++) {
                     if (lvl.levels() < 0) state.levelDownHand(lvl.hand()); else state.levelUpHand(lvl.hand());
@@ -1449,11 +1454,9 @@ public final class Run {
             case Effect.Copy cp -> { // consumable-context copy
                 if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) { // Cryptid: copy the card cp.count()×
                     Card src = targets.get(0);
-                    for (int i = 0; i < cp.count(); i++) {
-                        Card dup = src.copy(); // fresh uid, same rank/suit/enh/edition/seal
-                        composition.add(dup);
-                        state.hand.add(dup);
-                    }
+                    List<Card> copies = new ArrayList<>();
+                    for (int i = 0; i < cp.count(); i++) copies.add(src.copy()); // fresh uid, same attributes
+                    apply(new com.balatro.engine.exec.Command.AddCardsToDeck(copies));
                 } else if (cp.selector() instanceof Selector.LastConsumable      // The Fool: copy the last Tarot/Planet used
                         && state.lastTarotPlanetUsed != null && state.consumables.size() < state.consumableSlots) {
                     state.consumables.add(state.lastTarotPlanetUsed);
@@ -1465,14 +1468,8 @@ public final class Run {
                 }
             }
             case Effect.OverwriteSelected ignored -> {
-                if (targets.size() == 2) { // Death: the left (first) card becomes a copy of the right
-                    Card left = targets.get(0), right = targets.get(1);
-                    left.rank = right.rank;
-                    left.suit = right.suit;
-                    left.enhancement = right.enhancement;
-                    left.edition = right.edition;
-                    left.seal = right.seal;
-                }
+                if (targets.size() == 2) // Death: the left (first) card becomes a copy of the right
+                    apply(new com.balatro.engine.exec.Command.OverwriteCard(targets.get(0), targets.get(1)));
             }
             case Effect.NemesisDelevel ignored -> state.nemesisDelevelPending++; // Match applies it to the opponent
             default -> throw new IllegalStateException("not a consumable effect: " + e);
