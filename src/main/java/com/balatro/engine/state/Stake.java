@@ -45,7 +45,7 @@ public enum Stake {
     SPECTRAL     (10, "Spectral Stake",     true,  4,  0, true,  true,  true),
     SPECTRAL_PLUS(11, "Spectral+ Stake",    true,  5,  0, true,  true,  true);
 
-    // Sticker tuning constants now live on the Sticker primitive (com.balatro.engine.card.Sticker).
+    // Sticker tuning constants now live on the Sticker primitive (com.balatro.content.Sticker).
 
     /** stake_level (1..11) — selection order, and a stable id for the wire. */
     public final int level;
@@ -103,7 +103,7 @@ public enum Stake {
         return eternalsInShop;
     }
 
-    /** Shop jokers may roll the Perishable sticker (see {@link com.balatro.engine.card.Sticker}). */
+    /** Shop jokers may roll the Perishable sticker (see {@link com.balatro.content.Sticker}). */
     public boolean perishablesInShop() {
         return perishablesInShop;
     }

@@ -2,7 +2,7 @@ package com.balatro.engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.balatro.engine.card.CardModifiers;
+import com.balatro.content.CardModifiers;
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Seal;

@@ -1,4 +1,9 @@
-package com.balatro.engine.card;
+package com.balatro.content;
+
+import com.balatro.engine.card.Card;
+import com.balatro.engine.card.Edition;
+import com.balatro.engine.card.Enhancement;
+import com.balatro.engine.card.Seal;
 
 import com.balatro.grammar.Trigger;
 import com.balatro.grammar.Condition;

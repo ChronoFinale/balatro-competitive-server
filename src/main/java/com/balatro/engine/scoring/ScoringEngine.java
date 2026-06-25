@@ -311,7 +311,7 @@ public final class ScoringEngine {
         // Seal retriggers are DATA: Red Seal = Score(ADD, RETRIGGERS, 1) in CardModifiers.SEAL, resolved here
         // in the retrigger pass (the scoring pass ignores RETRIGGERS, so the same effect is a no-op there).
         for (com.balatro.grammar.Effect e
-                : com.balatro.engine.card.CardModifiers.SEAL.getOrDefault(card.seal, java.util.List.of())) {
+                : com.balatro.content.CardModifiers.SEAL.getOrDefault(card.seal, java.util.List.of())) {
             if (e instanceof com.balatro.grammar.Effect.Score s
                     && s.term() == com.balatro.grammar.Effect.Term.RETRIGGERS) {
                 JokerEffect je = com.balatro.engine.eval.EffectInterpreter.apply(s, ctx);
@@ -349,10 +349,10 @@ public final class ScoringEngine {
         }
         // Enhancement scoring is DATA now: Bonus/Mult/Stone are Effect.Score, interpreted like a joker
         // (the structural "Stone always scores / no rank-suit" stays in the scoring-set selection above).
-        applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.ENHANCEMENT.get(card.enhancement), ctx, card);
+        applyCardModifierEffects(acc, com.balatro.content.CardModifiers.ENHANCEMENT.get(card.enhancement), ctx, card);
         // Lucky is DATA now: chance(1/5 on lucky_mult) -> +20 Mult, chance(1/15 on lucky_money) -> +$20,
         // rolled on the same dedicated streams (so determinism is byte-identical). Chance floors in preview.
-        applyCardModifierRules(acc, com.balatro.engine.card.CardModifiers.PROBABILISTIC.get(card.enhancement), ctx, card, run);
+        applyCardModifierRules(acc, com.balatro.content.CardModifiers.PROBABILISTIC.get(card.enhancement), ctx, card, run);
         // Glass x-mult is DATA (ENHANCEMENT table, reads GLASS_MULT). Only the 1-in-4 shatter — a structural
         // card destruction on its own RNG queue — stays here.
         if (card.enhancement == Enhancement.GLASS && !preview
@@ -361,9 +361,9 @@ public final class ScoringEngine {
             acc.destroyed.add(card);
         }
         // Edition scoring is DATA: Foil +50 chips, Holo +10 mult, Poly x1.5 mult — same Effect.Score path.
-        applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.EDITION.get(card.edition), ctx, card);
+        applyCardModifierEffects(acc, com.balatro.content.CardModifiers.EDITION.get(card.edition), ctx, card);
         // Seal scoring is DATA: Gold = +$3 (Effect.dollars, credited at end). Red/Blue/Purple are elsewhere.
-        applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.SEAL.get(card.seal), ctx, card);
+        applyCardModifierEffects(acc, com.balatro.content.CardModifiers.SEAL.get(card.seal), ctx, card);
     }
 
     /** Apply a card modifier's scoring effects (enhancement/edition) through the joker interpreter. */
@@ -389,7 +389,7 @@ public final class ScoringEngine {
 
     /** Held-in-hand card effects (Steel x1.5 mult while held) — data, via the joker interpreter. */
     private void applyCardHeld(Acc acc, Card card, com.balatro.engine.joker.EvaluationContext ctx) {
-        applyCardModifierEffects(acc, com.balatro.engine.card.CardModifiers.HELD.get(card.enhancement), ctx, card);
+        applyCardModifierEffects(acc, com.balatro.content.CardModifiers.HELD.get(card.enhancement), ctx, card);
     }
 
     /** Entry point: resolve the source label, then apply per SMODS calculation order. */

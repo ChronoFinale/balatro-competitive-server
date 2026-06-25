@@ -447,7 +447,7 @@ public final class Run {
     /** Roll stake stickers (eternal/perishable/rental, 30% each) onto this shop's joker slots. */
     private void applyShopStickers(Shop s) {
         if (!(stake.eternalsInShop() || stake.perishablesInShop() || stake.rentalsInShop())) return;
-        double chance = com.balatro.engine.card.Sticker.STICKER_CHANCE;
+        double chance = com.balatro.content.Sticker.STICKER_CHANCE;
         var q = state.queues.queue(RngSources.JOKER_STICKER, r -> new boolean[]{
                 r.nextDouble() < chance,   // eternal roll
                 r.nextDouble() < chance,   // perishable roll (gated: not if eternal)
@@ -468,31 +468,31 @@ public final class Run {
     /** Stamp a bought/created joker with its stake stickers (server-only state read by sell/score/economy). */
     private void applyStickersToJoker(Joker j, boolean eternal, boolean perishable, boolean rental) {
         var st = state.jokerState(j);
-        if (eternal) st.put(com.balatro.engine.card.Sticker.ETERNAL.flag(), true);
+        if (eternal) st.put(com.balatro.content.Sticker.ETERNAL.flag(), true);
         if (perishable) {
-            st.put(com.balatro.engine.card.Sticker.PERISHABLE.flag(), true);
-            st.put("perishTally", com.balatro.engine.card.Sticker.PERISHABLE_ROUNDS);
+            st.put(com.balatro.content.Sticker.PERISHABLE.flag(), true);
+            st.put("perishTally", com.balatro.content.Sticker.PERISHABLE_ROUNDS);
         }
-        if (rental) st.put(com.balatro.engine.card.Sticker.RENTAL.flag(), true);
+        if (rental) st.put(com.balatro.content.Sticker.RENTAL.flag(), true);
     }
 
-    /** End-of-round sticker upkeep, driven by the {@link com.balatro.engine.card.Sticker} primitive: the
+    /** End-of-round sticker upkeep, driven by the {@link com.balatro.content.Sticker} primitive: the
      *  Perishable countdown (a per-joker Counter that debuffs at 0) and each sticker's data end-of-round
      *  effects (Rental = AdjustMoney −$3, applied through the same interpreter a joker's money effect uses). */
     private void applyJokerStickerEffects() {
         var ctx = runLoopContext();
         for (Joker j : state.jokers()) {
             // Perishable: a per-joker countdown to a debuff.
-            if (state.jokerFlag(j, com.balatro.engine.card.Sticker.PERISHABLE.flag())
+            if (state.jokerFlag(j, com.balatro.content.Sticker.PERISHABLE.flag())
                     && !state.jokerFlag(j, "debuffed")) {
-                int tally = state.jokerInt(j, "perishTally", com.balatro.engine.card.Sticker.PERISHABLE_ROUNDS) - 1;
+                int tally = state.jokerInt(j, "perishTally", com.balatro.content.Sticker.PERISHABLE_ROUNDS) - 1;
                 state.jokerState(j).put("perishTally", tally);
                 if (tally <= 0) state.jokerState(j).put("debuffed", true); // perished — the scorer now skips it
             }
             // Each owned sticker's end-of-round behaviour as data (Rental = AdjustMoney −$3).
             ctx.jokers = state.jokers();
             ctx.selfIndex = state.jokers().indexOf(j);
-            for (com.balatro.engine.card.Sticker s : com.balatro.engine.card.Sticker.values()) {
+            for (com.balatro.content.Sticker s : com.balatro.content.Sticker.values()) {
                 if (state.jokerFlag(j, s.flag())) {
                     for (Effect e : s.endOfRound()) applyRunLoopEffect(e, ctx);
                 }
