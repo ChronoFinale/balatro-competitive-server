@@ -42,7 +42,7 @@ export type ConditionType =
   | "scoringAnyFace"
   | "scoringContainsSuit";
 
-/** 30 discriminators the server dispatches on — the client must handle exactly these. */
+/** 28 discriminators the server dispatches on — the client must handle exactly these. */
 export type EffectType =
   | "addCards"
   | "addPack"
@@ -51,7 +51,6 @@ export type EffectType =
   | "adjustMoney"
   | "convertHand"
   | "copy"
-  | "copyLastConsumable"
   | "copyRandomJoker"
   | "create"
   | "createCards"
@@ -61,7 +60,6 @@ export type EffectType =
   | "disableBoss"
   | "disableRandomJoker"
   | "discardRandomHeld"
-  | "duplicateRandomConsumable"
   | "duplicateRandomJoker"
   | "flipAndShuffleJokers"
   | "grantDiscards"
@@ -93,12 +91,14 @@ export type ValueType =
   | "state"
   | "stateStep";
 
-/** 8 discriminators the server dispatches on — the client must handle exactly these. */
+/** 10 discriminators the server dispatches on — the client must handle exactly these. */
 export type SelectorType =
   | "allInHand"
   | "discarded"
   | "focus"
+  | "lastConsumable"
   | "otherJoker"
+  | "randomConsumable"
   | "randomInHand"
   | "randomJoker"
   | "selected"

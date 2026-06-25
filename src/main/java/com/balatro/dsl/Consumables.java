@@ -99,7 +99,7 @@ public final class Consumables {
     public Consumables copyRandomJoker(boolean destroyOthers) { return direct(new Effect.CopyRandomJoker(destroyOthers)); }
 
     /** Copy the last Tarot or Planet used this run (The Fool). */
-    public Consumables copyLastConsumable() { return direct(new Effect.CopyLastConsumable()); }
+    public Consumables copyLastConsumable() { return direct(new Effect.Copy(new Selector.LastConsumable(), 1)); }
 
     /** Delevel the nemesis's highest poker hand (Asteroid, MP). */
     public Consumables nemesisDelevel() { return direct(new Effect.NemesisDelevel()); }

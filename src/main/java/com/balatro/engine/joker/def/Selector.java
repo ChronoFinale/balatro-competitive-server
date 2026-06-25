@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value = Selector.Discarded.class, name = "discarded"),
     @JsonSubTypes.Type(value = Selector.Self.class, name = "self"),
     @JsonSubTypes.Type(value = Selector.OtherJoker.class, name = "otherJoker"),
+    @JsonSubTypes.Type(value = Selector.LastConsumable.class, name = "lastConsumable"),
+    @JsonSubTypes.Type(value = Selector.RandomConsumable.class, name = "randomConsumable"),
 })
 public sealed interface Selector {
 
@@ -51,4 +53,10 @@ public sealed interface Selector {
      *  {@code "RANDOM_OTHER"} = Madness); {@code gainMult} rides the Ceremonial case (gain 2× the victim's
      *  sell value as Mult). Resolved by Run's blind-select joker-destruction machinery. */
     record OtherJoker(String scope, boolean gainMult) implements Selector {}
+
+    /** The last Tarot/Planet used this run (The Fool copies it). */
+    record LastConsumable() implements Selector {}
+
+    /** A random held consumable (Perkeo duplicates it as a slot-cap-ignoring Negative copy at shop exit). */
+    record RandomConsumable() implements Selector {}
 }

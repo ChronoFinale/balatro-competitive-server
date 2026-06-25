@@ -1,10 +1,10 @@
 {
-  "version" : "ef33b5e4a0649f5c",
+  "version" : "24ce510ef9048527",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
-      "sha256" : "e1a3a984fb0a77dffc36a2680c9eec2073c9a71181402e32eb50052093f41265",
-      "bytes" : 144403
+      "sha256" : "deeecb5953cb6aa6ff79b9581a5a1d75ec120d5d33a1f85c77c8ef2528e6cec0",
+      "bytes" : 144491
     },
     {
       "path" : "rulesets/bmp-0.4.2-ranked.json",
@@ -33,8 +33,8 @@
     },
     {
       "path" : "content/consumables.json",
-      "sha256" : "d07ad83bc5d47de7622bb962a6105e0a1aa2ccef5a070da246b55f7148acaf0a",
-      "bytes" : 18487
+      "sha256" : "fb3553d1f4b3c1a939fec8c24a160b5df385c1a5ccfa57567bdd68b64fee46d6",
+      "bytes" : 18564
     },
     {
       "path" : "content/planets.json",

@@ -5390,7 +5390,11 @@
         },
         "effects" : [
           {
-            "type" : "duplicateRandomConsumable"
+            "type" : "copy",
+            "selector" : {
+              "type" : "randomConsumable"
+            },
+            "count" : 1
           }
         ]
       }

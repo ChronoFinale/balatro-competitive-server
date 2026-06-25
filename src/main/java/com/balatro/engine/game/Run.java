@@ -902,8 +902,8 @@ public final class Run {
                 else if ("D6".equals(sf.flag())) d6Active = true;
             }
             case Effect.AdjustHandSize ah -> state.handSize += ah.delta();  // Juggle tag (+3 this round)
-            case Effect.DuplicateRandomConsumable ignored -> { // Perkeo (shop exit)
-                if (!state.consumables.isEmpty()) {
+            case Effect.Copy cp -> { // Perkeo (shop exit): Copy(RandomConsumable)
+                if (cp.selector() instanceof Selector.RandomConsumable && !state.consumables.isEmpty()) {
                     String dup = state.queues.pick(state.consumables, RngSources.PERKEO_DUP, rngCtx(), s -> s, (a, b) -> 0);
                     state.consumables.add(dup); // Negative copy ignores the slot cap
                 }
@@ -1368,14 +1368,17 @@ public final class Run {
             case Effect.AddCards a -> addRankClassCards(c, a);                  // Familiar / Grim rank-class adds
             case Effect.AdjustMoney am -> applyRunLoopEffect(am, runLoopContext()); // Immolate/Hermit/Temperance/Wraith
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);
-            case Effect.Copy cp -> { // consumable-context copy: duplicate the selected card cp.count()× (Cryptid)
-                if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) {
+            case Effect.Copy cp -> { // consumable-context copy
+                if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) { // Cryptid: copy the card cp.count()×
                     Card src = targets.get(0);
                     for (int i = 0; i < cp.count(); i++) {
                         Card dup = src.copy(); // fresh uid, same rank/suit/enh/edition/seal
                         composition.add(dup);
                         state.hand.add(dup);
                     }
+                } else if (cp.selector() instanceof Selector.LastConsumable      // The Fool: copy the last Tarot/Planet used
+                        && state.lastTarotPlanetUsed != null && state.consumables.size() < state.consumableSlots) {
+                    state.consumables.add(state.lastTarotPlanetUsed);
                 }
             }
             case Effect.OverwriteSelected ignored -> {
@@ -1389,12 +1392,6 @@ public final class Run {
                 }
             }
             case Effect.CopyRandomJoker cj -> applyCopyRandomJoker(c, cj);
-            case Effect.CopyLastConsumable ignored -> {
-                String last = state.lastTarotPlanetUsed;
-                if (last != null && state.consumables.size() < state.consumableSlots) {
-                    state.consumables.add(last);
-                }
-            }
             case Effect.NemesisDelevel ignored -> state.nemesisDelevelPending++; // Match applies it to the opponent
             default -> throw new IllegalStateException("not a consumable effect: " + e);
         }
@@ -1428,6 +1425,10 @@ public final class Run {
                     throw new IllegalStateException("Self targets the emitting joker, not cards");
             case Selector.OtherJoker ignored ->
                     throw new IllegalStateException("OtherJoker selects a joker, not cards");
+            case Selector.LastConsumable ignored ->
+                    throw new IllegalStateException("LastConsumable selects a consumable, not cards");
+            case Selector.RandomConsumable ignored ->
+                    throw new IllegalStateException("RandomConsumable selects a consumable, not cards");
         };
     }
 

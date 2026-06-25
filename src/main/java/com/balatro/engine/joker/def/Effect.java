@@ -35,7 +35,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
     @JsonSubTypes.Type(value = Effect.OverwriteSelected.class, name = "overwriteSelected"),
     @JsonSubTypes.Type(value = Effect.CopyRandomJoker.class, name = "copyRandomJoker"),
-    @JsonSubTypes.Type(value = Effect.CopyLastConsumable.class, name = "copyLastConsumable"),
     @JsonSubTypes.Type(value = Effect.NemesisDelevel.class, name = "nemesisDelevel"),
     @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
     // --- boss run-loop effects (applied by Run's action interpreter at a lifecycle trigger) ---
@@ -50,7 +49,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AddShopVoucher.class, name = "addShopVoucher"),
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
     @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
-    @JsonSubTypes.Type(value = Effect.DuplicateRandomConsumable.class, name = "duplicateRandomConsumable"),
     @JsonSubTypes.Type(value = Effect.CreateTag.class, name = "createTag"),
     @JsonSubTypes.Type(value = Effect.DuplicateRandomJoker.class, name = "duplicateRandomJoker"),
 })
@@ -281,8 +279,6 @@ public sealed interface Effect {
     /** Copy a random owned joker (edition-free); optionally destroy all others (Ankh). */
     record CopyRandomJoker(boolean destroyOthers) implements Effect {}
 
-    /** Create a copy of the last Tarot or Planet used this run (The Fool). */
-    record CopyLastConsumable() implements Effect {}
 
     /** Asteroid (MP): delevel the nemesis's highest poker hand (resolved by the Match). */
     record NemesisDelevel() implements Effect {}
@@ -333,9 +329,6 @@ public sealed interface Effect {
 
     /** Bump the hand size by {@code delta} for the current round (Juggle tag: +3 this blind). */
     record AdjustHandSize(int delta) implements Effect {}
-
-    /** Create a (Negative) copy of a random held consumable, ignoring the slot cap (Perkeo on shop exit). */
-    record DuplicateRandomConsumable() implements Effect {}
 
     /** Grant a free skip {@code tag} (honouring a held Double Tag) — Diet Cola creates a Double Tag on sell. */
     record CreateTag(String tag) implements Effect {}

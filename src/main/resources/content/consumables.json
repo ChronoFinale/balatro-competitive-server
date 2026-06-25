@@ -759,7 +759,11 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "copyLastConsumable"
+        "type" : "copy",
+        "selector" : {
+          "type" : "lastConsumable"
+        },
+        "count" : 1
       }
     ]
   },

@@ -574,7 +574,7 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
                 Jokers.of("j_perkeo", "Perkeo")
-                        .on(Trigger.SHOP_EXIT).effect(new Effect.DuplicateRandomConsumable()).build(),
+                        .on(Trigger.SHOP_EXIT).effect(new Effect.Copy(new com.balatro.engine.joker.def.Selector.RandomConsumable(), 1)).build(),
                 Jokers.of("j_invisible", "Invisible Joker").counters("rounds")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("rounds", 1)
                         .on(Trigger.SELL_SELF).effect(new Effect.DuplicateRandomJoker(2)).build(),
