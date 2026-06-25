@@ -1376,9 +1376,17 @@ public final class Run {
                 }
             }
             case Effect.LevelHands lh -> applyLevelHands(lh); // Black Hole (ALL)
-            case Effect.JokerEdition je -> applyJokerEdition(c, je);
             case Effect.AddCards a -> addRankClassCards(c, a);                  // Familiar / Grim rank-class adds
             case Effect.AdjustMoney am -> applyRunLoopEffect(am, runLoopContext()); // Immolate/Hermit/Temperance/Wraith
+            case Effect.EditionJoker ej -> { // Ectoplasm/Hex: edition the bound joker (Wheel keeps JokerEdition)
+                Joker target = ej.selector() instanceof Selector.Bound bnd ? bindings.get(bnd.name())
+                        : (!state.jokers().isEmpty() ? state.queues.pick(state.jokers(),
+                                RngSources.consumable(c.key()).sub("joker").composition(), rngCtx(), Joker::key, JOKER_QUALITY)
+                           : null);
+                if (target != null) state.setJokerEdition(target, resolveEdition(c, ej.edition()));
+            }
+            case Effect.AdjustHandSize ah -> state.handSize += ah.delta();      // Ectoplasm -1
+            case Effect.JokerEdition je -> applyJokerEdition(c, je);            // Wheel of Fortune (chance-gated)
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);
             case Effect.Copy cp -> { // consumable-context copy
                 if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) { // Cryptid: copy the card cp.count()×
@@ -1512,7 +1520,7 @@ public final class Run {
      * Wheel gates on a 1-in-N roll and picks a random Foil/Holo/Poly; Ectoplasm and
      * Hex always fire and carry their own side effects (hand-size / destroy-others).
      */
-    private void applyJokerEdition(Consumable c, Effect.JokerEdition je) {
+    private void applyJokerEdition(Consumable c, Effect.JokerEdition je) { // Wheel of Fortune: chance-gated random edition
         if (state.jokers().isEmpty()) return;
         if (je.chanceDenominator() > 1
                 && roll(RngSources.consumable(c.key()).sub("gate")) >= 1.0 / je.chanceDenominator()) {
@@ -1520,16 +1528,14 @@ public final class Run {
         }
         Joker target = state.queues.pick(state.jokers(), RngSources.consumable(c.key()).sub("joker").composition(),
                 rngCtx(), Joker::key, JOKER_QUALITY);
-        Edition ed = je.edition();
-        if (ed == Edition.NONE) {
-            Edition[] pool = {Edition.FOIL, Edition.HOLOGRAPHIC, Edition.POLYCHROME};
-            ed = pick(pool, RngSources.consumable(c.key()).sub("ed"));
-        }
-        if (je.destroyOtherJokers()) { // Hex: keep only the chosen joker
-            state.jokers().removeIf(j -> j != target);
-        }
-        state.setJokerEdition(target, ed);
-        if (je.handSizeDelta() != 0) state.handSize += je.handSizeDelta(); // Ectoplasm -1
+        state.setJokerEdition(target, resolveEdition(c, je.edition()));
+    }
+
+    /** {@code NONE} = roll a random Foil/Holo/Poly (the "ed" sub-stream); else the fixed edition. */
+    private Edition resolveEdition(Consumable c, Edition ed) {
+        if (ed != Edition.NONE) return ed;
+        return pick(new Edition[]{Edition.FOIL, Edition.HOLOGRAPHIC, Edition.POLYCHROME},
+                RngSources.consumable(c.key()).sub("ed"));
     }
 
     /**

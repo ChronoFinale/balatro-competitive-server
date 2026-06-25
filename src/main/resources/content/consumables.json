@@ -469,9 +469,7 @@
       {
         "type" : "jokerEdition",
         "edition" : "NONE",
-        "chanceDenominator" : 4,
-        "handSizeDelta" : 0,
-        "destroyOtherJokers" : false
+        "chanceDenominator" : 4
       }
     ]
   },
@@ -483,11 +481,23 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "jokerEdition",
-        "edition" : "NEGATIVE",
-        "chanceDenominator" : 1,
-        "handSizeDelta" : -1,
-        "destroyOtherJokers" : false
+        "type" : "bind",
+        "name" : "j",
+        "selector" : {
+          "type" : "randomJoker"
+        }
+      },
+      {
+        "type" : "editionJoker",
+        "selector" : {
+          "type" : "bound",
+          "name" : "j"
+        },
+        "edition" : "NEGATIVE"
+      },
+      {
+        "type" : "adjustHandSize",
+        "delta" : -1
       }
     ]
   },
@@ -499,11 +509,26 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "jokerEdition",
-        "edition" : "POLYCHROME",
-        "chanceDenominator" : 1,
-        "handSizeDelta" : 0,
-        "destroyOtherJokers" : true
+        "type" : "bind",
+        "name" : "j",
+        "selector" : {
+          "type" : "randomJoker"
+        }
+      },
+      {
+        "type" : "editionJoker",
+        "selector" : {
+          "type" : "bound",
+          "name" : "j"
+        },
+        "edition" : "POLYCHROME"
+      },
+      {
+        "type" : "destroy",
+        "selector" : {
+          "type" : "others",
+          "name" : "j"
+        }
       }
     ]
   },

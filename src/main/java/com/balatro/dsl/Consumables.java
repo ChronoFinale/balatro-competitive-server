@@ -75,10 +75,19 @@ public final class Consumables {
         return direct(new Effect.LevelHands(Effect.LevelHands.Scope.ALL, new com.balatro.engine.joker.def.Value.Const(1)));
     }
 
-    /** Add an edition to a random owned joker (Wheel of Fortune / Ectoplasm / Hex). */
-    public Consumables jokerEdition(Edition edition, int chanceDenominator,
-            int handSizeDelta, boolean destroyOtherJokers) {
-        return direct(new Effect.JokerEdition(edition, chanceDenominator, handSizeDelta, destroyOtherJokers));
+    /** Wheel of Fortune: a {@code chanceDenominator}-in-1 gated random edition of a random owned joker. */
+    public Consumables jokerEdition(Edition edition, int chanceDenominator) {
+        return direct(new Effect.JokerEdition(edition, chanceDenominator));
+    }
+
+    /** Ectoplasm/Hex: bind a random joker, give it {@code edition}, then optionally adjust hand size and/or
+     *  destroy every other joker — composable grammar over the shared selection (no fused composite). */
+    public Consumables editionRandomJoker(Edition edition, int handSizeDelta, boolean destroyOthers) {
+        direct(new Effect.Bind("j", new Selector.RandomJoker()));
+        direct(new Effect.EditionJoker(new Selector.Bound("j"), edition));
+        if (destroyOthers) direct(new Effect.Destroy(new Selector.Others("j")));
+        if (handSizeDelta != 0) direct(new Effect.AdjustHandSize(handSizeDelta));
+        return this;
     }
 
     /** Convert every card in hand to one random suit (Sigil). */

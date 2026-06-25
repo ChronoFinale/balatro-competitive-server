@@ -39,9 +39,9 @@ public final class ConsumableDefs {
         c.add(Consumables.spectral("c_medium", "Medium").targets(1).enhance(CardMod.setSeal(Seal.PURPLE)).build());
         c.add(Consumables.spectral("c_aura", "Aura").targets(1).enhance(CardMod.setEdition(Edition.POLYCHROME)).build());
         c.add(Consumables.spectral("c_black_hole", "Black Hole").levelAllHands().build());
-        c.add(Consumables.tarot("c_wheel_of_fortune", "The Wheel of Fortune").jokerEdition(Edition.NONE, 4, 0, false).build());
-        c.add(Consumables.spectral("c_ectoplasm", "Ectoplasm").jokerEdition(Edition.NEGATIVE, 1, -1, false).build());
-        c.add(Consumables.spectral("c_hex", "Hex").jokerEdition(Edition.POLYCHROME, 1, 0, true).build());
+        c.add(Consumables.tarot("c_wheel_of_fortune", "The Wheel of Fortune").jokerEdition(Edition.NONE, 4).build());
+        c.add(Consumables.spectral("c_ectoplasm", "Ectoplasm").editionRandomJoker(Edition.NEGATIVE, -1, false).build());
+        c.add(Consumables.spectral("c_hex", "Hex").editionRandomJoker(Edition.POLYCHROME, 0, true).build());
         c.add(Consumables.tarot("c_emperor", "The Emperor").createTarots(2).build());
         c.add(Consumables.tarot("c_high_priestess", "The High Priestess").createPlanets(2).build());
         c.add(Consumables.tarot("c_judgement", "Judgement").createJoker().build());

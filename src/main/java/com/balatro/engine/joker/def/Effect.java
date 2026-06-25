@@ -32,6 +32,7 @@ import java.util.List;
     // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
     @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
     @JsonSubTypes.Type(value = Effect.JokerEdition.class, name = "jokerEdition"),
+    @JsonSubTypes.Type(value = Effect.EditionJoker.class, name = "editionJoker"),
     @JsonSubTypes.Type(value = Effect.AddCards.class, name = "addCards"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
     @JsonSubTypes.Type(value = Effect.OverwriteSelected.class, name = "overwriteSelected"),
@@ -261,12 +262,19 @@ public sealed interface Effect {
 
 
     /**
-     * Add an edition to a random owned joker. {@code edition == NONE} means "a random Foil/Holo/Poly" (Wheel
-     * of Fortune). {@code chanceDenominator} gates the whole effect (Wheel = 4 → 1-in-4; others = 1 → always).
-     * {@code handSizeDelta} and {@code destroyOtherJokers} carry Ectoplasm's -1 hand size and Hex's wipe.
+     * A {@code chanceDenominator}-in-1 gated edition of a random owned joker — the Wheel of Fortune case
+     * ({@code edition == NONE} = a random Foil/Holo/Poly, {@code chanceDenominator == 4} = 1-in-4). The
+     * always-fire editions (Ectoplasm, Hex) are NOT this any more: they decompose to
+     * {@code [Bind, EditionJoker(Bound), AdjustHandSize / Destroy(Others)]} over the shared-selection grammar.
+     * This stays its own verb only because the chance gate can't be a per-effect Condition under the
+     * unconditional consumable-effect model.
      */
-    record JokerEdition(Edition edition, int chanceDenominator,
-                        int handSizeDelta, boolean destroyOtherJokers) implements Effect {}
+    record JokerEdition(Edition edition, int chanceDenominator) implements Effect {}
+
+    /** Give the {@link Selector}'d joker an {@code edition} ({@code NONE} = a random Foil/Holo/Poly) — the
+     *  edition core, target as an argument. Used with {@link Bind}/{@link Selector.Bound} so Ectoplasm/Hex
+     *  edition the same joker they adjust/wipe around. */
+    record EditionJoker(Selector selector, Edition edition) implements Effect {}
 
     /** Add {@code count} cards of a {@code rankClass} (Familiar = 3 FACE, Grim = 2 ACE) with a fixed
      *  {@code enhancement} ({@code null} = random per card) to hand+deck. (The old Generate composite is
