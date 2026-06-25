@@ -60,6 +60,43 @@ explicit. Sealed `CreateTarget`/`Selector` hierarchies (not one fat record) keep
 3. Run-loop destroyers (`DestroyOtherJoker` rider → param).
 4. Scoring-time destroyers via selector-routing (last; touches the scorer + replay stream).
 
+## Un-fusing tally (what's been collapsed)
+
+Homogeneous fused-axis clusters — verbs that baked the target/scope into the name — are un-fused onto an
+argument, each byte-identical (golden + replay green):
+
+| Was (fused verbs) | Now | Note |
+|---|---|---|
+| GrantJokers, CreateShopJoker | `Create(CreateSpec)` | stream/destination/dedup on the spec |
+| DestroyScored, DestroyDiscarded, DestroySelf, DestroyTargets, DestroyOtherJoker | `Destroy(Selector)` | Focus/Discarded/Self/Selected/OtherJoker |
+| CopyScored, CopySelected | `Copy(Selector, count)` | the card copies (homogeneous) |
+| LevelUpHand, LevelAllHands, LevelMostPlayedHand | `LevelHands(Scope, Value)` | PLAYED/ALL/MOST_PLAYED |
+| ConvertHand(bool, bool, delta) | `ConvertHand(Axis, delta)` | SUIT/RANK |
+| Generate(create,0,null,null) [pure-create] | `Create(spec)` | Emperor/High Priestess/Judgement/Soul |
+
+Effect subtypes: ~35 → ~27.
+
+## Remaining fused verbs (the RNG-provenance / heterogeneous tier — NOT quick renames)
+
+- **`Generate` (5 mixed consumables left).** Fully eliminating it needs: (a) the decomposed random-destroy
+  to use Generate's `consumable(key).sub("destroy:i")` stream — `Selector.RandomInHand` currently routes to
+  `sub("select:i")` (an unused branch, so changeable, but must be verified against golden); (b) a standalone
+  `AddRankCards` effect for Familiar/Grim's rank-class adds (`rank:i`/`suit:i`/`enh:i` streams); (c) the two
+  special money ops `DOUBLE_CAP` (Hermit) and `SELL_VALUE_CAP` (Temperance) — these are recipes, not
+  ADD/SUB/MUL, so they don't fit `AdjustMoney` and need their own money effect (or stay as a small MoneyOp).
+- **The 4 duplicators** (`CopyRandomJoker`, `DuplicateRandomJoker`, `CopyLastConsumable`,
+  `DuplicateRandomConsumable`): heterogeneous — distinct streams (`consumable(key).sub("joker")` /
+  `INVISIBLE_DUP` / `PERKEO_DUP`) + riders (destroyOthers, minRoundsOwned-gate→Condition, negative). Folding
+  to one `Copy` would carry 4+ riders = the parameter-fusion the design warns against. Need spec/provenance.
+- **`JokerEdition(edition, chanceDenominator, handSizeDelta, destroyOtherJokers)`**: packs a chance-gate
+  (→Condition), a hand-size delta (→AdjustHandSize), and a destroy (→Destroy) — decomposable but RNG-sensitive
+  (Wheel's 1-in-4 stream).
+
+## Genuinely atomic (leave — un-fusing would ADD types, the over-unification trap)
+
+`DelevelPlayedHand`, `DiscardRandomHeld`, `DisableRandomJoker`, `DisableBoss`, `FlipAndShuffleJokers`,
+`OverwriteSelected`, `NemesisDelevel` — each a single-use boss/MP action with no sibling sharing its axis.
+
 ## Progress / status
 
 - **Step 1 DONE** (commits "step 1a/1b"). All three joker-creators now fold onto `Create(CreateSpec)`:
