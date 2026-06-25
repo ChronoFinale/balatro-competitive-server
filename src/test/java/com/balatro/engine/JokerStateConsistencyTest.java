@@ -16,19 +16,13 @@ import org.junit.jupiter.api.Test;
  * The scaling pattern ("+X, growing") is a recipe glued by a magic string: a {@code mutateState} rule
  * WRITES {@code "streak"} and a {@code state}/{@code stateStep} value READS {@code "streak"}. Nothing in
  * the type system links the two — a typo (write "streak", read "streek") is a silent no-op, the exact
- * class of bug the Top-Up tag was. This pins it: every state key a joker READS must be WRITTEN somewhere
- * (by the def, or by the engine for the keys in {@link #ENGINE_WRITTEN}). It's the safety net under the
- * Counter primitive — until scaling becomes a typed Counter, this catches the coupling breaking.
+ * class of bug the Top-Up tag was. This pins it: every state key a joker READS must either be WRITTEN by a
+ * rule OR DECLARED in the def's state (via {@code .counters}/{@code .state}, which now also covers
+ * engine-written keys). The def is the single source of truth — no per-joker exemption list to drift.
  */
 class JokerStateConsistencyTest {
 
     private static final ObjectMapper OM = new ObjectMapper();
-
-    /** "jokerKey:stateKey" reads that the ENGINE writes, not the joker's own rules — so a read with no
-     *  def-write is legitimate. Kept tight (per-joker, not a blanket key) so it can't mask a real typo:
-     *  Ceremonial Dagger's "mult" is added by Run when it eats a joker at blind select. */
-    private static final Set<String> ENGINE_WRITTEN = Set.of(
-            "j_ceremonial:mult");
 
     @Test
     void everyStateReadHasAWrite() {
@@ -38,9 +32,11 @@ class JokerStateConsistencyTest {
             Set<String> writes = new LinkedHashSet<>();
             Set<String> reads = new LinkedHashSet<>();
             collect(tree, writes, reads);
+            // The def's declared state (counters/.state, incl. engine-written keys) counts as a write.
+            def.state().keySet().forEach(writes::add);
             for (String r : reads) {
-                if (!writes.contains(r) && !ENGINE_WRITTEN.contains(def.key() + ":" + r)) {
-                    problems.add(def.key() + ": reads state '" + r + "' but nothing writes it (typo? "
+                if (!writes.contains(r)) {
+                    problems.add(def.key() + ": reads state '" + r + "' but nothing writes/declares it (typo? "
                             + "writes=" + writes + ")");
                 }
             }

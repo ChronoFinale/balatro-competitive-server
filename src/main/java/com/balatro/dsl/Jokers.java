@@ -81,8 +81,13 @@ public final class Jokers {
     /** Declare a named constant property (a number, or a domain enum like a Suit) — referenced via Val.prop. */
     public Jokers prop(String name, Object value) { this.props.put(name, value); return this; }
 
-    /** Declare a persistent state variable with its initial value (its typed memory). */
-    public Jokers state(String name, Object initial) { this.state.put(name, initial); return this; }
+    /** Declare a persistent state variable with its initial value (its typed memory). Also registers it as a
+     *  counter — a declared state IS a known counter, so you never need both {@link #state} and {@link #counters}. */
+    public Jokers state(String name, Object initial) {
+        this.state.put(name, initial);
+        this.declaredCounters.add(name);
+        return this;
+    }
 
     /** Begin a scoring rule fired on {@code trigger}: chain {@code .when(cond)} then a terminal effect. */
     public RuleBuilder on(Trigger trigger) { return new RuleBuilder(trigger); }
@@ -149,7 +154,11 @@ public final class Jokers {
      * fails the build, not a runtime no-op (the old magic-string trap).
      */
     public Jokers counters(String... names) {
-        java.util.Collections.addAll(declaredCounters, names);
+        for (String n : names) {
+            declaredCounters.add(n);
+            state.putIfAbsent(n, 0); // a counter IS declared state (init 0) — serialized into the def, so the
+                                     // def is the single source of truth for what state the joker owns.
+        }
         return this;
     }
 

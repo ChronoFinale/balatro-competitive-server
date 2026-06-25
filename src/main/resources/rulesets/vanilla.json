@@ -482,7 +482,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "planets" : 0
+    }
   },
   {
     "key" : "j_ride_the_bus",
@@ -555,7 +557,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "streak" : 0
+    }
   },
   {
     "key" : "j_blueprint",
@@ -888,7 +892,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "chips" : 0
+    }
   },
   {
     "key" : "j_zany",
@@ -1526,7 +1532,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "chips" : 0
+    }
   },
   {
     "key" : "j_wee",
@@ -1590,7 +1598,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "chips" : 0
+    }
   },
   {
     "key" : "j_duo",
@@ -1949,7 +1959,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "mult" : 0
+    }
   },
   {
     "key" : "j_trousers",
@@ -2012,7 +2024,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "mult" : 0
+    }
   },
   {
     "key" : "j_misprint",
@@ -2432,7 +2446,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "xm" : 0
+    }
   },
   {
     "key" : "j_rough_gem",
@@ -3318,7 +3334,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "m" : 0
+    }
   },
   {
     "key" : "j_fortune_teller",
@@ -3381,7 +3399,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "tarots" : 0
+    }
   },
   {
     "key" : "j_bootstraps",
@@ -3793,7 +3813,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "bosses" : 0
+    }
   },
   {
     "key" : "j_delayed_gratification",
@@ -4343,7 +4365,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "x" : 0
+    }
   },
   {
     "key" : "j_canio",
@@ -4397,7 +4421,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "x" : 0
+    }
   },
   {
     "key" : "j_yorick",
@@ -4454,7 +4480,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "d" : 0
+    }
   },
   {
     "key" : "j_hit_the_road",
@@ -4528,7 +4556,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "x" : 0
+    }
   },
   {
     "key" : "j_burnt",
@@ -4622,7 +4652,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "discards" : 0
+    }
   },
   {
     "key" : "j_dna",
@@ -4731,7 +4763,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "x" : 0
+    }
   },
   {
     "key" : "j_certificate",
@@ -5080,7 +5114,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "mult" : 0
+    }
   },
   {
     "key" : "j_showman",
@@ -5461,7 +5497,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "rounds" : 0
+    }
   },
   {
     "key" : "j_luchador",
@@ -5553,7 +5591,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "mult" : 0
+    }
   },
   {
     "key" : "j_madness",
@@ -5634,7 +5674,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "xm" : 0
+    }
   },
   {
     "key" : "j_satellite",
@@ -5811,7 +5853,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "sellBonus" : 0
+    }
   },
   {
     "key" : "j_gift_card",
@@ -5846,7 +5890,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "sellBonus" : 0
+    }
   },
   {
     "key" : "j_credit_card",
@@ -6116,7 +6162,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "chips" : 0
+    }
   },
   {
     "key" : "j_todo_list",
@@ -6494,7 +6542,9 @@
     "mods" : [ ],
     "copy" : null,
     "props" : { },
-    "state" : { }
+    "state" : {
+      "x" : 0
+    }
   },
   {
     "key" : "j_ramen",
