@@ -8,8 +8,8 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.consumable.Consumable;
 import com.balatro.engine.consumable.ConsumableType;
 import com.balatro.dsl.Consumables;
-import com.balatro.engine.joker.def.CreateSpec;
-import com.balatro.engine.joker.def.Effect;
+import com.balatro.grammar.CreateSpec;
+import com.balatro.grammar.Effect;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -47,7 +47,7 @@ class ConsumablesBuilderTest {
         Consumable familiar = Consumables.spectral("c_f", "F").desc("d").destroyInHand(1).addFaceCards(3).build();
         assertThat(familiar.effects()).hasSize(2);
         Effect.Destroy destroy = (Effect.Destroy) familiar.effects().get(0);
-        assertThat(destroy.selector()).isInstanceOf(com.balatro.engine.joker.def.Selector.RandomInHand.class);
+        assertThat(destroy.selector()).isInstanceOf(com.balatro.grammar.Selector.RandomInHand.class);
         Effect.AddCards add = (Effect.AddCards) familiar.effects().get(1);
         assertThat(add.rankClass()).isEqualTo(Effect.AddCards.RankClass.FACE);
         assertThat(add.count()).isEqualTo(3);

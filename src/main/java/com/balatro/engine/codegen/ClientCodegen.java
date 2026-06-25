@@ -1,10 +1,10 @@
 package com.balatro.engine.codegen;
 
-import com.balatro.engine.joker.def.Condition;
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.JokerDef;
-import com.balatro.engine.joker.def.Selector;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Condition;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.JokerDef;
+import com.balatro.grammar.Selector;
+import com.balatro.grammar.Value;
 import com.balatro.engine.state.RulesetBundle;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -81,7 +81,7 @@ public final class ClientCodegen {
         sb.append("}\n\n");
 
         // Shared value types referenced by content records (a Modify on a game Var; a boss face-down rule).
-        record(sb, "Modify", com.balatro.engine.joker.def.Modify.class);
+        record(sb, "Modify", com.balatro.grammar.Modify.class);
         record(sb, "FaceDownRule", com.balatro.engine.game.BossBlind.FaceDownRule.class);
 
         // Content records: each compiles to a JSON table the client renders; the interface types it.
@@ -202,7 +202,7 @@ public final class ClientCodegen {
             if (c == Condition.class) return "Condition";
             if (c == Effect.class) return "Effect";
             if (c == Value.class) return "Value";
-            if (c == com.balatro.engine.joker.def.Modify.class) return "Modify";
+            if (c == com.balatro.grammar.Modify.class) return "Modify";
             if (c == com.balatro.engine.game.BossBlind.FaceDownRule.class) return "FaceDownRule";
             if (c == com.balatro.engine.ui.UiComponent.class) return "UiComponent";
             if (c.isEnum()) {

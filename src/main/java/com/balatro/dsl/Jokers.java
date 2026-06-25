@@ -1,11 +1,12 @@
 package com.balatro.dsl;
 
 import com.balatro.engine.joker.def.*;
+import com.balatro.grammar.*;
 
 
 import com.balatro.engine.card.CardMod;
 import com.balatro.engine.hand.HandMod;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -267,7 +268,7 @@ public final class Jokers {
         }
 
         /** Add a permanent copy of the scored card to the deck (DNA). */
-        public Jokers copyScored() { return effect(new Effect.Copy(new com.balatro.engine.joker.def.Selector.Focus(), 1)); }
+        public Jokers copyScored() { return effect(new Effect.Copy(new com.balatro.grammar.Selector.Focus(), 1)); }
 
         /** Commit a rule with one or more {@link Effect}s (compound effects = several in order). */
         public Jokers effect(Effect... effects) {

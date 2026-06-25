@@ -4,8 +4,8 @@ import com.balatro.engine.game.TagCatalog.Tag;
 import com.balatro.engine.game.TagCatalog.Timing;
 import com.balatro.engine.i18n.Loc;
 import com.balatro.engine.card.Edition;
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.Value;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,14 +44,14 @@ public final class TagDefs {
         // The money tags are data: gain $ per run-state quantity — AdjustMoney(ADD, runVar * scale).
         add(t, "tag_skip", "Speed Tag", true, Timing.IMMEDIATE, gain(Value.Var.BLINDS_SKIPPED, 5));
         add(t, "tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE, new Effect.LevelHands(
-                Effect.LevelHands.Scope.MOST_PLAYED, new com.balatro.engine.joker.def.Value.Const(3)));
+                Effect.LevelHands.Scope.MOST_PLAYED, new com.balatro.grammar.Value.Const(3)));
         add(t, "tag_handy", "Handy Tag", false, Timing.IMMEDIATE, gain(Value.Var.HANDS_PLAYED_TOTAL, 1));
         add(t, "tag_garbage", "Garbage Tag", false, Timing.IMMEDIATE, gain(Value.Var.CARDS_DISCARDED_TOTAL, 1));
         // Top-Up: create up to 2 free Common Jokers for the player (real game: spawn_jokers = 2). One
         // Create verb — a JOKER spec drawn from the TOPUP queue with no dedup (the spawn order is raw).
         add(t, "tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE,
-                new Effect.Create(com.balatro.engine.joker.def.CreateSpec.jokers(
-                        2, "Common", com.balatro.engine.joker.def.CreateSpec.JokerStream.TOPUP, false)));
+                new Effect.Create(com.balatro.grammar.CreateSpec.jokers(
+                        2, "Common", com.balatro.grammar.CreateSpec.JokerStream.TOPUP, false)));
         return t;
     }
 
@@ -67,13 +67,13 @@ public final class TagDefs {
 
     /** A free Joker of a rarity in the next shop (Rare/Uncommon) — Create into the SHOP, by rarity. */
     private static Effect joker(String rarity) {
-        return new Effect.Create(com.balatro.engine.joker.def.CreateSpec.shopJoker(
+        return new Effect.Create(com.balatro.grammar.CreateSpec.shopJoker(
                 rarity, com.balatro.engine.card.Edition.NONE));
     }
 
     /** A free random Joker with an edition in the next shop (Foil/Holo/Polychrome/Negative). */
     private static Effect editioned(com.balatro.engine.card.Edition ed) {
-        return new Effect.Create(com.balatro.engine.joker.def.CreateSpec.shopJoker(null, ed));
+        return new Effect.Create(com.balatro.grammar.CreateSpec.shopJoker(null, ed));
     }
 
     private static void add(List<Tag> t, String key, String name, boolean ante1, Timing timing, Effect... effects) {

@@ -2,8 +2,8 @@ package com.balatro.engine.game;
 
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.def.DataJoker;
-import com.balatro.engine.joker.def.Modify;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Modify;
+import com.balatro.grammar.Value;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

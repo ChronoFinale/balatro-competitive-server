@@ -1,7 +1,7 @@
 package com.balatro.engine;
 
 import com.balatro.content.jokers.BuiltinJokerDefs;
-import com.balatro.engine.joker.def.JokerDef;
+import com.balatro.grammar.JokerDef;
 import com.balatro.engine.joker.def.JokerOverlays;
 import com.balatro.engine.joker.def.RulesetDiff;
 import com.balatro.engine.joker.def.RulesetOverlay;

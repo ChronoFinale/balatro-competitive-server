@@ -1,4 +1,4 @@
-package com.balatro.engine.joker.def;
+package com.balatro.grammar;
 
 /**
  * The irreducible higher-order primitive of the card language: <b>copy another card's effect</b>. PURE DATA —

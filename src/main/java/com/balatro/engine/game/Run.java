@@ -1,6 +1,6 @@
 package com.balatro.engine.game;
 
-import com.balatro.engine.joker.def.Hand;
+import com.balatro.grammar.Hand;
 import com.balatro.dsl.*;
 import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Edition;
@@ -17,16 +17,16 @@ import com.balatro.engine.intent.IntentHandler;
 import com.balatro.engine.intent.IntentResult;
 import com.balatro.engine.intent.RunAction;
 import com.balatro.engine.joker.Joker;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import com.balatro.engine.joker.JokerDisplay;
 import com.balatro.engine.joker.def.DataJoker;
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Rule;
-import com.balatro.engine.joker.def.Selector;
-import com.balatro.engine.joker.def.Modify;
-import com.balatro.engine.joker.def.Value;
-import com.balatro.engine.joker.def.JokerDef;
-import com.balatro.engine.joker.def.CreateSpec;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.Rule;
+import com.balatro.grammar.Selector;
+import com.balatro.grammar.Modify;
+import com.balatro.grammar.Value;
+import com.balatro.grammar.JokerDef;
+import com.balatro.grammar.CreateSpec;
 import com.balatro.engine.net.CardView;
 import com.balatro.engine.net.ClientView;
 import com.balatro.engine.net.ServerUpdate;
@@ -689,7 +689,7 @@ public final class Run {
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */
     private void refreshDebuffs() {
         boolean disabled = bossDisabled(); // Chicot turns off the boss's debuffs
-        com.balatro.engine.joker.def.Condition debuff = (boss != null) ? boss.debuff() : null;
+        com.balatro.grammar.Condition debuff = (boss != null) ? boss.debuff() : null;
         for (Card c : state.hand) {
             c.debuffed = !disabled && debuff != null && testCardDebuff(debuff, c);
         }
@@ -697,9 +697,9 @@ public final class Run {
         state.bossHasActiveAbility = boss != null && !disabled && bossHasAbility();
     }
 
-    /** Evaluate a boss debuff condition for one card (reuses the shared {@link com.balatro.engine.joker.def.Condition}
+    /** Evaluate a boss debuff condition for one card (reuses the shared {@link com.balatro.grammar.Condition}
      *  vocabulary — "Clubs don't score" is {@code card().suit(CLUBS)}). */
-    private boolean testCardDebuff(com.balatro.engine.joker.def.Condition cond, Card c) {
+    private boolean testCardDebuff(com.balatro.grammar.Condition cond, Card c) {
         com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
         ctx.scoredCard = c;
         ctx.run = state;
@@ -966,7 +966,7 @@ public final class Run {
     /**
      * The active boss's legality constraint on this intent: the rejection reason (the boss's description),
      * or {@code null} if the intent is allowed. The read-side mirror of a scoring rule — the boss is the
-     * source, {@code requires()} is a {@link com.balatro.engine.joker.def.Condition} over the played hand,
+     * source, {@code requires()} is a {@link com.balatro.grammar.Condition} over the played hand,
      * and Cerulean Bell forces its selected card into every play / out of every discard.
      */
     private String bossLegality(Intent intent) {
@@ -1152,8 +1152,8 @@ public final class Run {
     private void applyPurpleSeals(int count) {
         for (int i = 0; i < count; i++) {
             com.balatro.engine.consumable.Creation.apply(state,
-                    new com.balatro.engine.joker.def.CreateSpec(
-                            com.balatro.engine.joker.def.CreateSpec.Kind.TAROT), state.queues);
+                    new com.balatro.grammar.CreateSpec(
+                            com.balatro.grammar.CreateSpec.Kind.TAROT), state.queues);
         }
     }
 
@@ -1535,8 +1535,8 @@ public final class Run {
     /** Evaluate a consumable's {@link Effect.When} gate. A {@code Chance} rolls on the consumable's OWN
      *  stream ({@code consumable(key).sub(seedKey)}) — the same draw the hardcoded Wheel gate used — and
      *  PROBABILITY_MULTIPLIER (Oops!) scales the threshold like every other chance. Others test normally. */
-    private boolean consumableConditionHolds(Consumable c, com.balatro.engine.joker.def.Condition cond) {
-        if (cond instanceof com.balatro.engine.joker.def.Condition.Chance ch) {
+    private boolean consumableConditionHolds(Consumable c, com.balatro.grammar.Condition cond) {
+        if (cond instanceof com.balatro.grammar.Condition.Chance ch) {
             double r = roll(RngSources.consumable(c.key()).sub(ch.seedKey()));
             return r < (double) (ch.odds().numerator() * state.probabilityNumerator) / ch.odds().denominator();
         }

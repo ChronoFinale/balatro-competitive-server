@@ -1,5 +1,7 @@
 package com.balatro.engine.joker;
 
+import com.balatro.grammar.Trigger;
+
 import com.balatro.engine.card.Card;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.rng.QueueSet;

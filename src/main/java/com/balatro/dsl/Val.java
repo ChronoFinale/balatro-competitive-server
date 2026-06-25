@@ -1,7 +1,8 @@
 package com.balatro.dsl;
 
-import com.balatro.engine.joker.def.Property;
+import com.balatro.grammar.Property;
 import com.balatro.engine.joker.def.*;
+import com.balatro.grammar.*;
 
 
 import com.balatro.engine.card.Enhancement;

@@ -1,7 +1,7 @@
 package com.balatro.engine.game;
 
-import com.balatro.engine.joker.def.Hand;
-import com.balatro.engine.joker.def.Modify;
+import com.balatro.grammar.Hand;
+import com.balatro.grammar.Modify;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

@@ -1,7 +1,7 @@
 package com.balatro.engine.card;
 
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.Value;
 import java.util.List;
 import java.util.Locale;
 

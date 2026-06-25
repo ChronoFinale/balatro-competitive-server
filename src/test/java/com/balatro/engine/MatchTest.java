@@ -1,6 +1,6 @@
 package com.balatro.engine;
 
-import com.balatro.engine.joker.def.Hand;
+import com.balatro.grammar.Hand;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.net.GameServer;

@@ -1,6 +1,6 @@
 package com.balatro.engine;
 
-import com.balatro.engine.joker.def.Hand;
+import com.balatro.grammar.Hand;
 import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;

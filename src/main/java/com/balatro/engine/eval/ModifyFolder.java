@@ -1,13 +1,13 @@
 package com.balatro.engine.eval;
 
 import com.balatro.engine.joker.EvaluationContext;
-import com.balatro.engine.joker.def.Modify;
-import com.balatro.engine.joker.def.Property;
+import com.balatro.grammar.Modify;
+import com.balatro.grammar.Property;
 import java.util.List;
 
 /**
  * The interpreter for the {@link Modify} grammar — folds a list of modifiers onto a base value. Lives in the
- * engine (each modifier's amount is a {@link com.balatro.engine.joker.def.Value} resolved via
+ * engine (each modifier's amount is a {@link com.balatro.grammar.Value} resolved via
  * {@link ValueResolver}); {@link Modify} itself stays pure data. Behaviour-identical to the old
  * {@code Modify.fold} — only the dispatch moved here.
  */

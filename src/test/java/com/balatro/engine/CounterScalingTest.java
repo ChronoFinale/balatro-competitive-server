@@ -12,7 +12,7 @@ import com.balatro.engine.card.Seal;
 import com.balatro.engine.game.GameEvents;
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerLibrary;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import com.balatro.engine.rng.QueueSet;
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.state.RunState;

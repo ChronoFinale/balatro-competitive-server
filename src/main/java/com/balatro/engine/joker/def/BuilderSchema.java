@@ -1,12 +1,14 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Seal;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

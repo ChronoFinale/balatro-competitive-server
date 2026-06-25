@@ -1,7 +1,7 @@
 package com.balatro.engine.content;
 
 import com.balatro.content.jokers.BuiltinJokerDefs;
-import com.balatro.engine.joker.def.JokerDef;
+import com.balatro.grammar.JokerDef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.UncheckedIOException;

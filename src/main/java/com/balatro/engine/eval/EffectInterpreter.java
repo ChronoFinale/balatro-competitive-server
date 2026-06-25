@@ -2,8 +2,8 @@ package com.balatro.engine.eval;
 
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.JokerEffect;
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Selector;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.Selector;
 import java.util.List;
 import java.util.Map;
 

@@ -1,6 +1,6 @@
 package com.balatro.engine.consumable;
 
-import com.balatro.engine.joker.def.Effect;
+import com.balatro.grammar.Effect;
 import java.util.List;
 
 /**
@@ -8,7 +8,7 @@ import java.util.List;
  * player's selected cards (resolved by unique id) by {@code Run}'s action interpreter — so a consumable can
  * mutate, destroy, or create cards, move money, or edition a joker. It is authored as a {@code List<Effect>}
  * exactly like a joker rule: the same one closed {@link Effect} vocabulary, with a {@link
- * com.balatro.engine.joker.def.Selector} naming which cards/jokers each effect targets.
+ * com.balatro.grammar.Selector} naming which cards/jokers each effect targets.
  */
 public record Consumable(String key, String name, String description, ConsumableType type,
                          int maxTargets, List<Effect> effects) {

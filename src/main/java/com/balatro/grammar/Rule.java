@@ -1,6 +1,6 @@
-package com.balatro.engine.joker.def;
+package com.balatro.grammar;
 
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import java.util.List;
 
 /**

@@ -3,9 +3,9 @@ package com.balatro.engine.eval;
 import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.joker.EvaluationContext;
-import com.balatro.engine.joker.def.Condition;
-import com.balatro.engine.joker.def.Property;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Condition;
+import com.balatro.grammar.Property;
+import com.balatro.grammar.Value;
 import java.util.List;
 
 /**
@@ -112,7 +112,7 @@ public final class ValueResolver {
     /** Read a live run-state quantity (shared by RunVar/RunVarStep and {@code Condition.RunVarModulo}). The
      *  {@link Property}→{@code RunState} mapping lives in one place. */
     public static double readVar(Property which, EvaluationContext ctx) {
-        if (which instanceof com.balatro.engine.joker.def.Hand h) {
+        if (which instanceof com.balatro.grammar.Hand h) {
             return switch (h) {
                 case SIZE -> ctx.run.handSize;
                 case PLAYS -> ctx.run.handsLeft;

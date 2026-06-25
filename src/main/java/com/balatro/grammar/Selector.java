@@ -1,4 +1,4 @@
-package com.balatro.engine.joker.def;
+package com.balatro.grammar;
 
 import com.balatro.dsl.*;
 

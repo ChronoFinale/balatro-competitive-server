@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

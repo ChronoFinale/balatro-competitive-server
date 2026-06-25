@@ -1,4 +1,4 @@
-package com.balatro.engine.joker.def;
+package com.balatro.grammar;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

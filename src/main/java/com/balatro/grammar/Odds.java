@@ -1,4 +1,4 @@
-package com.balatro.engine.joker.def;
+package com.balatro.grammar;
 
 /**
  * A "1 in X" probability — {@code numerator}/{@code denominator} — the named thing Balatro's odds system

@@ -5,7 +5,7 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerEffect;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.scoring.ReplayEntry;
 import com.balatro.engine.state.RunState;

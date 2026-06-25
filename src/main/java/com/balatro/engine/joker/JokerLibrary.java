@@ -26,7 +26,7 @@ public final class JokerLibrary {
         // Data-driven built-ins, loaded from the COMPILED JSON artifact (rulesets/vanilla.json) — the engine
         // boots from data, not the authoring DSL. Registered before the BUILTIN_KEYS snapshot so they join the
         // curated shop pool and score through the same authoritative path.
-        for (com.balatro.engine.joker.def.JokerDef def
+        for (com.balatro.grammar.JokerDef def
                 : com.balatro.engine.content.ContentStore.jokers()) {
             REGISTRY.put(def.key(), () -> new com.balatro.engine.joker.def.DataJoker(def));
         }
@@ -71,12 +71,12 @@ public final class JokerLibrary {
     }
 
     /**
-     * Register a data-driven joker (from {@link com.balatro.engine.joker.def.JokerDef})
+     * Register a data-driven joker (from {@link com.balatro.grammar.JokerDef})
      * so it flows through {@link #create(String)} into shops exactly like a
      * hand-coded one. This is how custom jokers authored in the builder enter the
      * game: validated def in, a server-side {@code DataJoker} factory registered.
      */
-    public static void registerDef(com.balatro.engine.joker.def.JokerDef def) {
+    public static void registerDef(com.balatro.grammar.JokerDef def) {
         REGISTRY.put(def.key(), () -> new com.balatro.engine.joker.def.DataJoker(def));
     }
 
@@ -88,7 +88,7 @@ public final class JokerLibrary {
 
     // Variant defs: jokerKey -> variant -> def. A joker (e.g. Hanging Chad) can behave
     // differently in single-player vs multiplayer; the active ruleset names the variant.
-    private static final Map<String, Map<String, com.balatro.engine.joker.def.JokerDef>> VARIANTS =
+    private static final Map<String, Map<String, com.balatro.grammar.JokerDef>> VARIANTS =
             new LinkedHashMap<>();
 
     static {
@@ -103,13 +103,13 @@ public final class JokerLibrary {
     }
 
     /** Register an alternate behavior for an existing joker key under a named variant. */
-    public static void registerVariant(String variant, com.balatro.engine.joker.def.JokerDef def) {
+    public static void registerVariant(String variant, com.balatro.grammar.JokerDef def) {
         VARIANTS.computeIfAbsent(def.key(), k -> new LinkedHashMap<>()).put(variant, def);
     }
 
     /** Create a joker, using {@code variant}'s behavior if one is registered, else the default. */
     public static Joker create(String key, String variant) {
-        Map<String, com.balatro.engine.joker.def.JokerDef> vs = VARIANTS.get(key);
+        Map<String, com.balatro.grammar.JokerDef> vs = VARIANTS.get(key);
         if (variant != null && vs != null && vs.containsKey(variant)) {
             return new com.balatro.engine.joker.def.DataJoker(vs.get(variant));
         }

@@ -1,11 +1,11 @@
 package com.balatro.engine.card;
 
-import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Condition;
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Odds;
-import com.balatro.engine.joker.def.Rule;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Trigger;
+import com.balatro.grammar.Condition;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.Odds;
+import com.balatro.grammar.Rule;
+import com.balatro.grammar.Value;
 import java.util.List;
 import java.util.Map;
 

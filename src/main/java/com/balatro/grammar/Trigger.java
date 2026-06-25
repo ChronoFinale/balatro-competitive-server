@@ -1,4 +1,4 @@
-package com.balatro.engine.joker;
+package com.balatro.grammar;
 
 /**
  * The complete set of moments a joker can react to — Balatro's {@code context.*}

@@ -1,10 +1,12 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.balatro.engine.joker.JokerLibrary;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;

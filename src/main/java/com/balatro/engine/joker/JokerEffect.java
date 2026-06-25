@@ -25,7 +25,7 @@ public final class JokerEffect {
     /** A permanent mutation to apply to the relevant card (MUTATE_CARD: Hiker/Midas/Vampire). */
     public com.balatro.engine.card.CardMod cardMod;
     /** A card to create server-side (CREATE: 8 Ball/Cartomancer); applied only on a real play. */
-    public com.balatro.engine.joker.def.CreateSpec create;
+    public com.balatro.grammar.CreateSpec create;
     /** Destroy the currently-scoring card after it scores (Sixth Sense); real play only. */
     public boolean destroyScored;
     /** Destroy the event cards (the discarded set) — Trading Card; applied in the PRE_DISCARD handler. */

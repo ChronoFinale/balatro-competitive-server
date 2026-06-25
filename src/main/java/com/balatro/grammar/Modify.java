@@ -1,4 +1,4 @@
-package com.balatro.engine.joker.def;
+package com.balatro.grammar;
 
 /**
  * A modifier on a game {@link Property} — the <i>write</i> half of the same vocabulary conditions <i>read</i>.

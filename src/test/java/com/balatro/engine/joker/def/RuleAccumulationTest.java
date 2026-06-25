@@ -1,11 +1,13 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerEffect;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import com.balatro.engine.state.RunState;
 import java.util.List;
 import org.junit.jupiter.api.Test;

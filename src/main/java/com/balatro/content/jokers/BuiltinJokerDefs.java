@@ -1,14 +1,15 @@
 package com.balatro.content.jokers;
 
 import com.balatro.engine.joker.def.*;
+import com.balatro.grammar.*;
 import com.balatro.dsl.*;
 
 import com.balatro.engine.card.CardMod;
 import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
-import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Effect.Term;
+import com.balatro.grammar.Trigger;
+import com.balatro.grammar.Effect.Term;
 import static com.balatro.dsl.Cond.always;
 import static com.balatro.dsl.Cond.all;
 import static com.balatro.dsl.Cond.any;
@@ -22,9 +23,9 @@ import static com.balatro.dsl.Cond.state;
 import static com.balatro.dsl.Cond.runVar;
 import static com.balatro.dsl.Cond.value;
 import com.balatro.engine.hand.HandMod;
-import static com.balatro.engine.joker.def.Effect.Term.CHIPS;
-import static com.balatro.engine.joker.def.Effect.Term.DOLLARS;
-import static com.balatro.engine.joker.def.Effect.Term.MULT;
+import static com.balatro.grammar.Effect.Term.CHIPS;
+import static com.balatro.grammar.Effect.Term.DOLLARS;
+import static com.balatro.grammar.Effect.Term.MULT;
 import java.util.List;
 
 /**
@@ -574,7 +575,7 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
                 Jokers.of("j_perkeo", "Perkeo")
-                        .on(Trigger.SHOP_EXIT).effect(new Effect.Copy(new com.balatro.engine.joker.def.Selector.RandomConsumable(), 1)).build(),
+                        .on(Trigger.SHOP_EXIT).effect(new Effect.Copy(new com.balatro.grammar.Selector.RandomConsumable(), 1)).build(),
                 Jokers.of("j_invisible", "Invisible Joker").counters("rounds")
                         .mutate(Trigger.END_OF_ROUND).when(always()).gain("rounds", 1)
                         // The "owned ≥ 2 rounds" gate is a Condition, not baked into the verb; the effect is a plain Copy.

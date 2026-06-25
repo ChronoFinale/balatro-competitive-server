@@ -85,7 +85,7 @@ class CreationJokerTest {
         RunState run = run("j_marble", 4);
         int before = run.deckComposition.size();
         com.balatro.engine.game.GameEvents.raise(
-                com.balatro.engine.joker.Trigger.BLIND_SELECTED, run, run.rng, null);
+                com.balatro.grammar.Trigger.BLIND_SELECTED, run, run.rng, null);
         assertThat(run.deckComposition).hasSize(before + 1);
         assertThat(run.deckComposition.get(before).isStone()).isTrue();
     }
@@ -94,7 +94,7 @@ class CreationJokerTest {
     void riffRaffCreatesTwoCommonJokers() {
         RunState run = run("j_riff_raff", 4); // 1 joker to start
         com.balatro.engine.game.GameEvents.raise(
-                com.balatro.engine.joker.Trigger.BLIND_SELECTED, run, run.rng, null);
+                com.balatro.grammar.Trigger.BLIND_SELECTED, run, run.rng, null);
         assertThat(run.jokers()).hasSize(3); // +2 common
     }
 

@@ -5,7 +5,7 @@ import com.balatro.engine.card.Edition;
 import com.balatro.engine.consumable.Consumable;
 import com.balatro.engine.consumable.TarotCatalog;
 import com.balatro.engine.hand.HandType;
-import com.balatro.engine.joker.JokerInfo;
+import com.balatro.grammar.JokerInfo;
 import com.balatro.engine.joker.JokerLibrary;
 import com.balatro.engine.rng.GameQueue;
 import com.balatro.engine.rng.QueueSet;

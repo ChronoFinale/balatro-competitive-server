@@ -1,10 +1,10 @@
 package com.balatro.content;
 
-import com.balatro.engine.joker.def.Hand;
+import com.balatro.grammar.Hand;
 import com.balatro.engine.game.VoucherCatalog.Voucher;
 import com.balatro.engine.i18n.Loc;
-import com.balatro.engine.joker.def.Modify;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Modify;
+import com.balatro.grammar.Value;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

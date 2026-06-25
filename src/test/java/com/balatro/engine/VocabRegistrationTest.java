@@ -1,9 +1,9 @@
 package com.balatro.engine;
 
-import com.balatro.engine.joker.def.Condition;
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Selector;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Condition;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.Selector;
+import com.balatro.grammar.Value;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;

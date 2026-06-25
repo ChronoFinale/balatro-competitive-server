@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.balatro.engine.consumable.Consumable;
 import com.balatro.engine.consumable.TarotCatalog;
 import com.balatro.engine.game.PlanetCatalog;
-import com.balatro.engine.joker.def.Effect;
+import com.balatro.grammar.Effect;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;

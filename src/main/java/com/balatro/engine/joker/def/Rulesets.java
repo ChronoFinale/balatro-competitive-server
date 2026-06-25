@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 import com.balatro.content.jokers.*;
 
 import java.util.LinkedHashMap;

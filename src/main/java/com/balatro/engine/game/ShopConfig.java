@@ -2,7 +2,7 @@ package com.balatro.engine.game;
 
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.def.DataJoker;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Value;
 import java.util.List;
 
 /**
@@ -17,7 +17,7 @@ import java.util.List;
  * </ul>
  *
  * <p>(Chaos the Clown's free reroll is no longer a rule here — it's a {@code FREE_REROLLS}
- * {@link com.balatro.engine.joker.def.Value.Var} folded from ownership, like every other resource.)
+ * {@link com.balatro.grammar.Value.Var} folded from ownership, like every other resource.)
  */
 public record ShopConfig(boolean allowDuplicates, boolean planetsFree) {
 

@@ -1,5 +1,7 @@
 package com.balatro.engine.joker;
 
+import com.balatro.grammar.JokerInfo;
+
 /**
  * A joker. All effect logic is server-side (spec §5/§6): the client never holds
  * this code, only generated display metadata ({@link JokerInfo}). A joker reacts

@@ -1,7 +1,8 @@
 package com.balatro.dsl;
 
-import com.balatro.engine.joker.def.Property;
+import com.balatro.grammar.Property;
 import com.balatro.engine.joker.def.*;
+import com.balatro.grammar.*;
 
 
 import com.balatro.engine.card.Enhancement;
@@ -50,7 +51,7 @@ public final class Cond {
 
     /** A {@code numerator}-in-{@code denominator} probabilistic gate, popped from a queue keyed by {@code seed}. */
     public static Condition chance(int numerator, int denominator, String seed) {
-        return new Condition.Chance(new com.balatro.engine.joker.def.Odds(numerator, denominator), seed);
+        return new Condition.Chance(new com.balatro.grammar.Odds(numerator, denominator), seed);
     }
 
     /** Fewer than {@code max} hands have been played since this joker was acquired (Seltzer). */

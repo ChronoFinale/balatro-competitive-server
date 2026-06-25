@@ -75,16 +75,16 @@ public enum Stake {
     }
 
     /**
-     * The stake's resource MODIFIERS — the same {@link com.balatro.engine.joker.def.Modify} vocabulary a
+     * The stake's resource MODIFIERS — the same {@link com.balatro.grammar.Modify} vocabulary a
      * deck/voucher/joker carries, folded by {@code Run} alongside them. A Stake is a Balatro-world primitive
      * (you select it) whose behaviour is modifiers: Blue+'s "−1 discard" is {@code add(Hand.DISCARDS, −1)}
      * here, not a bespoke int the run reads. (Scaling → a Blind-requirement Modify and the sticker stakes →
      * the joker-sticker Modifier are the remaining pieces, pending those primitives.)
      */
-    public java.util.List<com.balatro.engine.joker.def.Modify> mods() {
+    public java.util.List<com.balatro.grammar.Modify> mods() {
         return discardDelta != 0
-                ? java.util.List.of(com.balatro.engine.joker.def.Modify.add(
-                        com.balatro.engine.joker.def.Hand.DISCARDS, discardDelta))
+                ? java.util.List.of(com.balatro.grammar.Modify.add(
+                        com.balatro.grammar.Hand.DISCARDS, discardDelta))
                 : java.util.List.of();
     }
 

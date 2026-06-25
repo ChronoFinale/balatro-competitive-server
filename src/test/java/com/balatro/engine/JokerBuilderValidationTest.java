@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.balatro.dsl.Jokers;
-import com.balatro.engine.joker.def.Effect;
+import com.balatro.grammar.Effect;
 import org.junit.jupiter.api.Test;
 
 /**

@@ -1,7 +1,9 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
 
-import com.balatro.engine.joker.Trigger;
+
+import com.balatro.grammar.Trigger;
 
 /**
  * Proof-of-concept: generate a joker's description <i>from its rules</i>, the same way {@code preview.js}

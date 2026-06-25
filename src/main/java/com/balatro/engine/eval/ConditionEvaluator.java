@@ -4,7 +4,7 @@ import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.EvaluationContext;
-import com.balatro.engine.joker.def.Condition;
+import com.balatro.grammar.Condition;
 
 /**
  * The interpreter for the {@link Condition} grammar — tests a predicate node against an

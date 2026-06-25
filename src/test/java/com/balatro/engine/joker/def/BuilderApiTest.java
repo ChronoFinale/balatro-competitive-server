@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.net.GameServer;
@@ -37,7 +39,7 @@ class BuilderApiTest {
             JokerDef def = new JokerDef("j_custom_wire", "Wire Joker", "+11 Mult", "Common",
                     4, 0, 0, null, null, true,
                     java.util.List.of(new Rule(
-                            com.balatro.engine.joker.Trigger.JOKER_MAIN, new Condition.Always(),
+                            com.balatro.grammar.Trigger.JOKER_MAIN, new Condition.Always(),
                             Effect.mult(new Value.Const(11)))));
             HttpResponse<String> created = post(port, "/jokers", JSON.writeValueAsString(def));
             assertThat(created.statusCode()).isEqualTo(200);

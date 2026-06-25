@@ -3,7 +3,7 @@ package com.balatro.engine;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.balatro.engine.joker.JokerInfo;
+import com.balatro.grammar.JokerInfo;
 import com.balatro.engine.joker.JokerLibrary;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

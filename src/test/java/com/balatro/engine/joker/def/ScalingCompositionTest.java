@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 import static com.balatro.dsl.Cond.always;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -10,7 +12,7 @@ import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Rank;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.joker.Joker;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.scoring.ScoreResult;
 import com.balatro.engine.scoring.ScoringEngine;

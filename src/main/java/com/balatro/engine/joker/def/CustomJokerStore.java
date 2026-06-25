@@ -1,5 +1,7 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 import com.balatro.engine.joker.JokerLibrary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

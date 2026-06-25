@@ -2,7 +2,7 @@ package com.balatro.engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.balatro.engine.joker.def.JokerDef;
+import com.balatro.grammar.JokerDef;
 import com.balatro.engine.joker.def.JokerDefLibrary;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

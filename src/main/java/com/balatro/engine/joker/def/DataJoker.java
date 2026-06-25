@@ -1,9 +1,11 @@
 package com.balatro.engine.joker.def;
 
+import com.balatro.grammar.*;
+
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerEffect;
-import com.balatro.engine.joker.JokerInfo;
+import com.balatro.grammar.JokerInfo;
 
 /**
  * Interprets a {@link JokerDef} as a live {@link Joker}. All logic stays

@@ -1,14 +1,14 @@
 package com.balatro.dsl;
 
-import com.balatro.engine.joker.def.Hand;
+import com.balatro.grammar.Hand;
 import com.balatro.engine.game.*;
 
-import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Condition;
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Modify;
-import com.balatro.engine.joker.def.Rule;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Trigger;
+import com.balatro.grammar.Condition;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.Modify;
+import com.balatro.grammar.Rule;
+import com.balatro.grammar.Value;
 
 /**
  * Fluent builder for {@link BossBlind}s — a boss reads as the handful of effects it actually has,
@@ -97,7 +97,7 @@ public final class Bosses {
     /** The Arm: the played poker hand drops a level — {@code LevelHands(PLAYED, -1)} (delevel = level by -1). */
     public Bosses delevelsPlayedHand() {
         return onHandPlayed(new Condition.Always(),
-                new Effect.LevelHands(Effect.LevelHands.Scope.PLAYED, new com.balatro.engine.joker.def.Value.Const(-1)));
+                new Effect.LevelHands(Effect.LevelHands.Scope.PLAYED, new com.balatro.grammar.Value.Const(-1)));
     }
 
     /** A play is only legal if it satisfies {@code cond} — reuses the joker condition vocabulary

@@ -1,6 +1,8 @@
 package com.balatro.engine.joker.def;
 
-import com.balatro.engine.joker.def.Hand;
+import com.balatro.grammar.*;
+
+import com.balatro.grammar.Hand;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.card.Card;
@@ -14,8 +16,8 @@ import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerEffect;
 import com.balatro.engine.joker.JokerLibrary;
-import com.balatro.engine.joker.Trigger;
-import com.balatro.engine.joker.def.Effect.Term;
+import com.balatro.grammar.Trigger;
+import com.balatro.grammar.Effect.Term;
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.scoring.ScoreResult;
 import com.balatro.engine.scoring.ScoringEngine;

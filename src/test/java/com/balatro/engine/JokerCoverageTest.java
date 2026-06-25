@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerLibrary;
 import com.balatro.engine.joker.def.DataJoker;
-import com.balatro.engine.joker.def.JokerDef;
+import com.balatro.grammar.JokerDef;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

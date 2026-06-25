@@ -1,13 +1,13 @@
 package com.balatro.dsl;
 
-import com.balatro.engine.joker.def.Hand;
+import com.balatro.grammar.Hand;
 import com.balatro.engine.game.*;
 import com.balatro.engine.game.DeckCatalog.DeckType;
 
 import com.balatro.engine.game.DeckCatalog.Composition;
 import com.balatro.engine.game.DeckCatalog.DeckType;
-import com.balatro.engine.joker.def.Modify;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Modify;
+import com.balatro.grammar.Value;
 import java.util.ArrayList;
 import java.util.List;
 

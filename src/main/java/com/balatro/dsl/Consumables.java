@@ -5,11 +5,11 @@ import com.balatro.engine.consumable.*;
 import com.balatro.engine.card.CardMod;
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;
-import com.balatro.engine.joker.def.Effect;
-import com.balatro.engine.joker.def.Effect.AddCards;
-import com.balatro.engine.joker.def.CreateSpec;
-import com.balatro.engine.joker.def.Selector;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Effect;
+import com.balatro.grammar.Effect.AddCards;
+import com.balatro.grammar.CreateSpec;
+import com.balatro.grammar.Selector;
+import com.balatro.grammar.Value;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,7 +72,7 @@ public final class Consumables {
 
     /** Level up every poker hand by 1 (Black Hole). */
     public Consumables levelAllHands() {
-        return direct(new Effect.LevelHands(Effect.LevelHands.Scope.ALL, new com.balatro.engine.joker.def.Value.Const(1)));
+        return direct(new Effect.LevelHands(Effect.LevelHands.Scope.ALL, new com.balatro.grammar.Value.Const(1)));
     }
 
     /** Wheel of Fortune: 1-in-{@code chanceDenominator} to edition a random joker — a {@code When(chance)}

@@ -1,6 +1,6 @@
 package com.balatro.engine;
 
-import com.balatro.engine.joker.def.Hand;
+import com.balatro.grammar.Hand;
 import static com.balatro.engine.TestSupport.jokers;
 import static com.balatro.engine.TestSupport.stoneDeck;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -8,10 +8,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.balatro.engine.game.Blinds.BlindType;
 import com.balatro.dsl.Bosses;
 import com.balatro.engine.game.DeckCatalog;
-import com.balatro.engine.joker.def.Modify;
+import com.balatro.grammar.Modify;
 import com.balatro.engine.game.Run;
 import com.balatro.engine.intent.Intent;
-import com.balatro.engine.joker.def.Value;
+import com.balatro.grammar.Value;
 import com.balatro.engine.state.Ruleset;
 import com.balatro.engine.state.Stake;
 import java.util.List;

@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 class TagCoverageTest {
 
     /** Structural meta-tags: they act on blind/tag <i>selection</i> in {@code Run} itself, not through an
-     *  {@link com.balatro.engine.joker.def.Effect}, so they are intentionally effect-less. Boss Tag
+     *  {@link com.balatro.grammar.Effect}, so they are intentionally effect-less. Boss Tag
      *  rerolls the boss on arrival; Double Tag duplicates the next claimed tag. Any OTHER empty tag is a
      *  no-op bug. */
     private static final Set<String> STRUCTURAL = Set.of("tag_boss", "tag_double");

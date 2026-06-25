@@ -1,4 +1,4 @@
-package com.balatro.engine.joker;
+package com.balatro.grammar;
 
 /**
  * Display + shop metadata for a joker. Logic lives in the {@link Joker}; this is

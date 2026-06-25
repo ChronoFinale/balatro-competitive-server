@@ -1,4 +1,4 @@
-package com.balatro.engine.joker.def;
+package com.balatro.grammar;
 
 /**
  * The hand as a first-class {@link Property} — the game noun, not four loose entries in a flat var bag. Its

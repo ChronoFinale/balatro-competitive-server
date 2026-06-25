@@ -25,10 +25,10 @@ public final class TagCatalog {
     }
 
     /** {@code effects} are the tag's behaviour as DATA — applied through the same {@link
-     *  com.balatro.engine.joker.def.Effect} vocabulary jokers/bosses/consumables use, instead of a hard-coded
+     *  com.balatro.grammar.Effect} vocabulary jokers/bosses/consumables use, instead of a hard-coded
      *  {@code switch} in {@code Run}. Empty = a tag still resolved by Run's remaining bespoke handling. */
     public record Tag(String key, String name, String description, boolean ante1, Timing timing,
-                      java.util.List<com.balatro.engine.joker.def.Effect> effects) {
+                      java.util.List<com.balatro.grammar.Effect> effects) {
         public Tag {
             effects = effects == null ? java.util.List.of() : java.util.List.copyOf(effects);
         }

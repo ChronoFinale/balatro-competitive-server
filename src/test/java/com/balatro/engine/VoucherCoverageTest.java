@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The safety net against silent gaps: every voucher in the catalog must be <i>classified</i>. A voucher
- * is wired if it carries {@link com.balatro.engine.joker.def.Modify} data (folded by ShopEconomy /
+ * is wired if it carries {@link com.balatro.grammar.Modify} data (folded by ShopEconomy /
  * EconomyConfig / Run); the few that act through code are listed in {@link #HANDLED_IN_CODE}; the
  * deliberate no-ops in {@link #NO_OP}; and the not-yet-built ones in {@link #UNIMPLEMENTED}. A new
  * voucher that fits none of these FAILS this test, so nothing slips into the catalog without a decision,

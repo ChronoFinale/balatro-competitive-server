@@ -12,7 +12,7 @@ import com.balatro.engine.intent.RunAction;
 import com.balatro.engine.joker.JokerLibrary;
 import com.balatro.engine.joker.def.BuilderSchema;
 import com.balatro.engine.joker.def.CustomJokerStore;
-import com.balatro.engine.joker.def.JokerDef;
+import com.balatro.grammar.JokerDef;
 import com.balatro.engine.state.Ruleset;
 import com.balatro.engine.state.RulesetStore;
 import com.fasterxml.jackson.databind.JsonNode;

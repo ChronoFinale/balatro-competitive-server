@@ -9,9 +9,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.card.Card;
 import com.balatro.engine.joker.def.DataJoker;
-import com.balatro.engine.joker.def.JokerDef;
+import com.balatro.grammar.JokerDef;
 import com.balatro.dsl.Jokers;
-import com.balatro.engine.joker.def.Effect;
+import com.balatro.grammar.Effect;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

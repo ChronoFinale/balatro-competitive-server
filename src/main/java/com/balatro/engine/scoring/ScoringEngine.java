@@ -12,7 +12,7 @@ import com.balatro.engine.hand.HandResult;
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
 import com.balatro.engine.joker.JokerEffect;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.rng.QueueSet;
 import com.balatro.engine.rng.RandomStreams;
@@ -310,10 +310,10 @@ public final class ScoringEngine {
         int reps = 1;
         // Seal retriggers are DATA: Red Seal = Score(ADD, RETRIGGERS, 1) in CardModifiers.SEAL, resolved here
         // in the retrigger pass (the scoring pass ignores RETRIGGERS, so the same effect is a no-op there).
-        for (com.balatro.engine.joker.def.Effect e
+        for (com.balatro.grammar.Effect e
                 : com.balatro.engine.card.CardModifiers.SEAL.getOrDefault(card.seal, java.util.List.of())) {
-            if (e instanceof com.balatro.engine.joker.def.Effect.Score s
-                    && s.term() == com.balatro.engine.joker.def.Effect.Term.RETRIGGERS) {
+            if (e instanceof com.balatro.grammar.Effect.Score s
+                    && s.term() == com.balatro.grammar.Effect.Term.RETRIGGERS) {
                 JokerEffect je = com.balatro.engine.eval.EffectInterpreter.apply(s, ctx);
                 if (je != null && je.repetitions > 0) {
                     reps += je.repetitions;
@@ -367,20 +367,20 @@ public final class ScoringEngine {
     }
 
     /** Apply a card modifier's scoring effects (enhancement/edition) through the joker interpreter. */
-    private void applyCardModifierEffects(Acc acc, java.util.List<com.balatro.engine.joker.def.Effect> effects,
+    private void applyCardModifierEffects(Acc acc, java.util.List<com.balatro.grammar.Effect> effects,
             com.balatro.engine.joker.EvaluationContext ctx, Card card) {
         if (effects == null) return;
-        for (com.balatro.engine.joker.def.Effect e : effects) {
-            if (e instanceof com.balatro.engine.joker.def.Effect.Score s) apply(acc, com.balatro.engine.eval.EffectInterpreter.apply(s, ctx), card.toString());
+        for (com.balatro.grammar.Effect e : effects) {
+            if (e instanceof com.balatro.grammar.Effect.Score s) apply(acc, com.balatro.engine.eval.EffectInterpreter.apply(s, ctx), card.toString());
         }
     }
 
     /** Apply a card modifier's PROBABILISTIC rules (Lucky): each rule whose {@link Condition} procs on its
      *  dedicated stream contributes its score/dollars effects. The chance floors to false in preview. */
-    private void applyCardModifierRules(Acc acc, java.util.List<com.balatro.engine.joker.def.Rule> rules,
+    private void applyCardModifierRules(Acc acc, java.util.List<com.balatro.grammar.Rule> rules,
             com.balatro.engine.joker.EvaluationContext ctx, Card card, RunState run) {
         if (rules == null) return;
-        for (com.balatro.engine.joker.def.Rule r : rules) {
+        for (com.balatro.grammar.Rule r : rules) {
             if (!com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
             applyCardModifierEffects(acc, r.effects(), ctx, card);
             if (card.enhancement == Enhancement.LUCKY) run.luckyTriggersTotal++; // Lucky Cat counts each proc

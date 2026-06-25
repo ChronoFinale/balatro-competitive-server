@@ -1,7 +1,7 @@
-package com.balatro.engine.joker.def;
+package com.balatro.grammar;
 
 import com.balatro.engine.hand.HandMod;
-import com.balatro.engine.joker.JokerInfo;
+import com.balatro.grammar.JokerInfo;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;

@@ -1,9 +1,9 @@
 package com.balatro.engine.game;
 
 import com.balatro.dsl.*;
-import com.balatro.engine.joker.def.Condition;
-import com.balatro.engine.joker.def.Modify;
-import com.balatro.engine.joker.def.Rule;
+import com.balatro.grammar.Condition;
+import com.balatro.grammar.Modify;
+import com.balatro.grammar.Rule;
 import java.util.List;
 
 /**

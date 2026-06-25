@@ -1,5 +1,7 @@
 package com.balatro.engine.joker;
 
+import com.balatro.grammar.Trigger;
+
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.state.RunState;
 import java.util.List;

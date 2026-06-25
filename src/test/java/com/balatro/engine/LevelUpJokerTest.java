@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.balatro.engine.game.GameEvents;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.JokerLibrary;
-import com.balatro.engine.joker.Trigger;
+import com.balatro.grammar.Trigger;
 import com.balatro.engine.rng.QueueSet;
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.scoring.ScoringEngine;
