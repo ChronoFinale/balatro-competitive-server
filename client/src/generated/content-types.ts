@@ -49,9 +49,9 @@ export type EffectType =
   | "addShopVoucher"
   | "adjustHandSize"
   | "adjustMoney"
+  | "bind"
   | "convertHand"
   | "copy"
-  | "copyRandomJoker"
   | "create"
   | "createCards"
   | "createTag"
@@ -90,13 +90,15 @@ export type ValueType =
   | "state"
   | "stateStep";
 
-/** 10 discriminators the server dispatches on — the client must handle exactly these. */
+/** 12 discriminators the server dispatches on — the client must handle exactly these. */
 export type SelectorType =
   | "allInHand"
+  | "bound"
   | "discarded"
   | "focus"
   | "lastConsumable"
   | "otherJoker"
+  | "others"
   | "randomConsumable"
   | "randomInHand"
   | "randomJoker"

@@ -831,8 +831,26 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "copyRandomJoker",
-        "destroyOthers" : true
+        "type" : "bind",
+        "name" : "j",
+        "selector" : {
+          "type" : "randomJoker"
+        }
+      },
+      {
+        "type" : "destroy",
+        "selector" : {
+          "type" : "others",
+          "name" : "j"
+        }
+      },
+      {
+        "type" : "copy",
+        "selector" : {
+          "type" : "bound",
+          "name" : "j"
+        },
+        "count" : 1
       }
     ]
   },

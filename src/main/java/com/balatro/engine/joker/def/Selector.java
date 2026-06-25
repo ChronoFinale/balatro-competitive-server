@@ -24,6 +24,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value = Selector.OtherJoker.class, name = "otherJoker"),
     @JsonSubTypes.Type(value = Selector.LastConsumable.class, name = "lastConsumable"),
     @JsonSubTypes.Type(value = Selector.RandomConsumable.class, name = "randomConsumable"),
+    @JsonSubTypes.Type(value = Selector.Bound.class, name = "bound"),
+    @JsonSubTypes.Type(value = Selector.Others.class, name = "others"),
 })
 public sealed interface Selector {
 
@@ -59,4 +61,13 @@ public sealed interface Selector {
 
     /** A random held consumable (Perkeo duplicates it as a slot-cap-ignoring Negative copy at shop exit). */
     record RandomConsumable() implements Selector {}
+
+    /** The joker previously bound under {@code name} by a {@link Effect.Bind} earlier in this effect list —
+     *  so several effects act on the SAME single pick (the regex-backreference of the grammar). Pure
+     *  reference, not a value: it names a noun, never a number, and is single-assignment + action-scoped. */
+    record Bound(String name) implements Selector {}
+
+    /** Every owned joker EXCEPT the one bound under {@code name} — the complement of a {@link Bound} pick
+     *  (Ankh/Hex: destroy all jokers but the one being copied/editioned). */
+    record Others(String name) implements Selector {}
 }

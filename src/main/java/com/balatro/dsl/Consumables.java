@@ -30,7 +30,7 @@ public final class Consumables {
     private final ConsumableType type;
     private String desc = "";
     private int maxTargets;
-    private Effect effect;
+    private final List<Effect> directEffects = new ArrayList<>(); // direct effects, applied in order
 
     // generative accumulator — each piece becomes its own Effect in an ordered list at build()
     // (destroy → create → add → money); no fused Generate composite.
@@ -95,8 +95,14 @@ public final class Consumables {
     /** Overwrite the first selected card with the second (Death). */
     public Consumables overwriteSelected() { return direct(new Effect.OverwriteSelected()); }
 
-    /** Copy a random owned joker; optionally destroy all others (Ankh). */
-    public Consumables copyRandomJoker(boolean destroyOthers) { return direct(new Effect.CopyRandomJoker(destroyOthers)); }
+    /** Copy a random owned joker; optionally destroy all others (Ankh). Authored as composable grammar over
+     *  a SHARED selection: bind one random joker, (destroy all the others,) then copy that same bound joker —
+     *  so the copy and the destroy agree on the same pick (a single roll), expressed without a bespoke verb. */
+    public Consumables copyRandomJoker(boolean destroyOthers) {
+        direct(new Effect.Bind("j", new Selector.RandomJoker()));
+        if (destroyOthers) direct(new Effect.Destroy(new Selector.Others("j")));
+        return direct(new Effect.Copy(new Selector.Bound("j"), 1));
+    }
 
     /** Copy the last Tarot or Planet used this run (The Fool). */
     public Consumables copyLastConsumable() { return direct(new Effect.Copy(new Selector.LastConsumable(), 1)); }
@@ -153,10 +159,8 @@ public final class Consumables {
         // A "generative" consumable is just an ordered List<Effect> — there is no Generate composite. The
         // pieces apply in the same order the old Generate did: destroy random → create → add rank cards →
         // money. Each is the same first-class Effect a joker/boss could use.
-        List<Effect> effects = new ArrayList<>();
-        if (effect != null) {
-            effects.add(effect);
-        } else {
+        List<Effect> effects = new ArrayList<>(directEffects);
+        if (effects.isEmpty()) {
             if (destroyInHand != 0) effects.add(new Effect.Destroy(new Selector.RandomInHand(destroyInHand)));
             if (create != null) effects.add(new Effect.Create(create));
             if (add != null) effects.add(add);
@@ -171,8 +175,7 @@ public final class Consumables {
     }
 
     private Consumables direct(Effect e) {
-        if (effect != null) throw new IllegalStateException("Consumable '" + key + "' already has a direct effect");
-        this.effect = e;
+        directEffects.add(e);
         return this;
     }
 }

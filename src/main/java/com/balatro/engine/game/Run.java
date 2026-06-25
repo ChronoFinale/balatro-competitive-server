@@ -1333,20 +1333,34 @@ public final class Run {
     }
 
     private void applyConsumable(Consumable c, List<Card> targets) {
-        for (Effect e : c.effects()) applyConsumableEffect(c, e, targets);
+        // The binding map is action-scoped: it lives only for this one consumable's effect list, so a
+        // Bind/Bound/Others reference can't leak between actions. It names a joker, never a value.
+        java.util.Map<String, Joker> bindings = new java.util.HashMap<>();
+        for (Effect e : c.effects()) applyConsumableEffect(c, e, targets, bindings);
     }
 
     /** The action interpreter: apply one unified {@link Effect} to the run, resolving its {@link Selector}
      *  against the live hand. The joker scoring verbs (Score/MutateState/…) never appear on a consumable. */
-    private void applyConsumableEffect(Consumable c, Effect e, List<Card> targets) {
+    private void applyConsumableEffect(Consumable c, Effect e, List<Card> targets, java.util.Map<String, Joker> bindings) {
         switch (e) {
+            case Effect.Bind b -> { // resolve the selector ONCE and remember it for later effects in this list
+                if (b.selector() instanceof Selector.RandomJoker && !state.jokers().isEmpty()) {
+                    bindings.put(b.name(), state.queues.pick(state.jokers(),
+                            RngSources.consumable(c.key()).sub("joker").composition(), rngCtx(), Joker::key, JOKER_QUALITY));
+                }
+            }
             case Effect.MutateCard mc -> resolveTargets(c, mc.selector(), targets).forEach(t -> mc.mod().applyTo(t));
             case Effect.Create cr -> // pure-create consumable (Emperor/High Priestess/Judgement/Soul)
                 com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
-            case Effect.Destroy d -> { // consumable-context destroy resolves card selectors (Hanged Man)
-                resolveTargets(c, d.selector(), targets).forEach(t -> t.destroyed = true);
-                composition.removeIf(x -> x.destroyed);
-                state.hand.removeIf(x -> x.destroyed);
+            case Effect.Destroy d -> { // consumable-context destroy
+                if (d.selector() instanceof Selector.Others o) { // Hex/Ankh: destroy every joker but the bound one
+                    Joker keep = bindings.get(o.name());
+                    if (keep != null) state.jokers().removeIf(j -> j != keep);
+                } else { // card selectors (Hanged Man)
+                    resolveTargets(c, d.selector(), targets).forEach(t -> t.destroyed = true);
+                    composition.removeIf(x -> x.destroyed);
+                    state.hand.removeIf(x -> x.destroyed);
+                }
             }
             case Effect.CreateCards cr -> {
                 var r = rng.stream("create:" + c.key());
@@ -1377,6 +1391,11 @@ public final class Run {
                 } else if (cp.selector() instanceof Selector.LastConsumable      // The Fool: copy the last Tarot/Planet used
                         && state.lastTarotPlanetUsed != null && state.consumables.size() < state.consumableSlots) {
                     state.consumables.add(state.lastTarotPlanetUsed);
+                } else if (cp.selector() instanceof Selector.Bound bnd) {         // Ankh: copy the bound joker
+                    Joker src = bindings.get(bnd.name());
+                    if (src != null && state.jokers().size() < state.jokerSlots) {
+                        state.addJoker(JokerLibrary.create(src.key(), ruleset.jokerVariant())); // copy has no edition
+                    }
                 }
             }
             case Effect.OverwriteSelected ignored -> {
@@ -1389,7 +1408,6 @@ public final class Run {
                     left.seal = right.seal;
                 }
             }
-            case Effect.CopyRandomJoker cj -> applyCopyRandomJoker(c, cj);
             case Effect.NemesisDelevel ignored -> state.nemesisDelevelPending++; // Match applies it to the opponent
             default -> throw new IllegalStateException("not a consumable effect: " + e);
         }
@@ -1427,6 +1445,10 @@ public final class Run {
                     throw new IllegalStateException("LastConsumable selects a consumable, not cards");
             case Selector.RandomConsumable ignored ->
                     throw new IllegalStateException("RandomConsumable selects a consumable, not cards");
+            case Selector.Bound ignored ->
+                    throw new IllegalStateException("Bound names a joker, not cards");
+            case Selector.Others ignored ->
+                    throw new IllegalStateException("Others names jokers, not cards");
         };
     }
 
@@ -1461,16 +1483,6 @@ public final class Run {
     }
 
     /** Ankh: copy a random owned joker (edition-free) and, if set, destroy all other jokers. */
-    private void applyCopyRandomJoker(Consumable c, Effect.CopyRandomJoker cj) {
-        if (state.jokers().isEmpty()) return;
-        Joker chosen = state.queues.pick(state.jokers(), RngSources.consumable(c.key()).sub("joker").composition(),
-                rngCtx(), Joker::key, JOKER_QUALITY);
-        if (cj.destroyOthers()) state.jokers().removeIf(j -> j != chosen);
-        if (state.jokers().size() < state.jokerSlots) {
-            state.addJoker(JokerLibrary.create(chosen.key(), ruleset.jokerVariant())); // copy has no edition
-        }
-    }
-
     // Enhancements a "random Enhanced" created card (Familiar/Grim) may roll — every type but NONE.
     private static final Enhancement[] RANDOM_ENHANCEMENTS = {
         Enhancement.BONUS, Enhancement.MULT, Enhancement.GLASS, Enhancement.STEEL,

@@ -25,6 +25,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.MutateCard.class, name = "mutateCard"),
     @JsonSubTypes.Type(value = Effect.Create.class, name = "create"),
     @JsonSubTypes.Type(value = Effect.Destroy.class, name = "destroy"),
+    @JsonSubTypes.Type(value = Effect.Bind.class, name = "bind"),
     @JsonSubTypes.Type(value = Effect.LevelHands.class, name = "levelHands"),
     @JsonSubTypes.Type(value = Effect.Copy.class, name = "copy"),
     @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
@@ -34,7 +35,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AddCards.class, name = "addCards"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
     @JsonSubTypes.Type(value = Effect.OverwriteSelected.class, name = "overwriteSelected"),
-    @JsonSubTypes.Type(value = Effect.CopyRandomJoker.class, name = "copyRandomJoker"),
     @JsonSubTypes.Type(value = Effect.NemesisDelevel.class, name = "nemesisDelevel"),
     @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
     // --- boss run-loop effects (applied by Run's action interpreter at a lifecycle trigger) ---
@@ -242,6 +242,16 @@ public sealed interface Effect {
         }
     }
 
+    /**
+     * Resolve {@code selector} ONCE and bind the result under {@code name}, so later effects in the same
+     * list can act on that exact pick via {@link Selector.Bound}/{@link Selector.Others} — the grammar's
+     * way to share a single random selection across sibling effects (Ankh/Hex: bind a random joker, then
+     * copy/edition it AND destroy the rest, all on the same roll). It is a single-assignment, action-scoped
+     * NOUN binding — it names a target, never a value; there is no control flow over it. This keeps the
+     * grammar a declarative selection language (the regex backreference), not a programming language.
+     */
+    record Bind(String name, Selector selector) implements Effect {}
+
     // --- consumable / action effects: pure data, applied immediately to the run by Run's action
     //     interpreter (which resolves the Selector against the live hand / jokers / RNG). They are part of
     //     the one Effect vocabulary so a consumable is authored as a List<Effect>, exactly like a joker. ---
@@ -274,9 +284,6 @@ public sealed interface Effect {
 
     /** Overwrite the first selected card with the attributes of the second (Death: left becomes right). */
     record OverwriteSelected() implements Effect {}
-
-    /** Copy a random owned joker (edition-free); optionally destroy all others (Ankh). */
-    record CopyRandomJoker(boolean destroyOthers) implements Effect {}
 
 
     /** Asteroid (MP): delevel the nemesis's highest poker hand (resolved by the Match). */
