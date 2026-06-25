@@ -314,7 +314,7 @@ public final class ScoringEngine {
                 : com.balatro.engine.card.CardModifiers.SEAL.getOrDefault(card.seal, java.util.List.of())) {
             if (e instanceof com.balatro.engine.joker.def.Effect.Score s
                     && s.term() == com.balatro.engine.joker.def.Effect.Term.RETRIGGERS) {
-                JokerEffect je = s.apply(ctx);
+                JokerEffect je = com.balatro.engine.eval.EffectInterpreter.apply(s, ctx);
                 if (je != null && je.repetitions > 0) {
                     reps += je.repetitions;
                     log(acc, "Red Seal", "retrigger", "Retrigger");
@@ -371,7 +371,7 @@ public final class ScoringEngine {
             com.balatro.engine.joker.EvaluationContext ctx, Card card) {
         if (effects == null) return;
         for (com.balatro.engine.joker.def.Effect e : effects) {
-            if (e instanceof com.balatro.engine.joker.def.Effect.Score s) apply(acc, s.apply(ctx), card.toString());
+            if (e instanceof com.balatro.engine.joker.def.Effect.Score s) apply(acc, com.balatro.engine.eval.EffectInterpreter.apply(s, ctx), card.toString());
         }
     }
 

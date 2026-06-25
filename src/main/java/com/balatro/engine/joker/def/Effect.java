@@ -3,15 +3,13 @@ package com.balatro.engine.joker.def;
 import com.balatro.engine.card.CardMod;
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;
-import com.balatro.engine.joker.EvaluationContext;
-import com.balatro.engine.joker.JokerEffect;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.List;
 
 /**
  * One thing a rule does — the sealed sum derived in docs 42/44 ({@code Modify} family + structural verbs).
- * Each {@link #apply} contributes a runtime {@link JokerEffect}; a rule carries an ordered {@code List<Effect>}
+ * Each effect is interpreted (by {@code EffectInterpreter}) into a runtime JokerEffect contribution; a rule carries an ordered {@code List<Effect>}
  * (a rules effect chain is just an ordered list). This is the closed authoring set;
  * {@code Score}'s ops are the numeric writes (conceptually {@code Modify(scoring.slot)}), the rest are the
  * structural/control verbs. Serialized to JSON with a {@code "type"} discriminator like {@link Condition}.
@@ -53,18 +51,9 @@ import java.util.List;
 })
 public sealed interface Effect {
 
-    /**
-     * Contribute a {@link JokerEffect} for a scoring moment, or {@code null} for "nothing to score here".
-     * Scoring effects (the {@code Modify} family) override this; action effects (the consumable verbs below)
-     * inherit the {@code null} default — they never run in the scorer, only through {@code Run}'s action
-     * interpreter, so they contribute nothing to a played hand's count-up.
-     */
-    default JokerEffect apply(EvaluationContext ctx) {
-        return null;
-    }
-
     // --- readable factories for the common score cells (operation × term), so authoring/tests don't
-    //     spell out both axes for every contribution. The grid is the model; these are the named cells. ---
+    //     spell out both axes for every contribution. The grid is the model; these are the named cells.
+    //     PURE DATA construction (no eval) — interpretation lives in com.balatro.engine.eval.EffectInterpreter. ---
     static Score chips(Value v)      { return new Score(Operation.ADD, Term.CHIPS, v); }
     static Score mult(Value v)       { return new Score(Operation.ADD, Term.MULT, v); }
     static Score xMult(Value v)      { return new Score(Operation.MULTIPLY, Term.MULT, v); }
@@ -72,24 +61,6 @@ public sealed interface Effect {
     static Score dollars(Value v)    { return new Score(Operation.ADD, Term.DOLLARS, v); }
     static Score retriggers(Value v) { return new Score(Operation.ADD, Term.RETRIGGERS, v); }
     static Score heldMult(Value v)   { return new Score(Operation.ADD, Term.HELD_MULT, v); }
-
-    /** Apply effects in order, chaining the non-null contributions into one {@code extra} chain. */
-    static JokerEffect applyAll(List<Effect> effects, EvaluationContext ctx) {
-        JokerEffect head = null;
-        JokerEffect tail = null;
-        for (Effect e : effects) {
-            JokerEffect je = e.apply(ctx);
-            if (je == null) continue;
-            if (head == null) {
-                head = je;
-            } else {
-                tail.extra = je;
-            }
-            tail = je;
-            while (tail.extra != null) tail = tail.extra; // a contribution may already carry its own chain
-        }
-        return head;
-    }
 
     /** A term of the score a contribution lands in — chips/mult (and the dollars/retriggers/held-mult
      *  side-channels), separated from the {@link Operation}. The ephemeral scoring twin of a {@link Property}
@@ -110,47 +81,7 @@ public sealed interface Effect {
      * {@code (POWER, MULT)} = ^mult. The fused {@code Op} enum is gone: the two axes (what it does / what it
      * deals with) are independent, so empty cells (×chips) are expressible once an accumulator slot exists.
      */
-    record Score(Operation op, Term term, Value value) implements Effect {
-        public JokerEffect apply(EvaluationContext ctx) {
-            double v = com.balatro.engine.eval.ValueResolver.resolve(value, ctx);
-            return switch (term) {
-                case CHIPS -> { requireAdd(); yield v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips"); }
-                case DOLLARS -> { requireAdd(); yield v == 0 ? null : JokerEffect.dollars(Math.round(v)).msg("+$" + fmt(v)); }
-                case RETRIGGERS -> {
-                    requireAdd();
-                    int r = (int) Math.round(v);
-                    yield r == 0 ? null : JokerEffect.repetitions(r).msg("Retrigger");
-                }
-                case HELD_MULT -> {
-                    requireAdd();
-                    if (v == 0) yield null;
-                    JokerEffect e = new JokerEffect();
-                    e.hMult = v;
-                    yield e.msg("+" + fmt(v) + " Mult");
-                }
-                case MULT -> switch (op) {
-                    case ADD -> v == 0 ? null : JokerEffect.mult(v).msg("+" + fmt(v) + " Mult");
-                    case MULTIPLY -> v == 1.0 ? null : JokerEffect.xMult(v).msg("x" + fmt(v) + " Mult");
-                    case POWER -> {
-                        if (v == 1.0) yield null;
-                        JokerEffect e = new JokerEffect();
-                        e.powMult = v;
-                        yield e.msg("^" + fmt(v) + " Mult");
-                    }
-                    default -> throw new IllegalStateException(op + " is not a scoring operation (only ADD/MULTIPLY/POWER)");
-                };
-            };
-        }
-
-        /** The additive-only subjects have no ×/^ accumulator slot — reject those cells loudly rather than
-         *  silently treating them as ADD. */
-        private void requireAdd() {
-            if (op != Operation.ADD) {
-                throw new IllegalStateException(op + " is not supported for term " + term
-                        + " (only ADD; no accumulator slot for that cell)");
-            }
-        }
-    }
+    record Score(Operation op, Term term, Value value) implements Effect {}
 
     /**
      * Mutate cards: the {@link Selector} says which, the {@link CardMod} says how (enhance / convert suit /
@@ -160,27 +91,14 @@ public sealed interface Effect {
      * {@code Run}'s action interpreter (Magician / Star / Aura). One verb, two interpreters.
      */
     record MutateCard(Selector selector, CardMod mod) implements Effect {
-
         /** A focus mutation (the joker default) — back-compat for {@code mutateCard(mod)} and selector-less JSON. */
         public MutateCard {
             selector = selector == null ? new Selector.Focus() : selector;
         }
-
-        public JokerEffect apply(EvaluationContext ctx) {
-            JokerEffect e = new JokerEffect();
-            e.cardMod = mod; // scoring path: defer to the scored focus, exactly as before
-            return e;
-        }
     }
 
     /** Create cards / consumables / jokers (8 Ball / Cartomancer / Riff-Raff). */
-    record Create(CreateSpec spec) implements Effect {
-        public JokerEffect apply(EvaluationContext ctx) {
-            JokerEffect e = new JokerEffect();
-            e.create = spec;
-            return e;
-        }
-    }
+    record Create(CreateSpec spec) implements Effect {}
 
     /**
      * Destroy what the {@link Selector} names — the single destroy verb. The selector carries the target
@@ -196,18 +114,7 @@ public sealed interface Effect {
      * Same internal flags/timing as before — only the authored verb is unified, so scoring + replay are
      * byte-identical.
      */
-    record Destroy(Selector selector) implements Effect {
-        public JokerEffect apply(EvaluationContext ctx) {
-            JokerEffect e = new JokerEffect();
-            switch (selector) {
-                case Selector.Focus ignored -> e.destroyScored = true;       // the scored card (Sixth Sense)
-                case Selector.Discarded ignored -> e.destroyEventCards = true; // the discard set (Trading Card)
-                case Selector.Self ignored -> e.destroySelf = true;           // this joker (Gros Michel, Pizza)
-                default -> { /* run-loop selectors are applied by Run, not the scorer */ }
-            }
-            return e;
-        }
-    }
+    record Destroy(Selector selector) implements Effect {}
 
     /**
      * Level up poker hand(s) by {@code levels} — the hand-leveling verb, with the scope an argument
@@ -217,14 +124,6 @@ public sealed interface Effect {
      */
     record LevelHands(Scope scope, Value levels) implements Effect {
         public enum Scope { PLAYED, ALL, MOST_PLAYED }
-
-        public JokerEffect apply(EvaluationContext ctx) {
-            if (scope != Scope.PLAYED || ctx.handType == null) return null; // ALL/MOST_PLAYED are run-loop
-            JokerEffect e = new JokerEffect();
-            e.levelUpHand = ctx.handType;
-            e.levelUpAmount = Math.max(1, (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(levels, ctx)));
-            return e;
-        }
     }
 
     /**
@@ -235,11 +134,6 @@ public sealed interface Effect {
      * for the scoring-time case — only the authored verb is unified.
      */
     record Copy(Selector selector, int count) implements Effect {
-        public JokerEffect apply(EvaluationContext ctx) {
-            JokerEffect e = new JokerEffect();
-            if (selector instanceof Selector.Focus) e.copyScored = true; // DNA: copy the scored card to the deck
-            return e;
-        }
     }
 
     /**
@@ -344,15 +238,7 @@ public sealed interface Effect {
 
     /** Grant a temporary discard bonus for {@code blinds} blinds, to this run or — when {@code toOpponent} —
      *  the Nemesis (Pizza). The Match supplies the opponent run on the context; {@code GameEvents} applies it. */
-    record GrantDiscards(boolean toOpponent, int amount, int blinds) implements Effect {
-        public JokerEffect apply(EvaluationContext ctx) {
-            JokerEffect e = new JokerEffect();
-            e.grantDiscards = amount;
-            e.grantDiscardBlinds = blinds;
-            e.grantToOpponent = toOpponent;
-            return e;
-        }
-    }
+    record GrantDiscards(boolean toOpponent, int amount, int blinds) implements Effect {}
 
     /**
      * Persistently write a scaling counter — Ride the Bus's streak, Constellation's planet count. This is
@@ -372,48 +258,5 @@ public sealed interface Effect {
         public MutateState {
             scope = scope == null ? Scope.SELF : scope; // omitted in JSON ⇒ writes to self
         }
-
-        public JokerEffect apply(EvaluationContext ctx) {
-            // Previewing a hand or running a Blueprint copy must not advance scaling counters.
-            if (ctx.blueprintDepth != 0 || ctx.preview) return null;
-            double amount = by;
-            if (perCard != null && ctx.eventCards != null) {
-                int count = 0;
-                var prev = ctx.scoredCard;
-                for (var c : ctx.eventCards) {
-                    ctx.scoredCard = c;
-                    if (com.balatro.engine.eval.ConditionEvaluator.test(perCard, ctx)) count++;
-                }
-                ctx.scoredCard = prev;
-                amount = by * count;
-            }
-            if (scope == Scope.ALL_JOKERS && ctx.run != null) {
-                for (var j : ctx.run.jokers()) writeInto(ctx.run.jokerState(j), amount);
-            } else {
-                writeInto(ctx.selfState(), amount);
-            }
-            return null; // a write contributes nothing to the running score
-        }
-
-        /** Write {@code op} of {@code amount} into one joker's state bag, keeping whole numbers as ints. */
-        private void writeInto(java.util.Map<String, Object> state, double amount) {
-            Object cur = state.getOrDefault(var, 0);
-            double n = (cur instanceof Number num) ? num.doubleValue() : 0;
-            double next = switch (op) {
-                case ADD -> n + amount;
-                case SET -> amount;
-                case RESET -> 0;
-            };
-            if (next == Math.rint(next) && !Double.isInfinite(next)) {
-                state.put(var, (int) next);
-            } else {
-                state.put(var, next);
-            }
-        }
-    }
-
-    private static String fmt(double v) {
-        if (v == Math.rint(v) && !Double.isInfinite(v)) return Long.toString((long) v);
-        return Double.toString(v);
     }
 }

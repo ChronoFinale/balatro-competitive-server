@@ -78,7 +78,7 @@ public final class DataJoker implements Joker {
         JokerEffect tail = null;
         for (Rule r : def.rules()) {
             if (r.when() != ctx.phase || !com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
-            JokerEffect e = Effect.applyAll(r.effects(), ctx);
+            JokerEffect e = com.balatro.engine.eval.EffectInterpreter.applyAll(r.effects(), ctx);
             if (e == null) continue;
             if (head == null) head = e; else tail.extra = e;
             tail = e;
