@@ -43,6 +43,16 @@ public sealed interface Command {
     /** Give a specific joker an edition (Ectoplasm/Hex, the bound joker). */
     record EditionJoker(Joker target, Edition edition) implements Command {}
 
+    /** Add a copy of {@code source}'s joker, up to the slot limit (Ankh, Invisible Joker); the copy carries
+     *  the active {@code variant} (MP reworks) and no edition. */
+    record CopyJoker(Joker source, String variant) implements Command {}
+
+    /** Destroy every owned joker except {@code keep} (Ankh/Hex's wipe). */
+    record DestroyOtherJokers(Joker keep) implements Command {}
+
+    /** Add a copy of a consumable by {@code key} (The Fool, Perkeo); {@code ignoreSlotCap} for Perkeo's Negative. */
+    record CopyConsumable(String key, boolean ignoreSlotCap) implements Command {}
+
     /** Adjust the hand size by a delta (Ectoplasm -1, Juggle +3). */
     record HandSize(int delta) implements Command {}
 
