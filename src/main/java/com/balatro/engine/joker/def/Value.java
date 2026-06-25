@@ -1,20 +1,15 @@
 package com.balatro.engine.joker.def;
 
-import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Enhancement;
-import com.balatro.engine.joker.EvaluationContext;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import java.util.List;
 
 /**
- * A number resolved at evaluation time — the magnitude half of a data effect.
- * Covers every scaling shape the current game uses: a flat {@link Const} (+4
- * Mult); a {@link State} counter that ramps over a run (Ride the Bus's streak,
- * Constellation's planets); a {@link Count} of cards matching a predicate (+X per
- * face card held); and a {@link RunVar} reading live run state (per dollar, per
- * remaining hand). All scaling shapes are {@code base + scale * n}, so the builder
- * exposes one consistent "base / scale / source" form.
+ * A number resolved at evaluation time — the magnitude half of a data effect. PURE DATA: a {@code Value} is
+ * an AST node with no behaviour; {@code com.balatro.engine.eval.ValueResolver} interprets it against a run.
+ * Covers every scaling shape the game uses: a flat {@link Const} (+4 Mult); a {@link State} counter that
+ * ramps over a run (Ride the Bus's streak); a {@link Count} of cards matching a predicate (+X per face card
+ * held); and a {@link RunVar} reading live run state. All scaling shapes are {@code base + scale * n}.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
@@ -36,108 +31,42 @@ import java.util.List;
 })
 public sealed interface Value {
 
-    double resolve(EvaluationContext ctx);
-
     /** A fixed amount. */
-    record Const(double amount) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            return amount;
-        }
-    }
+    record Const(double amount) implements Value {}
 
     /** A declared constant property of the joker ({@code prop("mult")}) — a named binding, not a literal. */
-    record Prop(String name) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            return ctx.selfProp(name);
-        }
-    }
+    record Prop(String name) implements Value {}
 
     /** {@code base + scale * (server-only state variable)}. */
-    record State(String var, double base, double scale) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            Object v = ctx.selfState().getOrDefault(var, 0);
-            double n = (v instanceof Number num) ? num.doubleValue() : 0;
-            return base + scale * n;
-        }
-    }
+    record State(String var, double base, double scale) implements Value {}
 
     /** {@code base + scale * (sum of OTHER owned jokers' sell value, max(1, cost/2))} — Swashbuckler. */
-    record OtherJokersSellSum(double base, double scale) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (ctx.jokers == null) return base;
-            int sum = 0;
-            for (int i = 0; i < ctx.jokers.size(); i++) {
-                if (i == ctx.selfIndex) continue;
-                sum += Math.max(1, ctx.jokers.get(i).info().cost() / 2);
-            }
-            return base + scale * sum;
-        }
-    }
+    record OtherJokersSellSum(double base, double scale) implements Value {}
 
     /** {@code base + scale * (times the current poker hand has been played this run)} — Supernova. */
-    record HandTypePlays(double base, double scale) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (ctx.run == null || ctx.handType == null) return base;
-            return base + scale * ctx.run.handTypePlays.getOrDefault(ctx.handType, 0);
-        }
-    }
+    record HandTypePlays(double base, double scale) implements Value {}
 
     /** Clamps an inner value to {@code [min, max]} — decay jokers floor at 0/1 (Ice Cream, Ramen). */
-    record Clamp(Value inner, double min, double max) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            return Math.max(min, Math.min(max, inner.resolve(ctx)));
-        }
-    }
+    record Clamp(Value inner, double min, double max) implements Value {}
 
-    /** The difference of two values, {@code left − right} — the missing arithmetic that lets one quantity be
-     *  defined relative to another (Skip-Off: how many blinds you've skipped beyond the Nemesis). */
-    record Diff(Value left, Value right) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            return left.resolve(ctx) - right.resolve(ctx);
-        }
-    }
+    /** The difference of two values, {@code left − right} — one quantity defined relative to another
+     *  (Skip-Off: how many blinds you've skipped beyond the Nemesis). */
+    record Diff(Value left, Value right) implements Value {}
 
     /** {@code base + scale * floor(state / per)} — stepwise state scaling (Yorick: x1 per 23 discarded). */
-    record StateStep(String var, double base, double scale, double per) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (per == 0) return base;
-            Object v = ctx.selfState().getOrDefault(var, 0);
-            double n = (v instanceof Number num) ? num.doubleValue() : 0;
-            return base + scale * Math.floor(n / per);
-        }
-    }
+    record StateStep(String var, double base, double scale, double per) implements Value {}
 
     /** Which set of cards a {@link Count} scans. */
     enum Source { PLAYED, SCORING, HELD, EVENT }
 
     /**
-     * {@code base + scale * (number of cards in source matching match)}. The
-     * predicate is evaluated per card by reusing the per-card {@link Condition}
-     * vocabulary (the same "scored*" checks), so "each face card", "each Diamond",
-     * "each Glass card" all compose without new building blocks.
+     * {@code base + scale * (number of cards in source matching match)}. The predicate reuses the per-card
+     * {@link Condition} vocabulary, so "each face card", "each Diamond", "each Glass card" all compose.
      */
-    record Count(Source source, Condition match, double base, double scale) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            List<Card> cards = switch (source) {
-                case PLAYED -> ctx.playedCards;
-                case SCORING -> ctx.scoringCards;
-                case HELD -> ctx.heldCards;
-                case EVENT -> ctx.eventCards; // discarded set (PRE_DISCARD), etc.
-            };
-            if (cards == null) return base;
-            Card prev = ctx.scoredCard;
-            int n = 0;
-            for (Card card : cards) {
-                ctx.scoredCard = card;
-                if (match.test(ctx)) n++;
-            }
-            ctx.scoredCard = prev;
-            return base + scale * n;
-        }
-    }
+    record Count(Source source, Condition match, double base, double scale) implements Value {}
 
     /** Which live run-state quantity a {@link RunVar} reads. Implements {@link Property}: the run/shop/economy
-     *  bag, with the hand nouns now lifted out into {@link Hand}. */
+     *  bag, with the hand nouns lifted out into {@link Hand}. */
     enum Var implements Property {
         // --- readable run-state quantities (a condition can read these) ---
         MONEY, CONSUMABLE_SLOTS, JOKER_SLOTS, ANTE, DISCARDS_USED,
@@ -145,7 +74,7 @@ public sealed interface Value {
         UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD,
         OPP_SHOP_SPENT, GLASS_MULT, BLIND_PROGRESS, TOTAL_SELL_VALUE,
         // --- derived economy/shop policy variables: written by Modifys (folded in EconomyConfig /
-        //     ShopEconomy), not yet read by any condition. Reading one throws (see readVar). ---
+        //     ShopEconomy), not yet read by any condition. Reading one throws (see ValueResolver.readVar). ---
         INTEREST_CAP, MONEY_PER_HAND, MONEY_PER_DISCARD, MIN_MONEY,
         SHOP_SLOTS, PRICE_MULTIPLIER, REROLL_DISCOUNT, EDITION_MULTIPLIER, POLY_MULTIPLIER,
         TAROT_RATE, PLANET_RATE, WIN_ANTE, BOSS_REROLLS_PER_ANTE, HELD_PLANET_MULT,
@@ -161,114 +90,22 @@ public sealed interface Value {
         // jokers (sell Chicot and the boss re-arms), read synchronously at blind setup like the others above.
         BOSS_ABILITY_DISABLED }
 
-    /** Read a live run-state quantity. Shared by {@link RunVar}, {@link RunVarStep}, and
-     *  {@code Condition.RunVarModulo} so the {@link Property}→{@code RunState} mapping lives in one place.
-     *  Dispatches on the subject noun: {@link Hand} reads handle size/plays/discards, the rest fall to the
-     *  {@link Var} bag. */
-    static double readVar(Property which, EvaluationContext ctx) {
-        if (which instanceof Hand h) {
-            return switch (h) {
-                case SIZE -> ctx.run.handSize;
-                case PLAYS -> ctx.run.handsLeft;
-                case DISCARDS -> ctx.run.discardsLeft;
-                case DRAW_COUNT -> throw new UnsupportedOperationException("DRAW_COUNT is write-only");
-            };
-        }
-        return switch ((Var) which) {
-            case MONEY -> ctx.run.money;
-            case CONSUMABLE_SLOTS -> ctx.run.consumableSlots;
-            case JOKER_SLOTS -> ctx.run.jokerSlots;
-            case ANTE -> ctx.run.ante;
-            case DISCARDS_USED -> ctx.run.discardsUsedThisRound;
-            case HANDS_PLAYED -> ctx.run.handsPlayedThisRound;
-            case HANDS_PLAYED_TOTAL -> ctx.run.handsPlayedTotal;
-            case ROUNDS_PLAYED -> ctx.run.roundsPlayedTotal;
-            case CARDS_DISCARDED_TOTAL -> ctx.run.cardsDiscardedTotal;
-            case LUCKY_TRIGGERS -> ctx.run.luckyTriggersTotal;
-            case UNIQUE_PLANETS -> ctx.run.planetsUsedThisRun.size();
-            case OBELISK_STREAK -> ctx.run.obeliskStreak;
-            case BLINDS_SKIPPED -> ctx.run.blindsSkipped;
-            case OPP_BLINDS_SKIPPED -> ctx.run.opponent.blindsSkipped;
-            case OPP_LIVES_BEHIND -> Math.max(0, ctx.run.opponent.lives - ctx.run.myLives);
-            case OPP_HANDS_LEFT -> ctx.run.opponent.handsLeft;
-            case OPP_CARDS_SOLD -> ctx.run.opponent.cardsSold;
-            case OPP_SHOP_SPENT -> ctx.run.opponent.shopSpentLastAnte;
-            case GLASS_MULT -> ctx.run.capabilities.glassMult(); // Glass card x-mult: 2.0 vanilla, 1.5 ranked-MP
-            case BLIND_PROGRESS -> ctx.run.blindProgress; // roundScore / requirement at blind-loss (Mr Bones)
-            case TOTAL_SELL_VALUE -> { // sum of owned jokers' sell value (Temperance) — $max(1,cost/2)+sellBonus
-                int sell = 0;
-                for (var j : ctx.run.jokers()) sell += Math.max(1, j.info().cost() / 2) + ctx.run.jokerInt(j, "sellBonus", 0);
-                yield sell;
-            }
-            // Policy variables are Modify write-targets folded by EconomyConfig/ShopEconomy, not
-            // run-state a condition reads. If one ever needs to be readable, give it a mapping here.
-            default -> throw new UnsupportedOperationException("not a readable run variable: " + which);
-        };
-    }
-
     /** {@code base + scale * (live run-state quantity)} (per dollar, per remaining hand, ...). */
-    record RunVar(Property which, double base, double scale) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (ctx.run == null) return base;
-            return base + scale * readVar(which, ctx);
-        }
-    }
+    record RunVar(Property which, double base, double scale) implements Value {}
 
-    /**
-     * {@code base + scale * floor(runVar / per)} — stepwise scaling (Bootstraps:
-     * +2 Mult per $5 → base 0, scale 2, per 5 over MONEY).
-     */
-    record RunVarStep(Property which, double base, double scale, double per) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (ctx.run == null || per == 0) return base;
-            return base + scale * Math.floor(readVar(which, ctx) / per);
-        }
-    }
+    /** {@code base + scale * floor(runVar / per)} — stepwise scaling (Bootstraps: +2 Mult per $5). */
+    record RunVarStep(Property which, double base, double scale, double per) implements Value {}
 
-    /**
-     * {@code base + scale * (lowest|highest base-chip value among held cards)} —
-     * Raised Fist (double the lowest held card's rank). Stone cards are ignored; an
-     * empty hand resolves to {@code base}.
-     */
-    record HeldExtreme(boolean lowest, double base, double scale) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (ctx.heldCards == null) return base;
-            int extreme = lowest ? Integer.MAX_VALUE : Integer.MIN_VALUE;
-            boolean found = false;
-            for (Card c : ctx.heldCards) {
-                if (c.isStone()) continue;
-                int v = c.baseChips();
-                extreme = lowest ? Math.min(extreme, v) : Math.max(extreme, v);
-                found = true;
-            }
-            return found ? base + scale * extreme : base;
-        }
-    }
+    /** {@code base + scale * (lowest|highest base-chip value among held cards)} — Raised Fist. Stone cards
+     *  are ignored; an empty hand resolves to {@code base}. */
+    record HeldExtreme(boolean lowest, double base, double scale) implements Value {}
 
-    /**
-     * {@code base + scale * (cards of rank id {@code rankId} in the full deck)} —
-     * Cloud 9 ($1 per 9 in the deck). Reads the persistent deck composition.
-     */
-    record DeckRankCount(int rankId, double base, double scale) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (ctx.run == null) return base;
-            long n = ctx.run.deckComposition.stream().filter(c -> c.id() == rankId).count();
-            return base + scale * n;
-        }
-    }
+    /** {@code base + scale * (cards of rank id {@code rankId} in the full deck)} — Cloud 9 ($1 per 9). */
+    record DeckRankCount(int rankId, double base, double scale) implements Value {}
 
-    /**
-     * A uniform random integer magnitude in {@code [min, max]} (Misprint 0..23),
-     * popped from a game-long queue keyed by {@code seedKey} so both players roll
-     * the same sequence.
-     */
-    record Random(double min, double max, String seedKey) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (ctx.preview) return min; // preview shows the guaranteed floor (the minimum magnitude)
-            double roll = ctx.nextProb(seedKey);
-            return min + Math.floor(roll * (max - min + 1));
-        }
-    }
+    /** A uniform random integer magnitude in {@code [min, max]} (Misprint 0..23), popped from a game-long
+     *  queue keyed by {@code seedKey} so both players roll the same sequence. */
+    record Random(double min, double max, String seedKey) implements Value {}
 
     /** Which deck/run aggregate a {@link Stat} reads. */
     enum Which { DECK_SIZE, DECK_REMAINING, ENHANCED_CARD_COUNT, DECK_ENH_COUNT, OWNED_JOKERS,
@@ -277,27 +114,7 @@ public sealed interface Value {
     /** A standard full deck size — Erosion's reference point. */
     int FULL_DECK = 52;
 
-    /**
-     * {@code base + scale * (deck/run aggregate)} — Blue (deck remaining), Abstract
-     * (jokers owned), Stone/Steel (cards of an enhancement in the full deck), etc.
-     * Reads {@code RunState} (the persistent deckComposition / jokers); pure and
-     * deterministic. {@code enhancement} is used only by DECK_ENH_COUNT.
-     */
-    record Stat(Which which, double base, double scale, Enhancement enhancement) implements Value {
-        public double resolve(EvaluationContext ctx) {
-            if (ctx.run == null) return base;
-            long n = switch (which) {
-                case DECK_SIZE -> ctx.run.deckComposition.size();
-                case DECK_REMAINING -> ctx.run.deck != null ? ctx.run.deck.remaining() : 0;
-                case ENHANCED_CARD_COUNT -> ctx.run.deckComposition.stream()
-                        .filter(c -> c.enhancement != Enhancement.NONE).count();
-                case DECK_ENH_COUNT -> ctx.run.deckComposition.stream()
-                        .filter(c -> c.enhancement == enhancement).count();
-                case OWNED_JOKERS -> ctx.run.jokers().size();
-                case EMPTY_JOKER_SLOTS -> Math.max(0, 5 - ctx.run.jokers().size());
-                case CARDS_BELOW_FULL -> Math.max(0, FULL_DECK - ctx.run.deckComposition.size());
-            };
-            return base + scale * n;
-        }
-    }
+    /** {@code base + scale * (deck/run aggregate)} — Blue (deck remaining), Abstract (jokers owned), etc.
+     *  {@code enhancement} is used only by DECK_ENH_COUNT. */
+    record Stat(Which which, double base, double scale, Enhancement enhancement) implements Value {}
 }

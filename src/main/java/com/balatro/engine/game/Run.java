@@ -845,7 +845,7 @@ public final class Run {
     private void applyRunLoopEffect(Effect e, com.balatro.engine.joker.EvaluationContext ctx) {
         switch (e) {
             case Effect.AdjustMoney am -> {
-                double v = am.amount().resolve(ctx); // a magnitude; the verb carries the direction
+                double v = com.balatro.engine.eval.ValueResolver.resolve(am.amount(), ctx); // a magnitude; the verb carries the direction
                 int floor = minMoney();
                 state.money = switch (am.op()) {
                     case ADD -> Math.max(floor, state.money + (int) Math.round(v));
@@ -895,7 +895,7 @@ public final class Run {
             case Effect.LevelHands lh -> { // Orbital tag (MOST_PLAYED) / The Arm (PLAYED, -1 = delevel)
                 if (lh.scope() == Effect.LevelHands.Scope.PLAYED) {
                     if (ctx.handType != null) {
-                        int n = (int) Math.round(lh.levels().resolve(ctx));
+                        int n = (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx));
                         for (int i = 0; i < Math.abs(n); i++) {
                             if (n < 0) state.levelDownHand(ctx.handType); else state.levelUpHand(ctx.handType);
                         }
@@ -1014,7 +1014,7 @@ public final class Run {
     /** Run-loop hand leveling — the ALL (Black Hole) and MOST_PLAYED (Orbital) scopes of {@link
      *  Effect.LevelHands}; the PLAYED scope is scoring-time (the levelUpHand flag), never reaches here. */
     private void applyLevelHands(Effect.LevelHands lh) {
-        int n = Math.max(1, (int) Math.round(lh.levels().resolve(runLoopContext())));
+        int n = Math.max(1, (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), runLoopContext())));
         switch (lh.scope()) {
             case ALL -> { for (HandType t : HandType.values()) for (int i = 0; i < n; i++) state.levelUpHand(t); }
             case MOST_PLAYED -> {

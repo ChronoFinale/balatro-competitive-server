@@ -44,11 +44,11 @@ public record Modify(Property variable, Op op, Value value) {
      */
     public static double fold(double base, Property variable, List<Modify> mods, EvaluationContext ctx) {
         double v = base;
-        for (Modify m : mods) if (m.variable == variable && m.op == Op.SET) v = m.value.resolve(ctx);
-        for (Modify m : mods) if (m.variable == variable && m.op == Op.ADD) v += m.value.resolve(ctx);
-        for (Modify m : mods) if (m.variable == variable && m.op == Op.MULTIPLY) v *= m.value.resolve(ctx);
-        for (Modify m : mods) if (m.variable == variable && m.op == Op.MAX) v = Math.max(v, m.value.resolve(ctx));
-        for (Modify m : mods) if (m.variable == variable && m.op == Op.MIN) v = Math.min(v, m.value.resolve(ctx));
+        for (Modify m : mods) if (m.variable == variable && m.op == Op.SET) v = com.balatro.engine.eval.ValueResolver.resolve(m.value, ctx);
+        for (Modify m : mods) if (m.variable == variable && m.op == Op.ADD) v += com.balatro.engine.eval.ValueResolver.resolve(m.value, ctx);
+        for (Modify m : mods) if (m.variable == variable && m.op == Op.MULTIPLY) v *= com.balatro.engine.eval.ValueResolver.resolve(m.value, ctx);
+        for (Modify m : mods) if (m.variable == variable && m.op == Op.MAX) v = Math.max(v, com.balatro.engine.eval.ValueResolver.resolve(m.value, ctx));
+        for (Modify m : mods) if (m.variable == variable && m.op == Op.MIN) v = Math.min(v, com.balatro.engine.eval.ValueResolver.resolve(m.value, ctx));
         return v;
     }
 

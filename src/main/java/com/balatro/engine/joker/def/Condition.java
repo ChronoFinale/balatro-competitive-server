@@ -278,7 +278,7 @@ public sealed interface Condition {
             this(new Value.State(selfStateVar, 0, 1), cmp, threshold);
         }
         public boolean test(EvaluationContext ctx) {
-            return cmp.holds(value.resolve(ctx), threshold);
+            return cmp.holds(com.balatro.engine.eval.ValueResolver.resolve(value, ctx), threshold);
         }
     }
 
@@ -343,7 +343,7 @@ public sealed interface Condition {
     record RunVarModulo(Property which, int mod, int remainder) implements Condition {
         public boolean test(EvaluationContext ctx) {
             if (ctx.run == null || mod == 0) return false;
-            return Math.floorMod((long) Value.readVar(which, ctx), mod) == remainder;
+            return Math.floorMod((long) com.balatro.engine.eval.ValueResolver.readVar(which, ctx), mod) == remainder;
         }
     }
 

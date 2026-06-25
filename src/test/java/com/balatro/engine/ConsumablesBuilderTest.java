@@ -38,7 +38,7 @@ class ConsumablesBuilderTest {
         assertThat(create.spec().rarity()).isEqualTo("Rare");
         Effect.AdjustMoney money = (Effect.AdjustMoney) wraith.effects().get(1);
         assertThat(money.op()).isEqualTo(Effect.Operation.SET);
-        assertThat(money.amount().resolve(null)).isZero(); // Const(0) resolves without a run
+        assertThat(com.balatro.engine.eval.ValueResolver.resolve(money.amount(), null)).isZero(); // Const(0) resolves without a run
     }
 
     @Test

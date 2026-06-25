@@ -112,7 +112,7 @@ public sealed interface Effect {
      */
     record Score(Operation op, Term term, Value value) implements Effect {
         public JokerEffect apply(EvaluationContext ctx) {
-            double v = value.resolve(ctx);
+            double v = com.balatro.engine.eval.ValueResolver.resolve(value, ctx);
             return switch (term) {
                 case CHIPS -> { requireAdd(); yield v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips"); }
                 case DOLLARS -> { requireAdd(); yield v == 0 ? null : JokerEffect.dollars(Math.round(v)).msg("+$" + fmt(v)); }
@@ -222,7 +222,7 @@ public sealed interface Effect {
             if (scope != Scope.PLAYED || ctx.handType == null) return null; // ALL/MOST_PLAYED are run-loop
             JokerEffect e = new JokerEffect();
             e.levelUpHand = ctx.handType;
-            e.levelUpAmount = Math.max(1, (int) Math.round(levels.resolve(ctx)));
+            e.levelUpAmount = Math.max(1, (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(levels, ctx)));
             return e;
         }
     }
