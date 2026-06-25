@@ -519,7 +519,9 @@
           "seal" : null,
           "randomSeal" : false,
           "stream" : "CREATE",
-          "dedup" : true
+          "dedup" : true,
+          "destination" : "PLAYER",
+          "edition" : "NONE"
         },
         "destroyRandomInHand" : 0,
         "add" : null,
@@ -544,7 +546,9 @@
           "seal" : null,
           "randomSeal" : false,
           "stream" : "CREATE",
-          "dedup" : true
+          "dedup" : true,
+          "destination" : "PLAYER",
+          "edition" : "NONE"
         },
         "destroyRandomInHand" : 0,
         "add" : null,
@@ -569,7 +573,9 @@
           "seal" : null,
           "randomSeal" : false,
           "stream" : "CREATE",
-          "dedup" : true
+          "dedup" : true,
+          "destination" : "PLAYER",
+          "edition" : "NONE"
         },
         "destroyRandomInHand" : 0,
         "add" : null,
@@ -632,7 +638,9 @@
           "seal" : null,
           "randomSeal" : false,
           "stream" : "CREATE",
-          "dedup" : true
+          "dedup" : true,
+          "destination" : "PLAYER",
+          "edition" : "NONE"
         },
         "destroyRandomInHand" : 0,
         "add" : null,
@@ -657,7 +665,9 @@
           "seal" : null,
           "randomSeal" : false,
           "stream" : "CREATE",
-          "dedup" : true
+          "dedup" : true,
+          "destination" : "PLAYER",
+          "edition" : "NONE"
         },
         "destroyRandomInHand" : 0,
         "add" : null,

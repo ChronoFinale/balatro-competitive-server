@@ -26,6 +26,7 @@ import com.balatro.engine.joker.def.Selector;
 import com.balatro.engine.joker.def.Modify;
 import com.balatro.engine.joker.def.Value;
 import com.balatro.engine.joker.def.JokerDef;
+import com.balatro.engine.joker.def.CreateSpec;
 import com.balatro.engine.net.CardView;
 import com.balatro.engine.net.ClientView;
 import com.balatro.engine.net.ServerUpdate;
@@ -883,11 +884,14 @@ public final class Run {
             }
             case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
                 shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind()), PackCatalog.Size.valueOf(ap.size())));
-            case Effect.Create cr -> // run-loop create (Top-Up tag): a JOKER spec straight to the player
-                com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
-            case Effect.CreateShopJoker cj -> { // free-joker tags (Rare/Uncommon by rarity; Foil/Holo/Poly/Negative)
-                if (cj.rarity() != null) addFreeJoker(cj.rarity());
-                else addFreeEditionedJoker(cj.edition());
+            case Effect.Create cr -> { // run-loop create: destination decides where it lands
+                CreateSpec s = cr.spec();
+                if (s.destination() == CreateSpec.Destination.SHOP) { // free-joker tags into the next shop
+                    if (s.edition() == Edition.NONE) addFreeJoker(s.rarity()); // Rare/Uncommon by rarity
+                    else addFreeEditionedJoker(s.edition());                   // Foil/Holo/Poly/Negative
+                } else { // PLAYER: jokers/consumables/cards straight into the run's slots (Top-Up tag)
+                    com.balatro.engine.consumable.Creation.apply(state, s, state.queues);
+                }
             }
             case Effect.LevelMostPlayedHand lm -> { // Orbital tag
                 com.balatro.engine.hand.HandType best = mostPlayedHand();

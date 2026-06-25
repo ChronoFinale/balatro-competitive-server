@@ -64,14 +64,15 @@ public final class TagDefs {
         return new Effect.AddPack(kind, size);
     }
 
-    /** A free Joker of a rarity in the next shop (Rare/Uncommon). */
+    /** A free Joker of a rarity in the next shop (Rare/Uncommon) — Create into the SHOP, by rarity. */
     private static Effect joker(String rarity) {
-        return new Effect.CreateShopJoker(rarity, com.balatro.engine.card.Edition.NONE);
+        return new Effect.Create(com.balatro.engine.joker.def.CreateSpec.shopJoker(
+                rarity, com.balatro.engine.card.Edition.NONE));
     }
 
     /** A free random Joker with an edition in the next shop (Foil/Holo/Polychrome/Negative). */
     private static Effect editioned(com.balatro.engine.card.Edition ed) {
-        return new Effect.CreateShopJoker(null, ed);
+        return new Effect.Create(com.balatro.engine.joker.def.CreateSpec.shopJoker(null, ed));
     }
 
     private static void add(List<Tag> t, String key, String name, boolean ante1, Timing timing, Effect... effects) {

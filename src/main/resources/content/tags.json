@@ -7,9 +7,19 @@
     "timing" : "ON_SHOP",
     "effects" : [
       {
-        "type" : "createShopJoker",
-        "rarity" : "Uncommon",
-        "edition" : "NONE"
+        "type" : "create",
+        "spec" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : "Uncommon",
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false,
+          "stream" : "TAG_SHOP",
+          "dedup" : false,
+          "destination" : "SHOP",
+          "edition" : "NONE"
+        }
       }
     ]
   },
@@ -21,9 +31,19 @@
     "timing" : "ON_SHOP",
     "effects" : [
       {
-        "type" : "createShopJoker",
-        "rarity" : "Rare",
-        "edition" : "NONE"
+        "type" : "create",
+        "spec" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : "Rare",
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false,
+          "stream" : "TAG_SHOP",
+          "dedup" : false,
+          "destination" : "SHOP",
+          "edition" : "NONE"
+        }
       }
     ]
   },
@@ -35,9 +55,19 @@
     "timing" : "ON_SHOP",
     "effects" : [
       {
-        "type" : "createShopJoker",
-        "rarity" : null,
-        "edition" : "NEGATIVE"
+        "type" : "create",
+        "spec" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : null,
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false,
+          "stream" : "TAG_SHOP",
+          "dedup" : false,
+          "destination" : "SHOP",
+          "edition" : "NEGATIVE"
+        }
       }
     ]
   },
@@ -49,9 +79,19 @@
     "timing" : "ON_SHOP",
     "effects" : [
       {
-        "type" : "createShopJoker",
-        "rarity" : null,
-        "edition" : "FOIL"
+        "type" : "create",
+        "spec" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : null,
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false,
+          "stream" : "TAG_SHOP",
+          "dedup" : false,
+          "destination" : "SHOP",
+          "edition" : "FOIL"
+        }
       }
     ]
   },
@@ -63,9 +103,19 @@
     "timing" : "ON_SHOP",
     "effects" : [
       {
-        "type" : "createShopJoker",
-        "rarity" : null,
-        "edition" : "HOLOGRAPHIC"
+        "type" : "create",
+        "spec" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : null,
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false,
+          "stream" : "TAG_SHOP",
+          "dedup" : false,
+          "destination" : "SHOP",
+          "edition" : "HOLOGRAPHIC"
+        }
       }
     ]
   },
@@ -77,9 +127,19 @@
     "timing" : "ON_SHOP",
     "effects" : [
       {
-        "type" : "createShopJoker",
-        "rarity" : null,
-        "edition" : "POLYCHROME"
+        "type" : "create",
+        "spec" : {
+          "kind" : "JOKER",
+          "count" : 1,
+          "rarity" : null,
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false,
+          "stream" : "TAG_SHOP",
+          "dedup" : false,
+          "destination" : "SHOP",
+          "edition" : "POLYCHROME"
+        }
       }
     ]
   },
@@ -348,7 +408,9 @@
           "seal" : null,
           "randomSeal" : false,
           "stream" : "TOPUP",
-          "dedup" : false
+          "dedup" : false,
+          "destination" : "PLAYER",
+          "edition" : "NONE"
         }
       }
     ]

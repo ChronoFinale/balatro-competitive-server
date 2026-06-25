@@ -3882,7 +3882,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -3922,7 +3924,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -3973,7 +3977,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -4035,7 +4041,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -4077,7 +4085,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -4117,7 +4127,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -4157,7 +4169,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -4212,7 +4226,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -4730,7 +4746,9 @@
               "seal" : null,
               "randomSeal" : true,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]
@@ -4967,7 +4985,9 @@
               "seal" : null,
               "randomSeal" : false,
               "stream" : "CREATE",
-              "dedup" : true
+              "dedup" : true,
+              "destination" : "PLAYER",
+              "edition" : "NONE"
             }
           }
         ]

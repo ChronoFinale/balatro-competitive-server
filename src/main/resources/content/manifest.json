@@ -1,15 +1,15 @@
 {
-  "version" : "9cd66064de87e0e5",
+  "version" : "df0e7dc639a5d8c5",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
-      "sha256" : "c6327f96615459194c29b651e24b31f3beea3575808e383fd833035f8fb9f474",
-      "bytes" : 142890
+      "sha256" : "743cb4c48a42c97fff85856577efd855da2b8b78797b6964cbbdd4c2dba5c629",
+      "bytes" : 143630
     },
     {
       "path" : "rulesets/bmp-0.4.2-ranked.json",
-      "sha256" : "f95e46b47b3ba13100461a3731e1fbb72aa99ea4e36347ae87e853b58305cf3b",
-      "bytes" : 14122
+      "sha256" : "cfc0b5d57a9627b599114ace97e21118ff659656f9e2ee0f8a78d24f1fbc084c",
+      "bytes" : 14204
     },
     {
       "path" : "content/decks.json",
@@ -23,8 +23,8 @@
     },
     {
       "path" : "content/tags.json",
-      "sha256" : "847b846b3ce581ce5efb41687bd04f698ca591e489cc59a96a60a38ca84650e2",
-      "bytes" : 7439
+      "sha256" : "85bcd7632452cfd5dd97b9132f314b3591525a11cda9d3f6fa6455ed25fd34bc",
+      "bytes" : 9053
     },
     {
       "path" : "content/vouchers.json",
@@ -33,8 +33,8 @@
     },
     {
       "path" : "content/consumables.json",
-      "sha256" : "cf671f34194b95110af0e7d65adc36fc43e8009baf569fdffa8b07f49af6927d",
-      "bytes" : 18061
+      "sha256" : "25f40c7f250f60d56053b0366e7ea01e86f26b9c6b8a50b35e952461d5a64d54",
+      "bytes" : 18391
     },
     {
       "path" : "content/planets.json",
