@@ -65,6 +65,21 @@ public final class ScoringEngine {
         return score(played, held, run, rng, true);
     }
 
+    /*
+     * ── ORDERING CONTRACT (the determinism invariant; do not change without updating the guard tests) ──
+     * 1. PHASES run in {@link Trigger} order: MODIFY_SCORING_HAND → BEFORE → INITIAL_SCORING_STEP →
+     *    (per scored card: ON_SCORED + its REPETITION_PLAYED retriggers) → (per held card: ON_HELD +
+     *    REPETITION_HELD) → JOKER_MAIN → ON_OTHER_JOKER → FINAL_SCORING_STEP → AFTER → destruction.
+     * 2. WITHIN a phase, jokers apply in JOKER-AREA ORDER (left→right, the {@code run.jokers()} index). This
+     *    is POSITIONAL, not arithmetic: a +Mult joker LEFT of a ×Mult joker is inside the multiply; to its
+     *    RIGHT it is not. Guard: {@code JokerOrderTest.effectsApplyInJokerOrderNotAddThenMultiply}.
+     * 3. WITHIN a joker, rules apply in AUTHORING ORDER, each fully (incl. its state write) before the next
+     *    rule's condition is tested — so a counter bump is visible to a later rule. Guard: RuleAccumulationTest.
+     * 4. A RETRIGGER (REPETITION_*) re-runs that card's ON_SCORED/ON_HELD pass in place, N extra times.
+     * 5. Copiers (Blueprint→right neighbour, Brainstorm→leftmost) re-enter the target at the SAME phase,
+     *    bumping {@code blueprintDepth} (the recursion guard). Guard: DataJokerTest blueprint cases.
+     * Each RNG draw comes off a keyed game-long queue, so order-independence of variance is by construction.
+     */
     private ScoreResult score(List<Card> played, List<Card> held, RunState run, RandomStreams rng,
                               boolean preview) {
         HandMods mods = activeMods(run.jokers());
