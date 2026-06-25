@@ -40,7 +40,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
     // --- boss run-loop effects (applied by Run's action interpreter at a lifecycle trigger) ---
     @JsonSubTypes.Type(value = Effect.AdjustMoney.class, name = "adjustMoney"),
-    @JsonSubTypes.Type(value = Effect.DelevelPlayedHand.class, name = "delevelPlayedHand"),
     @JsonSubTypes.Type(value = Effect.DiscardRandomHeld.class, name = "discardRandomHeld"),
     @JsonSubTypes.Type(value = Effect.FlipAndShuffleJokers.class, name = "flipAndShuffleJokers"),
     @JsonSubTypes.Type(value = Effect.DisableRandomJoker.class, name = "disableRandomJoker"),
@@ -306,9 +305,6 @@ public sealed interface Effect {
      *  fixed value. The Tooth is {@code SUBTRACT(count(played))}; the Ox is {@code SET(0)}. Mirrors the
      *  scoring op model (MULT vs XMULT vs POW_MULT), where each arithmetic verb is its own primitive. */
     record AdjustMoney(Operation op, Value amount) implements Effect {}
-
-    /** Drop the played poker hand's level by one (The Arm). No-op if there is no played hand. */
-    record DelevelPlayedHand() implements Effect {}
 
     /** Discard {@code count} random held cards, then refill the hand (The Hook). */
     record DiscardRandomHeld(int count) implements Effect {}

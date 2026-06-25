@@ -94,9 +94,10 @@ public final class Bosses {
                 new Effect.AdjustMoney(Effect.Operation.SET, new Value.Const(0)));
     }
 
-    /** The Arm: the played poker hand drops a level — {@code DelevelPlayedHand}. */
+    /** The Arm: the played poker hand drops a level — {@code LevelHands(PLAYED, -1)} (delevel = level by -1). */
     public Bosses delevelsPlayedHand() {
-        return onHandPlayed(new Condition.Always(), new Effect.DelevelPlayedHand());
+        return onHandPlayed(new Condition.Always(),
+                new Effect.LevelHands(Effect.LevelHands.Scope.PLAYED, new com.balatro.engine.joker.def.Value.Const(-1)));
     }
 
     /** A play is only legal if it satisfies {@code cond} — reuses the joker condition vocabulary

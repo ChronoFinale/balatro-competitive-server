@@ -856,9 +856,6 @@ public final class Run {
                     case POWER -> throw new IllegalStateException("POWER is not a money operation");
                 };
             }
-            case Effect.DelevelPlayedHand ignored -> { // The Arm
-                if (ctx.handType != null) state.levelDownHand(ctx.handType);
-            }
             case Effect.DiscardRandomHeld d -> hookDiscardAndRefill(d.count()); // The Hook
             case Effect.FlipAndShuffleJokers ignored -> { // Amber Acorn (blind start)
                 jokersHidden = true;
@@ -895,7 +892,18 @@ public final class Run {
                     com.balatro.engine.consumable.Creation.apply(state, s, state.queues);
                 }
             }
-            case Effect.LevelHands lh -> applyLevelHands(lh); // Orbital tag (MOST_PLAYED)
+            case Effect.LevelHands lh -> { // Orbital tag (MOST_PLAYED) / The Arm (PLAYED, -1 = delevel)
+                if (lh.scope() == Effect.LevelHands.Scope.PLAYED) {
+                    if (ctx.handType != null) {
+                        int n = (int) Math.round(lh.levels().resolve(ctx));
+                        for (int i = 0; i < Math.abs(n); i++) {
+                            if (n < 0) state.levelDownHand(ctx.handType); else state.levelUpHand(ctx.handType);
+                        }
+                    }
+                } else {
+                    applyLevelHands(lh);
+                }
+            }
             case Effect.AddShopVoucher ignored -> addTagVoucher();          // Voucher tag
             case Effect.ShopFlag sf -> {                                    // Coupon / D6 tags
                 if ("COUPON".equals(sf.flag())) couponActive = true;

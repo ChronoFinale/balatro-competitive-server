@@ -294,7 +294,12 @@
         },
         "effects" : [
           {
-            "type" : "delevelPlayedHand"
+            "type" : "levelHands",
+            "scope" : "PLAYED",
+            "levels" : {
+              "type" : "const",
+              "amount" : -1.0
+            }
           }
         ]
       }
