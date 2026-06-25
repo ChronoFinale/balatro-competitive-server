@@ -79,10 +79,12 @@ public final class Consumables {
     }
 
     /** Convert every card in hand to one random suit (Sigil). */
-    public Consumables convertHandToSuit() { return direct(new Effect.ConvertHand(true, false, 0)); }
+    public Consumables convertHandToSuit() { return direct(new Effect.ConvertHand(Effect.ConvertHand.Axis.SUIT, 0)); }
 
     /** Convert every card in hand to one random rank; {@code handSizeDelta} is Ouija's -1. */
-    public Consumables convertHandToRank(int handSizeDelta) { return direct(new Effect.ConvertHand(false, true, handSizeDelta)); }
+    public Consumables convertHandToRank(int handSizeDelta) {
+        return direct(new Effect.ConvertHand(Effect.ConvertHand.Axis.RANK, handSizeDelta));
+    }
 
     /** Create {@code copies} exact copies of the single selected card (Cryptid). */
     public Consumables copySelected(int copies) { return direct(new Effect.Copy(new Selector.Selected(), copies)); }

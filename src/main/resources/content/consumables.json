@@ -775,8 +775,7 @@
     "effects" : [
       {
         "type" : "convertHand",
-        "toRandomSuit" : true,
-        "toRandomRank" : false,
+        "axis" : "SUIT",
         "handSizeDelta" : 0
       }
     ]
@@ -790,8 +789,7 @@
     "effects" : [
       {
         "type" : "convertHand",
-        "toRandomSuit" : false,
-        "toRandomRank" : true,
+        "axis" : "RANK",
         "handSizeDelta" : -1
       }
     ]

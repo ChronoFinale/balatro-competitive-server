@@ -280,8 +280,11 @@ public sealed interface Effect {
         }
     }
 
-    /** Convert EVERY card in hand to one random suit (Sigil) or rank (Ouija); Ouija also -1 hand size. */
-    record ConvertHand(boolean toRandomSuit, boolean toRandomRank, int handSizeDelta) implements Effect {}
+    /** Convert EVERY card in hand to one random {@code axis} — SUIT (Sigil) or RANK (Ouija) — with an
+     *  optional {@code handSizeDelta} (Ouija's -1). The axis is an argument, not two fused booleans. */
+    record ConvertHand(Axis axis, int handSizeDelta) implements Effect {
+        public enum Axis { SUIT, RANK }
+    }
 
     /** Overwrite the first selected card with the attributes of the second (Death: left becomes right). */
     record OverwriteSelected() implements Effect {}

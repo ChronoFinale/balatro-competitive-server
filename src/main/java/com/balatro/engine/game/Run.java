@@ -1445,11 +1445,11 @@ public final class Run {
             for (Card card : state.hand) card.rank = r;
             return; // no hand-size reduction in MP
         }
-        if (ch.toRandomSuit()) {
+        if (ch.axis() == Effect.ConvertHand.Axis.SUIT) {
             Suit s = pick(Suit.values(), RngSources.consumable(c.key()).sub("suit"));
             for (Card card : state.hand) card.suit = s;
         }
-        if (ch.toRandomRank()) {
+        if (ch.axis() == Effect.ConvertHand.Axis.RANK) {
             Rank r = pick(Rank.values(), RngSources.consumable(c.key()).sub("rank"));
             for (Card card : state.hand) card.rank = r;
         }
