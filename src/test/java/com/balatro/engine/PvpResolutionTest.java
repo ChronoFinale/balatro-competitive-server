@@ -59,6 +59,33 @@ class PvpResolutionTest {
         throw new AssertionError("no pvpResult sent to " + session);
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> opponentUpdateFor(String session) {
+        for (int i = sent.size() - 1; i >= 0; i--) {
+            if (sent.get(i)[0].equals(session) && sent.get(i)[1] instanceof Map<?, ?> m
+                    && "opponentUpdate".equals(m.get("type"))) {
+                return (Map<String, Object>) m;
+            }
+        }
+        throw new AssertionError("no opponentUpdate sent to " + session);
+    }
+
+    @Test
+    void theLiveOpponentViewShowsTheActingPlayersRealScoreAndIdentity(@TempDir Path dir) {
+        Match match = startedMatch(dir);
+        Run host = match.runOf("h"), guest = match.runOf("g");
+        driveIntoPvpBlindStillPlaying(host);  // host played a hand -> roundScore accumulated
+        assertThat(host.state.roundScore).as("PvP-blind scoring actually accumulates").isGreaterThan(0);
+        sent.clear();
+        match.onAction("h"); // host acted -> the guest is pushed host's live summary
+
+        Map<String, Object> seenByGuest = opponentUpdateFor("g");
+        assertThat(seenByGuest.get("playerId")).isEqualTo("ph"); // it's the HOST's data, labelled as host
+        assertThat(((Number) seenByGuest.get("roundScore")).longValue()).isEqualTo(host.state.roundScore);
+        assertThat(((Number) seenByGuest.get("ante")).intValue()).isEqualTo(host.ante);
+        assertThat(((Number) seenByGuest.get("lives")).intValue()).isEqualTo(4); // unresolved, full lives
+    }
+
     @Test
     void higherScoreWinsAndTheLoserLosesALife(@TempDir Path dir) {
         Match match = startedMatch(dir);
