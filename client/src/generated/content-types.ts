@@ -63,7 +63,6 @@ export type EffectType =
   | "editionJoker"
   | "flipAndShuffleJokers"
   | "grantDiscards"
-  | "jokerEdition"
   | "levelHands"
   | "mutateCard"
   | "mutateState"
@@ -71,7 +70,8 @@ export type EffectType =
   | "overwriteSelected"
   | "score"
   | "shopFlag"
-  | "surviveBlind";
+  | "surviveBlind"
+  | "when";
 
 /** 15 discriminators the server dispatches on — the client must handle exactly these. */
 export type ValueType =

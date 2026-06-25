@@ -467,9 +467,33 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "jokerEdition",
-        "edition" : "NONE",
-        "chanceDenominator" : 4
+        "type" : "when",
+        "condition" : {
+          "type" : "chance",
+          "odds" : {
+            "numerator" : 1,
+            "denominator" : 4
+          },
+          "seedKey" : "gate",
+          "stream" : null
+        },
+        "effects" : [
+          {
+            "type" : "bind",
+            "name" : "j",
+            "selector" : {
+              "type" : "randomJoker"
+            }
+          },
+          {
+            "type" : "editionJoker",
+            "selector" : {
+              "type" : "bound",
+              "name" : "j"
+            },
+            "edition" : "NONE"
+          }
+        ]
       }
     ]
   },

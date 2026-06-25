@@ -75,9 +75,13 @@ public final class Consumables {
         return direct(new Effect.LevelHands(Effect.LevelHands.Scope.ALL, new com.balatro.engine.joker.def.Value.Const(1)));
     }
 
-    /** Wheel of Fortune: a {@code chanceDenominator}-in-1 gated random edition of a random owned joker. */
-    public Consumables jokerEdition(Edition edition, int chanceDenominator) {
-        return direct(new Effect.JokerEdition(edition, chanceDenominator));
+    /** Wheel of Fortune: 1-in-{@code chanceDenominator} to edition a random joker — a {@code When(chance)}
+     *  gate over the same Bind+EditionJoker the always-fire ones use. No bespoke verb; the gate is a Condition,
+     *  exactly like a joker/boss rule's {@code IF} (the chance rolls on the consumable's own "gate" stream). */
+    public Consumables chanceEditionRandomJoker(Edition edition, int chanceDenominator) {
+        return direct(new Effect.When(Cond.chance(1, chanceDenominator, "gate"),
+                List.of(new Effect.Bind("j", new Selector.RandomJoker()),
+                        new Effect.EditionJoker(new Selector.Bound("j"), edition))));
     }
 
     /** Ectoplasm/Hex: bind a random joker, give it {@code edition}, then optionally adjust hand size and/or

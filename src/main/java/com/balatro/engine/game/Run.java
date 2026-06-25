@@ -1349,6 +1349,11 @@ public final class Run {
                             RngSources.consumable(c.key()).sub("joker").composition(), rngCtx(), Joker::key, JOKER_QUALITY));
                 }
             }
+            case Effect.When w -> { // the consumable's IF — apply inner effects only if the gate holds (Wheel)
+                if (consumableConditionHolds(c, w.condition())) {
+                    for (Effect inner : w.effects()) applyConsumableEffect(c, inner, targets, bindings);
+                }
+            }
             case Effect.MutateCard mc -> resolveTargets(c, mc.selector(), targets).forEach(t -> mc.mod().applyTo(t));
             case Effect.Create cr -> // pure-create consumable (Emperor/High Priestess/Judgement/Soul)
                 com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
@@ -1386,7 +1391,6 @@ public final class Run {
                 if (target != null) state.setJokerEdition(target, resolveEdition(c, ej.edition()));
             }
             case Effect.AdjustHandSize ah -> state.handSize += ah.delta();      // Ectoplasm -1
-            case Effect.JokerEdition je -> applyJokerEdition(c, je);            // Wheel of Fortune (chance-gated)
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);
             case Effect.Copy cp -> { // consumable-context copy
                 if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) { // Cryptid: copy the card cp.count()×
@@ -1520,15 +1524,15 @@ public final class Run {
      * Wheel gates on a 1-in-N roll and picks a random Foil/Holo/Poly; Ectoplasm and
      * Hex always fire and carry their own side effects (hand-size / destroy-others).
      */
-    private void applyJokerEdition(Consumable c, Effect.JokerEdition je) { // Wheel of Fortune: chance-gated random edition
-        if (state.jokers().isEmpty()) return;
-        if (je.chanceDenominator() > 1
-                && roll(RngSources.consumable(c.key()).sub("gate")) >= 1.0 / je.chanceDenominator()) {
-            return; // the roll missed (Wheel of Fortune's 3-in-4 nothing-happens)
+    /** Evaluate a consumable's {@link Effect.When} gate. A {@code Chance} rolls on the consumable's OWN
+     *  stream ({@code consumable(key).sub(seedKey)}) — the same draw the hardcoded Wheel gate used — and
+     *  PROBABILITY_MULTIPLIER (Oops!) scales the threshold like every other chance. Others test normally. */
+    private boolean consumableConditionHolds(Consumable c, com.balatro.engine.joker.def.Condition cond) {
+        if (cond instanceof com.balatro.engine.joker.def.Condition.Chance ch) {
+            double r = roll(RngSources.consumable(c.key()).sub(ch.seedKey()));
+            return r < (double) (ch.odds().numerator() * state.probabilityNumerator) / ch.odds().denominator();
         }
-        Joker target = state.queues.pick(state.jokers(), RngSources.consumable(c.key()).sub("joker").composition(),
-                rngCtx(), Joker::key, JOKER_QUALITY);
-        state.setJokerEdition(target, resolveEdition(c, je.edition()));
+        return cond.test(runLoopContext());
     }
 
     /** {@code NONE} = roll a random Foil/Holo/Poly (the "ed" sub-stream); else the fixed edition. */

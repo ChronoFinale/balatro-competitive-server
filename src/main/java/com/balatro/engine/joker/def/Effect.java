@@ -26,12 +26,12 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.Create.class, name = "create"),
     @JsonSubTypes.Type(value = Effect.Destroy.class, name = "destroy"),
     @JsonSubTypes.Type(value = Effect.Bind.class, name = "bind"),
+    @JsonSubTypes.Type(value = Effect.When.class, name = "when"),
     @JsonSubTypes.Type(value = Effect.LevelHands.class, name = "levelHands"),
     @JsonSubTypes.Type(value = Effect.Copy.class, name = "copy"),
     @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
     // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
     @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
-    @JsonSubTypes.Type(value = Effect.JokerEdition.class, name = "jokerEdition"),
     @JsonSubTypes.Type(value = Effect.EditionJoker.class, name = "editionJoker"),
     @JsonSubTypes.Type(value = Effect.AddCards.class, name = "addCards"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
@@ -244,6 +244,15 @@ public sealed interface Effect {
     }
 
     /**
+     * Apply {@code effects} only if {@code condition} holds — the consumable's {@code IF}, bringing it to
+     * parity with jokers/bosses (whose rules are already WHEN/IF/THEN; a consumable was the one content type
+     * with no gate). A {@code Chance} condition here rolls on the consumable's OWN stream, so Wheel of
+     * Fortune's 1-in-4 is {@code When(chance(1,4,"gate"), [Bind, EditionJoker(Bound)])} — byte-identical to
+     * the old hardcoded gate. Bounded: no loops, no else — still a declarative selection language.
+     */
+    record When(Condition condition, List<Effect> effects) implements Effect {}
+
+    /**
      * Resolve {@code selector} ONCE and bind the result under {@code name}, so later effects in the same
      * list can act on that exact pick via {@link Selector.Bound}/{@link Selector.Others} — the grammar's
      * way to share a single random selection across sibling effects (Ankh/Hex: bind a random joker, then
@@ -260,16 +269,6 @@ public sealed interface Effect {
     /** Add {@code count} new numbered cards (random rank/suit) with an enhancement to the deck (Incantation). */
     record CreateCards(int count, Enhancement enhancement) implements Effect {}
 
-
-    /**
-     * A {@code chanceDenominator}-in-1 gated edition of a random owned joker — the Wheel of Fortune case
-     * ({@code edition == NONE} = a random Foil/Holo/Poly, {@code chanceDenominator == 4} = 1-in-4). The
-     * always-fire editions (Ectoplasm, Hex) are NOT this any more: they decompose to
-     * {@code [Bind, EditionJoker(Bound), AdjustHandSize / Destroy(Others)]} over the shared-selection grammar.
-     * This stays its own verb only because the chance gate can't be a per-effect Condition under the
-     * unconditional consumable-effect model.
-     */
-    record JokerEdition(Edition edition, int chanceDenominator) implements Effect {}
 
     /** Give the {@link Selector}'d joker an {@code edition} ({@code NONE} = a random Foil/Holo/Poly) — the
      *  edition core, target as an argument. Used with {@link Bind}/{@link Selector.Bound} so Ectoplasm/Hex
