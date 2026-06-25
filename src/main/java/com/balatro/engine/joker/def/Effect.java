@@ -24,13 +24,11 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.Score.class, name = "score"),
     @JsonSubTypes.Type(value = Effect.MutateCard.class, name = "mutateCard"),
     @JsonSubTypes.Type(value = Effect.Create.class, name = "create"),
-    @JsonSubTypes.Type(value = Effect.DestroyScored.class, name = "destroyScored"),
-    @JsonSubTypes.Type(value = Effect.DestroyDiscarded.class, name = "destroyDiscarded"),
+    @JsonSubTypes.Type(value = Effect.Destroy.class, name = "destroy"),
     @JsonSubTypes.Type(value = Effect.LevelUpHand.class, name = "levelUpHand"),
     @JsonSubTypes.Type(value = Effect.CopyScored.class, name = "copyScored"),
     @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
     // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
-    @JsonSubTypes.Type(value = Effect.DestroyTargets.class, name = "destroyTargets"),
     @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
     @JsonSubTypes.Type(value = Effect.LevelAllHands.class, name = "levelAllHands"),
     @JsonSubTypes.Type(value = Effect.JokerEdition.class, name = "jokerEdition"),
@@ -41,7 +39,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.CopyRandomJoker.class, name = "copyRandomJoker"),
     @JsonSubTypes.Type(value = Effect.CopyLastConsumable.class, name = "copyLastConsumable"),
     @JsonSubTypes.Type(value = Effect.NemesisDelevel.class, name = "nemesisDelevel"),
-    @JsonSubTypes.Type(value = Effect.DestroySelf.class, name = "destroySelf"),
     @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
     // --- boss run-loop effects (applied by Run's action interpreter at a lifecycle trigger) ---
     @JsonSubTypes.Type(value = Effect.AdjustMoney.class, name = "adjustMoney"),
@@ -58,7 +55,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
     @JsonSubTypes.Type(value = Effect.DuplicateRandomConsumable.class, name = "duplicateRandomConsumable"),
     @JsonSubTypes.Type(value = Effect.CreateTag.class, name = "createTag"),
-    @JsonSubTypes.Type(value = Effect.DestroyOtherJoker.class, name = "destroyOtherJoker"),
     @JsonSubTypes.Type(value = Effect.DuplicateRandomJoker.class, name = "duplicateRandomJoker"),
 })
 public sealed interface Effect {
@@ -192,20 +188,29 @@ public sealed interface Effect {
         }
     }
 
-    /** Destroy the scored card in focus (Sixth Sense). */
-    record DestroyScored() implements Effect {
+    /**
+     * Destroy what the {@link Selector} names — the single destroy verb. The selector carries the target
+     * that used to be baked into per-source verb names (DestroyScored/Discarded/Self/Targets/OtherJoker):
+     * <ul>
+     *   <li>scoring-time selectors set a flag the scorer/GameEvents consume during count-up:
+     *       {@code Focus} → the scored card (Sixth Sense), {@code Discarded} → the discard set (Trading
+     *       Card, PRE_DISCARD), {@code Self} → this joker (Gros Michel, Pizza);</li>
+     *   <li>run-loop selectors ({@code Selected}/{@code AllInHand}/{@code RandomInHand}) are resolved by
+     *       {@code Run}'s consumable interpreter (Hanged Man); {@code OtherJoker} by its blind-select
+     *       joker-destruction machinery (Ceremonial, Madness).</li>
+     * </ul>
+     * Same internal flags/timing as before — only the authored verb is unified, so scoring + replay are
+     * byte-identical.
+     */
+    record Destroy(Selector selector) implements Effect {
         public JokerEffect apply(EvaluationContext ctx) {
             JokerEffect e = new JokerEffect();
-            e.destroyScored = true;
-            return e;
-        }
-    }
-
-    /** Destroy the discarded set (Trading Card; PRE_DISCARD). */
-    record DestroyDiscarded() implements Effect {
-        public JokerEffect apply(EvaluationContext ctx) {
-            JokerEffect e = new JokerEffect();
-            e.destroyEventCards = true;
+            switch (selector) {
+                case Selector.Focus ignored -> e.destroyScored = true;       // the scored card (Sixth Sense)
+                case Selector.Discarded ignored -> e.destroyEventCards = true; // the discard set (Trading Card)
+                case Selector.Self ignored -> e.destroySelf = true;           // this joker (Gros Michel, Pizza)
+                default -> { /* run-loop selectors are applied by Run, not the scorer */ }
+            }
             return e;
         }
     }
@@ -233,9 +238,6 @@ public sealed interface Effect {
     // --- consumable / action effects: pure data, applied immediately to the run by Run's action
     //     interpreter (which resolves the Selector against the live hand / jokers / RNG). They are part of
     //     the one Effect vocabulary so a consumable is authored as a List<Effect>, exactly like a joker. ---
-
-    /** Destroy the selector's targets, removing them from the deck permanently (Hanged Man). */
-    record DestroyTargets(Selector selector) implements Effect {}
 
     /** Add {@code count} new numbered cards (random rank/suit) with an enhancement to the deck (Incantation). */
     record CreateCards(int count, Enhancement enhancement) implements Effect {}
@@ -343,23 +345,9 @@ public sealed interface Effect {
     /** Grant a free skip {@code tag} (honouring a held Double Tag) — Diet Cola creates a Double Tag on sell. */
     record CreateTag(String tag) implements Effect {}
 
-    /** At blind select, eat another owned Joker: {@code "RIGHT_NEIGHBOR"} (Ceremonial Dagger — and with
-     *  {@code gainMult}, gain 2× the victim's sell value as this joker's Mult) or {@code "RANDOM_OTHER"}
-     *  (Madness, Small/Big only). The careful index/eternal handling stays in {@code Run}; this is the intent. */
-    record DestroyOtherJoker(String scope, boolean gainMult) implements Effect {}
-
     /** When this joker is sold after at least {@code minRoundsOwned} rounds owned, duplicate a random
      *  remaining Joker (the rightmost in MP) — Invisible Joker. Reads the source's {@code "rounds"} state. */
     record DuplicateRandomJoker(int minRoundsOwned) implements Effect {}
-
-    /** Consume this joker — remove it from the run (Pizza on PvP end). Applied by {@code GameEvents}. */
-    record DestroySelf() implements Effect {
-        public JokerEffect apply(EvaluationContext ctx) {
-            JokerEffect e = new JokerEffect();
-            e.destroySelf = true;
-            return e;
-        }
-    }
 
     /** Grant a temporary discard bonus for {@code blinds} blinds, to this run or — when {@code toOpponent} —
      *  the Nemesis (Pizza). The Match supplies the opponent run on the context; {@code GameEvents} applies it. */

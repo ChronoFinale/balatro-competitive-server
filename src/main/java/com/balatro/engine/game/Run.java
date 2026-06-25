@@ -335,7 +335,7 @@ public final class Run {
         List<Joker> js = state.jokers();
         // Ceremonial Dagger (RIGHT_NEIGHBOR): any blind; eats its right neighbour, gains 2x its sell value as Mult.
         for (int i = 0; i < js.size(); i++) {
-            Effect.DestroyOtherJoker d = jokerDestroyer(js.get(i));
+            Selector.OtherJoker d = jokerDestroyer(js.get(i));
             if (d == null || !"RIGHT_NEIGHBOR".equals(d.scope()) || i + 1 >= js.size()) continue;
             if (state.jokerFlag(js.get(i + 1), "eternal")) continue; // eternal can't be eaten
             Joker victim = js.remove(i + 1);
@@ -344,7 +344,7 @@ public final class Run {
         if (blind == BlindType.BOSS) return; // random joker-eaters (Madness) don't trigger on boss blinds
         // Madness (RANDOM_OTHER): Small/Big only; the ×0.5 Mult rides a state-write rule, this is just "eat a joker".
         for (int i = 0; i < js.size(); i++) {
-            Effect.DestroyOtherJoker d = jokerDestroyer(js.get(i));
+            Selector.OtherJoker d = jokerDestroyer(js.get(i));
             if (d == null || !"RANDOM_OTHER".equals(d.scope())) continue;
             List<Joker> others = new ArrayList<>();
             for (int k = 0; k < js.size(); k++) { // eternal jokers can't be destroyed -> excluded as targets
@@ -359,13 +359,15 @@ public final class Run {
         }
     }
 
-    /** A joker's blind-select "eat a joker" intent as DATA — its {@code BLIND_SELECTED} {@link
-     *  Effect.DestroyOtherJoker} rule, or null. The careful destruction stays engine machinery above. */
-    private static Effect.DestroyOtherJoker jokerDestroyer(Joker j) {
+    /** A joker's blind-select "eat a joker" intent as DATA — the {@link Selector.OtherJoker} of its
+     *  {@code BLIND_SELECTED} {@code Destroy} rule, or null. The careful destruction stays engine machinery above. */
+    private static Selector.OtherJoker jokerDestroyer(Joker j) {
         if (!(j instanceof DataJoker dj)) return null;
         for (Rule r : dj.def().rules()) {
             if (r.when() != Trigger.BLIND_SELECTED) continue;
-            for (Effect e : r.effects()) if (e instanceof Effect.DestroyOtherJoker d) return d;
+            for (Effect e : r.effects()) {
+                if (e instanceof Effect.Destroy d && d.selector() instanceof Selector.OtherJoker oj) return oj;
+            }
         }
         return null;
     }
@@ -1043,7 +1045,7 @@ public final class Run {
     }
 
     /** The Match raises this when a PvP blind resolves, with the Nemesis's run as context, so a joker reacts
-     *  as data (Pizza: {@code on(PVP_BLIND_ENDED).effect(DestroySelf, GrantDiscards(self), GrantDiscards(opp))}). */
+     *  as data (Pizza: {@code on(PVP_BLIND_ENDED).effect(Destroy(Self), GrantDiscards(self), GrantDiscards(opp))}). */
     public void pvpEnded(RunState opponent) {
         GameEvents.raise(Trigger.PVP_BLIND_ENDED, state, rng, ctx -> ctx.opponentRun = opponent);
     }
@@ -1330,8 +1332,8 @@ public final class Run {
     private void applyConsumableEffect(Consumable c, Effect e, List<Card> targets) {
         switch (e) {
             case Effect.MutateCard mc -> resolveTargets(c, mc.selector(), targets).forEach(t -> mc.mod().applyTo(t));
-            case Effect.DestroyTargets dt -> {
-                resolveTargets(c, dt.selector(), targets).forEach(t -> t.destroyed = true);
+            case Effect.Destroy d -> { // consumable-context destroy resolves card selectors (Hanged Man)
+                resolveTargets(c, d.selector(), targets).forEach(t -> t.destroyed = true);
                 composition.removeIf(x -> x.destroyed);
                 state.hand.removeIf(x -> x.destroyed);
             }
@@ -1406,6 +1408,12 @@ public final class Run {
             }
             case Selector.RandomJoker ignored ->
                     throw new IllegalStateException("RandomJoker selects jokers, not cards");
+            case Selector.Discarded ignored ->
+                    throw new IllegalStateException("Discarded targets the discard event — scoring-time only");
+            case Selector.Self ignored ->
+                    throw new IllegalStateException("Self targets the emitting joker, not cards");
+            case Selector.OtherJoker ignored ->
+                    throw new IllegalStateException("OtherJoker selects a joker, not cards");
         };
     }
 

@@ -2564,7 +2564,10 @@
         },
         "effects" : [
           {
-            "type" : "destroySelf"
+            "type" : "destroy",
+            "selector" : {
+              "type" : "self"
+            }
           }
         ]
       }
@@ -2617,7 +2620,10 @@
         },
         "effects" : [
           {
-            "type" : "destroySelf"
+            "type" : "destroy",
+            "selector" : {
+              "type" : "self"
+            }
           }
         ]
       }
@@ -4214,7 +4220,10 @@
         },
         "effects" : [
           {
-            "type" : "destroyScored"
+            "type" : "destroy",
+            "selector" : {
+              "type" : "focus"
+            }
           },
           {
             "type" : "create",
@@ -4811,7 +4820,10 @@
         },
         "effects" : [
           {
-            "type" : "destroySelf"
+            "type" : "destroy",
+            "selector" : {
+              "type" : "self"
+            }
           }
         ]
       }
@@ -4873,7 +4885,10 @@
         },
         "effects" : [
           {
-            "type" : "destroySelf"
+            "type" : "destroy",
+            "selector" : {
+              "type" : "self"
+            }
           }
         ]
       }
@@ -5336,7 +5351,10 @@
             }
           },
           {
-            "type" : "destroyDiscarded"
+            "type" : "destroy",
+            "selector" : {
+              "type" : "discarded"
+            }
           }
         ]
       }
@@ -5500,9 +5518,12 @@
         },
         "effects" : [
           {
-            "type" : "destroyOtherJoker",
-            "scope" : "RIGHT_NEIGHBOR",
-            "gainMult" : true
+            "type" : "destroy",
+            "selector" : {
+              "type" : "otherJoker",
+              "scope" : "RIGHT_NEIGHBOR",
+              "gainMult" : true
+            }
           }
         ]
       }
@@ -5578,9 +5599,12 @@
         },
         "effects" : [
           {
-            "type" : "destroyOtherJoker",
-            "scope" : "RANDOM_OTHER",
-            "gainMult" : false
+            "type" : "destroy",
+            "selector" : {
+              "type" : "otherJoker",
+              "scope" : "RANDOM_OTHER",
+              "gainMult" : false
+            }
           }
         ]
       }
@@ -6502,7 +6526,10 @@
         },
         "effects" : [
           {
-            "type" : "destroySelf"
+            "type" : "destroy",
+            "selector" : {
+              "type" : "self"
+            }
           }
         ]
       }

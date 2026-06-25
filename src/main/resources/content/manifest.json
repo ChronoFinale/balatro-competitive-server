@@ -1,15 +1,15 @@
 {
-  "version" : "df0e7dc639a5d8c5",
+  "version" : "22f05487b8862b9b",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
-      "sha256" : "743cb4c48a42c97fff85856577efd855da2b8b78797b6964cbbdd4c2dba5c629",
-      "bytes" : 143630
+      "sha256" : "37fbdc76f571c61e5c7964f0ba88ee006deaac1eaf80fa646ba5449ad28814b2",
+      "bytes" : 144249
     },
     {
       "path" : "rulesets/bmp-0.4.2-ranked.json",
-      "sha256" : "cfc0b5d57a9627b599114ace97e21118ff659656f9e2ee0f8a78d24f1fbc084c",
-      "bytes" : 14204
+      "sha256" : "f5282d127e074dae09d126cc69e9898bed0aa1207181950ae4be77ba59a1fd23",
+      "bytes" : 14284
     },
     {
       "path" : "content/decks.json",
@@ -33,8 +33,8 @@
     },
     {
       "path" : "content/consumables.json",
-      "sha256" : "25f40c7f250f60d56053b0366e7ea01e86f26b9c6b8a50b35e952461d5a64d54",
-      "bytes" : 18391
+      "sha256" : "cf3b689d931b1055e2c6c7339f8da30b807a942c190676949cda39d2043f7040",
+      "bytes" : 18384
     },
     {
       "path" : "content/planets.json",

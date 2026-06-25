@@ -14,7 +14,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Self-destruct jokers, now modeled with {@link com.balatro.engine.joker.def.Effect.DestroySelf} instead of
+ * Self-destruct jokers, now modeled with {@code Effect.Destroy(Selector.Self())} instead of
  * faked (Gros Michel had no destroy at all; Ice Cream/Popcorn/Ramen merely clamped to 0). Numbers/triggers
  * match real Balatro (card.lua): Gros Michel/Cavendish roll at end of round; Popcorn/Ice Cream deplete at
  * end of round; Ramen depletes on discard. The destroy condition mirrors the scoring formula, so the joker

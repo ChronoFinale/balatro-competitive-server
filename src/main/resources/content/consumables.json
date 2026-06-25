@@ -99,7 +99,7 @@
     "maxTargets" : 2,
     "effects" : [
       {
-        "type" : "destroyTargets",
+        "type" : "destroy",
         "selector" : {
           "type" : "selected"
         }

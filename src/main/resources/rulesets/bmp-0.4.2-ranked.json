@@ -137,7 +137,10 @@
                 "blinds" : 3
               },
               {
-                "type" : "destroySelf"
+                "type" : "destroy",
+                "selector" : {
+                  "type" : "self"
+                }
               }
             ]
           }

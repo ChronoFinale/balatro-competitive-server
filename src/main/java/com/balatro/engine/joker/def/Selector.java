@@ -19,10 +19,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value = Selector.AllInHand.class, name = "allInHand"),
     @JsonSubTypes.Type(value = Selector.RandomInHand.class, name = "randomInHand"),
     @JsonSubTypes.Type(value = Selector.RandomJoker.class, name = "randomJoker"),
+    @JsonSubTypes.Type(value = Selector.Discarded.class, name = "discarded"),
+    @JsonSubTypes.Type(value = Selector.Self.class, name = "self"),
+    @JsonSubTypes.Type(value = Selector.OtherJoker.class, name = "otherJoker"),
 })
 public sealed interface Selector {
 
-    /** The scored card in focus — a joker's implicit target while a hand is counting up (Midas, Vampire). */
+    /** The scored card in focus — a joker's implicit target while a hand is counting up (Midas, Vampire,
+     *  Sixth Sense's destroy). */
     record Focus() implements Selector {}
 
     /** The cards the player chose as targets (resolved by uid) — Magician, Hanged Man, Death, Cryptid. */
@@ -36,4 +40,15 @@ public sealed interface Selector {
 
     /** One random owned joker — Wheel of Fortune / Ectoplasm / Hex / Ankh. */
     record RandomJoker() implements Selector {}
+
+    /** The cards being discarded this event — Trading Card destroys the discard (PRE_DISCARD). */
+    record Discarded() implements Selector {}
+
+    /** The joker emitting the effect — it consumes itself (Gros Michel, Ice Cream, Ramen, Pizza on PvP end). */
+    record Self() implements Selector {}
+
+    /** Another owned joker, chosen by {@code scope} ({@code "RIGHT_NEIGHBOR"} = Ceremonial Dagger,
+     *  {@code "RANDOM_OTHER"} = Madness); {@code gainMult} rides the Ceremonial case (gain 2× the victim's
+     *  sell value as Mult). Resolved by Run's blind-select joker-destruction machinery. */
+    record OtherJoker(String scope, boolean gainMult) implements Selector {}
 }

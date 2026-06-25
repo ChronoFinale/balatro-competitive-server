@@ -60,7 +60,7 @@ public final class Consumables {
     public Consumables enhance(CardMod mod) { return direct(new Effect.MutateCard(new Selector.Selected(), mod)); }
 
     /** Destroy each selected target (The Hanged Man). */
-    public Consumables destroySelected() { return direct(new Effect.DestroyTargets(new Selector.Selected())); }
+    public Consumables destroySelected() { return direct(new Effect.Destroy(new Selector.Selected())); }
 
     /** Add {@code count} new numbered cards with an enhancement to the deck (Incantation). */
     public Consumables createCards(int count, Enhancement enhancement) {

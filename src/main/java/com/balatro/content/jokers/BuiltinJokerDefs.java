@@ -121,7 +121,7 @@ public final class BuiltinJokerDefs {
                         .on(Trigger.PVP_BLIND_ENDED).effect(
                                 new Effect.GrantDiscards(false, 1, 3),  // +1 discard to me, next 3 blinds
                                 new Effect.GrantDiscards(true, 2, 3),   // +2 discards to the Nemesis
-                                new Effect.DestroySelf())               // consumed
+                                new Effect.Destroy(new Selector.Self()))               // consumed
                         .build(),
                 // Speedrun: reach PvP first -> Spectral (match-coordinated).
                 Jokers.of("j_speedrun", "Speedrun")
@@ -338,11 +338,11 @@ public final class BuiltinJokerDefs {
                 Jokers.of("j_gros_michel", "Gros Michel")
                         .whenHand().add(MULT, 15)
                         .on(Trigger.END_OF_ROUND).when(Cond.chance(1, 6, "gros_michel"))
-                        .effect(new Effect.DestroySelf()).build(),
+                        .effect(new Effect.Destroy(new Selector.Self())).build(),
                 Jokers.of("j_cavendish", "Cavendish")
                         .whenHand().multiply(MULT, 3)
                         .on(Trigger.END_OF_ROUND).when(Cond.chance(1, 1000, "cavendish"))
-                        .effect(new Effect.DestroySelf()).build(),
+                        .effect(new Effect.Destroy(new Selector.Self())).build(),
                 Jokers.of("j_acrobat", "Acrobat")
                         .whenHand(runVar(Hand.PLAYS).atMost(1)).multiply(MULT, 3).build(),
                 Jokers.of("j_joker_stencil", "Joker Stencil")
@@ -469,7 +469,7 @@ public final class BuiltinJokerDefs {
                         .create(new CreateSpec(CreateSpec.Kind.JOKER, 2, "Common", null)).build(),
                 Jokers.of("j_sixth_sense", "Sixth Sense")
                         .forEachScored(Cond.all(playedHand().sizeExactly(1), card().rankBetween(6, 6)))
-                        .effect(new Effect.DestroyScored(), new Effect.Create(new CreateSpec(CreateSpec.Kind.SPECTRAL))).build(),
+                        .effect(new Effect.Destroy(new Selector.Focus()), new Effect.Create(new CreateSpec(CreateSpec.Kind.SPECTRAL))).build(),
 
                 // --- batch 12: hand level-up ---
                 Jokers.of("j_space", "Space Joker")
@@ -515,12 +515,12 @@ public final class BuiltinJokerDefs {
                         .whenHand().add(CHIPS, Val.clamp(Val.runVar(Value.Var.HANDS_PLAYED_TOTAL, 100, -5), 0, 1e9))
                         .on(Trigger.END_OF_ROUND)
                         .when(Cond.value(Val.runVar(Value.Var.HANDS_PLAYED_TOTAL, 100, -5)).atMost(0))
-                        .effect(new Effect.DestroySelf()).build(),
+                        .effect(new Effect.Destroy(new Selector.Self())).build(),
                 Jokers.of("j_popcorn", "Popcorn")
                         .whenHand().add(MULT, Val.clamp(Val.runVar(Value.Var.ROUNDS_PLAYED, 20, -4), 0, 1e9))
                         .on(Trigger.END_OF_ROUND)
                         .when(Cond.value(Val.runVar(Value.Var.ROUNDS_PLAYED, 20, -4)).atMost(0))
-                        .effect(new Effect.DestroySelf()).build(),
+                        .effect(new Effect.Destroy(new Selector.Self())).build(),
                 // --- batch 42: Matador (boss-ability interaction) ---
                 Jokers.of("j_matador", "Matador")
                         .whenHand(Cond.bossAbilityActive()).add(DOLLARS, 8).build(),
@@ -569,7 +569,7 @@ public final class BuiltinJokerDefs {
                 Jokers.of("j_trading", "Trading Card")
                         .whenDiscarding(Cond.all(runVar(Value.Var.DISCARDS_USED).exactly(0),
                                 value(Val.count(Value.Source.EVENT, always(), 0, 1)).exactly(1)))
-                        .effect(Effect.dollars(Val.of(3)), new Effect.DestroyDiscarded())
+                        .effect(Effect.dollars(Val.of(3)), new Effect.Destroy(new Selector.Discarded()))
                         .build(),
 
                 // --- batch 33: shop-exit / sell-self lifecycle (Perkeo, Invisible, Luchador) ---
@@ -584,12 +584,12 @@ public final class BuiltinJokerDefs {
                 // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
                 Jokers.of("j_ceremonial", "Ceremonial Dagger").counters("mult")
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult"))
-                        .on(Trigger.BLIND_SELECTED).effect(new Effect.DestroyOtherJoker("RIGHT_NEIGHBOR", true)).build(),
+                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker("RIGHT_NEIGHBOR", true))).build(),
                 // x0.5 Mult is a state-write rule; eating a random joker is a BLIND_SELECTED destroy rule.
                 Jokers.of("j_madness", "Madness").counters("xm")
                         .mutate(Trigger.BLIND_SELECTED).when(not(Cond.bossBlind())).gain("xm", 0.5)
                         .whenHand(state("xm").atLeast(0.5)).multiply(MULT, Val.state("xm", 1.0, 1.0))
-                        .on(Trigger.BLIND_SELECTED).effect(new Effect.DestroyOtherJoker("RANDOM_OTHER", false)).build(),
+                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker("RANDOM_OTHER", false))).build(),
 
                 // --- batch 31: Satellite (unique-planet economy) ---
                 Jokers.of("j_satellite", "Satellite")
@@ -677,7 +677,7 @@ public final class BuiltinJokerDefs {
                                 Val.runVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01), 1, 1e9))
                         .on(Trigger.PRE_DISCARD)
                         .when(Cond.value(Val.runVar(Value.Var.CARDS_DISCARDED_TOTAL, 2, -0.01)).atMost(1))
-                        .effect(new Effect.DestroySelf()).build());
+                        .effect(new Effect.Destroy(new Selector.Self())).build());
     }
 
 

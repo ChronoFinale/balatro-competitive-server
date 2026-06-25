@@ -42,7 +42,7 @@ export type ConditionType =
   | "scoringAnyFace"
   | "scoringContainsSuit";
 
-/** 37 discriminators the server dispatches on — the client must handle exactly these. */
+/** 33 discriminators the server dispatches on — the client must handle exactly these. */
 export type EffectType =
   | "addPack"
   | "addShopVoucher"
@@ -57,11 +57,7 @@ export type EffectType =
   | "createCards"
   | "createTag"
   | "delevelPlayedHand"
-  | "destroyDiscarded"
-  | "destroyOtherJoker"
-  | "destroyScored"
-  | "destroySelf"
-  | "destroyTargets"
+  | "destroy"
   | "disableBoss"
   | "disableRandomJoker"
   | "discardRandomHeld"
@@ -100,13 +96,16 @@ export type ValueType =
   | "state"
   | "stateStep";
 
-/** 5 discriminators the server dispatches on — the client must handle exactly these. */
+/** 8 discriminators the server dispatches on — the client must handle exactly these. */
 export type SelectorType =
   | "allInHand"
+  | "discarded"
   | "focus"
+  | "otherJoker"
   | "randomInHand"
   | "randomJoker"
-  | "selected";
+  | "selected"
+  | "self";
 
 /** 6 discriminators the server dispatches on — the client must handle exactly these. */
 export type UiComponentType =

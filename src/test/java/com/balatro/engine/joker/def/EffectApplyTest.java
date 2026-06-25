@@ -60,8 +60,9 @@ class EffectApplyTest {
 
     @Test
     void structuralEffectsCarryTheirPayload() {
-        assertThat(new Effect.DestroyScored().apply(CTX).destroyScored).isTrue();
-        assertThat(new Effect.DestroyDiscarded().apply(CTX).destroyEventCards).isTrue();
+        assertThat(new Effect.Destroy(new Selector.Focus()).apply(CTX).destroyScored).isTrue();
+        assertThat(new Effect.Destroy(new Selector.Discarded()).apply(CTX).destroyEventCards).isTrue();
+        assertThat(new Effect.Destroy(new Selector.Self()).apply(CTX).destroySelf).isTrue();
         assertThat(new Effect.CopyScored().apply(CTX).copyScored).isTrue();
     }
 }
