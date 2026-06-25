@@ -1,6 +1,7 @@
 package com.balatro.engine.exec;
 
 import com.balatro.engine.card.Card;
+import com.balatro.engine.card.CardMod;
 import com.balatro.engine.card.Edition;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.Joker;
@@ -25,6 +26,10 @@ public sealed interface Command {
 
     /** Destroy these specific cards (already selected) from the deck + hand (Hanged Man, Immolate, Sixth Sense). */
     record DestroyCards(List<Card> cards) implements Command {}
+
+    /** Apply a {@link CardMod} (enhance / convert suit / seal / edition) to these specific cards (Magician,
+     *  Empress, Star, Aura, the seal tarots). */
+    record MutateCards(List<Card> cards, CardMod mod) implements Command {}
 
     /** Add a CreateSpec's contents to the run (consumables/jokers/playing cards). */
     record Create(CreateSpec spec) implements Command {}

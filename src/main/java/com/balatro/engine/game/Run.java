@@ -606,6 +606,10 @@ public final class Run {
                 state.hand.removeIf(x -> x.destroyed);
                 actionTrace.add(new com.balatro.engine.exec.TraceEntry("destroy", "destroyed " + dc.cards().size() + " card(s)"));
             }
+            case com.balatro.engine.exec.Command.MutateCards mc -> {
+                mc.cards().forEach(t -> mc.mod().applyTo(t));
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("mutate", "mutated " + mc.cards().size() + " card(s)"));
+            }
             case com.balatro.engine.exec.Command.Create cr -> {
                 com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
                 actionTrace.add(new com.balatro.engine.exec.TraceEntry("create", cr.spec().count() + "× " + cr.spec().kind()));
@@ -1402,7 +1406,8 @@ public final class Run {
                     for (Effect inner : w.effects()) applyConsumableEffect(c, inner, targets, bindings);
                 }
             }
-            case Effect.MutateCard mc -> resolveTargets(c, mc.selector(), targets).forEach(t -> mc.mod().applyTo(t));
+            case Effect.MutateCard mc -> apply(new com.balatro.engine.exec.Command.MutateCards(
+                    resolveTargets(c, mc.selector(), targets), mc.mod()));
             case Effect.Create cr -> // pure-create consumable (Emperor/High Priestess/Judgement/Soul)
                 apply(new com.balatro.engine.exec.Command.Create(cr.spec()));
             case Effect.Destroy d -> { // consumable-context destroy
