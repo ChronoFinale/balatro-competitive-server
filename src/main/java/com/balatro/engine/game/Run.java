@@ -569,6 +569,31 @@ public final class Run {
         return EconomyConfig.resolve(deckType, state.vouchers, state.jokers()).minMoney();
     }
 
+    /** The uniform action-effect trace (review plan #1): every {@link com.balatro.engine.exec.Command} the
+     *  engine applies logs a step here, so consumable/boss mutations are inspectable like scoring's replay. */
+    public final java.util.List<com.balatro.engine.exec.TraceEntry> actionTrace = new java.util.ArrayList<>();
+
+    /** Apply one resolved {@link com.balatro.engine.exec.Command} — the single mutation+trace path that the
+     *  action-effect families migrate onto (replacing the direct mutation in the interpreter switches). */
+    private void apply(com.balatro.engine.exec.Command cmd) {
+        switch (cmd) {
+            case com.balatro.engine.exec.Command.Money m -> {
+                int floor = minMoney();
+                int v = (int) Math.round(m.amount());
+                state.money = switch (m.op()) {
+                    case ADD -> Math.max(floor, state.money + v);          // gains / The Tooth uses SUBTRACT
+                    case SUBTRACT -> Math.max(floor, state.money - v);
+                    case MULTIPLY -> Math.max(0, (int) Math.round(state.money * m.amount()));
+                    case DIVIDE -> m.amount() == 0 ? state.money : Math.max(0, (int) Math.round(state.money / m.amount()));
+                    case SET -> Math.max(0, v);                            // The Ox: set to $0
+                    case POWER -> throw new IllegalStateException("POWER is not a money operation");
+                };
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("money", m.op() + " " + v + " → $" + state.money));
+            }
+            default -> throw new IllegalStateException("command not yet applied: " + cmd);
+        }
+    }
+
     /** The effective shop rules, derived from owned jokers (Showman/Astronomer/Chaos). */
     private ShopConfig shopConfig() {
         return ShopConfig.resolve(state.jokers());
@@ -844,18 +869,9 @@ public final class Run {
      *  rules) and tags (Speed/Handy/Garbage money gains) — any effect fired outside the scoring pipeline. */
     private void applyRunLoopEffect(Effect e, com.balatro.engine.joker.EvaluationContext ctx) {
         switch (e) {
-            case Effect.AdjustMoney am -> {
-                double v = com.balatro.engine.eval.ValueResolver.resolve(am.amount(), ctx); // a magnitude; the verb carries the direction
-                int floor = minMoney();
-                state.money = switch (am.op()) {
-                    case ADD -> Math.max(floor, state.money + (int) Math.round(v));
-                    case SUBTRACT -> Math.max(floor, state.money - (int) Math.round(v)); // The Tooth
-                    case MULTIPLY -> Math.max(0, (int) Math.round(state.money * v));
-                    case DIVIDE -> v == 0 ? state.money : Math.max(0, (int) Math.round(state.money / v));
-                    case SET -> Math.max(0, (int) Math.round(v)); // The Ox: set to $0
-                    case POWER -> throw new IllegalStateException("POWER is not a money operation");
-                };
-            }
+            case Effect.AdjustMoney am ->  // interpret → resolved Money command → one apply+trace path
+                apply(new com.balatro.engine.exec.Command.Money(am.op(),
+                        com.balatro.engine.eval.ValueResolver.resolve(am.amount(), ctx)));
             case Effect.DiscardRandomHeld d -> hookDiscardAndRefill(d.count()); // The Hook
             case Effect.FlipAndShuffleJokers ignored -> { // Amber Acorn (blind start)
                 jokersHidden = true;
