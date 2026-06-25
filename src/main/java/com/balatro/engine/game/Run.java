@@ -703,7 +703,7 @@ public final class Run {
         com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
         ctx.scoredCard = c;
         ctx.run = state;
-        return cond.test(ctx);
+        return com.balatro.engine.eval.ConditionEvaluator.test(cond, ctx);
     }
 
     /** Which deal put a card into hand — selects the boss face-down rules that fire (The House/Fish). */
@@ -826,7 +826,7 @@ public final class Run {
         if (setup != null) setup.accept(ctx);
         for (Rule r : boss.rules()) {
             if (r.when() != trigger) continue;
-            if (r.condition() != null && !r.condition().test(ctx)) continue;
+            if (r.condition() != null && !com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
             for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
         }
     }
@@ -984,7 +984,7 @@ public final class Run {
             if (!playedCards.isEmpty()) {
                 ctx.handType = com.balatro.engine.hand.HandEvaluator.evaluate(playedCards).type();
             }
-            if (!boss.requires().test(ctx)) return boss.effect();
+            if (!com.balatro.engine.eval.ConditionEvaluator.test(boss.requires(), ctx)) return boss.effect();
         }
         // Cerulean Bell: the force-selected card must be in every played hand, and can't be discarded.
         if (boss.forcesCardSelection()) {
@@ -1540,7 +1540,7 @@ public final class Run {
             double r = roll(RngSources.consumable(c.key()).sub(ch.seedKey()));
             return r < (double) (ch.odds().numerator() * state.probabilityNumerator) / ch.odds().denominator();
         }
-        return cond.test(runLoopContext());
+        return com.balatro.engine.eval.ConditionEvaluator.test(cond, runLoopContext());
     }
 
     /** {@code NONE} = roll a random Foil/Holo/Poly (the "ed" sub-stream); else the fixed edition. */
@@ -1874,7 +1874,7 @@ public final class Run {
         ctx.selfIndex = 0;
         for (Rule r : dj.def().rules()) {
             if (r.when() != Trigger.SELL_SELF) continue;
-            if (r.condition() != null && !r.condition().test(ctx)) continue;
+            if (r.condition() != null && !com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
             for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
         }
     }
@@ -1891,7 +1891,7 @@ public final class Run {
             ctx.selfIndex = i;
             for (Rule r : dj.def().rules()) {
                 if (r.when() != trigger) continue;
-                if (r.condition() != null && !r.condition().test(ctx)) continue;
+                if (r.condition() != null && !com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
                 for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
             }
         }

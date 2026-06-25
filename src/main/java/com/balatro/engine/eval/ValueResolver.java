@@ -60,7 +60,7 @@ public final class ValueResolver {
                 int n = 0;
                 for (Card card : cards) {
                     ctx.scoredCard = card;
-                    if (co.match().test(ctx)) n++; // Condition still self-evaluates (extracted in a later step)
+                    if (ConditionEvaluator.test(co.match(), ctx)) n++; // Condition still self-evaluates (extracted in a later step)
                 }
                 ctx.scoredCard = prev;
                 yield co.base() + co.scale() * n;

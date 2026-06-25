@@ -382,7 +382,7 @@ public sealed interface Effect {
                 var prev = ctx.scoredCard;
                 for (var c : ctx.eventCards) {
                     ctx.scoredCard = c;
-                    if (perCard.test(ctx)) count++;
+                    if (com.balatro.engine.eval.ConditionEvaluator.test(perCard, ctx)) count++;
                 }
                 ctx.scoredCard = prev;
                 amount = by * count;

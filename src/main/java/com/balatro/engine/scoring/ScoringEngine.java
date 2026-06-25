@@ -381,7 +381,7 @@ public final class ScoringEngine {
             com.balatro.engine.joker.EvaluationContext ctx, Card card, RunState run) {
         if (rules == null) return;
         for (com.balatro.engine.joker.def.Rule r : rules) {
-            if (!r.condition().test(ctx)) continue;
+            if (!com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
             applyCardModifierEffects(acc, r.effects(), ctx, card);
             if (card.enhancement == Enhancement.LUCKY) run.luckyTriggersTotal++; // Lucky Cat counts each proc
         }

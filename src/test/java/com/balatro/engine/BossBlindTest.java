@@ -325,8 +325,8 @@ class BossBlindTest {
         ctxFresh.scoredCard = fresh;
         var ctxReplayed = new com.balatro.engine.joker.EvaluationContext();
         ctxReplayed.scoredCard = replayed;
-        assertThat(pillar.debuff().test(ctxFresh)).isFalse();
-        assertThat(pillar.debuff().test(ctxReplayed)).isTrue();
+        assertThat(com.balatro.engine.eval.ConditionEvaluator.test(pillar.debuff(), ctxFresh)).isFalse();
+        assertThat(com.balatro.engine.eval.ConditionEvaluator.test(pillar.debuff(), ctxReplayed)).isTrue();
     }
 
     @Test
