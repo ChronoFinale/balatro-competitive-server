@@ -59,3 +59,21 @@ explicit. Sealed `CreateTarget`/`Selector` hierarchies (not one fat record) keep
 2. Card/consumable creators (`CreateCards`, `Generate.AddCards`) → fold onto `CreateSpec`.
 3. Run-loop destroyers (`DestroyOtherJoker` rider → param).
 4. Scoring-time destroyers via selector-routing (last; touches the scorer + replay stream).
+
+## Progress / status
+
+- **Step 1 DONE** (commits "step 1a/1b"). All three joker-creators now fold onto `Create(CreateSpec)`:
+  - `GrantJokers` (Top-Up) → `Create` with `stream=TOPUP`, `dedup=false`, `destination=PLAYER`. The
+    `tag:topup` queue stays byte-identical; threading `RunState.jokerVariant` also fixed a latent bug
+    (server-side `Creation` ignored the MP joker variant).
+  - `CreateShopJoker` (Rare/Uncommon/editioned tags) → `Create` with `destination=SHOP`, `stream=TAG_SHOP`,
+    `edition`. `Run`'s `Effect.Create` case branches on `destination`; the `tag:joker`/shop-pool streams
+    are byte-identical (golden green). `Effect.GrantJokers` and `Effect.CreateShopJoker` are deleted.
+  - The consumable-grant path (`Creation`) was already `CreateSpec`-driven, so joker creation is unified.
+
+- **STOP flat-folding here.** `CreateSpec` is now a 10-field flat record. Each further fold surfaces more
+  hidden distinctions that would pile on as flags: `CreateCards` (Incantation) draws from a *per-consumable
+  `create:<key>`* stream (NOT `CREATE_CARD`), restricts to numbered ranks, and adds to **hand+deck** (not
+  deck-only) — i.e. it needs `streamSource` + `numberedOnly` + `addToHand`. Adding those to the flat record
+  makes it worse. **Steps 2–4 should land together with the sealed `CreateTarget`/`Selector` hierarchy**
+  (each per-kind record carries only its own fields), not by extending the flat record further.
