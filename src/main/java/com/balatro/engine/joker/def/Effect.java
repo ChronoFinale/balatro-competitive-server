@@ -54,7 +54,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AddPack.class, name = "addPack"),
     @JsonSubTypes.Type(value = Effect.CreateShopJoker.class, name = "createShopJoker"),
     @JsonSubTypes.Type(value = Effect.LevelMostPlayedHand.class, name = "levelMostPlayedHand"),
-    @JsonSubTypes.Type(value = Effect.GrantJokers.class, name = "grantJokers"),
     @JsonSubTypes.Type(value = Effect.AddShopVoucher.class, name = "addShopVoucher"),
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
     @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
@@ -332,9 +331,6 @@ public sealed interface Effect {
 
     /** Level up the most-played poker hand by {@code levels} (Orbital tag). */
     record LevelMostPlayedHand(int levels) implements Effect {}
-
-    /** Grant {@code count} free Jokers of {@code rarity} directly to the player, up to joker slots (Top-Up tag). */
-    record GrantJokers(String rarity, int count) implements Effect {}
 
     /** Add an extra Voucher to the next shop (Voucher tag). */
     record AddShopVoucher() implements Effect {}

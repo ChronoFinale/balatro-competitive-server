@@ -517,7 +517,9 @@
           "rarity" : null,
           "enhancement" : null,
           "seal" : null,
-          "randomSeal" : false
+          "randomSeal" : false,
+          "stream" : "CREATE",
+          "dedup" : true
         },
         "destroyRandomInHand" : 0,
         "add" : null,
@@ -540,7 +542,9 @@
           "rarity" : null,
           "enhancement" : null,
           "seal" : null,
-          "randomSeal" : false
+          "randomSeal" : false,
+          "stream" : "CREATE",
+          "dedup" : true
         },
         "destroyRandomInHand" : 0,
         "add" : null,
@@ -563,7 +567,9 @@
           "rarity" : null,
           "enhancement" : null,
           "seal" : null,
-          "randomSeal" : false
+          "randomSeal" : false,
+          "stream" : "CREATE",
+          "dedup" : true
         },
         "destroyRandomInHand" : 0,
         "add" : null,
@@ -624,7 +630,9 @@
           "rarity" : "Legendary",
           "enhancement" : null,
           "seal" : null,
-          "randomSeal" : false
+          "randomSeal" : false,
+          "stream" : "CREATE",
+          "dedup" : true
         },
         "destroyRandomInHand" : 0,
         "add" : null,
@@ -647,7 +655,9 @@
           "rarity" : "Rare",
           "enhancement" : null,
           "seal" : null,
-          "randomSeal" : false
+          "randomSeal" : false,
+          "stream" : "CREATE",
+          "dedup" : true
         },
         "destroyRandomInHand" : 0,
         "add" : null,

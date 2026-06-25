@@ -65,23 +65,28 @@ public final class Creation {
         List<String> pool = run.capabilities.restrictedPools()
                 ? base.stream().filter(k -> !JokerLibrary.MP_BANNED.contains(k)).toList() : base;
         if (pool.isEmpty()) return;
-        boolean showman = DataJoker.policyEnabled(run.jokers(), Value.Var.ALLOW_SHOP_DUPLICATES);
+        // The stream is part of the spec — Top-Up draws from tag:topup, consumable-grants from
+        // create:joker:<rarity> — so the two never correlate (BMP keeps them on separate queues).
+        RngSource src = spec.stream() == CreateSpec.JokerStream.TOPUP
+                ? RngSources.TAG_TOPUP : RngSources.createJoker(spec.rarity());
+        // dedup=false (Top-Up) draws straight from the pool; dedup=true skips already-owned unless Showman.
+        boolean dedup = spec.dedup()
+                && !DataJoker.policyEnabled(run.jokers(), Value.Var.ALLOW_SHOP_DUPLICATES);
         java.util.Set<String> used = new java.util.HashSet<>();
         for (Joker j : run.jokers()) used.add(j.key());
-        GameQueue<String> q = queues.queue(RngSources.createJoker(spec.rarity()),
-                r -> pool.get(r.nextInt(pool.size())));
+        GameQueue<String> q = queues.queue(src, r -> pool.get(r.nextInt(pool.size())));
         for (int i = 0; i < spec.count(); i++) {
             if (run.jokers().size() >= run.jokerSlots) return;
             boolean anyAcceptable = pool.stream().anyMatch(k -> !used.contains(k));
             String key;
-            if (showman) {
+            if (!dedup) {
                 key = q.next();
             } else if (anyAcceptable) {
                 key = q.nextWhere(k -> !used.contains(k));
             } else {
                 key = "j_joker"; // rarity fully owned -> BMP empty-pool fallback
             }
-            run.addJoker(JokerLibrary.create(key));
+            run.addJoker(JokerLibrary.create(key, run.jokerVariant)); // apply the active variant (MP reworks)
             used.add(key); // a multi-create won't dupe within itself (each created card is "used")
         }
     }

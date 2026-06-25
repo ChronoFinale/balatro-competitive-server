@@ -3880,7 +3880,9 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -3918,7 +3920,9 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -3967,7 +3971,9 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -4027,7 +4033,9 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -4067,7 +4075,9 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -4105,7 +4115,9 @@
               "rarity" : null,
               "enhancement" : "STONE",
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -4143,7 +4155,9 @@
               "rarity" : "Common",
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -4196,7 +4210,9 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -4712,7 +4728,9 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : true
+              "randomSeal" : true,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]
@@ -4947,7 +4965,9 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false
+              "randomSeal" : false,
+              "stream" : "CREATE",
+              "dedup" : true
             }
           }
         ]

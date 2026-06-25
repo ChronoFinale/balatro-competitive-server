@@ -177,7 +177,9 @@
                   "rarity" : null,
                   "enhancement" : null,
                   "seal" : null,
-                  "randomSeal" : false
+                  "randomSeal" : false,
+                  "stream" : "CREATE",
+                  "dedup" : true
                 }
               }
             ]

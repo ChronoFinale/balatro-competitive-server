@@ -49,6 +49,7 @@ public final class RunState {
     public int blindsSkipped = 0; // blinds skipped this run (Throwback)
     // Multiplayer "Nemesis" state (set by the match layer; default 0/false in solo).
     public Capabilities capabilities = Capabilities.VANILLA; // the active mode's behavioural knobs
+    public String jokerVariant = "default"; // the active ruleset's joker-behavior variant (MP reworks)
     public boolean inPvpBlind = false; // currently in a PvP boss blind (Pacifist, Conjoined)
     public boolean bossHalveBase = false; // The Flint: base chips AND mult are halved this blind
     public boolean balanceChipsMult = false; // Plasma Deck: floor((chips+mult)/2) into each before x

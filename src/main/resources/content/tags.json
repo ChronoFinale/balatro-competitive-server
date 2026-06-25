@@ -339,9 +339,17 @@
     "timing" : "IMMEDIATE",
     "effects" : [
       {
-        "type" : "grantJokers",
-        "rarity" : "Common",
-        "count" : 2
+        "type" : "create",
+        "spec" : {
+          "kind" : "JOKER",
+          "count" : 2,
+          "rarity" : "Common",
+          "enhancement" : null,
+          "seal" : null,
+          "randomSeal" : false,
+          "stream" : "TOPUP",
+          "dedup" : false
+        }
       }
     ]
   }

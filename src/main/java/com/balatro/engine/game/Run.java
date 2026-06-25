@@ -133,6 +133,7 @@ public final class Run {
         this.deckType = deckType;
         this.rng = new RandomStreams(seed);
         state.capabilities = ruleset.capabilities(); // the mode's knobs (Glass mult, idol/dup/ouija/pools)
+        state.jokerVariant = ruleset.jokerVariant();  // so server-side Creation applies MP joker reworks too
         state.balanceChipsMult = deckType.balanceChipsMult(); // Plasma Deck balances chips & mult
         state.money = (int) Modify.fold(ruleset.startingMoney(), Value.Var.MONEY, deckType.mods()); // Yellow Deck: +$10
         // (deck/voucher/joker economy is RESOLVED at end of round from the owned sources — see endOfRoundMoney)
@@ -882,6 +883,8 @@ public final class Run {
             }
             case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
                 shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind()), PackCatalog.Size.valueOf(ap.size())));
+            case Effect.Create cr -> // run-loop create (Top-Up tag): a JOKER spec straight to the player
+                com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
             case Effect.CreateShopJoker cj -> { // free-joker tags (Rare/Uncommon by rarity; Foil/Holo/Poly/Negative)
                 if (cj.rarity() != null) addFreeJoker(cj.rarity());
                 else addFreeEditionedJoker(cj.edition());
@@ -890,15 +893,6 @@ public final class Run {
                 com.balatro.engine.hand.HandType best = mostPlayedHand();
                 if (best == null) best = com.balatro.engine.hand.HandType.HIGH_CARD;
                 for (int i = 0; i < lm.levels(); i++) state.levelUpHand(best);
-            }
-            case Effect.GrantJokers gj -> { // Top-Up tag: free jokers straight to the player
-                List<String> pool = JokerLibrary.keysByRarity(gj.rarity());
-                if (!pool.isEmpty()) {
-                    var q = state.queues.queue(RngSources.TAG_TOPUP, r -> pool.get(r.nextInt(pool.size())));
-                    for (int i = 0; i < gj.count() && state.jokers().size() < state.jokerSlots; i++) {
-                        state.addJoker(JokerLibrary.create(q.next(), ruleset.jokerVariant()));
-                    }
-                }
             }
             case Effect.AddShopVoucher ignored -> addTagVoucher();          // Voucher tag
             case Effect.ShopFlag sf -> {                                    // Coupon / D6 tags

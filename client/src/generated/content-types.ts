@@ -42,7 +42,7 @@ export type ConditionType =
   | "scoringAnyFace"
   | "scoringContainsSuit";
 
-/** 39 discriminators the server dispatches on — the client must handle exactly these. */
+/** 38 discriminators the server dispatches on — the client must handle exactly these. */
 export type EffectType =
   | "addPack"
   | "addShopVoucher"
@@ -71,7 +71,6 @@ export type EffectType =
   | "flipAndShuffleJokers"
   | "generate"
   | "grantDiscards"
-  | "grantJokers"
   | "jokerEdition"
   | "levelAllHands"
   | "levelMostPlayedHand"
