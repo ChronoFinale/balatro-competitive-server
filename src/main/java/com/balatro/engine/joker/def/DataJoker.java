@@ -61,7 +61,7 @@ public final class DataJoker implements Joker {
         // calculation in this context for the current phase, and relabel the source. No own rules/state.
         if (def.copy() != null) {
             if (ctx.blueprintDepth > ctx.jokers.size()) return null; // recursion guard
-            int t = def.copy().targetIndex(ctx);
+            int t = copyTargetIndex(def.copy(), ctx);
             if (t < 0) return null;
             Joker target = ctx.jokers.get(t);
             if (!target.blueprintCompatible()) return null;
@@ -85,5 +85,15 @@ public final class DataJoker implements Joker {
             while (tail.extra != null) tail = tail.extra; // a contribution may already carry its own chain
         }
         return head;
+    }
+
+    /** Index of the joker a {@link CopySpec} targets in {@code ctx}, or -1 if none / it would be self. */
+    private static int copyTargetIndex(CopySpec spec, EvaluationContext ctx) {
+        int idx = switch (spec.selector()) {
+            case RIGHT_NEIGHBOR -> ctx.selfIndex + 1;
+            case LEFTMOST -> 0;
+        };
+        if (idx < 0 || idx >= ctx.jokers.size() || idx == ctx.selfIndex) return -1;
+        return idx;
     }
 }
