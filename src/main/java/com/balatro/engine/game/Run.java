@@ -952,7 +952,7 @@ public final class Run {
                 if ("COUPON".equals(sf.flag())) couponActive = true;
                 else if ("D6".equals(sf.flag())) d6Active = true;
             }
-            case Effect.AdjustHandSize ah -> apply(new com.balatro.engine.exec.Command.HandSize(ah.delta()));  // Juggle tag (+3 this round)
+            case Effect.Write w -> applyWrite(w.mod());                     // Juggle tag (+3 this round): Modify(Hand.SIZE)
             case Effect.Copy cp -> { // run-loop copies (the rounds-owned gate is now a Condition on the rule)
                 if (cp.selector() instanceof Selector.RandomConsumable && !state.consumables.isEmpty()) {
                     // Perkeo (shop exit): a slot-cap-ignoring Negative copy of a random held consumable.
@@ -1389,6 +1389,18 @@ public final class Run {
         for (Effect e : c.effects()) applyConsumableEffect(c, e, targets, bindings);
     }
 
+    /** Apply a {@link com.balatro.grammar.Modify} property-write at action time — the spine the bespoke
+     *  property verbs collapse onto. Hand.SIZE routes to the existing {@code HandSize} command (byte-identical
+     *  to the old {@code AdjustHandSize}); other properties are added here as their verbs are folded in. */
+    private void applyWrite(com.balatro.grammar.Modify m) {
+        if (m.variable() == com.balatro.grammar.Hand.SIZE && m.op() == com.balatro.grammar.Modify.Op.ADD
+                && m.value() instanceof com.balatro.grammar.Value.Const cst) {
+            apply(new com.balatro.engine.exec.Command.HandSize((int) Math.round(cst.amount())));
+            return;
+        }
+        throw new IllegalStateException("unsupported action Write: " + m);
+    }
+
     /** The action interpreter: apply one unified {@link Effect} to the run, resolving its {@link Selector}
      *  against the live hand. The joker scoring verbs (Score/MutateState/…) never appear on a consumable. */
     private void applyConsumableEffect(Consumable c, Effect e, List<Card> targets, java.util.Map<String, Joker> bindings) {
@@ -1438,7 +1450,7 @@ public final class Run {
                            : null);
                 if (target != null) apply(new com.balatro.engine.exec.Command.EditionJoker(target, resolveEdition(c, ej.edition())));
             }
-            case Effect.AdjustHandSize ah -> apply(new com.balatro.engine.exec.Command.HandSize(ah.delta()));      // Ectoplasm -1
+            case Effect.Write w -> applyWrite(w.mod());                          // Ouija -1 / Ectoplasm -1: Modify(Hand.SIZE)
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);
             case Effect.Copy cp -> { // consumable-context copy
                 if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) { // Cryptid: copy the card cp.count()×

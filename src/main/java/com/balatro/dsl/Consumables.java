@@ -8,6 +8,8 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.grammar.Effect;
 import com.balatro.grammar.Effect.AddCards;
 import com.balatro.grammar.CreateSpec;
+import com.balatro.grammar.Hand;
+import com.balatro.grammar.Modify;
 import com.balatro.grammar.Selector;
 import com.balatro.grammar.Value;
 import java.util.ArrayList;
@@ -90,7 +92,7 @@ public final class Consumables {
         direct(new Effect.Bind("j", new Selector.RandomJoker()));
         direct(new Effect.EditionJoker(new Selector.Bound("j"), edition));
         if (destroyOthers) direct(new Effect.Destroy(new Selector.Others("j")));
-        if (handSizeDelta != 0) direct(new Effect.AdjustHandSize(handSizeDelta));
+        if (handSizeDelta != 0) direct(new Effect.Write(Modify.add(Hand.SIZE, handSizeDelta)));
         return this;
     }
 

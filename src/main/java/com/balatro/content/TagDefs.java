@@ -5,6 +5,8 @@ import com.balatro.engine.game.TagCatalog.Timing;
 import com.balatro.engine.i18n.Loc;
 import com.balatro.engine.card.Edition;
 import com.balatro.grammar.Effect;
+import com.balatro.grammar.Hand;
+import com.balatro.grammar.Modify;
 import com.balatro.grammar.Value;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +36,7 @@ public final class TagDefs {
         add(t, "tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP, pack("SPECTRAL", "NORMAL"));
         add(t, "tag_coupon", "Coupon Tag", true, Timing.ON_SHOP, new Effect.ShopFlag("COUPON"));
         add(t, "tag_double", "Double Tag", true, Timing.HELD);
-        add(t, "tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND, new Effect.AdjustHandSize(3));
+        add(t, "tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND, new Effect.Write(Modify.add(Hand.SIZE, 3)));
         add(t, "tag_d_six", "D6 Tag", true, Timing.ON_SHOP, new Effect.ShopFlag("D6"));
         add(t, "tag_voucher", "Voucher Tag", true, Timing.ON_SHOP, new Effect.AddShopVoucher());
         // Economy: gain min(money, 40) — AdjustMoney(ADD, clamp(money, 0, 40)) — a double, capped at +$40.

@@ -520,8 +520,15 @@
         "edition" : "NEGATIVE"
       },
       {
-        "type" : "adjustHandSize",
-        "delta" : -1
+        "type" : "write",
+        "mod" : {
+          "variable" : "SIZE",
+          "op" : "ADD",
+          "value" : {
+            "type" : "const",
+            "amount" : -1.0
+          }
+        }
       }
     ]
   },

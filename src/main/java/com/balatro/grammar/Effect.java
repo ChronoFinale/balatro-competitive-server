@@ -46,7 +46,7 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AddPack.class, name = "addPack"),
     @JsonSubTypes.Type(value = Effect.AddShopVoucher.class, name = "addShopVoucher"),
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
-    @JsonSubTypes.Type(value = Effect.AdjustHandSize.class, name = "adjustHandSize"),
+    @JsonSubTypes.Type(value = Effect.Write.class, name = "write"),
     @JsonSubTypes.Type(value = Effect.CreateTag.class, name = "createTag"),
 })
 public sealed interface Effect {
@@ -230,8 +230,14 @@ public sealed interface Effect {
      *  ($0 base reroll) — Coupon / D6 tags. */
     record ShopFlag(String flag) implements Effect {}
 
-    /** Bump the hand size by {@code delta} for the current round (Juggle tag: +3 this blind). */
-    record AdjustHandSize(int delta) implements Effect {}
+    /**
+     * Write a durable {@link Property} — the ONE data verb, the action/run-loop twin of the passive {@link
+     * Modify} (same record, now usable as an effect). A property-changing effect is no longer its own verb
+     * ({@code AdjustHandSize}, and in time {@code AdjustMoney}/{@code GrantDiscards}/the boss flags): it is
+     * {@code Write(Modify.add(Hand.SIZE, 3))} — the verb is {@code Modify}, the "what" is a {@code Property}.
+     * This is the spine the 27 bespoke verbs collapse onto; each one deleted is one fewer word in the grammar.
+     */
+    record Write(Modify mod) implements Effect {}
 
     /** Grant a free skip {@code tag} (honouring a held Double Tag) — Diet Cola creates a Double Tag on sell. */
     record CreateTag(String tag) implements Effect {}

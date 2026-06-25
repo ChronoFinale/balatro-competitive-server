@@ -1,5 +1,5 @@
 {
-  "version" : "c276d3570e6965d5",
+  "version" : "dce663eb4616ece7",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
@@ -23,8 +23,8 @@
     },
     {
       "path" : "content/tags.json",
-      "sha256" : "021e8e7c5f01376f76c9d4e60fc383295e68bbde54038cdc8beab43a65fe7b17",
-      "bytes" : 9140
+      "sha256" : "1d04ab3748eaff905936c85b93c9568562bbc7691c8d88c4d505f7c080a49158",
+      "bytes" : 9285
     },
     {
       "path" : "content/vouchers.json",
@@ -33,8 +33,8 @@
     },
     {
       "path" : "content/consumables.json",
-      "sha256" : "b9fbbe5666c8ae3cb291846e36de4ed1d4f9609e711aa96dd1ec14afb93c2ee5",
-      "bytes" : 19781
+      "sha256" : "95be76c068f7d2f92d4bca92b7e1743117ad8e1d7e4c87a9fd9cf0bbc7308996",
+      "bytes" : 19926
     },
     {
       "path" : "content/planets.json",

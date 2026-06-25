@@ -267,8 +267,15 @@
     "timing" : "NEXT_BLIND",
     "effects" : [
       {
-        "type" : "adjustHandSize",
-        "delta" : 3
+        "type" : "write",
+        "mod" : {
+          "variable" : "SIZE",
+          "op" : "ADD",
+          "value" : {
+            "type" : "const",
+            "amount" : 3.0
+          }
+        }
       }
     ]
   },

@@ -47,7 +47,6 @@ export type EffectType =
   | "addCards"
   | "addPack"
   | "addShopVoucher"
-  | "adjustHandSize"
   | "adjustMoney"
   | "bind"
   | "convertHand"
@@ -70,7 +69,8 @@ export type EffectType =
   | "score"
   | "shopFlag"
   | "surviveBlind"
-  | "when";
+  | "when"
+  | "write";
 
 /** 15 discriminators the server dispatches on — the client must handle exactly these. */
 export type ValueType =
