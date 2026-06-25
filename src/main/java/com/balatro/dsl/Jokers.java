@@ -186,6 +186,9 @@ public final class Jokers {
             throw new IllegalStateException(
                     "Joker '" + key + "' is missing required: " + String.join(", ", missing));
         }
+        // Context-capability check: a rule's condition can only read context its trigger provides, else it
+        // would silently never fire (the null-safe evaluator hides it). Fail loudly at authoring instead.
+        for (var r : rules) RuleValidator.validate(key, r.when(), r.condition());
         // Counter registration: every state key the rules touch must be declared via .counters(...).
         java.util.Set<String> usedCounters = new java.util.TreeSet<>();
         collectCounters(COUNTER_MAPPER.valueToTree(rules), usedCounters);
