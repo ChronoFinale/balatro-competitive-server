@@ -590,6 +590,23 @@ public final class Run {
                 };
                 actionTrace.add(new com.balatro.engine.exec.TraceEntry("money", m.op() + " " + v + " → $" + state.money));
             }
+            case com.balatro.engine.exec.Command.HandSize h -> {
+                state.handSize += h.delta();
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("handSize",
+                        (h.delta() >= 0 ? "+" : "") + h.delta() + " → " + state.handSize));
+            }
+            case com.balatro.engine.exec.Command.EditionJoker ej -> {
+                state.setJokerEdition(ej.target(), ej.edition());
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("edition",
+                        ej.target().name() + " → " + ej.edition()));
+            }
+            case com.balatro.engine.exec.Command.LevelHand lvl -> {
+                for (int i = 0; i < Math.abs(lvl.levels()); i++) {
+                    if (lvl.levels() < 0) state.levelDownHand(lvl.hand()); else state.levelUpHand(lvl.hand());
+                }
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("levelHand",
+                        lvl.hand() + " " + (lvl.levels() >= 0 ? "+" : "") + lvl.levels()));
+            }
             default -> throw new IllegalStateException("command not yet applied: " + cmd);
         }
     }
@@ -912,9 +929,7 @@ public final class Run {
                 if (lh.scope() == Effect.LevelHands.Scope.PLAYED) {
                     if (ctx.handType != null) {
                         int n = (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx));
-                        for (int i = 0; i < Math.abs(n); i++) {
-                            if (n < 0) state.levelDownHand(ctx.handType); else state.levelUpHand(ctx.handType);
-                        }
+                        apply(new com.balatro.engine.exec.Command.LevelHand(ctx.handType, n));
                     }
                 } else {
                     applyLevelHands(lh);
@@ -925,7 +940,7 @@ public final class Run {
                 if ("COUPON".equals(sf.flag())) couponActive = true;
                 else if ("D6".equals(sf.flag())) d6Active = true;
             }
-            case Effect.AdjustHandSize ah -> state.handSize += ah.delta();  // Juggle tag (+3 this round)
+            case Effect.AdjustHandSize ah -> apply(new com.balatro.engine.exec.Command.HandSize(ah.delta()));  // Juggle tag (+3 this round)
             case Effect.Copy cp -> { // run-loop copies (the rounds-owned gate is now a Condition on the rule)
                 if (cp.selector() instanceof Selector.RandomConsumable && !state.consumables.isEmpty()) {
                     // Perkeo (shop exit): a slot-cap-ignoring Negative copy of a random held consumable.
@@ -1032,11 +1047,11 @@ public final class Run {
     private void applyLevelHands(Effect.LevelHands lh) {
         int n = Math.max(1, (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), runLoopContext())));
         switch (lh.scope()) {
-            case ALL -> { for (HandType t : HandType.values()) for (int i = 0; i < n; i++) state.levelUpHand(t); }
+            case ALL -> { for (HandType t : HandType.values()) apply(new com.balatro.engine.exec.Command.LevelHand(t, n)); }
             case MOST_PLAYED -> {
                 HandType best = mostPlayedHand();
                 if (best == null) best = HandType.HIGH_CARD;
-                for (int i = 0; i < n; i++) state.levelUpHand(best);
+                apply(new com.balatro.engine.exec.Command.LevelHand(best, n));
             }
             case PLAYED -> { /* scoring-time; applied by the scorer via the levelUpHand flag */ }
         }
@@ -1412,9 +1427,9 @@ public final class Run {
                         : (!state.jokers().isEmpty() ? state.queues.pick(state.jokers(),
                                 RngSources.consumable(c.key()).sub("joker").composition(), rngCtx(), Joker::key, JOKER_QUALITY)
                            : null);
-                if (target != null) state.setJokerEdition(target, resolveEdition(c, ej.edition()));
+                if (target != null) apply(new com.balatro.engine.exec.Command.EditionJoker(target, resolveEdition(c, ej.edition())));
             }
-            case Effect.AdjustHandSize ah -> state.handSize += ah.delta();      // Ectoplasm -1
+            case Effect.AdjustHandSize ah -> apply(new com.balatro.engine.exec.Command.HandSize(ah.delta()));      // Ectoplasm -1
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);
             case Effect.Copy cp -> { // consumable-context copy
                 if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) { // Cryptid: copy the card cp.count()×
