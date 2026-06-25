@@ -614,6 +614,10 @@ public final class Run {
                 com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
                 actionTrace.add(new com.balatro.engine.exec.TraceEntry("create", cr.spec().count() + "× " + cr.spec().kind()));
             }
+            case com.balatro.engine.exec.Command.AddCardsToDeck ac -> {
+                for (Card made : ac.cards()) { composition.add(made); state.hand.add(made); }
+                actionTrace.add(new com.balatro.engine.exec.TraceEntry("addCards", "+" + ac.cards().size() + " card(s)"));
+            }
             case com.balatro.engine.exec.Command.LevelHand lvl -> {
                 for (int i = 0; i < Math.abs(lvl.levels()); i++) {
                     if (lvl.levels() < 0) state.levelDownHand(lvl.hand()); else state.levelUpHand(lvl.hand());
@@ -1422,14 +1426,13 @@ public final class Run {
                 var r = rng.stream("create:" + c.key());
                 Rank[] ranks = Rank.values();
                 Suit[] suits = Suit.values();
+                List<Card> made = new ArrayList<>();
                 for (int i = 0; i < cr.count(); i++) {
                     Rank rank;
                     do { rank = ranks[r.nextInt(ranks.length)]; } while (rank.id > 10); // numbered cards
-                    Card made = new Card(rank, suits[r.nextInt(suits.length)],
-                            cr.enhancement(), Edition.NONE, Seal.NONE);
-                    composition.add(made); // persistent deck (drawn next blind)
-                    state.hand.add(made);  // and usable now
+                    made.add(new Card(rank, suits[r.nextInt(suits.length)], cr.enhancement(), Edition.NONE, Seal.NONE));
                 }
+                apply(new com.balatro.engine.exec.Command.AddCardsToDeck(made));
             }
             case Effect.LevelHands lh -> applyLevelHands(lh); // Black Hole (ALL)
             case Effect.AddCards a -> addRankClassCards(c, a);                  // Familiar / Grim rank-class adds
@@ -1559,15 +1562,15 @@ public final class Run {
             case NUMBER -> java.util.Arrays.stream(Rank.values()).filter(r -> r.id <= 10).toArray(Rank[]::new);
             case ANY -> Rank.values();
         };
+        List<Card> made = new ArrayList<>();
         for (int i = 0; i < add.count(); i++) {
             Rank r = pick(pool, RngSources.consumable(c.key()).sub("rank:" + i));
             Suit s = pick(Suit.values(), RngSources.consumable(c.key()).sub("suit:" + i));
             Enhancement e = add.enhancement() != null ? add.enhancement()
                     : pick(RANDOM_ENHANCEMENTS, RngSources.consumable(c.key()).sub("enh:" + i));
-            Card made = new Card(r, s, e, Edition.NONE, Seal.NONE);
-            composition.add(made); // persistent deck (drawn next blind)
-            state.hand.add(made);  // and usable now
+            made.add(new Card(r, s, e, Edition.NONE, Seal.NONE));
         }
+        apply(new com.balatro.engine.exec.Command.AddCardsToDeck(made));
     }
 
     /**

@@ -34,6 +34,9 @@ public sealed interface Command {
     /** Add a CreateSpec's contents to the run (consumables/jokers/playing cards). */
     record Create(CreateSpec spec) implements Command {}
 
+    /** Add these already-built playing cards to the deck + hand (Incantation, Familiar, Grim). */
+    record AddCardsToDeck(List<Card> cards) implements Command {}
+
     /** Give a specific joker an edition (Ectoplasm/Hex, the bound joker). */
     record EditionJoker(Joker target, Edition edition) implements Command {}
 
