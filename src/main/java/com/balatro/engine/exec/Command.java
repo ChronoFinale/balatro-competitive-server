@@ -61,4 +61,26 @@ public sealed interface Command {
 
     /** Level a poker hand by {@code levels} (negative = delevel); {@code hand} = the resolved target. */
     record LevelHand(HandType hand, int levels) implements Command {}
+
+    // --- scoring-time side-effects (consumed by ScoringEngine at the scoring moment; replace the
+    //     JokerEffect action booleans). These act on contextual cards/jokers the scorer already knows. ---
+
+    /** Destroy the card currently being scored (Sixth Sense); real play only. */
+    record DestroyScored() implements Command {}
+
+    /** Destroy the event cards — the discarded set (Trading Card); applied in the discard handler. */
+    record DestroyEventCards() implements Command {}
+
+    /** Add a permanent copy of the scoring card to the deck (DNA); real play only. */
+    record CopyScored() implements Command {}
+
+    /** Apply a {@link CardMod} to the card currently being scored (Hiker perma-chips, Midas, Vampire). */
+    record MutateScoredCard(CardMod mod) implements Command {}
+
+    /** Consume the joker that emitted this — the shared self-destruct (Gros Michel, Pizza). */
+    record DestroySelf() implements Command {}
+
+    /** Grant a temporary discard bonus: {@code amount} discards for {@code blinds} blinds, to {@code recipient}
+     *  (Pizza). The Match supplies the opponent run when recipient = OPPONENT. */
+    record GrantDiscards(int amount, int blinds, com.balatro.grammar.Side recipient) implements Command {}
 }

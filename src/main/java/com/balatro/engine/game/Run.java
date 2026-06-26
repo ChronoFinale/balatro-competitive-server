@@ -613,6 +613,14 @@ public final class Run {
                     if (lvl.levels() < 0) state.levelDownHand(lvl.hand()); else state.levelUpHand(lvl.hand());
                 }
             }
+            // Scoring-time commands are applied by ScoringEngine at the scoring moment, never by the run loop.
+            case com.balatro.engine.exec.Command.DestroyScored _,
+                 com.balatro.engine.exec.Command.DestroyEventCards _,
+                 com.balatro.engine.exec.Command.CopyScored _,
+                 com.balatro.engine.exec.Command.MutateScoredCard _,
+                 com.balatro.engine.exec.Command.DestroySelf _,
+                 com.balatro.engine.exec.Command.GrantDiscards _ ->
+                    throw new IllegalStateException("scoring-time command applied by ScoringEngine, not Run: " + cmd);
         }
     }
 
