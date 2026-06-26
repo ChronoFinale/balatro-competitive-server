@@ -59,22 +59,9 @@ import java.util.List;
 })
 public sealed interface Condition {
 
-    /** Comparison for count-style conditions (pure arithmetic, no runtime coupling). */
-    enum Cmp {
-        LTE, GTE, EQ;
-
-        public boolean holds(double value, double target) {
-            return switch (this) {
-                case LTE -> value <= target;
-                case GTE -> value >= target;
-                case EQ -> value == target;
-            };
-        }
-
-        public static boolean holds(Cmp cmp, double value, double target) {
-            return cmp.holds(value, target);
-        }
-    }
+    /** Comparison for count-style conditions — pure data (no behavior); the test lives in
+     *  {@code com.balatro.engine.eval.ConditionEvaluator}. */
+    enum Cmp { LTE, GTE, EQ }
 
     /** Unconditional. */
     record Always() implements Condition {}

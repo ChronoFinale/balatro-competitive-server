@@ -21,6 +21,15 @@ public final class ConditionEvaluator {
         return c != null && !c.isStone() && (c.isFace() || ctx.allFaces);
     }
 
+    /** The comparison test for {@code Cmp} — interpretation of the pure-data grammar enum lives here. */
+    private static boolean holds(Condition.Cmp cmp, double value, double target) {
+        return switch (cmp) {
+            case LTE -> value <= target;
+            case GTE -> value >= target;
+            case EQ -> value == target;
+        };
+    }
+
     public static boolean test(Condition cond, EvaluationContext ctx) {
         return switch (cond) {
             case Condition.Always ignored -> true;
@@ -61,7 +70,7 @@ public final class ConditionEvaluator {
                         : (ctx.run != null && ctx.run.roundTargets.get(hi.targetKey()) instanceof HandType h ? h : null);
                 yield want != null && ctx.handType == want;
             }
-            case Condition.PlayedCount pc -> ctx.playedCards != null && pc.cmp().holds(ctx.playedCards.size(), pc.n());
+            case Condition.PlayedCount pc -> ctx.playedCards != null && holds(pc.cmp(), ctx.playedCards.size(), pc.n());
             case Condition.DiscardedFaceCount df -> {
                 if (ctx.eventCards == null) yield false;
                 int faces = 0;
@@ -87,7 +96,7 @@ public final class ConditionEvaluator {
                 }
                 yield res;
             }
-            case Condition.Compare cp -> cp.cmp().holds(ValueResolver.resolve(cp.value(), ctx), cp.threshold());
+            case Condition.Compare cp -> holds(cp.cmp(), ValueResolver.resolve(cp.value(), ctx), cp.threshold());
             case Condition.HeldAllSuits ha -> {
                 if (ctx.heldCards == null) yield true;
                 boolean ok = true;
