@@ -336,7 +336,7 @@ public final class Run {
         // Ceremonial Dagger (RIGHT_NEIGHBOR): any blind; eats its right neighbour, gains 2x its sell value as Mult.
         for (int i = 0; i < js.size(); i++) {
             Selector.OtherJoker d = jokerDestroyer(js.get(i));
-            if (d == null || !"RIGHT_NEIGHBOR".equals(d.scope()) || i + 1 >= js.size()) continue;
+            if (d == null || d.scope() != Selector.OtherJoker.Scope.RIGHT_NEIGHBOR || i + 1 >= js.size()) continue;
             if (state.jokerFlag(js.get(i + 1), "eternal")) continue; // eternal can't be eaten
             Joker victim = js.remove(i + 1);
             if (d.gainMult()) state.addJokerInt(js.get(i), "mult", 2 * Math.max(1, victim.info().cost() / 2));
@@ -345,7 +345,7 @@ public final class Run {
         // Madness (RANDOM_OTHER): Small/Big only; the ×0.5 Mult rides a state-write rule, this is just "eat a joker".
         for (int i = 0; i < js.size(); i++) {
             Selector.OtherJoker d = jokerDestroyer(js.get(i));
-            if (d == null || !"RANDOM_OTHER".equals(d.scope())) continue;
+            if (d == null || d.scope() != Selector.OtherJoker.Scope.RANDOM_OTHER) continue;
             List<Joker> others = new ArrayList<>();
             for (int k = 0; k < js.size(); k++) { // eternal jokers can't be destroyed -> excluded as targets
                 if (k != i && !state.jokerFlag(js.get(k), "eternal")) others.add(js.get(k));

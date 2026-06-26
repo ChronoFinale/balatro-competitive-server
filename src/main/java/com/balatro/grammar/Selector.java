@@ -49,10 +49,13 @@ public sealed interface Selector {
     /** The joker emitting the effect — it consumes itself (Gros Michel, Ice Cream, Ramen, Pizza on PvP end). */
     record Self() implements Selector {}
 
-    /** Another owned joker, chosen by {@code scope} ({@code "RIGHT_NEIGHBOR"} = Ceremonial Dagger,
-     *  {@code "RANDOM_OTHER"} = Madness); {@code gainMult} rides the Ceremonial case (gain 2× the victim's
+    /** Another owned joker, chosen by {@code scope} ({@code RIGHT_NEIGHBOR} = Ceremonial Dagger,
+     *  {@code RANDOM_OTHER} = Madness); {@code gainMult} rides the Ceremonial case (gain 2× the victim's
      *  sell value as Mult). Resolved by Run's blind-select joker-destruction machinery. */
-    record OtherJoker(String scope, boolean gainMult) implements Selector {}
+    record OtherJoker(Scope scope, boolean gainMult) implements Selector {
+        /** Which other owned joker this targets — a closed set, not a magic string. */
+        public enum Scope { RIGHT_NEIGHBOR, RANDOM_OTHER }
+    }
 
     /** The last Tarot/Planet used this run (The Fool copies it). */
     record LastConsumable() implements Selector {}

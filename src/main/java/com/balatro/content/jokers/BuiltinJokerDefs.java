@@ -583,12 +583,12 @@ public final class BuiltinJokerDefs {
                 // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
                 Jokers.of("j_ceremonial", "Ceremonial Dagger").counters("mult")
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult"))
-                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker("RIGHT_NEIGHBOR", true))).build(),
+                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker(Selector.OtherJoker.Scope.RIGHT_NEIGHBOR, true))).build(),
                 // x0.5 Mult is a state-write rule; eating a random joker is a BLIND_SELECTED destroy rule.
                 Jokers.of("j_madness", "Madness").counters("xm")
                         .mutate(Trigger.BLIND_SELECTED).when(not(Cond.bossBlind())).gain("xm", 0.5)
                         .whenHand(state("xm").atLeast(0.5)).multiply(MULT, Val.state("xm", 1.0, 1.0))
-                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker("RANDOM_OTHER", false))).build(),
+                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker(Selector.OtherJoker.Scope.RANDOM_OTHER, false))).build(),
 
                 // --- batch 31: Satellite (unique-planet economy) ---
                 Jokers.of("j_satellite", "Satellite")
