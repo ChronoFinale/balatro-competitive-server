@@ -3709,7 +3709,7 @@
             "term" : "MULT",
             "value" : {
               "type" : "heldExtreme",
-              "lowest" : true,
+              "end" : "LOWEST",
               "base" : 0.0,
               "scale" : 2.0
             }

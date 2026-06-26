@@ -71,12 +71,13 @@ public final class ValueResolver {
                             : rs.base() + rs.scale() * Math.floor(readVar(rs.which(), ctx) / rs.per());
             case Value.HeldExtreme he -> {
                 if (ctx.heldCards == null) yield he.base();
-                int extreme = he.lowest() ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+                boolean lowest = he.end() == Value.Extreme.LOWEST;
+                int extreme = lowest ? Integer.MAX_VALUE : Integer.MIN_VALUE;
                 boolean found = false;
                 for (Card c : ctx.heldCards) {
                     if (c.isStone()) continue;
                     int val = c.baseChips();
-                    extreme = he.lowest() ? Math.min(extreme, val) : Math.max(extreme, val);
+                    extreme = lowest ? Math.min(extreme, val) : Math.max(extreme, val);
                     found = true;
                 }
                 yield found ? he.base() + he.scale() * extreme : he.base();

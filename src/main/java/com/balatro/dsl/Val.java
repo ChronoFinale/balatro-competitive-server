@@ -92,8 +92,8 @@ public final class Val {
     }
 
     /** {@code base + scale * (rank of the lowest / highest card held in hand)} — Raised Fist. */
-    public static Value lowestHeld(double base, double scale) { return new Value.HeldExtreme(true, base, scale); }
-    public static Value highestHeld(double base, double scale) { return new Value.HeldExtreme(false, base, scale); }
+    public static Value lowestHeld(double base, double scale) { return new Value.HeldExtreme(Value.Extreme.LOWEST, base, scale); }
+    public static Value highestHeld(double base, double scale) { return new Value.HeldExtreme(Value.Extreme.HIGHEST, base, scale); }
 
     // --- shaping ---
 

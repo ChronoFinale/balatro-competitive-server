@@ -96,9 +96,12 @@ public sealed interface Value {
     /** {@code base + scale * floor(runVar / per)} — stepwise scaling (Bootstraps: +2 Mult per $5). */
     record RunVarStep(Property which, double base, double scale, double per) implements Value {}
 
+    /** Which end of the held-card range a {@link HeldExtreme} reads. */
+    enum Extreme { LOWEST, HIGHEST }
+
     /** {@code base + scale * (lowest|highest base-chip value among held cards)} — Raised Fist. Stone cards
      *  are ignored; an empty hand resolves to {@code base}. */
-    record HeldExtreme(boolean lowest, double base, double scale) implements Value {}
+    record HeldExtreme(Extreme end, double base, double scale) implements Value {}
 
     /** {@code base + scale * (cards of rank id {@code rankId} in the full deck)} — Cloud 9 ($1 per 9). */
     record DeckRankCount(int rankId, double base, double scale) implements Value {}
