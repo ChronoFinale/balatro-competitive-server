@@ -50,7 +50,7 @@ public final class GameEvents {
         }
         for (Joker j : consumed) {
             run.jokers().remove(j);
-            log.add(new ReplayEntry(j.name(), "destroy", "Consumed", 0, 0));
+            log.add(new ReplayEntry(j.name(), ReplayEntry.Kind.DESTROY, 0, 0, 0));
         }
         return log;
     }
@@ -69,7 +69,7 @@ public final class GameEvents {
         for (Card c : run.hand) {
             if (c.enhancement == Enhancement.GOLD) {
                 run.money += 3;
-                log.add(new ReplayEntry(c.toString(), "dollars", "+$3 (Gold card)", 0, 0));
+                log.add(new ReplayEntry(c.toString(), ReplayEntry.Kind.DOLLARS, 3, 0, 0));
             }
         }
         return log;
@@ -94,30 +94,28 @@ public final class GameEvents {
         for (JokerEffect cur = e; cur != null; cur = cur.extra) {
             if (cur.dollars != 0) {
                 run.money += cur.dollars;
-                String text = cur.message != null ? cur.message : "+$" + cur.dollars;
-                log.add(new ReplayEntry(source, "dollars", text, 0, 0));
+                log.add(new ReplayEntry(source, ReplayEntry.Kind.DOLLARS, cur.dollars, 0, 0));
             }
             if (cur.destroyEventCards && ctx.eventCards != null) { // Trading Card: destroy the discarded set
                 for (Card c : ctx.eventCards) c.destroyed = true;  // Run.play purges destroyed from the deck
-                log.add(new ReplayEntry(source, "destroy", "Destroyed discarded card", 0, 0));
+                log.add(new ReplayEntry(source, ReplayEntry.Kind.DESTROY, 0, 0, 0));
             }
             if (cur.create != null && run.queues != null) {
                 int before = run.consumables.size();
                 com.balatro.engine.consumable.Creation.apply(run, cur.create, run.queues);
                 if (run.consumables.size() > before) {
-                    log.add(new ReplayEntry(source, "create", "Created " + cur.create.kind(), 0, 0));
+                    log.add(new ReplayEntry(source, ReplayEntry.Kind.CREATE, 0, 0, 0));
                 }
             }
             if (cur.levelUpHand != null) {
                 for (int i = 0; i < cur.levelUpAmount; i++) run.levelUpHand(cur.levelUpHand);
-                log.add(new ReplayEntry(source, "levelup", "Level up " + cur.levelUpHand.display, 0, 0));
+                log.add(new ReplayEntry(source, ReplayEntry.Kind.LEVELUP, cur.levelUpAmount, 0, 0));
             }
             if (cur.grantDiscards != 0) { // Pizza: temp discards to self, or to the Nemesis (Match-supplied)
                 RunState target = cur.grantToOpponent ? ctx.opponentRun : run;
                 if (target != null) {
                     target.grantTempDiscards(cur.grantDiscards, cur.grantDiscardBlinds);
-                    log.add(new ReplayEntry(source, "discards",
-                            "+" + cur.grantDiscards + " discard" + (cur.grantToOpponent ? " (Nemesis)" : ""), 0, 0));
+                    log.add(new ReplayEntry(source, ReplayEntry.Kind.DISCARDS, cur.grantDiscards, 0, 0));
                 }
             }
         }

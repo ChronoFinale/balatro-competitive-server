@@ -100,7 +100,7 @@ public final class ScoringEngine {
             acc.chips = acc.chips.multiply(0.5);
             acc.mult = acc.mult.multiply(0.5);
         }
-        log(acc, hr.type().display, "info", "Base " + acc.chips + " x " + acc.mult);
+        log(acc, hr.type().display, ReplayEntry.Kind.INFO, 0);
 
         List<Joker> jokers = run.jokers();
         EvaluationContext ctx = baseContext(hr, played, scoring, held, run, rng, jokers);
@@ -146,13 +146,13 @@ public final class ScoringEngine {
                         applyCreate(e, run, queues);
                         if (destroysScored(e)) {
                             card.destroyed = true;
-                            log(acc, card.toString(), "destroy", "Destroyed");
+                            log(acc, card.toString(), ReplayEntry.Kind.DESTROY, 0);
                         }
                         if (copiesScored(e)) {
                             Card copy = card.copy();
                             run.deckComposition.add(copy);
                             run.hand.add(copy);
-                            log(acc, card.toString(), "copy", "Copied to deck");
+                            log(acc, card.toString(), ReplayEntry.Kind.COPY, 0);
                         }
                     }
                 }
@@ -189,11 +189,11 @@ public final class ScoringEngine {
             ctx.otherJoker = null;
             // Joker editions (Foil/Holo add before the joker scores; Poly multiplies after).
             Edition ed = run.jokerEdition(current);
-            if (ed == Edition.FOIL) { acc.chips = acc.chips.add(BigNum.of(50)); log(acc, current.name(), "edition", "foil +50 chips"); }
-            else if (ed == Edition.HOLOGRAPHIC) { acc.mult = acc.mult.add(BigNum.of(10)); log(acc, current.name(), "edition", "holo +10 mult"); }
+            if (ed == Edition.FOIL) { acc.chips = acc.chips.add(BigNum.of(50)); log(acc, current.name(), ReplayEntry.Kind.CHIPS, 50); }
+            else if (ed == Edition.HOLOGRAPHIC) { acc.mult = acc.mult.add(BigNum.of(10)); log(acc, current.name(), ReplayEntry.Kind.MULT, 10); }
             JokerEffect me = current.calculate(ctx);
             apply(acc, me, current.name());
-            if (ed == Edition.POLYCHROME) { acc.mult = acc.mult.multiply(1.5); log(acc, current.name(), "edition", "poly x1.5 mult"); }
+            if (ed == Edition.POLYCHROME) { acc.mult = acc.mult.multiply(1.5); log(acc, current.name(), ReplayEntry.Kind.XMULT, 1.5); }
             if (!preview) {
                 applyCreate(me, run, queues);
                 applyLevelUp(me, run);
@@ -215,7 +215,7 @@ public final class ScoringEngine {
         // Observatory voucher: a held Planet gives xMult to its own hand (resolved on RunState by Run).
         if (run.heldPlanetMult > 1.0 && run.heldPlanetHands.contains(hr.type())) {
             acc.mult = acc.mult.multiply(run.heldPlanetMult);
-            log(acc, "Observatory", "xmult", "x" + run.heldPlanetMult + " Mult (held Planet)");
+            log(acc, "Observatory", ReplayEntry.Kind.XMULT, run.heldPlanetMult);
         }
 
         // (6c) credit money earned during scoring (Rough Gem, Business Card, Bootstraps,
@@ -229,7 +229,7 @@ public final class ScoringEngine {
             BigNum half = acc.chips.add(acc.mult).multiply(0.5).floor();
             acc.chips = half;
             acc.mult = half;
-            log(acc, "Plasma Deck", "info", "Balanced chips & mult");
+            log(acc, "Plasma Deck", ReplayEntry.Kind.INFO, 0);
         }
 
         // (7) final score (big-number; chips × mult).
@@ -263,7 +263,7 @@ public final class ScoringEngine {
         forEachInChain(e, cur -> {
             if (cur.cardMod != null) {
                 cur.cardMod.applyTo(target);
-                log(acc, target.toString(), "mutate", cur.cardMod.action().name());
+                log(acc, target.toString(), ReplayEntry.Kind.MUTATE, 0);
             }
         });
     }
@@ -332,7 +332,7 @@ public final class ScoringEngine {
                 JokerEffect je = com.balatro.engine.eval.EffectInterpreter.apply(s, ctx);
                 if (je != null && je.repetitions > 0) {
                     reps += je.repetitions;
-                    log(acc, "Red Seal", "retrigger", "Retrigger");
+                    log(acc, "Red Seal", ReplayEntry.Kind.RETRIGGER, 1);
                 }
             }
         }
@@ -344,7 +344,7 @@ public final class ScoringEngine {
             JokerEffect e = jokers.get(i).calculate(ctx);
             if (e != null && e.repetitions > 0) {
                 reps += e.repetitions;
-                log(acc, jokers.get(i).name(), "retrigger", "Retrigger x" + e.repetitions);
+                log(acc, jokers.get(i).name(), ReplayEntry.Kind.RETRIGGER, e.repetitions);
             }
         }
         return reps;
@@ -356,11 +356,11 @@ public final class ScoringEngine {
         long chips = card.baseChips() + card.permaChips; // card face value + permanent bonus (Hiker etc.)
         if (chips != 0) {
             acc.chips = acc.chips.add(BigNum.of(chips));
-            log(acc, card.toString(), "chips", "+" + chips + " Chips");
+            log(acc, card.toString(), ReplayEntry.Kind.CHIPS, chips);
         }
         if (card.permaMult != 0) {
             acc.mult = acc.mult.add(BigNum.of(card.permaMult)); // permanent per-card mult bonus
-            log(acc, card.toString(), "mult", "+" + fmt(card.permaMult) + " Mult");
+            log(acc, card.toString(), ReplayEntry.Kind.MULT, card.permaMult);
         }
         // Enhancement scoring is DATA now: Bonus/Mult/Stone are Effect.Score, interpreted like a joker
         // (the structural "Stone always scores / no rank-suit" stays in the scoring-set selection above).
@@ -424,29 +424,29 @@ public final class ScoringEngine {
         if (e == null) return;
         if (e.chips != 0) {
             acc.chips = acc.chips.add(BigNum.of(e.chips));
-            log(acc, src, "chips", e.message != null ? e.message : "+" + e.chips + " Chips");
+            log(acc, src, ReplayEntry.Kind.CHIPS, e.chips);
         }
         double addMult = e.mult + e.hMult;
         if (addMult != 0) {
             acc.mult = acc.mult.add(BigNum.of(addMult));
-            log(acc, src, "mult", e.message != null ? e.message : "+" + fmt(addMult) + " Mult");
+            log(acc, src, ReplayEntry.Kind.MULT, addMult);
         }
         if (e.xChips != null && e.xChips != 1.0) {
             acc.chips = acc.chips.multiply(e.xChips);
-            log(acc, src, "xchips", "x" + fmt(e.xChips) + " Chips");
+            log(acc, src, ReplayEntry.Kind.XCHIPS, e.xChips);
         }
         if (e.xMult != null && e.xMult != 1.0) {
             acc.mult = acc.mult.multiply(e.xMult);
-            log(acc, src, "xmult", e.message != null ? e.message : "x" + fmt(e.xMult) + " Mult");
+            log(acc, src, ReplayEntry.Kind.XMULT, e.xMult);
         }
         if (e.powMult != null && e.powMult != 1.0) {
             acc.mult = acc.mult.pow(e.powMult); // exponential (Cryptid e_mult-style) — needs BigNum
-            log(acc, src, "powmult", "^" + fmt(e.powMult) + " Mult");
+            log(acc, src, ReplayEntry.Kind.POWMULT, e.powMult);
         }
         applyEffect(acc, e.extra, src); // the extra-chain recurses with the same ordering
         if (e.dollars != 0) {
             acc.dollars += e.dollars;
-            acc.log.add(new ReplayEntry(src, "dollars", (e.dollars >= 0 ? "+$" : "-$") + Math.abs(e.dollars),
+            acc.log.add(new ReplayEntry(src, ReplayEntry.Kind.DOLLARS, e.dollars,
                     Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
         }
     }
@@ -465,8 +465,8 @@ public final class ScoringEngine {
         return false;
     }
 
-    private void log(Acc acc, String source, String kind, String text) {
-        acc.log.add(new ReplayEntry(source, kind, text,
+    private void log(Acc acc, String source, ReplayEntry.Kind kind, double amount) {
+        acc.log.add(new ReplayEntry(source, kind, amount,
                 Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
     }
 
