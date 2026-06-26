@@ -456,7 +456,8 @@
         "levels" : {
           "type" : "const",
           "amount" : 1.0
-        }
+        },
+        "target" : "SELF"
       }
     ]
   },
@@ -931,7 +932,13 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "nemesisDelevel"
+        "type" : "levelHands",
+        "scope" : "MOST_PLAYED",
+        "levels" : {
+          "type" : "const",
+          "amount" : -1.0
+        },
+        "target" : "OPPONENT"
       }
     ]
   }

@@ -57,7 +57,7 @@ public final class EffectInterpreter {
                 yield je;
             }
             case Effect.LevelHands lh -> {
-                if (lh.scope() != Effect.LevelHands.Scope.PLAYED || ctx.handType == null) yield null;
+                if (lh.scope() != Effect.LevelHands.Scope.PLAYED || lh.target() != com.balatro.grammar.Side.SELF || ctx.handType == null) yield null;
                 JokerEffect je = new JokerEffect();
                 je.levelUpHand = ctx.handType;
                 je.levelUpAmount = Math.max(1, (int) Math.round(ValueResolver.resolve(lh.levels(), ctx)));

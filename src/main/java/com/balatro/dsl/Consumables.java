@@ -123,7 +123,8 @@ public final class Consumables {
     public Consumables copyLastConsumable() { return direct(new Effect.Copy(new Selector.LastConsumable(), 1)); }
 
     /** Delevel the nemesis's highest poker hand (Asteroid, MP). */
-    public Consumables nemesisDelevel() { return direct(new Effect.NemesisDelevel()); }
+    public Consumables nemesisDelevel() { return direct(new Effect.LevelHands(
+            Effect.LevelHands.Scope.MOST_PLAYED, new com.balatro.grammar.Value.Const(-1), com.balatro.grammar.Side.OPPONENT)); }
 
     // --- generative verbs (accumulate into one Generate) ---
 

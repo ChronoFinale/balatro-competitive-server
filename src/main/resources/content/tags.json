@@ -369,7 +369,8 @@
         "levels" : {
           "type" : "const",
           "amount" : 3.0
-        }
+        },
+        "target" : "SELF"
       }
     ]
   },

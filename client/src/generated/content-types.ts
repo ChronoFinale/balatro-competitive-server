@@ -42,7 +42,7 @@ export type ConditionType =
   | "scoringAnyFace"
   | "scoringContainsSuit";
 
-/** 25 discriminators the server dispatches on — the client must handle exactly these. */
+/** 24 discriminators the server dispatches on — the client must handle exactly these. */
 export type EffectType =
   | "addCards"
   | "addPack"
@@ -62,7 +62,6 @@ export type EffectType =
   | "levelHands"
   | "mutateCard"
   | "mutateState"
-  | "nemesisDelevel"
   | "overwriteSelected"
   | "score"
   | "shopFlag"

@@ -33,7 +33,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.AddCards.class, name = "addCards"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
     @JsonSubTypes.Type(value = Effect.OverwriteSelected.class, name = "overwriteSelected"),
-    @JsonSubTypes.Type(value = Effect.NemesisDelevel.class, name = "nemesisDelevel"),
     @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
     // --- boss run-loop effects (applied by Run's action interpreter at a lifecycle trigger) ---
     @JsonSubTypes.Type(value = Effect.DiscardRandomHeld.class, name = "discardRandomHeld"),
@@ -121,8 +120,11 @@ public sealed interface Effect {
      * is scoring-time — the hand just played (Space, Burnt) — and sets the same {@code levelUpHand} flag;
      * {@code ALL} (Black Hole) and {@code MOST_PLAYED} (Orbital tag) are run-loop, applied by Run.
      */
-    record LevelHands(Scope scope, Value levels) implements Effect {
+    record LevelHands(Scope scope, Value levels, Side target) implements Effect {
         public enum Scope { PLAYED, ALL, MOST_PLAYED }
+        /** Omitted ⇒ this run; {@code OPPONENT} routes to the Nemesis (Asteroid), resolved by the Match. */
+        public LevelHands { if (target == null) target = Side.SELF; }
+        public LevelHands(Scope scope, Value levels) { this(scope, levels, Side.SELF); }
     }
 
     /**
@@ -181,8 +183,6 @@ public sealed interface Effect {
     record OverwriteSelected() implements Effect {}
 
 
-    /** Asteroid (MP): delevel the nemesis's highest poker hand (resolved by the Match). */
-    record NemesisDelevel() implements Effect {}
 
     // --- boss run-loop effects: pure data fired by Run at a lifecycle trigger (ON_HAND_PLAYED), never in
     //     the scorer. They mutate run state directly through Run's action interpreter, exactly like the
