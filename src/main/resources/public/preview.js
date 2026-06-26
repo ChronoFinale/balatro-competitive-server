@@ -143,7 +143,7 @@
         const r = id(c);
         const even = r === 2 || r === 4 || r === 6 || r === 8 || r === 10;
         const odd = r === 3 || r === 5 || r === 7 || r === 9 || r === 14;
-        return cond.even ? even : odd;
+        return cond.parity === 'EVEN' ? even : odd;
       }
       case 'scoredIsFace': return faceOf(c, ctx);
       case 'scoredRankBetween': return !!c && !isStone(c) && id(c) >= cond.min && id(c) <= cond.max;
@@ -279,7 +279,7 @@
         const held = (ctx.held || []).filter((x) => !isStone(x));
         if (!held.length) return v.base;
         const vals = held.map((x) => baseChips(x));
-        return v.base + v.scale * (v.lowest ? Math.min(...vals) : Math.max(...vals));
+        return v.base + v.scale * (v.end === 'LOWEST' ? Math.min(...vals) : Math.max(...vals));
       }
       case 'deckRankCount': return null; // deck rank composition isn't shipped; end-of-round only
       case 'random': return v.min; // preview floors a random magnitude to its minimum (mirrors server)
