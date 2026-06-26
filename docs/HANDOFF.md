@@ -4,9 +4,8 @@ You are picking up a **server-authoritative, cheat-proof competitive Balatro eng
 reimplemented in **Java 25 / Gradle**. This doc is the honest current state: what it is, how it actually
 works, what's done, and what's still messy. Read it before the others; it points you to them.
 
-> Read order: **this doc → `ORIENT.md` (the 5-minute code map) → `43-the-dsl-vocabulary.md` (the DSL
-> dictionary) → `00-MASTER-DESIGN.md` (the program charter & milestones)**. Everything else is reference,
-> pulled in as needed (see §8).
+> Read order: **this doc → `ORIENT.md` (the 5-minute code map) → `DSL.md` (the vocabulary you author in)**.
+> `CONTENT.md` (content ground-truth) and `SYSTEMS.md` (target specs) are reference, pulled in as needed (§8).
 
 ---
 
@@ -65,7 +64,7 @@ jokers (Greedy/Lusty/Wrathful/Gluttonous = one definition, different suit) is a 
 **changes during the run** (Ride the Bus's streak) is a `counter`/`state`. That's the entire vocabulary
 distinction. Sanity check that must always hold: **a pair of Kings scores 60 = `(10 + 20) × 2`.**
 
-The full closed vocabulary (triggers / conditions / values / effects / selectors) is **`43-the-dsl-vocabulary.md`**.
+The full closed vocabulary (triggers / conditions / values / effects / selectors) is **`docs/DSL.md`**.
 
 ---
 
@@ -124,18 +123,17 @@ treat it as solid but with the four items above open.
 
 ---
 
-## 6. Milestones (the plan of record)
+## 6. Milestones & content inventory
 
-`00-MASTER-DESIGN.md` (charter) + `01-WORK-BREAKDOWN.md` (backlog) decompose the build into **M0–M7**:
-M0 scoring-pipeline correctness → M1 RNG queue topology → M2 run lifecycle + Attrition end-to-end →
-M3 the content building-blocks → M4 content transcription → M5 ruleset layers/curation → M6 networking
-hardening → M7 matchmaking/ranked. M0 underpins everything.
+The build decomposes into **M0–M7** (M0 underpins all): M0 scoring-pipeline correctness → M1 RNG queue
+topology → M2 run lifecycle + Attrition end-to-end → M3 content building-blocks → M4 content transcription →
+M5 ruleset layers/curation → M6 networking hardening → M7 matchmaking/ranked. Detail for each system is in
+`SYSTEMS.md`.
 
-> **Correction for older docs:** `00`/`01` predate a package move. Where they say *"JokerDef algebra v2"* or
-> *"`joker/def`"* for the effect **model**, that is now the **`com.balatro.grammar`** package. The old
-> algebra-spec docs (`40`, `41`) were **deleted** (factually wrong now); the migration-history docs
-> (`42`, `44`, `50`, `51`) were moved to **`docs/design/history/`** — they explain *why* the grammar looks
-> the way it does, but are not current spec.
+**Content inventory** (exact keys/numbers in `CONTENT.md`): ~159 jokers (61 common / 64 uncommon / 20 rare /
+5 legendary / 9 BMP-exclusive), 22 tarots, 12 planets, 18 spectrals, 32 vouchers, 23 decks, 24 skip tags,
+28 boss blinds. ~141 jokers are authored; the remaining jokers + most consumables/vouchers/tags/bosses are
+the transcription work (M3→M4).
 
 ---
 
@@ -154,25 +152,20 @@ hardening → M7 matchmaking/ranked. M0 underpins everything.
 
 ---
 
-## 8. The reference set (what each kept doc is for)
+## 8. The doc set (≈7 files — everything else was consolidated away)
 
-**Foundation:** `balatro-engine-spec.md` (the from-source `evaluate_play` derivation, context/return fields,
-anti-cheat seam) · `queue-model.md` (the game-long-queue determinism model) · `docs/RNG-SECURITY.md` (the
-keyed-PRF competitive RNG vs the vanilla oracle).
+- **`docs/HANDOFF.md`** (this) — current state, architecture, how-it-works, plan, debt. The one living doc.
+- **`docs/DSL.md`** — the DSL dictionary: the closed `when·if·do·who` vocabulary you author content in.
+- **`docs/CONTENT.md`** — ground-truth reference: every joker/consumable/voucher/deck/tag/boss with exact
+  keys, numbers, costs, RNG keys, BMP-vs-vanilla deltas (for authoring the unbuilt items + validation).
+- **`docs/SYSTEMS.md`** — target-behavior specs: scoring pipeline, RNG/queue topology, economy, run
+  lifecycle, PvP/nemesis, networking, ruleset composition + the BMP-0.4.2-ranked overlay.
+- **`docs/RNG-SECURITY.md`** — the keyed-PRF competitive RNG vs the vanilla oracle (anti-cheat).
+- **`balatro-engine-spec.md`** (root) — the from-source `evaluate_play` derivation + anti-cheat seam.
+- **`queue-model.md`** (root) — the game-long-queue determinism model.
+- Also: **`ORIENT.md`** (the 5-minute code map) · **`docs/history/`** (*why* the grammar evolved — not spec).
 
-**DSL / model:** `43-the-dsl-vocabulary.md` (**the** DSL dictionary) · `48-content-generation-pipeline.md`
-(the DSL→JSON→engine/client pipeline) · `49-bespoke-logic-audit.md` (the run-loop-interpreter gap analysis).
-
-**Live status:** `46-joker-as-built-ledger.md` (per-joker as-built faithfulness) ·
-`47-content-as-built-state.md` (the coverage snapshot + the BMP-0.4.2 target decision).
-
-**Content catalogs (ground-truth keys/numbers):** `10`–`13` jokers · `14`–`16` consumables ·
-`17`–`19` vouchers/decks/packs · `20`–`21` tags/bosses.
-
-**System specs:** `30` scoring · `31` rng/queues · `32` economy · `33` run lifecycle ·
-`34` pvp/nemesis · `35` networking · `36` content pipeline · `docs/rulesets/bmp-0.4.2-ranked.md`.
-
-**History (why, not current):** `docs/design/history/` (`42`, `44`, `50`, `51`).
+Always validate content numbers against the real Balatro source at `D:\BalatroMod` before relying on them.
 
 ---
 

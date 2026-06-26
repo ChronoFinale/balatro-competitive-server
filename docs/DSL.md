@@ -1,4 +1,7 @@
-# 43 — The card DSL vocabulary (the word list)
+# DSL — the vocabulary (the word list)
+
+> Orientation + current state: `HANDOFF.md`. Content ground-truth: `CONTENT.md`. The live grammar is the
+> `com.balatro.grammar` package; this is its dictionary.
 
 > The closed vocabulary of the card-effect DSL. A card is one sentence: **`when` · `if` · `do` (`how-much`,
 > `who`)**. This doc is the *dictionary* — every word, its domain meaning, and whether it's a **core word**
