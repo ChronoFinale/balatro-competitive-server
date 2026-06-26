@@ -92,8 +92,8 @@ public final class Cond {
     public static final class CardC {
         static final CardC I = new CardC();
         public Condition suit(Suit s) { return new Condition.ScoredSuit(s); }
-        public Condition even() { return new Condition.ScoredParity(true); }
-        public Condition odd() { return new Condition.ScoredParity(false); }
+        public Condition even() { return new Condition.ScoredParity(Condition.Parity.EVEN); }
+        public Condition odd() { return new Condition.ScoredParity(Condition.Parity.ODD); }
         public Condition rankBetween(int lo, int hi) { return new Condition.ScoredRankBetween(lo, hi); }
         public Condition isFace() { return new Condition.ScoredIsFace(); }
         /** This card is first in scoring order (Photograph, Hanging Chad). */

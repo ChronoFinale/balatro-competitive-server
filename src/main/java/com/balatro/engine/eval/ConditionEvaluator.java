@@ -46,7 +46,7 @@ public final class ConditionEvaluator {
                 int id = c.id();
                 boolean isEven = id == 2 || id == 4 || id == 6 || id == 8 || id == 10;
                 boolean isOdd = id == 3 || id == 5 || id == 7 || id == 9 || id == 14; // Ace = odd
-                yield p.even() ? isEven : isOdd;
+                yield p.parity() == Condition.Parity.EVEN ? isEven : isOdd;
             }
             case Condition.ScoredIsFace ignored -> isFace(ctx, ctx.scoredCard);
             case Condition.ScoredPlayedThisAnte ignored -> ctx.scoredCard != null && ctx.scoredCard.playedThisAnte;

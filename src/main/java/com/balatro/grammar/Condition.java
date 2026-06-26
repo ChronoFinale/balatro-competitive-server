@@ -72,9 +72,10 @@ public sealed interface Condition {
         public ScoredSuit(Suit suit) { this(suit, null); }
     }
 
-    /** Even ({@code true}: 10/8/6/4/2) or odd ({@code false}: A/9/7/5/3) rank (Even Steven / Odd Todd) —
-     *  Ace counts as odd, faces as neither (Stone never matches). */
-    record ScoredParity(boolean even) implements Condition {}
+    /** A scored card's rank parity (Even Steven / Odd Todd) — Ace counts as {@code ODD}, faces as neither
+     *  (Stone never matches). */
+    enum Parity { EVEN, ODD }
+    record ScoredParity(Parity parity) implements Condition {}
 
     /** The scoring card is a face card (J/Q/K). */
     record ScoredIsFace() implements Condition {}

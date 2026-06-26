@@ -74,7 +74,7 @@ public final class JokerText {
     /** A per-scored-card condition → "even-rank card" / "face card" / "Heart". */
     private static String cardCond(Condition c) {
         if (isAlways(c)) return "card";
-        if (c instanceof Condition.ScoredParity pa) return (pa.even() ? "even" : "odd") + "-rank card";
+        if (c instanceof Condition.ScoredParity pa) return (pa.parity() == Condition.Parity.EVEN ? "even" : "odd") + "-rank card";
         if (c instanceof Condition.ScoredIsFace) return "face card";
         if (c instanceof Condition.ScoredSuit s && s.suit() != null) return suit(s.suit()) + " card";
         return null;

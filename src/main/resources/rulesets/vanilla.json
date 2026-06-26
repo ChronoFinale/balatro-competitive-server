@@ -289,7 +289,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredParity",
-          "even" : true
+          "parity" : "EVEN"
         },
         "effects" : [
           {
@@ -809,7 +809,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredParity",
-          "even" : false
+          "parity" : "ODD"
         },
         "effects" : [
           {
