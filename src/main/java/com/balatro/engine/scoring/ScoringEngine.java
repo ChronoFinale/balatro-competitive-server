@@ -469,8 +469,4 @@ public final class ScoringEngine {
         acc.log.add(new ReplayEntry(source, kind, amount,
                 Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
     }
-
-    private static String fmt(double d) {
-        return d == Math.floor(d) ? String.valueOf((long) d) : String.valueOf(d);
-    }
 }

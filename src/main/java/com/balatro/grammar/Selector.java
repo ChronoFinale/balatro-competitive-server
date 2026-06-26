@@ -1,7 +1,5 @@
 package com.balatro.grammar;
 
-import com.balatro.dsl.*;
-
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 

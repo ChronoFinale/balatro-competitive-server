@@ -157,9 +157,4 @@ public final class EffectInterpreter {
             state.put(ms.var(), next);
         }
     }
-
-    static String fmt(double v) {
-        if (v == Math.rint(v) && !Double.isInfinite(v)) return Long.toString((long) v);
-        return Double.toString(v);
-    }
 }
