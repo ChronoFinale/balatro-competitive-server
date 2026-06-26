@@ -7,13 +7,13 @@ package com.balatro.grammar;
  * are the sprite cell in Balatro's Jokers atlas (from game.lua) — used only if
  * the local {@code web-assets} atlas is present; no art is shipped.
  *
- * rarity: "Common" | "Uncommon" | "Rare".
+ * rarity: the joker's {@link Rarity}.
  */
 public record JokerInfo(
         String key,
         String name,
         String description,
-        String rarity,
+        Rarity rarity,
         int cost,
         int atlasX,
         int atlasY) {

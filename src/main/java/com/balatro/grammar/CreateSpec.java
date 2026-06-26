@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @param destination where the created thing lands: the PLAYER's slots, or the next SHOP (free-joker tags)
  * @param edition     for a SHOP JOKER: a forced edition (Foil/Holo/Poly/Negative tags); NONE = by rarity
  */
-public record CreateSpec(Kind kind, int count, String rarity, Enhancement enhancement,
+public record CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement,
                          Seal seal, boolean randomSeal, JokerStream stream, boolean dedup,
                          Destination destination, Edition edition) {
 
@@ -52,7 +52,7 @@ public record CreateSpec(Kind kind, int count, String rarity, Enhancement enhanc
      *  get_current_pool skips already-owned by default; only Top-Up opts out. Delegates to canonical. */
     @JsonCreator
     public static CreateSpec fromJson(@JsonProperty("kind") Kind kind, @JsonProperty("count") int count,
-            @JsonProperty("rarity") String rarity, @JsonProperty("enhancement") Enhancement enhancement,
+            @JsonProperty("rarity") Rarity rarity, @JsonProperty("enhancement") Enhancement enhancement,
             @JsonProperty("seal") Seal seal, @JsonProperty("randomSeal") boolean randomSeal,
             @JsonProperty("stream") JokerStream stream, @JsonProperty("dedup") Boolean dedup,
             @JsonProperty("destination") Destination destination, @JsonProperty("edition") Edition edition) {
@@ -68,24 +68,24 @@ public record CreateSpec(Kind kind, int count, String rarity, Enhancement enhanc
         this(kind, count, null, null, null, false, null, true, null, null);
     }
 
-    public CreateSpec(Kind kind, int count, String rarity, Enhancement enhancement) {
+    public CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement) {
         this(kind, count, rarity, enhancement, null, false, null, true, null, null);
     }
 
-    public CreateSpec(Kind kind, int count, String rarity, Enhancement enhancement,
+    public CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement,
             Seal seal, boolean randomSeal) {
         this(kind, count, rarity, enhancement, seal, randomSeal, null, true, null, null);
     }
 
     /** A JOKER grant straight to the player with explicit stream + dedup (the Top-Up tag: TOPUP, no dedup). */
-    public static CreateSpec jokers(int count, String rarity, JokerStream stream, boolean dedup) {
+    public static CreateSpec jokers(int count, Rarity rarity, JokerStream stream, boolean dedup) {
         return new CreateSpec(Kind.JOKER, count, rarity, null, null, false, stream, dedup,
                 Destination.PLAYER, Edition.NONE);
     }
 
     /** A free JOKER in the next shop — by {@code rarity} from the tag:joker queue (Rare/Uncommon tags), or
      *  a random one with a forced {@code edition} (Foil/Holo/Poly/Negative tags; rarity null). */
-    public static CreateSpec shopJoker(String rarity, Edition edition) {
+    public static CreateSpec shopJoker(Rarity rarity, Edition edition) {
         return new CreateSpec(Kind.JOKER, 1, rarity, null, null, false,
                 JokerStream.TAG_SHOP, false, Destination.SHOP, edition);
     }

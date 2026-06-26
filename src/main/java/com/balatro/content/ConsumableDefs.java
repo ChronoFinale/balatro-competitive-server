@@ -47,8 +47,8 @@ public final class ConsumableDefs {
         c.add(Consumables.tarot("c_judgement", "Judgement").createJoker().build());
         c.add(Consumables.tarot("c_hermit", "The Hermit").doubleMoney(20).build());
         c.add(Consumables.tarot("c_temperance", "Temperance").gainSellValue(50).build());
-        c.add(Consumables.spectral("c_the_soul", "The Soul").createJoker("Legendary").build());
-        c.add(Consumables.spectral("c_wraith", "The Wraith").createJoker("Rare").setMoney(0).build());
+        c.add(Consumables.spectral("c_the_soul", "The Soul").createJoker(com.balatro.grammar.Rarity.LEGENDARY).build());
+        c.add(Consumables.spectral("c_wraith", "The Wraith").createJoker(com.balatro.grammar.Rarity.RARE).setMoney(0).build());
         c.add(Consumables.spectral("c_immolate", "Immolate").destroyInHand(5).gainMoney(20).build());
         c.add(Consumables.spectral("c_familiar", "Familiar").destroyInHand(1).addFaceCards(3).build());
         c.add(Consumables.spectral("c_grim", "Grim").destroyInHand(1).addAces(2).build());

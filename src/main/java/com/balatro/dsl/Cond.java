@@ -58,7 +58,7 @@ public final class Cond {
     public static Condition handsSinceAcquired(int max) { return new Condition.HandsSinceAcquire(max); }
 
     /** The reacted-to joker (ON_OTHER_JOKER) is of {@code rarity} (Baseball Card). */
-    public static Condition otherJokerRarity(String rarity) { return new Condition.OtherJokerRarity(rarity); }
+    public static Condition otherJokerRarity(com.balatro.grammar.Rarity rarity) { return new Condition.OtherJokerRarity(rarity); }
 
     /** A run variable modulo {@code mod} equals {@code remainder} (Loyalty Card: every 6 hands). */
     public static Condition runVarModulo(Property which, int mod, int remainder) {

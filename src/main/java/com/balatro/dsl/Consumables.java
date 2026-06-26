@@ -137,7 +137,7 @@ public final class Consumables {
     public Consumables createJoker() { this.create = new CreateSpec(CreateSpec.Kind.JOKER, 1); return this; }
 
     /** Create one random Joker of a fixed {@code rarity} (The Soul = Legendary, Wraith = Rare). */
-    public Consumables createJoker(String rarity) { this.create = new CreateSpec(CreateSpec.Kind.JOKER, 1, rarity, null); return this; }
+    public Consumables createJoker(com.balatro.grammar.Rarity rarity) { this.create = new CreateSpec(CreateSpec.Kind.JOKER, 1, rarity, null); return this; }
 
     /** Destroy {@code n} random cards in hand (Immolate / Familiar / Grim). */
     public Consumables destroyInHand(int n) { this.destroyInHand = n; return this; }

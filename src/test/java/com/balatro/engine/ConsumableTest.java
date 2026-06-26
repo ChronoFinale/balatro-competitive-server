@@ -84,7 +84,7 @@ class ConsumableTest {
     void theWraithSkipsRareJokersYouAlreadyOwn() {
         // Own every Rare but one; the Wraith must create the missing one, never a duplicate
         // (BMP marks owned jokers UNAVAILABLE in the pool and the draw advances past them).
-        java.util.List<String> rares = com.balatro.engine.joker.JokerLibrary.keysByRarity("Rare");
+        java.util.List<String> rares = com.balatro.engine.joker.JokerLibrary.keysByRarity(com.balatro.grammar.Rarity.RARE);
         org.junit.jupiter.api.Assumptions.assumeTrue(rares.size() >= 2);
         String missing = rares.get(rares.size() - 1);
         java.util.List<com.balatro.engine.joker.Joker> owned = new java.util.ArrayList<>();
@@ -102,7 +102,7 @@ class ConsumableTest {
     void multiplayerSoulNeverCreatesABannedLegendary() {
         Ruleset mp = new Ruleset("MP", 4, 4, 3, 8, 1.0, 8,
                 new int[]{300, 800, 2000, 5000, 11000, 20000, 35000, 50000}, null, "multiplayer");
-        java.util.List<String> legends = com.balatro.engine.joker.JokerLibrary.keysByRarity("Legendary")
+        java.util.List<String> legends = com.balatro.engine.joker.JokerLibrary.keysByRarity(com.balatro.grammar.Rarity.LEGENDARY)
                 .stream().filter(k -> !com.balatro.engine.joker.JokerLibrary.MP_BANNED.contains(k)).toList();
         org.junit.jupiter.api.Assumptions.assumeTrue(legends.size() >= 2);
         String missing = legends.get(legends.size() - 1);
@@ -189,7 +189,7 @@ class ConsumableTest {
         run.state.consumables.add("c_the_soul");
         assertThat(run.useConsumable(0)).isNull();
         var made = run.state.jokers().get(run.state.jokers().size() - 1);
-        assertThat(made.info().rarity()).isEqualTo("Legendary");
+        assertThat(made.info().rarity()).isEqualTo(com.balatro.grammar.Rarity.LEGENDARY);
     }
 
     @Test
@@ -200,7 +200,7 @@ class ConsumableTest {
         assertThat(run.useConsumable(0)).isNull();
         assertThat(run.state.money).isEqualTo(0);
         var made = run.state.jokers().get(run.state.jokers().size() - 1);
-        assertThat(made.info().rarity()).isEqualTo("Rare");
+        assertThat(made.info().rarity()).isEqualTo(com.balatro.grammar.Rarity.RARE);
     }
 
     @Test

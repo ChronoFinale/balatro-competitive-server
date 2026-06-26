@@ -59,10 +59,10 @@ public final class JokerLibrary {
     public static final java.util.Set<String> MP_BANNED =
             java.util.Set.copyOf(com.balatro.engine.joker.def.Rulesets.removedKeys(MP_OVERLAY));
 
-    /** Built-in joker keys of a given rarity (e.g. "Common") — Riff Raff's creation pool. */
-    public static java.util.List<String> keysByRarity(String rarity) {
+    /** Built-in joker keys of a given rarity — Riff Raff's creation pool. */
+    public static java.util.List<String> keysByRarity(com.balatro.grammar.Rarity rarity) {
         return BUILTIN_KEYS.stream()
-                .filter(k -> rarity.equals(create(k).info().rarity()))
+                .filter(k -> rarity == create(k).info().rarity())
                 .toList();
     }
 

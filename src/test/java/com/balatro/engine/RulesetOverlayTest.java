@@ -35,7 +35,7 @@ class RulesetOverlayTest {
         JokerDef seltzer = base("j_seltzer");
         JokerDef patched = JokerOverlays.patch(seltzer, M.readTree("{\"rarity\":\"Rare\",\"cost\":9}"));
 
-        assertThat(patched.rarity()).isEqualTo("Rare");
+        assertThat(patched.rarity()).isEqualTo(com.balatro.grammar.Rarity.RARE);
         assertThat(patched.cost()).isEqualTo(9);
         // everything else carried through untouched
         assertThat(patched.key()).isEqualTo(seltzer.key());
@@ -50,12 +50,12 @@ class RulesetOverlayTest {
                 List.of(new RulesetOverlay.Override("j_golden_ticket", "MP: Uncommon",
                         M.readTree("{\"rarity\":\"Uncommon\"}"))),
                 List.of(new RulesetOverlay.Add("test joker",
-                        new JokerDef("j_unit_test", "Unit Test", "x", "Common", 3, 0, 0, null, null, true, List.of()))));
+                        new JokerDef("j_unit_test", "Unit Test", "x", com.balatro.grammar.Rarity.COMMON, 3, 0, 0, null, null, true, List.of()))));
 
         Map<String, JokerDef> eff = JokerOverlays.apply(base, overlay);
         assertThat(eff).doesNotContainKey("j_chicot");
         assertThat(eff).containsKey("j_unit_test");
-        assertThat(eff.get("j_golden_ticket").rarity()).isEqualTo("Uncommon");
+        assertThat(eff.get("j_golden_ticket").rarity()).isEqualTo(com.balatro.grammar.Rarity.UNCOMMON);
 
         RulesetDiff diff = JokerOverlays.diff(base, overlay);
         assertThat(diff.of(RulesetDiff.Kind.REMOVED)).singleElement()

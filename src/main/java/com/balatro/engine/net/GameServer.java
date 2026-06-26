@@ -625,7 +625,7 @@ public final class GameServer implements AutoCloseable {
         return out;
     }
 
-    private static Map<String, Object> jokerCard(String key, String name, String rarity, int cost, boolean custom) {
+    private static Map<String, Object> jokerCard(String key, String name, com.balatro.grammar.Rarity rarity, int cost, boolean custom) {
         Map<String, Object> m = new java.util.LinkedHashMap<>();
         m.put("key", key);
         m.put("name", name);

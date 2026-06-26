@@ -20,9 +20,11 @@ public final class JokerMeta {
     private JokerMeta() {}
 
     /** One joker's ground-truth metadata. */
-    public record Meta(String rarity, int cost, int atlasX, int atlasY) {}
+    public record Meta(com.balatro.grammar.Rarity rarity, int cost, int atlasX, int atlasY) {}
 
-    private static final String[] RARITY = {"", "Common", "Uncommon", "Rare", "Legendary"};
+    private static final com.balatro.grammar.Rarity[] RARITY = {null,
+            com.balatro.grammar.Rarity.COMMON, com.balatro.grammar.Rarity.UNCOMMON,
+            com.balatro.grammar.Rarity.RARE, com.balatro.grammar.Rarity.LEGENDARY};
     private static final Map<String, Meta> META = load();
 
     private static Map<String, Meta> load() {
@@ -34,7 +36,7 @@ public final class JokerMeta {
                 JsonNode v = e.getValue();
                 if (!v.isObject() || !v.has("cost")) return; // skip the "_note" strings
                 int r = v.path("rarity").asInt();
-                out.put(e.getKey(), new Meta(r >= 1 && r <= 4 ? RARITY[r] : "Common",
+                out.put(e.getKey(), new Meta(r >= 1 && r <= 4 ? RARITY[r] : com.balatro.grammar.Rarity.COMMON,
                         v.path("cost").asInt(),
                         v.has("x") ? v.path("x").asInt() : 0,
                         v.has("y") ? v.path("y").asInt() : 0));
@@ -50,9 +52,9 @@ public final class JokerMeta {
         return META.containsKey(key);
     }
 
-    public static String rarity(String key) {
+    public static com.balatro.grammar.Rarity rarity(String key) {
         Meta m = META.get(key);
-        return m != null ? m.rarity() : "Common";
+        return m != null ? m.rarity() : com.balatro.grammar.Rarity.COMMON;
     }
 
     public static int cost(String key) {

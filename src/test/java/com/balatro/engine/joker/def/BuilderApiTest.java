@@ -36,7 +36,7 @@ class BuilderApiTest {
             assertThat(schema.path("conditionTypes").size()).isGreaterThan(10);
             assertThat(schema.path("enums").path("suit").size()).isEqualTo(4);
 
-            JokerDef def = new JokerDef("j_custom_wire", "Wire Joker", "+11 Mult", "Common",
+            JokerDef def = new JokerDef("j_custom_wire", "Wire Joker", "+11 Mult", com.balatro.grammar.Rarity.COMMON,
                     4, 0, 0, null, null, true,
                     java.util.List.of(new Rule(
                             com.balatro.grammar.Trigger.JOKER_MAIN, new Condition.Always(),

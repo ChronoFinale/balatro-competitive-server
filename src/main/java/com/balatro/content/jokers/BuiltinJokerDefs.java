@@ -463,7 +463,7 @@ public final class BuiltinJokerDefs {
                         .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, Enhancement.STONE)).build(),
                 Jokers.of("j_riff_raff", "Riff-Raff")
                         .on(Trigger.BLIND_SELECTED)
-                        .create(new CreateSpec(CreateSpec.Kind.JOKER, 2, "Common", null)).build(),
+                        .create(new CreateSpec(CreateSpec.Kind.JOKER, 2, Rarity.COMMON, null)).build(),
                 Jokers.of("j_sixth_sense", "Sixth Sense")
                         .forEachScored(Cond.all(playedHand().sizeExactly(1), card().rankBetween(6, 6)))
                         .effect(new Effect.Destroy(new Selector.Focus()), new Effect.Create(new CreateSpec(CreateSpec.Kind.SPECTRAL))).build(),
@@ -651,7 +651,7 @@ public final class BuiltinJokerDefs {
 
                 // --- batch 22: joker-on-joker reads (Baseball Card, Swashbuckler) ---
                 Jokers.of("j_baseball_card", "Baseball Card")
-                        .on(Trigger.ON_OTHER_JOKER).when(Cond.otherJokerRarity("Uncommon")).multiply(MULT, 1.5).build(),
+                        .on(Trigger.ON_OTHER_JOKER).when(Cond.otherJokerRarity(Rarity.UNCOMMON)).multiply(MULT, 1.5).build(),
                 Jokers.of("j_swashbuckler", "Swashbuckler")
                         .whenHand().add(MULT, Val.otherJokersSellSum(0, 1)).build(),
 

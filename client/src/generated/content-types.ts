@@ -128,7 +128,7 @@ export interface JokerDef {
   key: string;
   name: string;
   description?: string;
-  rarity?: string;
+  rarity?: "Common" | "Uncommon" | "Rare" | "Legendary";
   cost: number;
   atlasX: number;
   atlasY: number;

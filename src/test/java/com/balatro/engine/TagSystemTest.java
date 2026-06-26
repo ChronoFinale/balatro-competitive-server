@@ -86,7 +86,7 @@ class TagSystemTest {
         run.play(FIVE); // win Small -> shop opens, ON_SHOP tags resolve
         var free = run.shop.items().stream()
                 .filter(it -> it.kind() == com.balatro.engine.game.Shop.Kind.JOKER)
-                .filter(it -> it.cost() == 0 && "Rare".equals(it.rarity()))
+                .filter(it -> it.cost() == 0 && it.rarity() == com.balatro.grammar.Rarity.RARE)
                 .findFirst();
         assertThat(free).as("a free Rare joker was added").isPresent();
         assertThat(run.state.tags).doesNotContain("tag_rare"); // consumed

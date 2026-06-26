@@ -28,7 +28,9 @@ import org.junit.jupiter.api.Test;
 class JokerStatsAuditTest {
 
     /** game.lua rarity ints -> our rarity names. */
-    private static final Map<Integer, String> RARITY = Map.of(1, "Common", 2, "Uncommon", 3, "Rare", 4, "Legendary");
+    private static final Map<Integer, com.balatro.grammar.Rarity> RARITY = Map.of(
+            1, com.balatro.grammar.Rarity.COMMON, 2, com.balatro.grammar.Rarity.UNCOMMON,
+            3, com.balatro.grammar.Rarity.RARE, 4, com.balatro.grammar.Rarity.LEGENDARY);
 
     /** Vanilla values we deliberately diverge from (BMP balance changes). Each entry must ACTUALLY differ
      *  from vanilla or the staleness check below fails. Empty = we match vanilla everywhere. */
@@ -51,12 +53,12 @@ class JokerStatsAuditTest {
             if (INTENTIONAL_DEVIATIONS.contains(key)) continue;
             JokerInfo info = JokerLibrary.create(key).info();
             int wantCost = v.path("cost").asInt();
-            String wantRarity = RARITY.get(v.path("rarity").asInt());
+            com.balatro.grammar.Rarity wantRarity = RARITY.get(v.path("rarity").asInt());
             if (info.cost() != wantCost) {
                 mismatches.add(key + ": cost " + info.cost() + " but vanilla is " + wantCost);
             }
-            if (!wantRarity.equals(info.rarity())) {
-                mismatches.add(key + ": rarity " + info.rarity() + " but vanilla is " + wantRarity);
+            if (wantRarity != info.rarity()) {
+                mismatches.add(key + ": rarity " + info.rarity().wire() + " but vanilla is " + wantRarity.wire());
             }
             if (v.has("x") && (info.atlasX() != v.path("x").asInt() || info.atlasY() != v.path("y").asInt())) {
                 mismatches.add(key + ": atlas (" + info.atlasX() + "," + info.atlasY()
@@ -76,7 +78,7 @@ class JokerStatsAuditTest {
             if (v == null) continue;
             JokerInfo info = JokerLibrary.create(key).info();
             boolean differs = info.cost() != v.path("cost").asInt()
-                    || !RARITY.get(v.path("rarity").asInt()).equals(info.rarity());
+                    || RARITY.get(v.path("rarity").asInt()) != info.rarity();
             assertThat(differs)
                     .as("'%s' is listed as an intentional deviation but now matches vanilla — drop it", key)
                     .isTrue();

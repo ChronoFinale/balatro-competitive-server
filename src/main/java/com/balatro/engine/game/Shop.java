@@ -38,12 +38,12 @@ public final class Shop {
     /** A single shop slot — any {@link Kind}, with the display fields the client renders. {@code card}
      *  is set only for PLAYING_CARD slots (Magic Trick / Illusion), carrying the actual card to buy. */
     public record Item(Kind kind, String key, String name, String description,
-                       int cost, String rarity, Edition edition,
+                       int cost, com.balatro.grammar.Rarity rarity, Edition edition,
                        boolean eternal, boolean perishable, boolean rental, Card card) {
 
         /** Backward-compatible: an item with no stake stickers and no playing card. */
         public Item(Kind kind, String key, String name, String description,
-                    int cost, String rarity, Edition edition) {
+                    int cost, com.balatro.grammar.Rarity rarity, Edition edition) {
             this(kind, key, name, description, cost, rarity, edition, false, false, false, null);
         }
 
@@ -223,15 +223,15 @@ public final class Shop {
     public static final int RARE_WEIGHT = 5; // Legendary is Soul-only, never a shop roll
 
     /** A joker's rarity from the weights above: Common 70% / Uncommon 25% / Rare 5% (no Legendary). */
-    public static String rollRarity(double x) {
+    public static com.balatro.grammar.Rarity rollRarity(double x) {
         double total = COMMON_WEIGHT + UNCOMMON_WEIGHT + RARE_WEIGHT;
-        if (x < COMMON_WEIGHT / total) return "Common";
-        if (x < (COMMON_WEIGHT + UNCOMMON_WEIGHT) / total) return "Uncommon";
-        return "Rare";
+        if (x < COMMON_WEIGHT / total) return com.balatro.grammar.Rarity.COMMON;
+        if (x < (COMMON_WEIGHT + UNCOMMON_WEIGHT) / total) return com.balatro.grammar.Rarity.UNCOMMON;
+        return com.balatro.grammar.Rarity.RARE;
     }
 
-    private static List<String> byRarity(List<String> pool, String rarity) {
-        return pool.stream().filter(k -> rarity.equals(JokerLibrary.create(k).info().rarity())).toList();
+    private static List<String> byRarity(List<String> pool, com.balatro.grammar.Rarity rarity) {
+        return pool.stream().filter(k -> rarity == JokerLibrary.create(k).info().rarity()).toList();
     }
 
     /**
@@ -244,10 +244,10 @@ public final class Shop {
     public static String drawJoker(QueueSet queues, List<String> pool,
             Set<String> owned, Set<String> offered, boolean showman) {
         List<String> all = pool.isEmpty() ? JokerLibrary.builtinKeys() : pool;
-        String rarity = queues.queue(RngSources.JOKER_RARITY, r -> rollRarity(r.nextDouble())).next();
+        com.balatro.grammar.Rarity rarity = queues.queue(RngSources.JOKER_RARITY, r -> rollRarity(r.nextDouble())).next();
         List<String> byR = byRarity(all, rarity);
         final List<String> draw = byR.isEmpty() ? all : byR; // custom pool may lack this rarity
-        GameQueue<String> q = queues.queue(RngSources.jokerPool(rarity),
+        GameQueue<String> q = queues.queue(RngSources.jokerPool(rarity.wire()),
                 r -> draw.get(r.nextInt(draw.size())));
         boolean anyAcceptable = draw.stream().anyMatch(k -> !owned.contains(k) && !offered.contains(k));
         // Showman allows duplicates; otherwise skip owned/offered. If the whole rarity is exhausted,

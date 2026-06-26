@@ -19,7 +19,8 @@ import org.junit.jupiter.api.Test;
  */
 class ShopTopologyTest {
 
-    private static final Set<String> RARITIES = Set.of("Common", "Uncommon", "Rare");
+    private static final Set<com.balatro.grammar.Rarity> RARITIES =
+            Set.of(com.balatro.grammar.Rarity.COMMON, com.balatro.grammar.Rarity.UNCOMMON, com.balatro.grammar.Rarity.RARE);
 
     @Test
     void slotTypeBands() {
@@ -31,11 +32,11 @@ class ShopTopologyTest {
 
     @Test
     void rarityBands() {
-        assertThat(Shop.rollRarity(0.0)).isEqualTo("Common");
-        assertThat(Shop.rollRarity(0.69)).isEqualTo("Common");
-        assertThat(Shop.rollRarity(0.70)).isEqualTo("Uncommon");
-        assertThat(Shop.rollRarity(0.94)).isEqualTo("Uncommon");
-        assertThat(Shop.rollRarity(0.95)).isEqualTo("Rare");
+        assertThat(Shop.rollRarity(0.0)).isEqualTo(com.balatro.grammar.Rarity.COMMON);
+        assertThat(Shop.rollRarity(0.69)).isEqualTo(com.balatro.grammar.Rarity.COMMON);
+        assertThat(Shop.rollRarity(0.70)).isEqualTo(com.balatro.grammar.Rarity.UNCOMMON);
+        assertThat(Shop.rollRarity(0.94)).isEqualTo(com.balatro.grammar.Rarity.UNCOMMON);
+        assertThat(Shop.rollRarity(0.95)).isEqualTo(com.balatro.grammar.Rarity.RARE);
     }
 
     @Test
@@ -44,8 +45,8 @@ class ShopTopologyTest {
         int n = 10_000, common = 0, uncommon = 0, rare = 0;
         for (int i = 0; i < n; i++) {
             switch (Shop.rollRarity(i / (double) n)) {
-                case "Common" -> common++;
-                case "Uncommon" -> uncommon++;
+                case COMMON -> common++;
+                case UNCOMMON -> uncommon++;
                 default -> rare++;
             }
         }
@@ -64,11 +65,11 @@ class ShopTopologyTest {
 
     @Test
     void aRarityRestrictedPoolOnlyOffersThatRarity() {
-        List<String> rares = JokerLibrary.keysByRarity("Rare");
+        List<String> rares = JokerLibrary.keysByRarity(com.balatro.grammar.Rarity.RARE);
         assertThat(rares).isNotEmpty();
         // Common/Uncommon rarity rolls fall back to the (Rare-only) pool, so every joker is Rare.
         var shop = Shop.generate(new QueueSet(new RandomStreams("RARE")), 24, rares, Set.of(), false);
         assertThat(shop.items().stream().filter(it -> it.kind() == Kind.JOKER))
-                .allMatch(it -> "Rare".equals(it.rarity()));
+                .allMatch(it -> it.rarity() == com.balatro.grammar.Rarity.RARE);
     }
 }

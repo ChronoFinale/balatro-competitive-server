@@ -128,7 +128,7 @@ public final class ConditionEvaluator {
             case Condition.RunVarModulo rm -> ctx.run != null && rm.mod() != 0
                     && Math.floorMod((long) ValueResolver.readVar(rm.which(), ctx), rm.mod()) == rm.remainder();
             case Condition.OtherJokerRarity oj ->
-                    ctx.otherJoker != null && oj.rarity().equals(ctx.otherJoker.info().rarity());
+                    ctx.otherJoker != null && oj.rarity() == ctx.otherJoker.info().rarity();
             case Condition.HandPlayedThisRound ignored -> ctx.run != null && ctx.handType != null
                     && ctx.run.handTypesThisRound.contains(ctx.handType);
             case Condition.RoundHandTypeConsistent ignored -> {

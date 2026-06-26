@@ -198,7 +198,7 @@ class DataJokerTest {
 
     @Test
     void registerDefFlowsThroughTheNormalCreatePath() {
-        JokerDef custom = new JokerDef("j_test_custom", "Tester", "+7 Mult", "Common",
+        JokerDef custom = new JokerDef("j_test_custom", "Tester", "+7 Mult", com.balatro.grammar.Rarity.COMMON,
                 3, 0, 0, null, null, true,
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                         Effect.mult(new Value.Const(7)))));
@@ -307,12 +307,12 @@ class DataJokerTest {
     }
 
     private static DataJoker oneRule(Trigger when, Condition cond, Term subject, double amount) {
-        return new DataJoker(new JokerDef("j_unit", "Unit", "test", "Common", 1, 0, 0, null, null, true,
+        return new DataJoker(new JokerDef("j_unit", "Unit", "test", com.balatro.grammar.Rarity.COMMON, 1, 0, 0, null, null, true,
                 List.of(new Rule(when, cond, new Effect.Score(Effect.Operation.ADD, subject, new Value.Const(amount))))));
     }
 
     private static JokerDef scalingDef(String key, Term subject, Value value) {
-        return new JokerDef(key, key, "test", "Common", 1, 0, 0, null, null, true,
+        return new JokerDef(key, key, "test", com.balatro.grammar.Rarity.COMMON, 1, 0, 0, null, null, true,
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                         new Effect.Score(Effect.Operation.ADD, subject, value))));
     }

@@ -161,7 +161,7 @@ public sealed interface Condition {
     record RunVarModulo(Property which, int mod, int remainder) implements Condition {}
 
     /** The joker being reacted to (ON_OTHER_JOKER) is of the given rarity (Baseball Card). */
-    record OtherJokerRarity(String rarity) implements Condition {}
+    record OtherJokerRarity(Rarity rarity) implements Condition {}
 
     /** The current poker hand has already been played earlier this round (Card Sharp). */
     record HandPlayedThisRound() implements Condition {}

@@ -68,7 +68,7 @@ public final class Creation {
         // The stream is part of the spec — Top-Up draws from tag:topup, consumable-grants from
         // create:joker:<rarity> — so the two never correlate (BMP keeps them on separate queues).
         RngSource src = spec.stream() == CreateSpec.JokerStream.TOPUP
-                ? RngSources.TAG_TOPUP : RngSources.createJoker(spec.rarity());
+                ? RngSources.TAG_TOPUP : RngSources.createJoker(spec.rarity() == null ? null : spec.rarity().wire());
         // dedup=false (Top-Up) draws straight from the pool; dedup=true skips already-owned unless Showman.
         boolean dedup = spec.dedup()
                 && !DataJoker.policyEnabled(run.jokers(), Value.Var.ALLOW_SHOP_DUPLICATES);

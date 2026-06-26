@@ -134,8 +134,20 @@ public final class ClientCodegen {
     /** A string-literal union of an enum's constant names (e.g. the stake ladder). */
     private static void enumType(StringBuilder sb, String tsName, Class<?> e) {
         String members = Arrays.stream(e.getEnumConstants())
-                .map(c -> "\"" + c + "\"").collect(Collectors.joining(" | "));
+                .map(c -> "\"" + enumWire(c) + "\"").collect(Collectors.joining(" | "));
         sb.append("export type ").append(tsName).append(" = ").append(members).append(";\n\n");
+    }
+
+    /** An enum constant's WIRE form — its {@code @JsonValue} method's value if present (so a Rarity emits
+     *  "Common", its JSON value, not the "COMMON" constant name), else its plain name. Keeps the generated
+     *  TS contract matching the actual serialized data. */
+    private static String enumWire(Object constant) {
+        for (var m : constant.getClass().getMethods()) {
+            if (m.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonValue.class)) {
+                try { return String.valueOf(m.invoke(constant)); } catch (ReflectiveOperationException ignored) { }
+            }
+        }
+        return constant.toString();
     }
 
     /** A TS interface reflected from a record's components. Object/string/enum fields are marked optional,
@@ -206,7 +218,7 @@ public final class ClientCodegen {
             if (c == com.balatro.engine.game.BossBlind.FaceDownRule.class) return "FaceDownRule";
             if (c == com.balatro.engine.ui.UiComponent.class) return "UiComponent";
             if (c.isEnum()) {
-                return Arrays.stream(c.getEnumConstants()).map(e -> "\"" + e + "\"")
+                return Arrays.stream(c.getEnumConstants()).map(e -> "\"" + enumWire(e) + "\"")
                         .collect(Collectors.joining(" | "));
             }
             if (c.isArray()) return tsType(c.getComponentType()) + "[]";

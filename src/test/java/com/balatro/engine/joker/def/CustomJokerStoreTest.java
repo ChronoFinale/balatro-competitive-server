@@ -21,7 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 class CustomJokerStoreTest {
 
     private static JokerDef def(String key) {
-        return new JokerDef(key, "Custom " + key, "+9 Mult", "Common", 4, 0, 0, null, null, true,
+        return new JokerDef(key, "Custom " + key, "+9 Mult", com.balatro.grammar.Rarity.COMMON, 4, 0, 0, null, null, true,
                 List.of(new Rule(Trigger.JOKER_MAIN, new Condition.Always(),
                         Effect.mult(new Value.Const(9)))));
     }

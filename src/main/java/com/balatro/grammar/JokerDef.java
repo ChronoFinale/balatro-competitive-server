@@ -23,7 +23,7 @@ public record JokerDef(
         String key,
         String name,
         String description,
-        String rarity,
+        Rarity rarity,
         int cost,
         int atlasX,
         int atlasY,
@@ -48,7 +48,7 @@ public record JokerDef(
             @JsonProperty("key") String key,
             @JsonProperty("name") String name,
             @JsonProperty("description") String description,
-            @JsonProperty("rarity") String rarity,
+            @JsonProperty("rarity") Rarity rarity,
             @JsonProperty("cost") int cost,
             @JsonProperty("atlasX") int atlasX,
             @JsonProperty("atlasY") int atlasY,
@@ -91,7 +91,7 @@ public record JokerDef(
     }
 
     /** Back-compat: no global hand modifiers, no variable modifiers (the common case). */
-    public JokerDef(String key, String name, String description, String rarity, int cost,
+    public JokerDef(String key, String name, String description, Rarity rarity, int cost,
             int atlasX, int atlasY, String spriteUrl, String spriteUrl2x,
             boolean blueprintCompatible, List<Rule> rules) {
         this(key, name, description, rarity, cost, atlasX, atlasY, spriteUrl, spriteUrl2x,
@@ -100,7 +100,7 @@ public record JokerDef(
     }
 
     /** Hand-modifier joker. */
-    public JokerDef(String key, String name, String description, String rarity, int cost,
+    public JokerDef(String key, String name, String description, Rarity rarity, int cost,
             int atlasX, int atlasY, String spriteUrl, String spriteUrl2x,
             boolean blueprintCompatible, List<Rule> rules,
             List<HandMod> handMods) {

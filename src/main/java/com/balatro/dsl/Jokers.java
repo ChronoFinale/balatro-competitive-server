@@ -26,7 +26,7 @@ public final class Jokers {
 
     private final String key;
     private final String name;
-    private final String rarity;
+    private final com.balatro.grammar.Rarity rarity;
     private int cost;
     private boolean costSet;
     private int atlasX;
@@ -43,7 +43,7 @@ public final class Jokers {
     private final java.util.Map<String, Object> props = new java.util.LinkedHashMap<>();
     private final java.util.Map<String, Object> state = new java.util.LinkedHashMap<>();
 
-    private Jokers(String key, String name, String rarity) {
+    private Jokers(String key, String name, com.balatro.grammar.Rarity rarity) {
         this.key = key;
         this.name = name;
         this.rarity = rarity;
@@ -54,13 +54,13 @@ public final class Jokers {
      *  off-table jokers that set their own metadata. */
     public static Jokers of(String key, String name) { return new Jokers(key, name, null); }
 
-    public static Jokers common(String key, String name) { return new Jokers(key, name, "Common"); }
+    public static Jokers common(String key, String name) { return new Jokers(key, name, com.balatro.grammar.Rarity.COMMON); }
 
-    public static Jokers uncommon(String key, String name) { return new Jokers(key, name, "Uncommon"); }
+    public static Jokers uncommon(String key, String name) { return new Jokers(key, name, com.balatro.grammar.Rarity.UNCOMMON); }
 
-    public static Jokers rare(String key, String name) { return new Jokers(key, name, "Rare"); }
+    public static Jokers rare(String key, String name) { return new Jokers(key, name, com.balatro.grammar.Rarity.RARE); }
 
-    public static Jokers legendary(String key, String name) { return new Jokers(key, name, "Legendary"); }
+    public static Jokers legendary(String key, String name) { return new Jokers(key, name, com.balatro.grammar.Rarity.LEGENDARY); }
 
     public Jokers cost(int c) { this.cost = c; this.costSet = true; return this; }
 
@@ -214,7 +214,7 @@ public final class Jokers {
             atlasY = a[1];
         }
         // rarity and cost are metadata too: a def with of(...) and no .cost() sources them from the table.
-        String resolvedRarity = (rarity != null) ? rarity : JokerMeta.rarity(key);
+        com.balatro.grammar.Rarity resolvedRarity = (rarity != null) ? rarity : JokerMeta.rarity(key);
         int resolvedCost = costSet ? cost : JokerMeta.cost(key);
         String resolvedDesc = descSet ? desc : JokerLoc.description(key); // text is localization data, not code
         return new JokerDef(key, name, resolvedDesc, resolvedRarity, resolvedCost, atlasX, atlasY, null, null,

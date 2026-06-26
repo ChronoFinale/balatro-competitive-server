@@ -21,8 +21,8 @@ public final class TagDefs {
     public static List<Tag> authored() {
         List<Tag> t = new ArrayList<>();
         // Free-joker tags are data: a free Joker (by rarity, or random with an edition) in the next shop.
-        add(t, "tag_uncommon", "Uncommon Tag", true, Timing.ON_SHOP, joker("Uncommon"));
-        add(t, "tag_rare", "Rare Tag", true, Timing.ON_SHOP, joker("Rare"));
+        add(t, "tag_uncommon", "Uncommon Tag", true, Timing.ON_SHOP, joker(com.balatro.grammar.Rarity.UNCOMMON));
+        add(t, "tag_rare", "Rare Tag", true, Timing.ON_SHOP, joker(com.balatro.grammar.Rarity.RARE));
         add(t, "tag_negative", "Negative Tag", false, Timing.ON_SHOP, editioned(Edition.NEGATIVE));
         add(t, "tag_foil", "Foil Tag", true, Timing.ON_SHOP, editioned(Edition.FOIL));
         add(t, "tag_holo", "Holographic Tag", true, Timing.ON_SHOP, editioned(Edition.HOLOGRAPHIC));
@@ -55,7 +55,7 @@ public final class TagDefs {
         // Create verb — a JOKER spec drawn from the TOPUP queue with no dedup (the spawn order is raw).
         add(t, "tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE,
                 new Effect.Create(com.balatro.grammar.CreateSpec.jokers(
-                        2, "Common", com.balatro.grammar.CreateSpec.JokerStream.TOPUP, false)));
+                        2, com.balatro.grammar.Rarity.COMMON, com.balatro.grammar.CreateSpec.JokerStream.TOPUP, false)));
         return t;
     }
 
@@ -70,7 +70,7 @@ public final class TagDefs {
     }
 
     /** A free Joker of a rarity in the next shop (Rare/Uncommon) — Create into the SHOP, by rarity. */
-    private static Effect joker(String rarity) {
+    private static Effect joker(com.balatro.grammar.Rarity rarity) {
         return new Effect.Create(com.balatro.grammar.CreateSpec.shopJoker(
                 rarity, com.balatro.engine.card.Edition.NONE));
     }

@@ -1992,10 +1992,10 @@ public final class Run {
     }
 
     /** Add a free Joker of the given rarity to the shop, drawn from a tag-only off-shop queue. */
-    private void addFreeJoker(String rarity) {
+    private void addFreeJoker(com.balatro.grammar.Rarity rarity) {
         List<String> pool = JokerLibrary.keysByRarity(rarity);
         if (pool.isEmpty()) return;
-        String key = state.queues.queue(RngSources.tagJoker(rarity), r -> pool.get(r.nextInt(pool.size()))).next();
+        String key = state.queues.queue(RngSources.tagJoker(rarity.wire()), r -> pool.get(r.nextInt(pool.size()))).next();
         var info = JokerLibrary.create(key).info();
         shop.items().add(new Shop.Item(Shop.Kind.JOKER, key, info.name(), info.description(), 0, info.rarity(), Edition.NONE));
     }

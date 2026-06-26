@@ -52,7 +52,7 @@ class RuleAccumulationTest {
     }
 
     private static DataJoker joker(Rule... rules) {
-        return new DataJoker(new JokerDef("j_accum", "Accum", "test", "Common", 1, 0, 0, null, null, true,
+        return new DataJoker(new JokerDef("j_accum", "Accum", "test", com.balatro.grammar.Rarity.COMMON, 1, 0, 0, null, null, true,
                 List.of(rules)));
     }
 

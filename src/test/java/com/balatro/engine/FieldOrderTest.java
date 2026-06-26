@@ -33,7 +33,7 @@ class FieldOrderTest {
     private static Joker probe(JokerEffect effect) {
         return new Joker() {
             public JokerInfo info() {
-                return new JokerInfo("j_probe", "Probe", "test", "Common", 0, 0, 0);
+                return new JokerInfo("j_probe", "Probe", "test", com.balatro.grammar.Rarity.COMMON, 0, 0, 0);
             }
             public JokerEffect calculate(EvaluationContext ctx) {
                 return ctx.phase == Trigger.JOKER_MAIN ? effect : null;
@@ -72,7 +72,7 @@ class FieldOrderTest {
         // final step. The score blows past double's ~1.8e308 ceiling but BigNum holds it.
         Joker cryptid = new Joker() {
             public JokerInfo info() {
-                return new JokerInfo("j_cryptid_probe", "Cryptid Probe", "test", "Common", 0, 0, 0);
+                return new JokerInfo("j_cryptid_probe", "Cryptid Probe", "test", com.balatro.grammar.Rarity.COMMON, 0, 0, 0);
             }
             public JokerEffect calculate(EvaluationContext ctx) {
                 if (ctx.phase != Trigger.FINAL_SCORING_STEP) return null;
@@ -113,7 +113,7 @@ class FieldOrderTest {
         int[] fired = {0};
         Joker j = new Joker() {
             public JokerInfo info() {
-                return new JokerInfo("j_final_probe", "Final Probe", "test", "Common", 0, 0, 0);
+                return new JokerInfo("j_final_probe", "Final Probe", "test", com.balatro.grammar.Rarity.COMMON, 0, 0, 0);
             }
             public JokerEffect calculate(EvaluationContext ctx) {
                 if (ctx.phase == Trigger.FINAL_SCORING_STEP) {
