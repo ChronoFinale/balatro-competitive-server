@@ -100,7 +100,7 @@ public final class ScoringEngine {
             acc.chips = acc.chips.multiply(0.5);
             acc.mult = acc.mult.multiply(0.5);
         }
-        log(acc, hr.type().display, ReplayEntry.Kind.INFO, 0);
+        log(acc, hr.type().name(), ReplayEntry.Kind.INFO, 0); // hand-type key (e.g. HIGH_CARD), not prose
 
         List<Joker> jokers = run.jokers();
         EvaluationContext ctx = baseContext(hr, played, scoring, held, run, rng, jokers);
@@ -215,7 +215,7 @@ public final class ScoringEngine {
         // Observatory voucher: a held Planet gives xMult to its own hand (resolved on RunState by Run).
         if (run.heldPlanetMult > 1.0 && run.heldPlanetHands.contains(hr.type())) {
             acc.mult = acc.mult.multiply(run.heldPlanetMult);
-            log(acc, "Observatory", ReplayEntry.Kind.XMULT, run.heldPlanetMult);
+            log(acc, "v_observatory", ReplayEntry.Kind.XMULT, run.heldPlanetMult);
         }
 
         // (6c) credit money earned during scoring (Rough Gem, Business Card, Bootstraps,
@@ -229,7 +229,7 @@ public final class ScoringEngine {
             BigNum half = acc.chips.add(acc.mult).multiply(0.5).floor();
             acc.chips = half;
             acc.mult = half;
-            log(acc, "Plasma Deck", ReplayEntry.Kind.INFO, 0);
+            log(acc, "b_plasma", ReplayEntry.Kind.INFO, 0);
         }
 
         // (7) final score (big-number; chips × mult).
@@ -332,7 +332,7 @@ public final class ScoringEngine {
                 JokerEffect je = com.balatro.engine.eval.EffectInterpreter.apply(s, ctx);
                 if (je != null && je.repetitions > 0) {
                     reps += je.repetitions;
-                    log(acc, "Red Seal", ReplayEntry.Kind.RETRIGGER, 1);
+                    log(acc, "seal_red", ReplayEntry.Kind.RETRIGGER, 1);
                 }
             }
         }
