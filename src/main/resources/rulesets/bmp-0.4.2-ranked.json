@@ -126,13 +126,13 @@
             "effects" : [
               {
                 "type" : "grantDiscards",
-                "toOpponent" : false,
+                "recipient" : "SELF",
                 "amount" : 1,
                 "blinds" : 3
               },
               {
                 "type" : "grantDiscards",
-                "toOpponent" : true,
+                "recipient" : "OPPONENT",
                 "amount" : 2,
                 "blinds" : 3
               },

@@ -116,8 +116,8 @@ public final class BuiltinJokerDefs {
                 // Pizza: consumed at PvP end -> temporary discards (mine + the Nemesis's).
                 Jokers.of("j_pizza", "Pizza")
                         .on(Trigger.PVP_BLIND_ENDED).effect(
-                                new Effect.GrantDiscards(false, 1, 3),  // +1 discard to me, next 3 blinds
-                                new Effect.GrantDiscards(true, 2, 3),   // +2 discards to the Nemesis
+                                new Effect.GrantDiscards(Side.SELF, 1, 3),      // +1 discard to me, next 3 blinds
+                                new Effect.GrantDiscards(Side.OPPONENT, 2, 3),  // +2 discards to the Nemesis
                                 new Effect.Destroy(new Selector.Self()))               // consumed
                         .build(),
                 // Speedrun: reach PvP first -> Spectral (match-coordinated).

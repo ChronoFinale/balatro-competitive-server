@@ -72,7 +72,7 @@ public final class EffectInterpreter {
                 JokerEffect je = new JokerEffect();
                 je.grantDiscards = gd.amount();
                 je.grantDiscardBlinds = gd.blinds();
-                je.grantToOpponent = gd.toOpponent();
+                je.grantToOpponent = gd.recipient() == com.balatro.grammar.Side.OPPONENT;
                 yield je;
             }
             case Effect.MutateState ms -> mutateState(ms, ctx);

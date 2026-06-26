@@ -231,9 +231,10 @@ public sealed interface Effect {
     /** Grant a free skip {@code tag} (honouring a held Double Tag) — Diet Cola creates a Double Tag on sell. */
     record CreateTag(String tag) implements Effect {}
 
-    /** Grant a temporary discard bonus for {@code blinds} blinds, to this run or — when {@code toOpponent} —
-     *  the Nemesis (Pizza). The Match supplies the opponent run on the context; {@code GameEvents} applies it. */
-    record GrantDiscards(boolean toOpponent, int amount, int blinds) implements Effect {}
+    /** Grant a temporary discard bonus for {@code blinds} blinds to the given {@link Side} — Pizza grants to
+     *  {@code SELF} and to the Nemesis. The Match supplies the opponent run on the context; {@code GameEvents}
+     *  applies it. */
+    record GrantDiscards(Side recipient, int amount, int blinds) implements Effect {}
 
     /**
      * Persistently write a scaling counter — Ride the Bus's streak, Constellation's planet count. This is

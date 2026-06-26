@@ -1,5 +1,5 @@
 {
-  "version" : "2074b1841354bf3f",
+  "version" : "1bd5a35c3d4cd3d1",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
@@ -8,8 +8,8 @@
     },
     {
       "path" : "rulesets/bmp-0.4.2-ranked.json",
-      "sha256" : "5d579c9ba71d0bcca3bd72acfe3a78a69eea3c168ead0bf516c6775338caa1b8",
-      "bytes" : 14377
+      "sha256" : "590855eeed2735252bdbe17b80ca045a1807aa875b9936487f591f3ba4060b03",
+      "bytes" : 14382
     },
     {
       "path" : "content/decks.json",
