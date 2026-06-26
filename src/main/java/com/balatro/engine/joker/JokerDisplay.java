@@ -37,11 +37,32 @@ public final class JokerDisplay {
         JokerEffect e = jokers.get(index).calculate(ctx);
         StringBuilder sb = new StringBuilder();
         for (JokerEffect cur = e; cur != null; cur = cur.extra) {
-            if (cur.message != null && !cur.message.isEmpty()) {
+            String label = label(cur);
+            if (!label.isEmpty()) {
                 if (sb.length() > 0) sb.append(", ");
-                sb.append(cur.message);
+                sb.append(label);
             }
         }
         return sb.toString();
+    }
+
+    /** The joker's live value, DERIVED from the effect's numeric fields (not a pre-built string). This one
+     *  display label is server-computed BY DESIGN — its purpose is that a thin client reads it directly — so
+     *  it is built here, from data, in one place, rather than smuggled through the scoring interpreter. */
+    private static String label(JokerEffect e) {
+        if (e.xMult != null && e.xMult != 1.0) return "x" + fmt(e.xMult) + " Mult";
+        if (e.powMult != null && e.powMult != 1.0) return "^" + fmt(e.powMult) + " Mult";
+        if (e.mult != 0) return "+" + fmt(e.mult) + " Mult";
+        if (e.hMult != 0) return "+" + fmt(e.hMult) + " Mult";
+        if (e.xChips != null && e.xChips != 1.0) return "x" + fmt(e.xChips) + " Chips";
+        if (e.chips != 0) return "+" + fmt(e.chips) + " Chips";
+        if (e.dollars != 0) return (e.dollars > 0 ? "+$" : "-$") + Math.abs(e.dollars);
+        if (e.repetitions > 0) return "Retrigger";
+        return "";
+    }
+
+    private static String fmt(double v) {
+        if (v == Math.rint(v) && !Double.isInfinite(v)) return Long.toString((long) v);
+        return Double.toString(v);
     }
 }

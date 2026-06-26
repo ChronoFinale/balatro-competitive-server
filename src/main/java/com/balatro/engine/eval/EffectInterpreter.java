@@ -84,28 +84,28 @@ public final class EffectInterpreter {
         double v = ValueResolver.resolve(s.value(), ctx);
         Effect.Operation op = s.op();
         return switch (s.term()) {
-            case CHIPS -> { requireAdd(op, s); yield v == 0 ? null : JokerEffect.chips(Math.round(v)).msg("+" + fmt(v) + " Chips"); }
-            case DOLLARS -> { requireAdd(op, s); yield v == 0 ? null : JokerEffect.dollars(Math.round(v)).msg("+$" + fmt(v)); }
+            case CHIPS -> { requireAdd(op, s); yield v == 0 ? null : JokerEffect.chips(Math.round(v)); }
+            case DOLLARS -> { requireAdd(op, s); yield v == 0 ? null : JokerEffect.dollars(Math.round(v)); }
             case RETRIGGERS -> {
                 requireAdd(op, s);
                 int r = (int) Math.round(v);
-                yield r == 0 ? null : JokerEffect.repetitions(r).msg("Retrigger");
+                yield r == 0 ? null : JokerEffect.repetitions(r);
             }
             case HELD_MULT -> {
                 requireAdd(op, s);
                 if (v == 0) yield null;
                 JokerEffect e = new JokerEffect();
                 e.hMult = v;
-                yield e.msg("+" + fmt(v) + " Mult");
+                yield e;
             }
             case MULT -> switch (op) {
-                case ADD -> v == 0 ? null : JokerEffect.mult(v).msg("+" + fmt(v) + " Mult");
-                case MULTIPLY -> v == 1.0 ? null : JokerEffect.xMult(v).msg("x" + fmt(v) + " Mult");
+                case ADD -> v == 0 ? null : JokerEffect.mult(v);
+                case MULTIPLY -> v == 1.0 ? null : JokerEffect.xMult(v);
                 case POWER -> {
                     if (v == 1.0) yield null;
                     JokerEffect e = new JokerEffect();
                     e.powMult = v;
-                    yield e.msg("^" + fmt(v) + " Mult");
+                    yield e;
                 }
                 default -> throw new IllegalStateException(op + " is not a scoring operation (only ADD/MULTIPLY/POWER)");
             };

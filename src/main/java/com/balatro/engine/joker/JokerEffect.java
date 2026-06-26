@@ -42,7 +42,6 @@ public final class JokerEffect {
     public int grantDiscards;
     public int grantDiscardBlinds;
     public boolean grantToOpponent;
-    public String message;
     /** Attribution for the replay log; set by the engine/Blueprint. */
     public String source;
 
@@ -88,8 +87,4 @@ public final class JokerEffect {
         return e;
     }
 
-    public JokerEffect msg(String m) {
-        this.message = m;
-        return this;
-    }
 }
