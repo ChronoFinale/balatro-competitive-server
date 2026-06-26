@@ -321,7 +321,8 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "createCards",
+        "type" : "addCards",
+        "rankClass" : "NUMBER",
         "count" : 4,
         "enhancement" : "BONUS"
       }

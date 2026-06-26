@@ -29,7 +29,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.Copy.class, name = "copy"),
     @JsonSubTypes.Type(value = Effect.MutateState.class, name = "mutateState"),
     // --- consumable / action effects (applied by Run's action interpreter, not the scorer) ---
-    @JsonSubTypes.Type(value = Effect.CreateCards.class, name = "createCards"),
     @JsonSubTypes.Type(value = Effect.EditionJoker.class, name = "editionJoker"),
     @JsonSubTypes.Type(value = Effect.AddCards.class, name = "addCards"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
@@ -158,10 +157,6 @@ public sealed interface Effect {
     // --- consumable / action effects: pure data, applied immediately to the run by Run's action
     //     interpreter (which resolves the Selector against the live hand / jokers / RNG). They are part of
     //     the one Effect vocabulary so a consumable is authored as a List<Effect>, exactly like a joker. ---
-
-    /** Add {@code count} new numbered cards (random rank/suit) with an enhancement to the deck (Incantation). */
-    record CreateCards(int count, Enhancement enhancement) implements Effect {}
-
 
     /** Give the {@link Selector}'d joker an {@code edition} ({@code NONE} = a random Foil/Holo/Poly) — the
      *  edition core, target as an argument. Used with {@link Bind}/{@link Selector.Bound} so Ectoplasm/Hex

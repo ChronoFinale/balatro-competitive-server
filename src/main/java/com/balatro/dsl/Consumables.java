@@ -69,7 +69,7 @@ public final class Consumables {
 
     /** Add {@code count} new numbered cards with an enhancement to the deck (Incantation). */
     public Consumables createCards(int count, Enhancement enhancement) {
-        return direct(new Effect.CreateCards(count, enhancement));
+        return direct(new AddCards(AddCards.RankClass.NUMBER, count, enhancement)); // Incantation: numbered cards
     }
 
     /** Level up every poker hand by 1 (Black Hole). */

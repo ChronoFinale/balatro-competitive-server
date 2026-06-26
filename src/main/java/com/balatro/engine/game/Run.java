@@ -1429,18 +1429,6 @@ public final class Run {
                     apply(new com.balatro.engine.exec.Command.DestroyCards(resolveTargets(c, d.selector(), targets)));
                 }
             }
-            case Effect.CreateCards cr -> {
-                var r = rng.stream("create:" + c.key());
-                Rank[] ranks = Rank.values();
-                Suit[] suits = Suit.values();
-                List<Card> made = new ArrayList<>();
-                for (int i = 0; i < cr.count(); i++) {
-                    Rank rank;
-                    do { rank = ranks[r.nextInt(ranks.length)]; } while (rank.id > 10); // numbered cards
-                    made.add(new Card(rank, suits[r.nextInt(suits.length)], cr.enhancement(), Edition.NONE, Seal.NONE));
-                }
-                apply(new com.balatro.engine.exec.Command.AddCardsToDeck(made));
-            }
             case Effect.LevelHands lh -> applyLevelHands(lh); // Black Hole (ALL)
             case Effect.AddCards a -> addRankClassCards(c, a);                  // Familiar / Grim rank-class adds
             case Effect.EditionJoker ej -> { // Ectoplasm/Hex: edition the bound joker (Wheel keeps JokerEdition)
