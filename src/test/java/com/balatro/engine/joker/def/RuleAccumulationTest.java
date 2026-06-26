@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
-import com.balatro.engine.joker.JokerEffect;
+import com.balatro.engine.joker.JokerResult;
 import com.balatro.grammar.Trigger;
 import com.balatro.engine.state.RunState;
 import java.util.List;
@@ -29,12 +29,13 @@ class RuleAccumulationTest {
                 new Rule(Trigger.JOKER_MAIN, ALWAYS, Effect.chips(new Value.Const(10))),
                 new Rule(Trigger.JOKER_MAIN, ALWAYS, Effect.mult(new Value.Const(5))));
 
-        JokerEffect e = j.calculate(ctx(j, Trigger.JOKER_MAIN));
+        JokerResult e = j.calculate(ctx(j, Trigger.JOKER_MAIN));
 
-        assertThat(e).isNotNull();
-        assertThat(e.chips).isEqualTo(10);
-        assertThat(e.extra).isNotNull();
-        assertThat(e.extra.mult).isEqualTo(5); // the second rule chained on, not dropped
+        assertThat(e.contributions()).hasSize(2); // both rules contributed, in authoring order
+        assertThat(e.contributions().get(0).term()).isEqualTo(Effect.Term.CHIPS);
+        assertThat(e.contributions().get(0).amount()).isEqualTo(10.0);
+        assertThat(e.contributions().get(1).term()).isEqualTo(Effect.Term.MULT);
+        assertThat(e.contributions().get(1).amount()).isEqualTo(5.0); // the second rule concatenated, not dropped
     }
 
     @Test
@@ -45,9 +46,10 @@ class RuleAccumulationTest {
                         new Effect.MutateState("count", Effect.Operation.ADD, 1, null, null)));
 
         EvaluationContext c = ctx(j, Trigger.JOKER_MAIN);
-        JokerEffect e = j.calculate(c);
+        JokerResult e = j.calculate(c);
 
-        assertThat(e.mult).isEqualTo(4);                  // scoring rule applied
+        assertThat(e.contributions()).hasSize(1);            // scoring rule applied
+        assertThat(e.contributions().get(0).amount()).isEqualTo(4.0);
         assertThat(c.selfState().get("count")).isEqualTo(1); // and the later write still ran
     }
 

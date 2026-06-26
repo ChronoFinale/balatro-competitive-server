@@ -2,9 +2,12 @@ package com.balatro.engine.game;
 
 import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Enhancement;
+import com.balatro.engine.exec.Command;
+import com.balatro.engine.joker.Contribution;
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
-import com.balatro.engine.joker.JokerEffect;
+import com.balatro.engine.joker.JokerResult;
+import com.balatro.grammar.Effect;
 import com.balatro.grammar.Trigger;
 import com.balatro.engine.rng.RandomStreams;
 import com.balatro.engine.scoring.ReplayEntry;
@@ -44,7 +47,7 @@ public final class GameEvents {
             ctx.phase = trigger;
             ctx.selfIndex = i;
             ctx.blueprintDepth = 0;
-            JokerEffect e = jokers.get(i).calculate(ctx);
+            JokerResult e = jokers.get(i).calculate(ctx);
             applyEconomy(e, run, log, jokers.get(i).name(), ctx);
             if (wantsSelfDestroy(e)) consumed.add(jokers.get(i)); // remove after the pass, never mid-iteration
         }
@@ -89,41 +92,50 @@ public final class GameEvents {
         return raise(Trigger.USE_CONSUMABLE, run, rng, ctx -> ctx.consumableType = category);
     }
 
-    private static void applyEconomy(JokerEffect e, RunState run, List<ReplayEntry> log, String source,
+    private static void applyEconomy(JokerResult e, RunState run, List<ReplayEntry> log, String source,
                                      EvaluationContext ctx) {
-        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
-            if (cur.dollars != 0) {
-                run.money += cur.dollars;
-                log.add(new ReplayEntry(source, ReplayEntry.Kind.DOLLARS, cur.dollars, 0, 0));
+        for (Contribution c : e.contributions()) { // economy dollars (forward order; not the scoring defer)
+            if (c.term() == Effect.Term.DOLLARS) {
+                run.money += (long) c.amount();
+                log.add(new ReplayEntry(source, ReplayEntry.Kind.DOLLARS, c.amount(), 0, 0));
             }
-            if (cur.destroyEventCards && ctx.eventCards != null) { // Trading Card: destroy the discarded set
-                for (Card c : ctx.eventCards) c.destroyed = true;  // Run.play purges destroyed from the deck
-                log.add(new ReplayEntry(source, ReplayEntry.Kind.DESTROY, 0, 0, 0));
-            }
-            if (cur.create != null && run.queues != null) {
-                int before = run.consumables.size();
-                com.balatro.engine.consumable.Creation.apply(run, cur.create, run.queues);
-                if (run.consumables.size() > before) {
-                    log.add(new ReplayEntry(source, ReplayEntry.Kind.CREATE, 0, 0, 0));
+        }
+        for (Command cmd : e.commands()) {
+            switch (cmd) {
+                case Command.DestroyEventCards ignored -> { // Trading Card: destroy the discarded set
+                    if (ctx.eventCards != null) {
+                        for (Card c : ctx.eventCards) c.destroyed = true; // Run.play purges destroyed from the deck
+                        log.add(new ReplayEntry(source, ReplayEntry.Kind.DESTROY, 0, 0, 0));
+                    }
                 }
-            }
-            if (cur.levelUpHand != null) {
-                for (int i = 0; i < cur.levelUpAmount; i++) run.levelUpHand(cur.levelUpHand);
-                log.add(new ReplayEntry(source, ReplayEntry.Kind.LEVELUP, cur.levelUpAmount, 0, 0));
-            }
-            if (cur.grantDiscards != 0) { // Pizza: temp discards to self, or to the Nemesis (Match-supplied)
-                RunState target = cur.grantToOpponent ? ctx.opponentRun : run;
-                if (target != null) {
-                    target.grantTempDiscards(cur.grantDiscards, cur.grantDiscardBlinds);
-                    log.add(new ReplayEntry(source, ReplayEntry.Kind.DISCARDS, cur.grantDiscards, 0, 0));
+                case Command.Create cr -> {
+                    if (run.queues != null) {
+                        int before = run.consumables.size();
+                        com.balatro.engine.consumable.Creation.apply(run, cr.spec(), run.queues);
+                        if (run.consumables.size() > before) {
+                            log.add(new ReplayEntry(source, ReplayEntry.Kind.CREATE, 0, 0, 0));
+                        }
+                    }
                 }
+                case Command.LevelHand lh -> {
+                    for (int i = 0; i < lh.levels(); i++) run.levelUpHand(lh.hand());
+                    log.add(new ReplayEntry(source, ReplayEntry.Kind.LEVELUP, lh.levels(), 0, 0));
+                }
+                case Command.GrantDiscards gd -> { // Pizza: temp discards to self, or to the Nemesis (Match-supplied)
+                    RunState target = gd.recipient() == com.balatro.grammar.Side.OPPONENT ? ctx.opponentRun : run;
+                    if (target != null) {
+                        target.grantTempDiscards(gd.amount(), gd.blinds());
+                        log.add(new ReplayEntry(source, ReplayEntry.Kind.DISCARDS, gd.amount(), 0, 0));
+                    }
+                }
+                default -> { /* DestroySelf handled by wantsSelfDestroy; scoring-only commands don't occur here */ }
             }
         }
     }
 
-    /** True if any link in the chain asks to consume its joker (Pizza on PvP end). */
-    private static boolean wantsSelfDestroy(JokerEffect e) {
-        for (JokerEffect cur = e; cur != null; cur = cur.extra) if (cur.destroySelf) return true;
+    /** True if the result asks to consume its joker (Gros Michel / Pizza). */
+    private static boolean wantsSelfDestroy(JokerResult e) {
+        for (Command cmd : e.commands()) if (cmd instanceof Command.DestroySelf) return true;
         return false;
     }
 }

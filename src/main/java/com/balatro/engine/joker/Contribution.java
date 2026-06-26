@@ -3,9 +3,9 @@ package com.balatro.engine.joker;
 import com.balatro.grammar.Effect;
 
 /**
- * One typed scoring contribution from a joker or card — the replacement for the {@link JokerEffect} bag's
+ * One typed scoring contribution from a joker or card — the replacement for the old {@code JokerEffect} bag's
  * scoring fields. Models the scoring axes ONCE, reusing the grammar's own {@link Effect.Operation} ×
- * {@link Effect.Term} (no parallel enum): the bag's eight scoring fields are just eight (op, term) cells —
+ * {@link Effect.Term} (no parallel enum): those eight scoring fields are just eight (op, term) cells —
  * {@code chips=(ADD,CHIPS)}, {@code mult=(ADD,MULT)}, {@code hMult=(ADD,HELD_MULT)},
  * {@code dollars=(ADD,DOLLARS)}, {@code repetitions=(ADD,RETRIGGERS)}, {@code xMult=(MULTIPLY,MULT)},
  * {@code xChips=(MULTIPLY,CHIPS)}, {@code powMult=(POWER,MULT)}.

@@ -9,9 +9,12 @@ import com.balatro.engine.hand.HandEvaluator;
 import com.balatro.engine.hand.HandMod;
 import com.balatro.engine.hand.HandMods;
 import com.balatro.engine.hand.HandResult;
+import com.balatro.engine.exec.Command;
+import com.balatro.engine.joker.Contribution;
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
-import com.balatro.engine.joker.JokerEffect;
+import com.balatro.engine.joker.JokerResult;
+import com.balatro.grammar.Effect;
 import com.balatro.grammar.Trigger;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.rng.QueueSet;
@@ -139,7 +142,7 @@ public final class ScoringEngine {
                     ctx.selfIndex = i;
                     ctx.blueprintDepth = 0;
                     ctx.scoredCard = card;
-                    JokerEffect e = jokers.get(i).calculate(ctx);
+                    JokerResult e = jokers.get(i).calculate(ctx);
                     apply(acc, e, jokers.get(i).name());
                     if (!preview) {
                         applyCardMods(acc, e, card);
@@ -171,7 +174,7 @@ public final class ScoringEngine {
                     ctx.selfIndex = i;
                     ctx.blueprintDepth = 0;
                     ctx.scoredCard = card;
-                    JokerEffect e = jokers.get(i).calculate(ctx);
+                    JokerResult e = jokers.get(i).calculate(ctx);
                     apply(acc, e, jokers.get(i).name());
                     if (!preview) applyCardMods(acc, e, card);
                 }
@@ -191,7 +194,7 @@ public final class ScoringEngine {
             Edition ed = run.jokerEdition(current);
             if (ed == Edition.FOIL) { acc.chips = acc.chips.add(BigNum.of(50)); log(acc, current.name(), ReplayEntry.Kind.CHIPS, 50); }
             else if (ed == Edition.HOLOGRAPHIC) { acc.mult = acc.mult.add(BigNum.of(10)); log(acc, current.name(), ReplayEntry.Kind.MULT, 10); }
-            JokerEffect me = current.calculate(ctx);
+            JokerResult me = current.calculate(ctx);
             apply(acc, me, current.name());
             if (ed == Edition.POLYCHROME) { acc.mult = acc.mult.multiply(1.5); log(acc, current.name(), ReplayEntry.Kind.XMULT, 1.5); }
             if (!preview) {
@@ -244,53 +247,42 @@ public final class ScoringEngine {
         return run.jokerFlag(j, "debuffed") || run.jokerFlag(j, "bossDisabled");
     }
 
-    /** Walk an effect and its {@code extra}-chain, invoking {@code visit} on each link. */
-    private static void forEachInChain(JokerEffect e, java.util.function.Consumer<JokerEffect> visit) {
-        for (JokerEffect cur = e; cur != null; cur = cur.extra) visit.accept(cur);
+    /** Apply any card mutations carried by the result's commands to the scored card (MutateScoredCard). */
+    private void applyCardMods(Acc acc, JokerResult e, Card target) {
+        if (target == null) return;
+        for (Command cmd : e.commands()) {
+            if (cmd instanceof Command.MutateScoredCard m) {
+                m.mod().applyTo(target);
+                log(acc, target.toString(), ReplayEntry.Kind.MUTATE, 0);
+            }
+        }
     }
 
-    /** True if any effect in the chain satisfies {@code pred}. */
-    private static boolean anyInChain(JokerEffect e, java.util.function.Predicate<JokerEffect> pred) {
-        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
-            if (pred.test(cur)) return true;
+    /** Apply any CREATE commands (real play only — never previewed). */
+    private void applyCreate(JokerResult e, RunState run, QueueSet queues) {
+        for (Command cmd : e.commands()) {
+            if (cmd instanceof Command.Create cr) Creation.apply(run, cr.spec(), queues);
         }
+    }
+
+    /** Apply any LevelHand commands to the played hand (real play only). */
+    private void applyLevelUp(JokerResult e, RunState run) {
+        for (Command cmd : e.commands()) {
+            if (cmd instanceof Command.LevelHand lh) {
+                for (int i = 0; i < lh.levels(); i++) run.levelUpHand(lh.hand());
+            }
+        }
+    }
+
+    /** Mark the scored card destroyed if any command says so (real play only). */
+    private static boolean destroysScored(JokerResult e) {
+        for (Command cmd : e.commands()) if (cmd instanceof Command.DestroyScored) return true;
         return false;
     }
 
-    /** Apply any card mutations carried by an effect (and its extra-chain) to the scored card. */
-    private void applyCardMods(Acc acc, JokerEffect e, Card target) {
-        if (target == null) return;
-        forEachInChain(e, cur -> {
-            if (cur.cardMod != null) {
-                cur.cardMod.applyTo(target);
-                log(acc, target.toString(), ReplayEntry.Kind.MUTATE, 0);
-            }
-        });
-    }
-
-    /** Apply any CREATE effects in the chain (real play only — never previewed). */
-    private void applyCreate(JokerEffect e, RunState run, QueueSet queues) {
-        forEachInChain(e, cur -> {
-            if (cur.create != null) Creation.apply(run, cur.create, queues);
-        });
-    }
-
-    /** Apply any LEVEL_UP_HAND effects in the chain (real play only). */
-    private void applyLevelUp(JokerEffect e, RunState run) {
-        forEachInChain(e, cur -> {
-            if (cur.levelUpHand != null) {
-                for (int i = 0; i < cur.levelUpAmount; i++) run.levelUpHand(cur.levelUpHand);
-            }
-        });
-    }
-
-    /** Mark the scored card destroyed if any effect in the chain says so (real play only). */
-    private static boolean destroysScored(JokerEffect e) {
-        return anyInChain(e, cur -> cur.destroyScored);
-    }
-
-    private static boolean copiesScored(JokerEffect e) {
-        return anyInChain(e, cur -> cur.copyScored);
+    private static boolean copiesScored(JokerResult e) {
+        for (Command cmd : e.commands()) if (cmd instanceof Command.CopyScored) return true;
+        return false;
     }
 
     /** An effect-producing joker pass for a whole-hand phase (BEFORE-style seams). */
@@ -329,9 +321,9 @@ public final class ScoringEngine {
                 : com.balatro.content.CardModifiers.SEAL.getOrDefault(card.seal, java.util.List.of())) {
             if (e instanceof com.balatro.grammar.Effect.Score s
                     && s.term() == com.balatro.grammar.Effect.Term.RETRIGGERS) {
-                JokerEffect je = com.balatro.engine.eval.EffectInterpreter.apply(s, ctx);
-                if (je != null && je.repetitions > 0) {
-                    reps += je.repetitions;
+                int r = retriggerAmount(com.balatro.engine.eval.EffectInterpreter.apply(s, ctx));
+                if (r > 0) {
+                    reps += r;
                     log(acc, "seal_red", ReplayEntry.Kind.RETRIGGER, 1);
                 }
             }
@@ -341,13 +333,23 @@ public final class ScoringEngine {
             ctx.selfIndex = i;
             ctx.blueprintDepth = 0;
             ctx.scoredCard = card;
-            JokerEffect e = jokers.get(i).calculate(ctx);
-            if (e != null && e.repetitions > 0) {
-                reps += e.repetitions;
-                log(acc, jokers.get(i).name(), ReplayEntry.Kind.RETRIGGER, e.repetitions);
+            int r = retriggerAmount(jokers.get(i).calculate(ctx));
+            if (r > 0) {
+                reps += r;
+                log(acc, jokers.get(i).name(), ReplayEntry.Kind.RETRIGGER, r);
             }
         }
         return reps;
+    }
+
+    /** Sum the (ADD, RETRIGGERS) contributions in a result — the count-up pass ignores them; only this
+     *  REPETITION pass reads them. */
+    private static int retriggerAmount(JokerResult r) {
+        int total = 0;
+        for (Contribution c : r.contributions()) {
+            if (c.term() == Effect.Term.RETRIGGERS) total += (int) c.amount();
+        }
+        return total;
     }
 
     /** Card base + enhancement + edition + seal, applied as one ordered entry. */
@@ -407,47 +409,52 @@ public final class ScoringEngine {
         applyCardModifierEffects(acc, com.balatro.content.CardModifiers.HELD.get(card.enhancement), ctx, card);
     }
 
-    /** Entry point: resolve the source label, then apply per SMODS calculation order. */
-    private void apply(Acc acc, JokerEffect e, String defaultSource) {
-        if (e == null) return;
-        applyEffect(acc, e, e.source != null ? e.source : defaultSource);
+    /**
+     * Fold a joker's scoring {@link Contribution}s into the accumulator. Each contribution is one (op, term)
+     * cell applied in LIST ORDER — positional, not canonical: a {@code +mult} contributed after an {@code xMult}
+     * lands OUTSIDE the multiply, exactly as the old per-link {@code extra}-chain did. {@code DOLLARS} is the one
+     * exception: the old {@code applyEffect} logged dollars only AFTER recursing the {@code extra}-subtree, so a
+     * joker mixing {@code $} with scoring emitted its DOLLARS entry last (multiple in reverse link order). That
+     * byte-exact ordering is preserved here: non-dollars in list order, then dollars in reverse. RETRIGGERS are
+     * read only by {@link #retriggers}, never here. Source falls back to the joker (or the copier's relabel).
+     */
+    private void apply(Acc acc, JokerResult r, String defaultSource) {
+        if (r == null) return;
+        List<Contribution> cs = r.contributions();
+        for (Contribution c : cs) {
+            if (c.term() == Effect.Term.DOLLARS || c.term() == Effect.Term.RETRIGGERS) continue;
+            applyContribution(acc, c, c.source() != null ? c.source() : defaultSource);
+        }
+        for (int i = cs.size() - 1; i >= 0; i--) { // dollars deferred to the end, in reverse (extra-chain unwind)
+            Contribution c = cs.get(i);
+            if (c.term() != Effect.Term.DOLLARS) continue;
+            String src = c.source() != null ? c.source() : defaultSource;
+            acc.dollars += (long) c.amount();
+            acc.log.add(new ReplayEntry(src, ReplayEntry.Kind.DOLLARS, c.amount(),
+                    Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
+        }
     }
 
-    /**
-     * Apply one effect's fields in the real per-source order (doc 30 §1b,
-     * {@code calculation_keys}): {@code chips → mult → xchips → xmult}, then recurse
-     * the {@code extra} chain, then non-scoring keys (dollars / swap / balance /
-     * message). {@code x}-fields are guarded by {@code amount != 1}. {@code hMult}
-     * (held +mult) is additive and joins the mult step.
-     */
-    private void applyEffect(Acc acc, JokerEffect e, String src) {
-        if (e == null) return;
-        if (e.chips != 0) {
-            acc.chips = acc.chips.add(BigNum.of(e.chips));
-            log(acc, src, ReplayEntry.Kind.CHIPS, e.chips);
-        }
-        double addMult = e.mult + e.hMult;
-        if (addMult != 0) {
-            acc.mult = acc.mult.add(BigNum.of(addMult));
-            log(acc, src, ReplayEntry.Kind.MULT, addMult);
-        }
-        if (e.xChips != null && e.xChips != 1.0) {
-            acc.chips = acc.chips.multiply(e.xChips);
-            log(acc, src, ReplayEntry.Kind.XCHIPS, e.xChips);
-        }
-        if (e.xMult != null && e.xMult != 1.0) {
-            acc.mult = acc.mult.multiply(e.xMult);
-            log(acc, src, ReplayEntry.Kind.XMULT, e.xMult);
-        }
-        if (e.powMult != null && e.powMult != 1.0) {
-            acc.mult = acc.mult.pow(e.powMult); // exponential (Cryptid e_mult-style) — needs BigNum
-            log(acc, src, ReplayEntry.Kind.POWMULT, e.powMult);
-        }
-        applyEffect(acc, e.extra, src); // the extra-chain recurses with the same ordering
-        if (e.dollars != 0) {
-            acc.dollars += e.dollars;
-            acc.log.add(new ReplayEntry(src, ReplayEntry.Kind.DOLLARS, e.dollars,
-                    Math.round(acc.chips.doubleValue()), acc.mult.doubleValue()));
+    /** Apply one scoring contribution: ADD chips/mult(+held), MULTIPLY chips/mult, POWER mult. Zero/identity
+     *  cells were already dropped by the interpreter, so every contribution here is live. */
+    private void applyContribution(Acc acc, Contribution c, String src) {
+        switch (c.op()) {
+            case ADD -> {
+                switch (c.term()) {
+                    case CHIPS -> { acc.chips = acc.chips.add(BigNum.of((long) c.amount())); log(acc, src, ReplayEntry.Kind.CHIPS, c.amount()); }
+                    case MULT, HELD_MULT -> { acc.mult = acc.mult.add(BigNum.of(c.amount())); log(acc, src, ReplayEntry.Kind.MULT, c.amount()); }
+                    default -> { /* DOLLARS / RETRIGGERS handled outside the fold */ }
+                }
+            }
+            case MULTIPLY -> {
+                switch (c.term()) {
+                    case CHIPS -> { acc.chips = acc.chips.multiply(c.amount()); log(acc, src, ReplayEntry.Kind.XCHIPS, c.amount()); }
+                    case MULT -> { acc.mult = acc.mult.multiply(c.amount()); log(acc, src, ReplayEntry.Kind.XMULT, c.amount()); }
+                    default -> throw new IllegalStateException("MULTIPLY unsupported for term " + c.term());
+                }
+            }
+            case POWER -> { acc.mult = acc.mult.pow(c.amount()); log(acc, src, ReplayEntry.Kind.POWMULT, c.amount()); } // Cryptid e_mult-style
+            default -> throw new IllegalStateException(c.op() + " is not a scoring operation");
         }
     }
 

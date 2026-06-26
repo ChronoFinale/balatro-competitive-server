@@ -14,7 +14,7 @@ import java.util.List;
  * effect. The {@code Effect} grammar is declarative ("destroy the random-in-hand selector"); interpreting it
  * (resolving Values, rolling RNG to pick the actual cards) yields a Command ("destroy these two cards"). The
  * engine applies the Command via {@code Run.apply}. This is the action-side twin of the scoring
- * {@code JokerEffect}: one resolved-mutation path the interpreter switches funnel through.
+ * scoring {@code JokerResult}: one resolved-mutation path the interpreter switches funnel through.
  *
  * <p>Migration in progress (review plan #1): action-effect families move from direct mutation in {@code Run}
  * onto this hierarchy one at a time. Cases are added as families are migrated.
@@ -63,7 +63,7 @@ public sealed interface Command {
     record LevelHand(HandType hand, int levels) implements Command {}
 
     // --- scoring-time side-effects (consumed by ScoringEngine at the scoring moment; replace the
-    //     JokerEffect action booleans). These act on contextual cards/jokers the scorer already knows. ---
+    //     old JokerEffect action booleans). These act on contextual cards/jokers the scorer already knows. ---
 
     /** Destroy the card currently being scored (Sixth Sense); real play only. */
     record DestroyScored() implements Command {}

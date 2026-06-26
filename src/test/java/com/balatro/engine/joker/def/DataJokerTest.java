@@ -12,10 +12,11 @@ import com.balatro.engine.card.Rank;
 import com.balatro.engine.card.Seal;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
+import com.balatro.engine.joker.Contribution;
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
-import com.balatro.engine.joker.JokerEffect;
 import com.balatro.engine.joker.JokerLibrary;
+import com.balatro.engine.joker.JokerResult;
 import com.balatro.grammar.Trigger;
 import com.balatro.grammar.Effect.Term;
 import com.balatro.engine.rng.RandomStreams;
@@ -29,13 +30,30 @@ import org.junit.jupiter.api.Test;
 /**
  * Per-scenario JSON round-trip fidelity for the data joker model: for representative jokers across each
  * relevant trigger (positive and negative cases), the live {@link DataJoker} must produce the exact same
- * effect as one rebuilt from the serialize → deserialize of its def. If a joker survives a JSON round-trip
- * indistinguishably, the data model + its (de)serialization are faithful. (This was a data-vs-hand-coded
- * equivalence suite; every joker is data now, so round-trip fidelity is the invariant that remained.)
+ * {@link JokerResult} as one rebuilt from the serialize → deserialize of its def. If a joker survives a JSON
+ * round-trip indistinguishably, the data model + its (de)serialization are faithful. (This was a
+ * data-vs-hand-coded equivalence suite; every joker is data now, so round-trip fidelity is the invariant.)
  */
 class DataJokerTest {
 
     private final ObjectMapper json = new ObjectMapper();
+
+    // --- JokerResult accessors (the bag's old fields, read off the typed contributions) ---
+
+    private static double sum(JokerResult r, Effect.Operation op, Term term) {
+        double t = 0;
+        for (Contribution c : r.contributions()) if (c.op() == op && c.term() == term) t += c.amount();
+        return t;
+    }
+    private static double chips(JokerResult r) { return sum(r, Effect.Operation.ADD, Term.CHIPS); }
+    private static double mult(JokerResult r) { return sum(r, Effect.Operation.ADD, Term.MULT); }
+    private static double dollars(JokerResult r) { return sum(r, Effect.Operation.ADD, Term.DOLLARS); }
+    private static Double xMult(JokerResult r) {
+        for (Contribution c : r.contributions())
+            if (c.op() == Effect.Operation.MULTIPLY && c.term() == Term.MULT) return c.amount();
+        return null;
+    }
+    private static boolean isEmpty(JokerResult r) { return r.contributions().isEmpty() && r.commands().isEmpty(); }
 
     // --- flat / conditional / per-card jokers --------------------------------
 
@@ -52,7 +70,7 @@ class DataJokerTest {
         });
         assertEquivalent("j_greedy_joker", c -> {
             c.phase = Trigger.ON_SCORED;
-            c.scoredCard = c(Rank.SEVEN, Suit.CLUBS); // not a diamond -> null
+            c.scoredCard = c(Rank.SEVEN, Suit.CLUBS); // not a diamond -> empty
         });
     }
 
@@ -64,7 +82,7 @@ class DataJokerTest {
         });
         assertEquivalent("j_sly_joker", c -> {
             c.phase = Trigger.JOKER_MAIN;
-            c.handType = HandType.HIGH_CARD; // no pair -> null
+            c.handType = HandType.HIGH_CARD; // no pair -> empty
         });
     }
 
@@ -89,7 +107,7 @@ class DataJokerTest {
         });
         assertEquivalent("j_even_steven", c -> {
             c.phase = Trigger.ON_SCORED;
-            c.scoredCard = c(Rank.FIVE, Suit.SPADES); // odd -> null
+            c.scoredCard = c(Rank.FIVE, Suit.SPADES); // odd -> empty
         });
     }
 
@@ -101,14 +119,14 @@ class DataJokerTest {
         });
         assertEquivalent("j_hack", c -> {
             c.phase = Trigger.REPETITION_PLAYED;
-            c.scoredCard = c(Rank.SIX, Suit.SPADES); // out of range -> null
+            c.scoredCard = c(Rank.SIX, Suit.SPADES); // out of range -> empty
         });
     }
 
     @Test
     void goldenJokerPaysAtEndOfRound() {
         assertEquivalent("j_golden", c -> c.phase = Trigger.END_OF_ROUND);
-        assertEquivalent("j_golden", c -> c.phase = Trigger.JOKER_MAIN); // wrong trigger -> null
+        assertEquivalent("j_golden", c -> c.phase = Trigger.JOKER_MAIN); // wrong trigger -> empty
     }
 
     @Test
@@ -141,10 +159,10 @@ class DataJokerTest {
                 c.scoringCards = scoring;
             });
             // JOKER_MAIN reads the streak the BEFORE step just advanced
-            JokerEffect e = step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN);
+            JokerResult e = step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN);
             // sanity: a no-face streak yields positive mult, a broken streak yields nothing
             if (scoring == withFace) {
-                assertThat(e).isNull();
+                assertThat(isEmpty(e)).isTrue();
             }
         }
     }
@@ -156,22 +174,22 @@ class DataJokerTest {
         RunState run = new RunState();
 
         // before any planet: no effect
-        assertThat(step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN)).isNull();
+        assertThat(isEmpty(step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN))).isTrue();
 
         usePlanet(code, data, run);
-        JokerEffect one = step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN);
-        assertThat(one).isNotNull();
-        assertThat(one.xMult).isEqualTo(1.1);
+        JokerResult one = step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN);
+        assertThat(isEmpty(one)).isFalse();
+        assertThat(xMult(one)).isEqualTo(1.1);
 
         usePlanet(code, data, run);
-        assertThat(step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN).xMult).isEqualTo(1.2);
+        assertThat(xMult(step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN))).isEqualTo(1.2);
 
         // a non-planet consumable must not advance the counter
         step(code, data, run, c -> {
             c.phase = Trigger.USE_CONSUMABLE;
             c.consumableType = com.balatro.grammar.ConsumableKind.TAROT;
         });
-        assertThat(step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN).xMult).isEqualTo(1.2);
+        assertThat(xMult(step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN))).isEqualTo(1.2);
     }
 
     // --- the builder's serialization path -----------------------------------
@@ -189,11 +207,11 @@ class DataJokerTest {
     void aDeserializedDefStillScores() throws Exception {
         String wire = json.writeValueAsString(JokerDefLibrary.get("j_greedy_joker"));
         DataJoker j = new DataJoker(json.readValue(wire, JokerDef.class));
-        JokerEffect e = j.calculate(fresh(j, c -> {
+        JokerResult e = j.calculate(fresh(j, c -> {
             c.phase = Trigger.ON_SCORED;
             c.scoredCard = c(Rank.NINE, Suit.DIAMONDS);
         }));
-        assertThat(e.mult).isEqualTo(3);
+        assertThat(mult(e)).isEqualTo(3.0);
     }
 
     @Test
@@ -207,8 +225,8 @@ class DataJokerTest {
         Joker made = JokerLibrary.create("j_test_custom");
         assertThat(made).isInstanceOf(DataJoker.class);
         assertThat(made.info().name()).isEqualTo("Tester");
-        JokerEffect e = made.calculate(fresh(made, c -> c.phase = Trigger.JOKER_MAIN));
-        assertThat(e.mult).isEqualTo(7);
+        JokerResult e = made.calculate(fresh(made, c -> c.phase = Trigger.JOKER_MAIN));
+        assertThat(mult(e)).isEqualTo(7.0);
     }
 
     // --- expanded surface: card-property + run-state conditions (unit) -------
@@ -216,48 +234,48 @@ class DataJokerTest {
     @Test
     void scoredEnhancementCondition() {
         DataJoker j = oneRule(Trigger.ON_SCORED, new Condition.ScoredEnhancement(Enhancement.BONUS), Term.CHIPS, 25);
-        assertThat(j.calculate(fresh(j, c -> {
+        assertThat(chips(j.calculate(fresh(j, c -> {
             c.phase = Trigger.ON_SCORED;
             c.scoredCard = new Card(Rank.NINE, Suit.SPADES, Enhancement.BONUS, Edition.NONE, Seal.NONE);
-        })).chips).isEqualTo(25);
-        assertThat(j.calculate(fresh(j, c -> {
+        })))).isEqualTo(25.0);
+        assertThat(isEmpty(j.calculate(fresh(j, c -> {
             c.phase = Trigger.ON_SCORED;
-            c.scoredCard = c(Rank.NINE, Suit.SPADES); // plain -> null
-        }))).isNull();
+            c.scoredCard = c(Rank.NINE, Suit.SPADES); // plain -> empty
+        })))).isTrue();
     }
 
     @Test
     void scoredEditionAndSealConditions() {
         DataJoker foil = oneRule(Trigger.ON_SCORED, new Condition.ScoredEdition(Edition.POLYCHROME), Term.MULT, 5);
-        assertThat(foil.calculate(fresh(foil, c -> {
+        assertThat(mult(foil.calculate(fresh(foil, c -> {
             c.phase = Trigger.ON_SCORED;
             Card poly = c(Rank.NINE, Suit.SPADES);
             poly.edition = Edition.POLYCHROME;
             c.scoredCard = poly;
-        })).mult).isEqualTo(5);
+        })))).isEqualTo(5.0);
 
         DataJoker sealed = oneRule(Trigger.ON_SCORED, new Condition.ScoredSeal(Seal.GOLD), Term.DOLLARS, 2);
-        assertThat(sealed.calculate(fresh(sealed, c -> {
+        assertThat(dollars(sealed.calculate(fresh(sealed, c -> {
             c.phase = Trigger.ON_SCORED;
             c.scoredCard = new Card(Rank.NINE, Suit.SPADES, Enhancement.NONE, Edition.NONE, Seal.GOLD);
-        })).dollars).isEqualTo(2);
+        })))).isEqualTo(2.0);
     }
 
     @Test
     void runStateConditions() {
         DataJoker rich = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.MONEY, Condition.Cmp.GTE, 10), Term.MULT, 3);
-        assertThat(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 12; })).mult)
-                .isEqualTo(3);
-        assertThat(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 4; }))).isNull();
+        assertThat(mult(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 12; }))))
+                .isEqualTo(3.0);
+        assertThat(isEmpty(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 4; })))).isTrue();
 
         DataJoker lateAnte = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.ANTE, Condition.Cmp.GTE, 3), Term.MULT, 8);
-        assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 5; })).mult)
-                .isEqualTo(8);
-        assertThat(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 1; }))).isNull();
+        assertThat(mult(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 5; }))))
+                .isEqualTo(8.0);
+        assertThat(isEmpty(lateAnte.calculate(fresh(lateAnte, c -> { c.phase = Trigger.JOKER_MAIN; c.run.ante = 1; })))).isTrue();
 
         DataJoker finisher = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Hand.PLAYS, Condition.Cmp.EQ, 0), Term.MULT, 4);
-        assertThat(finisher.calculate(fresh(finisher, c -> { c.phase = Trigger.JOKER_MAIN; c.run.handsLeft = 0; })).mult)
-                .isEqualTo(4);
+        assertThat(mult(finisher.calculate(fresh(finisher, c -> { c.phase = Trigger.JOKER_MAIN; c.run.handsLeft = 0; }))))
+                .isEqualTo(4.0);
     }
 
     // --- expanded surface: scaling values, end-to-end through the pipeline ---
@@ -323,7 +341,6 @@ class DataJokerTest {
         return new ScoringEngine().score(played, held, run, new RandomStreams("T"));
     }
 
-    /** Run the same (freshly built) context through the code and data jokers; assert identical output. */
     /** A joker built from the JSON round-trip of its def — serialize → deserialize → interpret. */
     private Joker roundTrip(String key) {
         try {
@@ -335,26 +352,25 @@ class DataJokerTest {
     }
 
     /** The live def must behave identically to its JSON round-trip across this scenario — i.e. serialize →
-     *  deserialize preserves the joker's effect for the given trigger/condition. (Was a data-vs-hand-coded
-     *  equivalence check; every joker is data now, so this is the meaningful invariant that survived.) */
+     *  deserialize preserves the joker's result for the given trigger/condition. */
     private void assertEquivalent(String key, java.util.function.Consumer<EvaluationContext> setup) {
         try {
             Joker live = JokerLibrary.create(key);
             JokerDef def = JokerDefLibrary.get(key);
             Joker roundTripped = new DataJoker(json.readValue(json.writeValueAsString(def), JokerDef.class));
-            JokerEffect expected = live.calculate(fresh(live, setup));
-            JokerEffect actual = roundTripped.calculate(fresh(roundTripped, setup));
+            JokerResult expected = live.calculate(fresh(live, setup));
+            JokerResult actual = roundTripped.calculate(fresh(roundTripped, setup));
             assertSame(key, expected, actual);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    /** Drive both jokers with the same context against a shared run; return the data joker's effect. */
-    private JokerEffect step(Joker code, Joker data, RunState run,
+    /** Drive both jokers with the same context against a shared run; return the data joker's result. */
+    private JokerResult step(Joker code, Joker data, RunState run,
             java.util.function.Consumer<EvaluationContext> setup) {
-        JokerEffect expected = code.calculate(ctx(code, run, setup));
-        JokerEffect actual = data.calculate(ctx(data, run, setup));
+        JokerResult expected = code.calculate(ctx(code, run, setup));
+        JokerResult actual = data.calculate(ctx(data, run, setup));
         assertSame("stateful", expected, actual);
         return actual;
     }
@@ -381,16 +397,9 @@ class DataJokerTest {
         return c;
     }
 
-    private void assertSame(String key, JokerEffect expected, JokerEffect actual) {
-        if (expected == null) {
-            assertThat(actual).as("%s should produce no effect", key).isNull();
-            return;
-        }
-        assertThat(actual).as("%s should produce an effect", key).isNotNull();
-        assertThat(actual.chips).as("%s chips", key).isEqualTo(expected.chips);
-        assertThat(actual.mult).as("%s mult", key).isEqualTo(expected.mult);
-        assertThat(actual.xMult).as("%s xMult", key).isEqualTo(expected.xMult);
-        assertThat(actual.dollars).as("%s dollars", key).isEqualTo(expected.dollars);
-        assertThat(actual.repetitions).as("%s repetitions", key).isEqualTo(expected.repetitions);
+    /** Two results are equivalent when their contributions and commands match exactly (records → equals). */
+    private void assertSame(String key, JokerResult expected, JokerResult actual) {
+        assertThat(actual.contributions()).as("%s contributions", key).isEqualTo(expected.contributions());
+        assertThat(actual.commands()).as("%s commands", key).isEqualTo(expected.commands());
     }
 }

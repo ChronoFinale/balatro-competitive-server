@@ -2,10 +2,14 @@ package com.balatro.engine.joker.def;
 
 import com.balatro.grammar.*;
 
+import com.balatro.engine.exec.Command;
+import com.balatro.engine.joker.Contribution;
 import com.balatro.engine.joker.EvaluationContext;
 import com.balatro.engine.joker.Joker;
-import com.balatro.engine.joker.JokerEffect;
+import com.balatro.engine.joker.JokerResult;
 import com.balatro.grammar.JokerInfo;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Interprets a {@link JokerDef} as a live {@link Joker}. All logic stays
@@ -58,35 +62,39 @@ public final class DataJoker implements Joker {
     }
 
     @Override
-    public JokerEffect calculate(EvaluationContext ctx) {
+    public JokerResult calculate(EvaluationContext ctx) {
         // Copiers (Blueprint/Brainstorm) are the higher-order case: re-run the selected joker's whole
         // calculation in this context for the current phase, and relabel the source. No own rules/state.
         if (def.copy() != null) {
-            if (ctx.blueprintDepth > ctx.jokers.size()) return null; // recursion guard
+            if (ctx.blueprintDepth > ctx.jokers.size()) return JokerResult.EMPTY; // recursion guard
             int t = copyTargetIndex(def.copy(), ctx);
-            if (t < 0) return null;
+            if (t < 0) return JokerResult.EMPTY;
             Joker target = ctx.jokers.get(t);
-            if (!target.blueprintCompatible()) return null;
-            JokerEffect e = target.calculate(ctx.forCopy(t));
-            if (e != null) e.source = name() + " -> " + target.name();
-            return e;
+            if (!target.blueprintCompatible()) return JokerResult.EMPTY;
+            JokerResult r = target.calculate(ctx.forCopy(t));
+            if (r.contributions().isEmpty()) return r; // nothing scored to relabel (commands keep their own attribution)
+            String label = name() + " -> " + target.name();
+            List<Contribution> relabeled = new ArrayList<>(r.contributions().size());
+            for (Contribution c : r.contributions()) relabeled.add(new Contribution(c.op(), c.term(), c.amount(), label));
+            return new JokerResult(relabeled, r.commands());
         }
         // Accumulate, rule by rule in authoring order: every rule matching this trigger contributes, and its
-        // contributions chain onto the result. Each rule is fully applied before the next rule's condition is
-        // evaluated — so a state write (Burnt's discard counter) is visible to a later rule's condition (its
-        // "first discard?" check), and a condition is evaluated exactly once (no double chance/RNG draw). A
-        // state write contributes null and is simply skipped; two scoring rules on one trigger both chain on.
-        JokerEffect head = null;
-        JokerEffect tail = null;
+        // contributions/commands concatenate onto the result. Each rule is fully applied before the next rule's
+        // condition is evaluated — so a state write (Burnt's discard counter) is visible to a later rule's
+        // condition (its "first discard?" check), and a condition is evaluated exactly once (no double
+        // chance/RNG draw). A state write contributes nothing and is simply skipped; two scoring rules on one
+        // trigger both concatenate.
+        List<Contribution> contribs = null;
+        List<Command> cmds = null;
         for (Rule r : def.rules()) {
             if (r.when() != ctx.phase || !com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
-            JokerEffect e = com.balatro.engine.eval.EffectInterpreter.applyAll(r.effects(), ctx);
-            if (e == null) continue;
-            if (head == null) head = e; else tail.extra = e;
-            tail = e;
-            while (tail.extra != null) tail = tail.extra; // a contribution may already carry its own chain
+            JokerResult res = com.balatro.engine.eval.EffectInterpreter.applyAll(r.effects(), ctx);
+            if (res.contributions().isEmpty() && res.commands().isEmpty()) continue;
+            if (contribs == null) { contribs = new ArrayList<>(); cmds = new ArrayList<>(); }
+            contribs.addAll(res.contributions());
+            cmds.addAll(res.commands());
         }
-        return head;
+        return contribs == null ? JokerResult.EMPTY : new JokerResult(contribs, cmds);
     }
 
     /** Index of the joker a {@link CopySpec} targets in {@code ctx}, or -1 if none / it would be self. */

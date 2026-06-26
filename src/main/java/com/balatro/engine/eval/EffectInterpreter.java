@@ -1,112 +1,97 @@
 package com.balatro.engine.eval;
 
+import com.balatro.engine.exec.Command;
+import com.balatro.engine.joker.Contribution;
 import com.balatro.engine.joker.EvaluationContext;
-import com.balatro.engine.joker.JokerEffect;
+import com.balatro.engine.joker.JokerResult;
 import com.balatro.grammar.Effect;
 import com.balatro.grammar.Selector;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * The interpreter for the {@link Effect} grammar — turns a scoring-time effect node into a runtime
- * {@link JokerEffect} contribution (or {@code null} for "nothing to score"). Lives in the engine; the
- * {@link Effect} types stay pure data. Action effects (the consumable/boss verbs) contribute nothing to a
- * played hand's count-up and fall to {@code null}; {@code Run} interprets those separately. Behaviour-
- * identical to the old {@code Effect.apply} methods — only the dispatch moved here.
+ * The interpreter for the {@link Effect} grammar — turns a scoring-time effect node into a {@link JokerResult}
+ * (typed {@link Contribution}s for the count-up + resolved {@link Command}s for side-effects). Lives in the
+ * engine; the {@link Effect} types stay pure data. Action effects (the consumable/boss verbs) contribute
+ * nothing to a played hand and yield {@link JokerResult#EMPTY}; {@code Run} interprets those separately.
+ *
+ * <p>The scoring axes are modeled ONCE here: each {@link Effect.Score} cell maps to one {@code Contribution}
+ * carrying the grammar's own {@link Effect.Operation} × {@link Effect.Term}. Zero/identity cells yield EMPTY
+ * (the old {@code null}), so they neither score nor appear in the replay log.
  */
 public final class EffectInterpreter {
 
     private EffectInterpreter() {}
 
-    /** Apply effects in order, chaining the non-null contributions into one {@code extra} chain. */
-    public static JokerEffect applyAll(List<Effect> effects, EvaluationContext ctx) {
-        JokerEffect head = null;
-        JokerEffect tail = null;
+    /** Apply effects in order, concatenating their contributions + commands into one result (in order). */
+    public static JokerResult applyAll(List<Effect> effects, EvaluationContext ctx) {
+        List<Contribution> contribs = null;
+        List<Command> cmds = null;
         for (Effect e : effects) {
-            JokerEffect je = apply(e, ctx);
-            if (je == null) continue;
-            if (head == null) head = je; else tail.extra = je;
-            tail = je;
-            while (tail.extra != null) tail = tail.extra; // a contribution may already carry its own chain
+            JokerResult r = apply(e, ctx);
+            if (r.contributions().isEmpty() && r.commands().isEmpty()) continue;
+            if (contribs == null) { contribs = new ArrayList<>(); cmds = new ArrayList<>(); }
+            contribs.addAll(r.contributions());
+            cmds.addAll(r.commands());
         }
-        return head;
+        return contribs == null ? JokerResult.EMPTY : new JokerResult(contribs, cmds);
     }
 
-    /** Contribute a {@link JokerEffect} for a scoring moment, or {@code null} for "nothing to score here". */
-    public static JokerEffect apply(Effect e, EvaluationContext ctx) {
+    /** Interpret one effect into a {@link JokerResult}, or {@link JokerResult#EMPTY} for "nothing here". */
+    public static JokerResult apply(Effect e, EvaluationContext ctx) {
         return switch (e) {
             case Effect.Score s -> score(s, ctx);
-            case Effect.MutateCard mc -> {
-                JokerEffect je = new JokerEffect();
-                je.cardMod = mc.mod(); // scoring path: defer to the scored focus
-                yield je;
-            }
-            case Effect.Create cr -> {
-                JokerEffect je = new JokerEffect();
-                je.create = cr.spec();
-                yield je;
-            }
-            case Effect.Destroy d -> {
-                JokerEffect je = new JokerEffect();
-                switch (d.selector()) {
-                    case Selector.Focus ignored -> je.destroyScored = true;        // the scored card (Sixth Sense)
-                    case Selector.Discarded ignored -> je.destroyEventCards = true; // the discard set (Trading Card)
-                    case Selector.Self ignored -> je.destroySelf = true;            // this joker (Gros Michel, Pizza)
-                    default -> { /* run-loop selectors are applied by Run, not the scorer */ }
-                }
-                yield je;
-            }
+            case Effect.MutateCard mc -> command(new Command.MutateScoredCard(mc.mod())); // scoring path: the scored focus
+            case Effect.Create cr -> command(new Command.Create(cr.spec()));
+            case Effect.Destroy d -> switch (d.selector()) {
+                case Selector.Focus ignored -> command(new Command.DestroyScored());      // the scored card (Sixth Sense)
+                case Selector.Discarded ignored -> command(new Command.DestroyEventCards()); // the discard set (Trading Card)
+                case Selector.Self ignored -> command(new Command.DestroySelf());          // this joker (Gros Michel, Pizza)
+                default -> JokerResult.EMPTY; // run-loop selectors are applied by Run, not the scorer
+            };
             case Effect.LevelHands lh -> {
-                if (lh.scope() != Effect.LevelHands.Scope.PLAYED || lh.target() != com.balatro.grammar.Side.SELF || ctx.handType == null) yield null;
-                JokerEffect je = new JokerEffect();
-                je.levelUpHand = ctx.handType;
-                je.levelUpAmount = Math.max(1, (int) Math.round(ValueResolver.resolve(lh.levels(), ctx)));
-                yield je;
+                if (lh.scope() != Effect.LevelHands.Scope.PLAYED
+                        || lh.target() != com.balatro.grammar.Side.SELF || ctx.handType == null) yield JokerResult.EMPTY;
+                int amt = Math.max(1, (int) Math.round(ValueResolver.resolve(lh.levels(), ctx)));
+                yield command(new Command.LevelHand(ctx.handType, amt));
             }
-            case Effect.Copy cp -> {
-                JokerEffect je = new JokerEffect();
-                if (cp.selector() instanceof Selector.Focus) je.copyScored = true; // DNA: copy scored card to deck
-                yield je;
-            }
-            case Effect.GrantDiscards gd -> {
-                JokerEffect je = new JokerEffect();
-                je.grantDiscards = gd.amount();
-                je.grantDiscardBlinds = gd.blinds();
-                je.grantToOpponent = gd.recipient() == com.balatro.grammar.Side.OPPONENT;
-                yield je;
-            }
-            case Effect.MutateState ms -> mutateState(ms, ctx);
-            default -> null; // action effects contribute nothing to the played hand's count-up
+            case Effect.Copy cp ->
+                    cp.selector() instanceof Selector.Focus ? command(new Command.CopyScored()) : JokerResult.EMPTY;
+            case Effect.GrantDiscards gd ->
+                    command(new Command.GrantDiscards(gd.amount(), gd.blinds(), gd.recipient()));
+            case Effect.MutateState ms -> { mutateState(ms, ctx); yield JokerResult.EMPTY; }
+            default -> JokerResult.EMPTY; // action effects contribute nothing to the played hand's count-up
         };
     }
 
-    private static JokerEffect score(Effect.Score s, EvaluationContext ctx) {
+    private static JokerResult command(Command c) {
+        return new JokerResult(List.of(), List.of(c));
+    }
+
+    private static JokerResult contribution(Effect.Operation op, Effect.Term term, double amount) {
+        return new JokerResult(List.of(new Contribution(op, term, amount, null)), List.of());
+    }
+
+    private static JokerResult score(Effect.Score s, EvaluationContext ctx) {
         double v = ValueResolver.resolve(s.value(), ctx);
         Effect.Operation op = s.op();
         return switch (s.term()) {
-            case CHIPS -> { requireAdd(op, s); yield v == 0 ? null : JokerEffect.chips(Math.round(v)); }
-            case DOLLARS -> { requireAdd(op, s); yield v == 0 ? null : JokerEffect.dollars(Math.round(v)); }
+            case CHIPS -> { requireAdd(op, s); yield v == 0 ? JokerResult.EMPTY
+                    : contribution(Effect.Operation.ADD, Effect.Term.CHIPS, Math.round(v)); }
+            case DOLLARS -> { requireAdd(op, s); yield v == 0 ? JokerResult.EMPTY
+                    : contribution(Effect.Operation.ADD, Effect.Term.DOLLARS, Math.round(v)); }
             case RETRIGGERS -> {
                 requireAdd(op, s);
                 int r = (int) Math.round(v);
-                yield r == 0 ? null : JokerEffect.repetitions(r);
+                yield r == 0 ? JokerResult.EMPTY : contribution(Effect.Operation.ADD, Effect.Term.RETRIGGERS, r);
             }
-            case HELD_MULT -> {
-                requireAdd(op, s);
-                if (v == 0) yield null;
-                JokerEffect e = new JokerEffect();
-                e.hMult = v;
-                yield e;
-            }
+            case HELD_MULT -> { requireAdd(op, s); yield v == 0 ? JokerResult.EMPTY
+                    : contribution(Effect.Operation.ADD, Effect.Term.HELD_MULT, v); }
             case MULT -> switch (op) {
-                case ADD -> v == 0 ? null : JokerEffect.mult(v);
-                case MULTIPLY -> v == 1.0 ? null : JokerEffect.xMult(v);
-                case POWER -> {
-                    if (v == 1.0) yield null;
-                    JokerEffect e = new JokerEffect();
-                    e.powMult = v;
-                    yield e;
-                }
+                case ADD -> v == 0 ? JokerResult.EMPTY : contribution(Effect.Operation.ADD, Effect.Term.MULT, v);
+                case MULTIPLY -> v == 1.0 ? JokerResult.EMPTY : contribution(Effect.Operation.MULTIPLY, Effect.Term.MULT, v);
+                case POWER -> v == 1.0 ? JokerResult.EMPTY : contribution(Effect.Operation.POWER, Effect.Term.MULT, v);
                 default -> throw new IllegalStateException(op + " is not a scoring operation (only ADD/MULTIPLY/POWER)");
             };
         };
@@ -120,9 +105,9 @@ public final class EffectInterpreter {
         }
     }
 
-    private static JokerEffect mutateState(Effect.MutateState ms, EvaluationContext ctx) {
+    private static void mutateState(Effect.MutateState ms, EvaluationContext ctx) {
         // Previewing a hand or running a Blueprint copy must not advance scaling counters.
-        if (ctx.blueprintDepth != 0 || ctx.preview) return null;
+        if (ctx.blueprintDepth != 0 || ctx.preview) return;
         double amount = ms.by();
         if (ms.perCard() != null && ctx.eventCards != null) {
             int count = 0;
@@ -139,7 +124,6 @@ public final class EffectInterpreter {
         } else {
             writeInto(ms, ctx.selfState(), amount);
         }
-        return null; // a write contributes nothing to the running score
     }
 
     /** Write {@code op} of {@code amount} into one joker's state bag, keeping whole numbers as ints. */

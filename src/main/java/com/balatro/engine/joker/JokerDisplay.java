@@ -3,6 +3,7 @@ package com.balatro.engine.joker;
 import com.balatro.grammar.Trigger;
 
 import com.balatro.engine.rng.RandomStreams;
+import com.balatro.grammar.Effect;
 import com.balatro.engine.state.RunState;
 import java.util.List;
 
@@ -34,10 +35,10 @@ public final class JokerDisplay {
         ctx.rng = PREVIEW_RNG;
         ctx.preview = true;
 
-        JokerEffect e = jokers.get(index).calculate(ctx);
+        JokerResult e = jokers.get(index).calculate(ctx);
         StringBuilder sb = new StringBuilder();
-        for (JokerEffect cur = e; cur != null; cur = cur.extra) {
-            String label = label(cur);
+        for (Contribution c : e.contributions()) {
+            String label = label(c);
             if (!label.isEmpty()) {
                 if (sb.length() > 0) sb.append(", ");
                 sb.append(label);
@@ -46,19 +47,25 @@ public final class JokerDisplay {
         return sb.toString();
     }
 
-    /** The joker's live value, DERIVED from the effect's numeric fields (not a pre-built string). This one
-     *  display label is server-computed BY DESIGN — its purpose is that a thin client reads it directly — so
-     *  it is built here, from data, in one place, rather than smuggled through the scoring interpreter. */
-    private static String label(JokerEffect e) {
-        if (e.xMult != null && e.xMult != 1.0) return "x" + fmt(e.xMult) + " Mult";
-        if (e.powMult != null && e.powMult != 1.0) return "^" + fmt(e.powMult) + " Mult";
-        if (e.mult != 0) return "+" + fmt(e.mult) + " Mult";
-        if (e.hMult != 0) return "+" + fmt(e.hMult) + " Mult";
-        if (e.xChips != null && e.xChips != 1.0) return "x" + fmt(e.xChips) + " Chips";
-        if (e.chips != 0) return "+" + fmt(e.chips) + " Chips";
-        if (e.dollars != 0) return (e.dollars > 0 ? "+$" : "-$") + Math.abs(e.dollars);
-        if (e.repetitions > 0) return "Retrigger";
-        return "";
+    /** The joker's live value, DERIVED from a {@link Contribution}'s (op, term, amount) — not a pre-built
+     *  string. This one display label is server-computed BY DESIGN — its purpose is that a thin client reads it
+     *  directly — so it is built here, from data, in one place, rather than smuggled through the scorer. */
+    private static String label(Contribution c) {
+        return switch (c.op()) {
+            case MULTIPLY -> switch (c.term()) {
+                case MULT -> "x" + fmt(c.amount()) + " Mult";
+                case CHIPS -> "x" + fmt(c.amount()) + " Chips";
+                default -> "";
+            };
+            case POWER -> "^" + fmt(c.amount()) + " Mult";
+            case ADD -> switch (c.term()) {
+                case MULT, HELD_MULT -> "+" + fmt(c.amount()) + " Mult";
+                case CHIPS -> "+" + fmt(c.amount()) + " Chips";
+                case DOLLARS -> (c.amount() > 0 ? "+$" : "-$") + Math.abs((long) c.amount());
+                case RETRIGGERS -> "Retrigger";
+            };
+            default -> "";
+        };
     }
 
     private static String fmt(double v) {
