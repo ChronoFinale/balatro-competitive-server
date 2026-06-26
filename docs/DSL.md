@@ -13,6 +13,49 @@ Legend: **● core** · **○ sugar** · **⚙ engine** · **◆ escape**
 
 ---
 
+## Design rails (the DSL-vs-language line)
+
+This is the law that keeps the DSL a *DSL* and not a slow re-implementation of a programming language. A new
+word is admitted only if it obeys all four rails. (Derived in `history/42-effects-the-rule-action-model.md`
+and `history/50-primitives-vs-recipes.md`; this is their living statement.)
+
+1. **Declarative.** A word *names what happens*, never *how*. No control flow, no expressions to evaluate —
+   content states intent (`forEachScored(card().even()).add(MULT, 4)`), the engine decides execution.
+2. **Closed-domain.** The vocabulary is a finite, sealed set of *domain concepts* (suits, hands, chips,
+   mult, retrigger). You cannot say something the game doesn't already think in.
+3. **Total.** Every word is interpretable in every context the grammar permits — no partial functions, no
+   "this combination throws at runtime." Closed sets are **enums**, not strings, so the compiler proves totality.
+4. **Escape-hatch, narrow.** Where a mechanic genuinely *is* code (Blueprint recursion, the fold resolver),
+   it's a named `◆ escape` (`behaviorInCode`), not smuggled in as fake data. The concessions `Bind` / `When` /
+   `Retrigger` are the **narrowest possible** — there is no generic control flow.
+
+**The heuristic — count the instances:**
+- **Many instances of a pattern → data.** Jokers (~150), consumables (~40), vouchers (32), tags, seals,
+  editions. These are *content*; express them as `Rule`/`Effect` data over the primitives.
+- **One fixed mechanic → code.** The scorer, the hand evaluator, the fold resolver — one pipeline, forever.
+  This is the *interpreter*, and an interpreter being **code is correct.**
+
+> Rule of thumb: **make the knob a variable, not the mechanic a program.** Four Fingers needs
+> `hands[flush].size` to be a readable slot — it does **not** need the flush *checker* to be data.
+
+**Word-admission rubric.** A new **`●` core** word must be a domain concept that **≥3 cards need** and *the
+game already thinks in*. Otherwise it's **`○` sugar** (composes existing core words), **`⚙` engine**
+(pipeline-internal, not author-facing), or a **`◆` escape** (genuinely code). When in doubt, don't add the word.
+
+**Deliberately NOT built (where the line stops — by design, not omission):**
+- **No data-driven hand evaluator.** Hand *registry rows + thresholds* are data (so Four Fingers is a
+  `Modify`); the *match interpreter* (`groupSizes`/`isRun`) stays code — its payoff would be ~2 jokers
+  against a bit-exact, golden-tested core.
+- **No generic-interpreted scoring spine.** The scorer is direct arithmetic that *gathers* contributions and
+  reads modifiable knobs — not a `Modify` interpreter in the hot path (hands score thousands of times in tests).
+- **No enhancements/editions/seals as data rules.** Conceptually `ON_SCORED → Modify(scoring…)`; pragmatically
+  they stay fast code contributing to the same scoring slots. Revisit only for a *content* reason, never purity.
+
+`DslRailsTest` enforces rails 1–3 as code (no behavior in grammar records; closed sets are enums; one model
+of the axes) so the line can't silently erode.
+
+---
+
 ## WHEN — the moment (`Trigger`)
 
 The clock. A rule fires at exactly one moment. Grouped by what's in focus.
