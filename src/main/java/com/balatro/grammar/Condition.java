@@ -182,7 +182,7 @@ public sealed interface Condition {
     record BossAbilityActive() implements Condition {}
 
     /** The consumable in play is of this category ("Tarot" | "Planet" | "Spectral"). */
-    record ConsumableType(String consumable) implements Condition {}
+    record ConsumableType(ConsumableKind consumable) implements Condition {}
 
     /**
      * A probabilistic gate at {@link Odds}, rolled off a game-long queue. {@code stream} names a DEDICATED

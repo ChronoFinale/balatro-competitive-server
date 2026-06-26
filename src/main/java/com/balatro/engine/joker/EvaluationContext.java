@@ -30,8 +30,8 @@ public final class EvaluationContext {
     public List<Card> removedCards;
     /** Cards relevant to a lifecycle event (discarded set, held-at-round-end, ...). */
     public List<Card> eventCards;
-    /** For USE_CONSUMABLE: the consumable category ("Tarot" | "Planet" | "Spectral"). */
-    public String consumableType;
+    /** For USE_CONSUMABLE: the consumable category (Tarot / Planet / Spectral). */
+    public com.balatro.grammar.ConsumableKind consumableType;
     public Card scoredCard;
     public Joker otherJoker;
     public List<Joker> jokers;

@@ -125,7 +125,7 @@ public final class Jokers {
     public MutationBuilder whenUsing(Condition cond) { return new MutationBuilder(Trigger.USE_CONSUMABLE).when(cond); }
 
     /** When a consumable of {@code type} ("Planet"/"Tarot"/"Spectral") is used — the common shorthand. */
-    public MutationBuilder whenUsing(String type) { return whenUsing(new Condition.ConsumableType(type)); }
+    public MutationBuilder whenUsing(com.balatro.grammar.ConsumableKind type) { return whenUsing(new Condition.ConsumableType(type)); }
 
     /** When a card matching {@code cond} is destroyed (Canio: a face card → +xMult). */
     public MutationBuilder whenCardDestroyed(Condition cond) { return new MutationBuilder(Trigger.CARD_DESTROYED).when(cond); }

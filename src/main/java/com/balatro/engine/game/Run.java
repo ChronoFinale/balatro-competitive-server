@@ -1346,7 +1346,7 @@ public final class Run {
             state.levelUpHand(p.hand());
             state.planetsUsedThisRun.add(key); // Satellite counts unique planets used
             state.lastTarotPlanetUsed = key;    // The Fool can copy it
-            GameEvents.useConsumable(state, rng, "Planet");
+            GameEvents.useConsumable(state, rng, com.balatro.grammar.ConsumableKind.PLANET);
             state.consumables.remove(index);
             return null;
         }
@@ -1368,7 +1368,7 @@ public final class Run {
             if (c.type() == com.balatro.engine.consumable.ConsumableType.TAROT && !key.equals("c_fool")) {
                 state.lastTarotPlanetUsed = key;
             }
-            GameEvents.useConsumable(state, rng, c.type().label());
+            GameEvents.useConsumable(state, rng, com.balatro.grammar.ConsumableKind.valueOf(c.type().name()));
             return null;
         }
         return "unknown consumable: " + key;

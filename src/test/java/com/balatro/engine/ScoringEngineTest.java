@@ -178,8 +178,8 @@ class ScoringEngineTest {
         var ft = com.balatro.engine.joker.JokerLibrary.create("j_fortune_teller");
         run.addJoker(ft);
         RandomStreams rng = new RandomStreams("FT");
-        com.balatro.engine.game.GameEvents.useConsumable(run, rng, "Tarot");
-        com.balatro.engine.game.GameEvents.useConsumable(run, rng, "Planet"); // not a Tarot
+        com.balatro.engine.game.GameEvents.useConsumable(run, rng, com.balatro.grammar.ConsumableKind.TAROT);
+        com.balatro.engine.game.GameEvents.useConsumable(run, rng, com.balatro.grammar.ConsumableKind.PLANET); // not a Tarot
         assertThat(run.jokerState(ft).get("tarots")).isEqualTo(1);
     }
 

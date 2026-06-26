@@ -63,9 +63,9 @@ class LifecycleTest {
         RunState con = new RunState();
         con.addJoker(JokerLibrary.create("j_constellation"));
         RandomStreams rng = new RandomStreams("C");
-        GameEvents.useConsumable(con, rng, "Planet");
-        GameEvents.useConsumable(con, rng, "Planet");
-        GameEvents.useConsumable(con, rng, "Planet");
+        GameEvents.useConsumable(con, rng, com.balatro.grammar.ConsumableKind.PLANET);
+        GameEvents.useConsumable(con, rng, com.balatro.grammar.ConsumableKind.PLANET);
+        GameEvents.useConsumable(con, rng, com.balatro.grammar.ConsumableKind.PLANET);
         double s = new ScoringEngine()
                 .score(List.of(c(KING, HEARTS), c(KING, SPADES)), List.of(), con, rng)
                 .score();

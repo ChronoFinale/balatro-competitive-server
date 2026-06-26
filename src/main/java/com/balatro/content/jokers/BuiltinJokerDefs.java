@@ -173,7 +173,7 @@ public final class BuiltinJokerDefs {
                 Jokers.of("j_faceless", "Faceless Joker")
                         .whenDiscarding(discard().faces(3)).add(DOLLARS, 5).build(),
                 Jokers.of("j_constellation", "Constellation").counters("planets")
-                        .whenUsing("Planet").gain("planets", 1)
+                        .whenUsing(ConsumableKind.PLANET).gain("planets", 1)
                         .whenHand(state("planets").atLeast(1))
                         .multiply(MULT, Val.xPerState("planets", 0.1)).build(),
                 // Ride the Bus — a STATEFUL RESET: streak breaks to 0 on a scoring face, else +1, then +streak Mult.
@@ -401,7 +401,7 @@ public final class BuiltinJokerDefs {
                         .mutate(Trigger.PRE_DISCARD).when(always()).gain("m", -1)
                         .whenHand(state("m").atLeast(1)).add(MULT, Val.state("m")).build(),
                 Jokers.of("j_fortune_teller", "Fortune Teller").counters("tarots")
-                        .whenUsing("Tarot").gain("tarots", 1)
+                        .whenUsing(ConsumableKind.TAROT).gain("tarots", 1)
                         .whenHand(state("tarots").atLeast(1)).add(MULT, Val.state("tarots")).build(),
 
                 // --- batch 5: stepwise / deck-size scaling values ---

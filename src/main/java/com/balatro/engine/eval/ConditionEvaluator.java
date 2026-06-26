@@ -146,7 +146,7 @@ public final class ConditionEvaluator {
             case Condition.BossDefeated ignored -> ctx.bossDefeated;
             case Condition.BossBlindSelected ignored -> ctx.bossBlind;
             case Condition.BossAbilityActive ignored -> ctx.run != null && ctx.run.bossHasActiveAbility;
-            case Condition.ConsumableType ct -> ct.consumable().equals(ctx.consumableType);
+            case Condition.ConsumableType ct -> ct.consumable() == ctx.consumableType;
             case Condition.Chance ch -> {
                 if (ctx.preview) yield false; // preview shows the guaranteed floor — a gate never procs
                 int probMult = ctx.run != null ? ctx.run.probabilityNumerator : 1;

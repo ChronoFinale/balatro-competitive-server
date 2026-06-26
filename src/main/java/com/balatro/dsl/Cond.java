@@ -144,7 +144,7 @@ public final class Cond {
 
     public static final class UsingC {
         static final UsingC I = new UsingC();
-        public Condition is(String type) { return new Condition.ConsumableType(type); }
+        public Condition is(com.balatro.grammar.ConsumableKind type) { return new Condition.ConsumableType(type); }
     }
 
     public static final class StateRef {

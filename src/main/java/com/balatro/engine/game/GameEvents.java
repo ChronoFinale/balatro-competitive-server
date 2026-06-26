@@ -85,7 +85,7 @@ public final class GameEvents {
     }
 
     /** A consumable (Tarot/Planet/Spectral) is used. */
-    public static List<ReplayEntry> useConsumable(RunState run, RandomStreams rng, String category) {
+    public static List<ReplayEntry> useConsumable(RunState run, RandomStreams rng, com.balatro.grammar.ConsumableKind category) {
         return raise(Trigger.USE_CONSUMABLE, run, rng, ctx -> ctx.consumableType = category);
     }
 

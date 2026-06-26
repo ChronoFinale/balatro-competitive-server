@@ -169,7 +169,7 @@ class DataJokerTest {
         // a non-planet consumable must not advance the counter
         step(code, data, run, c -> {
             c.phase = Trigger.USE_CONSUMABLE;
-            c.consumableType = "Tarot";
+            c.consumableType = com.balatro.grammar.ConsumableKind.TAROT;
         });
         assertThat(step(code, data, run, c -> c.phase = Trigger.JOKER_MAIN).xMult).isEqualTo(1.2);
     }
@@ -362,7 +362,7 @@ class DataJokerTest {
     private void usePlanet(Joker code, Joker data, RunState run) {
         step(code, data, run, c -> {
             c.phase = Trigger.USE_CONSUMABLE;
-            c.consumableType = "Planet";
+            c.consumableType = com.balatro.grammar.ConsumableKind.PLANET;
         });
     }
 
