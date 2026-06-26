@@ -569,11 +569,7 @@ public final class Run {
         return EconomyConfig.resolve(deckType, state.vouchers, state.jokers()).minMoney();
     }
 
-    /** The uniform action-effect trace (review plan #1): every {@link com.balatro.engine.exec.Command} the
-     *  engine applies logs a step here, so consumable/boss mutations are inspectable like scoring's replay. */
-    public final java.util.List<com.balatro.engine.exec.TraceEntry> actionTrace = new java.util.ArrayList<>();
-
-    /** Apply one resolved {@link com.balatro.engine.exec.Command} — the single mutation+trace path that the
+    /** Apply one resolved {@link com.balatro.engine.exec.Command} — the single mutation path that the
      *  action-effect families migrate onto (replacing the direct mutation in the interpreter switches). */
     private void apply(com.balatro.engine.exec.Command cmd) {
         // Each case ONLY mutates. The trace is the structured command itself (added once below) — the engine
@@ -620,7 +616,6 @@ public final class Run {
                 }
             }
         }
-        actionTrace.add(new com.balatro.engine.exec.TraceEntry(cmd)); // the structured command IS the trace
     }
 
     /** The effective shop rules, derived from owned jokers (Showman/Astronomer/Chaos). */

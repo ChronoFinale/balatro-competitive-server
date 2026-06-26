@@ -13,8 +13,8 @@ import java.util.List;
  * A CONCRETE, already-resolved mutation the engine will apply — the unified output of interpreting an action
  * effect. The {@code Effect} grammar is declarative ("destroy the random-in-hand selector"); interpreting it
  * (resolving Values, rolling RNG to pick the actual cards) yields a Command ("destroy these two cards"). The
- * engine applies the Command and writes a {@link TraceEntry}. This is the action-side twin of the scoring
- * {@code JokerEffect}: one path, one trace, replayable, previewable.
+ * engine applies the Command via {@code Run.apply}. This is the action-side twin of the scoring
+ * {@code JokerEffect}: one resolved-mutation path the interpreter switches funnel through.
  *
  * <p>Migration in progress (review plan #1): action-effect families move from direct mutation in {@code Run}
  * onto this hierarchy one at a time. Cases are added as families are migrated.
