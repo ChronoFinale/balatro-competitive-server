@@ -507,7 +507,7 @@
           {
             "type" : "mutateState",
             "var" : "streak",
-            "op" : "RESET",
+            "op" : "SET",
             "by" : 0.0,
             "perCard" : null,
             "scope" : "SELF"
@@ -4505,7 +4505,7 @@
           {
             "type" : "mutateState",
             "var" : "x",
-            "op" : "RESET",
+            "op" : "SET",
             "by" : 0.0,
             "perCard" : null,
             "scope" : "SELF"
@@ -4581,7 +4581,7 @@
           {
             "type" : "mutateState",
             "var" : "discards",
-            "op" : "RESET",
+            "op" : "SET",
             "by" : 0.0,
             "perCard" : null,
             "scope" : "SELF"
@@ -6103,7 +6103,7 @@
           {
             "type" : "mutateState",
             "var" : "chips",
-            "op" : "RESET",
+            "op" : "SET",
             "by" : 0.0,
             "perCard" : null,
             "scope" : "SELF"
@@ -6511,7 +6511,7 @@
           {
             "type" : "mutateState",
             "var" : "x",
-            "op" : "RESET",
+            "op" : "SET",
             "by" : 0.0,
             "perCard" : null,
             "scope" : "SELF"

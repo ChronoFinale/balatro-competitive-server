@@ -242,9 +242,7 @@ public sealed interface Effect {
      * the next rule). {@code perCard} ⇒ an {@code ADD} adds {@code by} per matching {@code eventCard} (Hit the
      * Road: +0.5 per Jack discarded); {@code scope} writes to self (Egg) or every owned joker (Gift Card).
      */
-    record MutateState(String var, Op op, double by, Condition perCard, Scope scope) implements Effect {
-
-        public enum Op { ADD, SET, RESET }
+    record MutateState(String var, Operation op, double by, Condition perCard, Scope scope) implements Effect {
 
         /** Whose state bag the write targets: the joker itself, or every owned joker (Gift Card). */
         public enum Scope { SELF, ALL_JOKERS }

@@ -301,30 +301,30 @@ public final class Jokers {
 
         /** Add {@code by} to a state counter (Constellation: gain a planet; Canio: +1 xMult). */
         public Jokers gain(String var, double by) {
-            return write(var, Effect.MutateState.Op.ADD, by, null, Effect.MutateState.Scope.SELF);
+            return write(var, Effect.Operation.ADD, by, null, Effect.MutateState.Scope.SELF);
         }
 
         /** Add {@code by} per event-card matching {@code perCard} (Hit the Road: +0.5 per Jack discarded). */
         public Jokers gainPerCard(String var, double by, Condition perCard) {
-            return write(var, Effect.MutateState.Op.ADD, by, perCard, Effect.MutateState.Scope.SELF);
+            return write(var, Effect.Operation.ADD, by, perCard, Effect.MutateState.Scope.SELF);
         }
 
         /** Add {@code by} to this var on EVERY owned joker, not just self (Gift Card). */
         public Jokers gainEveryJoker(String var, double by) {
-            return write(var, Effect.MutateState.Op.ADD, by, null, Effect.MutateState.Scope.ALL_JOKERS);
+            return write(var, Effect.Operation.ADD, by, null, Effect.MutateState.Scope.ALL_JOKERS);
         }
 
         /** Set a state counter to {@code value}. */
         public Jokers set(String var, double value) {
-            return write(var, Effect.MutateState.Op.SET, value, null, Effect.MutateState.Scope.SELF);
+            return write(var, Effect.Operation.SET, value, null, Effect.MutateState.Scope.SELF);
         }
 
         /** Reset the counter to 0 (Ride the Bus's streak breaking on a face card). */
         public Jokers reset(String var) {
-            return write(var, Effect.MutateState.Op.RESET, 0, null, Effect.MutateState.Scope.SELF);
+            return write(var, Effect.Operation.SET, 0, null, Effect.MutateState.Scope.SELF); // reset = SET 0
         }
 
-        private Jokers write(String var, Effect.MutateState.Op op, double by, Condition perCard,
+        private Jokers write(String var, Effect.Operation op, double by, Condition perCard,
                 Effect.MutateState.Scope scope) {
             rules.add(new Rule(trigger, condition,
                     java.util.List.of(new Effect.MutateState(var, op, by, perCard, scope))));

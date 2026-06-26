@@ -40,7 +40,7 @@ public final class BuilderSchema {
                 "score", "mutateCard", "create", "destroy", "levelHands",
                 "copy", "mutateState", "grantDiscards"));
         s.put("valueTypes", List.of("const", "state", "count", "runVar"));
-        s.put("mutationOps", names(Effect.MutateState.Op.values()));
+        s.put("mutationOps", names(Effect.Operation.values()));
 
         Map<String, Object> enums = new LinkedHashMap<>();
         enums.put("suit", names(Suit.values()));

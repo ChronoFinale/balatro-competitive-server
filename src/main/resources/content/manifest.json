@@ -1,10 +1,10 @@
 {
-  "version" : "f4037b577462a588",
+  "version" : "c2b0970b4bdc77a4",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
-      "sha256" : "80a708b4852570f9c73bbc7cf20f8afab7b21633b9ea55e74c3a136b147232d2",
-      "bytes" : 145276
+      "sha256" : "31da7699bd36478d1aed5130aded7ac54569d96f149cd8cd0d010c7d7cbe03ea",
+      "bytes" : 145266
     },
     {
       "path" : "rulesets/bmp-0.4.2-ranked.json",

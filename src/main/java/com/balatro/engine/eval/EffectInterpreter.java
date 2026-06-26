@@ -148,8 +148,8 @@ public final class EffectInterpreter {
         double n = (cur instanceof Number num) ? num.doubleValue() : 0;
         double next = switch (ms.op()) {
             case ADD -> n + amount;
-            case SET -> amount;
-            case RESET -> 0;
+            case SET -> amount;                         // reset() authors SET 0 — RESET folded into the one Operation
+            default -> throw new IllegalStateException(ms.op() + " is not a state-write op (only ADD/SET)");
         };
         if (next == Math.rint(next) && !Double.isInfinite(next)) {
             state.put(ms.var(), (int) next);

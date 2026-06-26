@@ -42,7 +42,7 @@ class RuleAccumulationTest {
         DataJoker j = joker(
                 new Rule(Trigger.JOKER_MAIN, ALWAYS, Effect.mult(new Value.Const(4))),
                 new Rule(Trigger.JOKER_MAIN, ALWAYS,
-                        new Effect.MutateState("count", Effect.MutateState.Op.ADD, 1, null, null)));
+                        new Effect.MutateState("count", Effect.Operation.ADD, 1, null, null)));
 
         EvaluationContext c = ctx(j, Trigger.JOKER_MAIN);
         JokerEffect e = j.calculate(c);
