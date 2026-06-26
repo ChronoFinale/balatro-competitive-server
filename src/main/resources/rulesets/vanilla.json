@@ -3908,7 +3908,7 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -3950,7 +3950,7 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -4003,7 +4003,7 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -4067,7 +4067,7 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -4111,7 +4111,7 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -4153,7 +4153,7 @@
               "rarity" : null,
               "enhancement" : "STONE",
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -4195,7 +4195,7 @@
               "rarity" : "Common",
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -4255,7 +4255,7 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -4793,7 +4793,7 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : true,
+              "sealStrategy" : "RANDOM",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -5038,7 +5038,7 @@
               "rarity" : null,
               "enhancement" : null,
               "seal" : null,
-              "randomSeal" : false,
+              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -5581,7 +5581,7 @@
             "selector" : {
               "type" : "otherJoker",
               "scope" : "RIGHT_NEIGHBOR",
-              "gainMult" : true
+              "mode" : "STEAL_MULT"
             }
           }
         ]
@@ -5664,7 +5664,7 @@
             "selector" : {
               "type" : "otherJoker",
               "scope" : "RANDOM_OTHER",
-              "gainMult" : false
+              "mode" : "DESTROY"
             }
           }
         ]

@@ -50,11 +50,14 @@ public sealed interface Selector {
     record Self() implements Selector {}
 
     /** Another owned joker, chosen by {@code scope} ({@code RIGHT_NEIGHBOR} = Ceremonial Dagger,
-     *  {@code RANDOM_OTHER} = Madness); {@code gainMult} rides the Ceremonial case (gain 2× the victim's
-     *  sell value as Mult). Resolved by Run's blind-select joker-destruction machinery. */
-    record OtherJoker(Scope scope, boolean gainMult) implements Selector {
+     *  {@code RANDOM_OTHER} = Madness), eaten in the given {@link Mode}. Resolved by Run's blind-select
+     *  joker-destruction machinery. */
+    record OtherJoker(Scope scope, Mode mode) implements Selector {
         /** Which other owned joker this targets — a closed set, not a magic string. */
         public enum Scope { RIGHT_NEIGHBOR, RANDOM_OTHER }
+        /** Whether eating the joker also steals 2× the victim's sell value as Mult (Ceremonial Dagger),
+         *  or simply destroys it (Madness). */
+        public enum Mode { DESTROY, STEAL_MULT }
     }
 
     /** The last Tarot/Planet used this run (The Fool copies it). */

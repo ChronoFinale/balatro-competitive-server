@@ -101,9 +101,11 @@ public final class Creation {
             Rank r = ranks[idx(roll(queues, RngSources.CREATE_CARD.sub("rank")), ranks.length)];
             Suit s = suits[idx(roll(queues, RngSources.CREATE_CARD.sub("suit")), suits.length)];
             Enhancement enh = spec.enhancement() != null ? spec.enhancement() : Enhancement.NONE;
-            Seal seal = spec.randomSeal()
-                    ? RANDOM_SEALS[idx(roll(queues, RngSources.CREATE_CARD.sub("seal")), RANDOM_SEALS.length)]
-                    : (spec.seal() != null ? spec.seal() : Seal.NONE);
+            Seal seal = switch (spec.sealStrategy()) {
+                case RANDOM -> RANDOM_SEALS[idx(roll(queues, RngSources.CREATE_CARD.sub("seal")), RANDOM_SEALS.length)];
+                case FIXED -> spec.seal() != null ? spec.seal() : Seal.NONE;
+                case NONE -> Seal.NONE;
+            };
             run.deckComposition.add(new Card(r, s, enh, Edition.NONE, seal));
         }
     }

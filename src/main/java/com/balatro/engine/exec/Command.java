@@ -50,8 +50,11 @@ public sealed interface Command {
     /** Destroy every owned joker except {@code keep} (Ankh/Hex's wipe). */
     record DestroyOtherJokers(Joker keep) implements Command {}
 
-    /** Add a copy of a consumable by {@code key} (The Fool, Perkeo); {@code ignoreSlotCap} for Perkeo's Negative. */
-    record CopyConsumable(String key, boolean ignoreSlotCap) implements Command {}
+    /** Add a copy of a consumable by {@code key} (The Fool, Perkeo). */
+    record CopyConsumable(String key, SlotPolicy slotPolicy) implements Command {
+        /** Whether the copy respects the consumable slot cap or bypasses it (Perkeo's Negative copy). */
+        public enum SlotPolicy { RESPECT_CAP, IGNORE_CAP }
+    }
 
     /** Adjust the hand size by a delta (Ectoplasm -1, Juggle +3). */
     record HandSize(int delta) implements Command {}

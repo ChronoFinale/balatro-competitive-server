@@ -339,7 +339,7 @@ public final class Run {
             if (d == null || d.scope() != Selector.OtherJoker.Scope.RIGHT_NEIGHBOR || i + 1 >= js.size()) continue;
             if (state.jokerFlag(js.get(i + 1), "eternal")) continue; // eternal can't be eaten
             Joker victim = js.remove(i + 1);
-            if (d.gainMult()) state.addJokerInt(js.get(i), "mult", 2 * Math.max(1, victim.info().cost() / 2));
+            if (d.mode() == Selector.OtherJoker.Mode.STEAL_MULT) state.addJokerInt(js.get(i), "mult", 2 * Math.max(1, victim.info().cost() / 2));
         }
         if (blind == BlindType.BOSS) return; // random joker-eaters (Madness) don't trigger on boss blinds
         // Madness (RANDOM_OTHER): Small/Big only; the ×0.5 Mult rides a state-write rule, this is just "eat a joker".
@@ -594,7 +594,8 @@ public final class Run {
                     state.addJoker(JokerLibrary.create(cj.source().key(), cj.variant())); // copy has no edition
             case com.balatro.engine.exec.Command.DestroyOtherJokers d -> state.jokers().removeIf(j -> j != d.keep());
             case com.balatro.engine.exec.Command.CopyConsumable cc -> {
-                if (cc.ignoreSlotCap() || state.consumables.size() < state.consumableSlots) state.consumables.add(cc.key());
+                if (cc.slotPolicy() == com.balatro.engine.exec.Command.CopyConsumable.SlotPolicy.IGNORE_CAP
+                        || state.consumables.size() < state.consumableSlots) state.consumables.add(cc.key());
             }
             case com.balatro.engine.exec.Command.DestroyCards dc -> {
                 dc.cards().forEach(t -> t.destroyed = true);
@@ -949,7 +950,7 @@ public final class Run {
                 if (cp.selector() instanceof Selector.RandomConsumable && !state.consumables.isEmpty()) {
                     // Perkeo (shop exit): a slot-cap-ignoring Negative copy of a random held consumable.
                     String dup = state.queues.pick(state.consumables, RngSources.PERKEO_DUP, rngCtx(), s -> s, (a, b) -> 0);
-                    apply(new com.balatro.engine.exec.Command.CopyConsumable(dup, true));
+                    apply(new com.balatro.engine.exec.Command.CopyConsumable(dup, com.balatro.engine.exec.Command.CopyConsumable.SlotPolicy.IGNORE_CAP));
                 } else if (cp.selector() instanceof Selector.RandomJoker
                         && !state.jokers().isEmpty() && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
                     // Invisible Joker (on sell): copy a joker — the rightmost in MP (deterministic), else a
@@ -1443,7 +1444,7 @@ public final class Run {
                     apply(new com.balatro.engine.exec.Command.AddCardsToDeck(copies));
                 } else if (cp.selector() instanceof Selector.LastConsumable      // The Fool: copy the last Tarot/Planet used
                         && state.lastTarotPlanetUsed != null) {
-                    apply(new com.balatro.engine.exec.Command.CopyConsumable(state.lastTarotPlanetUsed, false));
+                    apply(new com.balatro.engine.exec.Command.CopyConsumable(state.lastTarotPlanetUsed, com.balatro.engine.exec.Command.CopyConsumable.SlotPolicy.RESPECT_CAP));
                 } else if (cp.selector() instanceof Selector.Bound bnd) {         // Ankh: copy the bound joker
                     Joker src = bindings.get(bnd.name());
                     if (src != null && state.jokers().size() < state.jokerSlots)

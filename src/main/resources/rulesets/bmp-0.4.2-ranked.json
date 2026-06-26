@@ -180,7 +180,7 @@
                   "rarity" : null,
                   "enhancement" : null,
                   "seal" : null,
-                  "randomSeal" : false,
+                  "sealStrategy" : "NONE",
                   "stream" : "CREATE",
                   "dedup" : true,
                   "destination" : "PLAYER",

@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @param edition     for a SHOP JOKER: a forced edition (Foil/Holo/Poly/Negative tags); NONE = by rarity
  */
 public record CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement,
-                         Seal seal, boolean randomSeal, JokerStream stream, boolean dedup,
+                         Seal seal, SealStrategy sealStrategy, JokerStream stream, boolean dedup,
                          Destination destination, Edition edition) {
 
     public enum Kind { TAROT, PLANET, SPECTRAL, JOKER, PLAYING_CARD }
@@ -41,11 +41,15 @@ public record CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhanc
      *  = the {@code tag:joker:<rarity>} queue (Rare/Uncommon free-joker tags). */
     public enum JokerStream { CREATE, TOPUP, TAG_SHOP }
 
-    /** Compact canonical: omitted stream/destination/edition fall back to their defaults. */
+    /** Which seal a created PLAYING_CARD gets: none, the fixed {@code seal}, or a random one (Certificate). */
+    public enum SealStrategy { NONE, FIXED, RANDOM }
+
+    /** Compact canonical: omitted stream/destination/edition/sealStrategy fall back to their defaults. */
     public CreateSpec {
         if (stream == null) stream = JokerStream.CREATE;
         if (destination == null) destination = Destination.PLAYER;
         if (edition == null) edition = Edition.NONE;
+        if (sealStrategy == null) sealStrategy = SealStrategy.NONE;
     }
 
     /** JSON entry point: {@code dedup} is boxed so "omitted" (null) coerces to true — BMP's
@@ -53,40 +57,40 @@ public record CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhanc
     @JsonCreator
     public static CreateSpec fromJson(@JsonProperty("kind") Kind kind, @JsonProperty("count") int count,
             @JsonProperty("rarity") Rarity rarity, @JsonProperty("enhancement") Enhancement enhancement,
-            @JsonProperty("seal") Seal seal, @JsonProperty("randomSeal") boolean randomSeal,
+            @JsonProperty("seal") Seal seal, @JsonProperty("sealStrategy") SealStrategy sealStrategy,
             @JsonProperty("stream") JokerStream stream, @JsonProperty("dedup") Boolean dedup,
             @JsonProperty("destination") Destination destination, @JsonProperty("edition") Edition edition) {
-        return new CreateSpec(kind, count, rarity, enhancement, seal, randomSeal,
+        return new CreateSpec(kind, count, rarity, enhancement, seal, sealStrategy,
                 stream, dedup == null || dedup, destination, edition);
     }
 
     public CreateSpec(Kind kind) {
-        this(kind, 1, null, null, null, false, null, true, null, null);
+        this(kind, 1, null, null, null, SealStrategy.NONE, null, true, null, null);
     }
 
     public CreateSpec(Kind kind, int count) {
-        this(kind, count, null, null, null, false, null, true, null, null);
+        this(kind, count, null, null, null, SealStrategy.NONE, null, true, null, null);
     }
 
     public CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement) {
-        this(kind, count, rarity, enhancement, null, false, null, true, null, null);
+        this(kind, count, rarity, enhancement, null, SealStrategy.NONE, null, true, null, null);
     }
 
     public CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement,
-            Seal seal, boolean randomSeal) {
-        this(kind, count, rarity, enhancement, seal, randomSeal, null, true, null, null);
+            Seal seal, SealStrategy sealStrategy) {
+        this(kind, count, rarity, enhancement, seal, sealStrategy, null, true, null, null);
     }
 
     /** A JOKER grant straight to the player with explicit stream + dedup (the Top-Up tag: TOPUP, no dedup). */
     public static CreateSpec jokers(int count, Rarity rarity, JokerStream stream, boolean dedup) {
-        return new CreateSpec(Kind.JOKER, count, rarity, null, null, false, stream, dedup,
+        return new CreateSpec(Kind.JOKER, count, rarity, null, null, SealStrategy.NONE, stream, dedup,
                 Destination.PLAYER, Edition.NONE);
     }
 
     /** A free JOKER in the next shop — by {@code rarity} from the tag:joker queue (Rare/Uncommon tags), or
      *  a random one with a forced {@code edition} (Foil/Holo/Poly/Negative tags; rarity null). */
     public static CreateSpec shopJoker(Rarity rarity, Edition edition) {
-        return new CreateSpec(Kind.JOKER, 1, rarity, null, null, false,
+        return new CreateSpec(Kind.JOKER, 1, rarity, null, null, SealStrategy.NONE,
                 JokerStream.TAG_SHOP, false, Destination.SHOP, edition);
     }
 }

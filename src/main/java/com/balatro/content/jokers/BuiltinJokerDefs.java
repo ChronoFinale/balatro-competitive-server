@@ -505,7 +505,7 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
                 Jokers.of("j_certificate", "Certificate")
                         .on(Trigger.FIRST_HAND_DRAWN)
-                        .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, null, true)).build(),
+                        .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, null, CreateSpec.SealStrategy.RANDOM)).build(),
 
                 // --- batch 18: decay jokers (run-long counters + clamped values) ---
                 Jokers.of("j_ice_cream", "Ice Cream")
@@ -583,12 +583,12 @@ public final class BuiltinJokerDefs {
                 // --- batch 32: joker-destroyers (Ceremonial Dagger, Madness) ---
                 Jokers.of("j_ceremonial", "Ceremonial Dagger").counters("mult")
                         .whenHand(state("mult").atLeast(1)).add(MULT, Val.state("mult"))
-                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker(Selector.OtherJoker.Scope.RIGHT_NEIGHBOR, true))).build(),
+                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker(Selector.OtherJoker.Scope.RIGHT_NEIGHBOR, Selector.OtherJoker.Mode.STEAL_MULT))).build(),
                 // x0.5 Mult is a state-write rule; eating a random joker is a BLIND_SELECTED destroy rule.
                 Jokers.of("j_madness", "Madness").counters("xm")
                         .mutate(Trigger.BLIND_SELECTED).when(not(Cond.bossBlind())).gain("xm", 0.5)
                         .whenHand(state("xm").atLeast(0.5)).multiply(MULT, Val.state("xm", 1.0, 1.0))
-                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker(Selector.OtherJoker.Scope.RANDOM_OTHER, false))).build(),
+                        .on(Trigger.BLIND_SELECTED).effect(new Effect.Destroy(new Selector.OtherJoker(Selector.OtherJoker.Scope.RANDOM_OTHER, Selector.OtherJoker.Mode.DESTROY))).build(),
 
                 // --- batch 31: Satellite (unique-planet economy) ---
                 Jokers.of("j_satellite", "Satellite")
