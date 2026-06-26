@@ -7,6 +7,8 @@ import com.balatro.engine.card.Edition;
 import com.balatro.grammar.Effect;
 import com.balatro.grammar.Hand;
 import com.balatro.grammar.Modify;
+import com.balatro.grammar.PackKind;
+import com.balatro.grammar.PackSize;
 import com.balatro.grammar.Value;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +31,11 @@ public final class TagDefs {
                 new Effect.Write(new Modify(Value.Var.MONEY, Effect.Operation.ADD, new Value.Const(25))));
         add(t, "tag_boss", "Boss Tag", true, Timing.HELD);
         // Pack tags are data: a booster pack appears in the next shop — AddPack(kind, size).
-        add(t, "tag_standard", "Standard Tag", false, Timing.ON_SHOP, pack("STANDARD", "MEGA"));
-        add(t, "tag_charm", "Charm Tag", true, Timing.ON_SHOP, pack("ARCANA", "MEGA"));
-        add(t, "tag_meteor", "Meteor Tag", false, Timing.ON_SHOP, pack("CELESTIAL", "MEGA"));
-        add(t, "tag_buffoon", "Buffoon Tag", false, Timing.ON_SHOP, pack("BUFFOON", "MEGA"));
-        add(t, "tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP, pack("SPECTRAL", "NORMAL"));
+        add(t, "tag_standard", "Standard Tag", false, Timing.ON_SHOP, pack(PackKind.STANDARD, PackSize.MEGA));
+        add(t, "tag_charm", "Charm Tag", true, Timing.ON_SHOP, pack(PackKind.ARCANA, PackSize.MEGA));
+        add(t, "tag_meteor", "Meteor Tag", false, Timing.ON_SHOP, pack(PackKind.CELESTIAL, PackSize.MEGA));
+        add(t, "tag_buffoon", "Buffoon Tag", false, Timing.ON_SHOP, pack(PackKind.BUFFOON, PackSize.MEGA));
+        add(t, "tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP, pack(PackKind.SPECTRAL, PackSize.NORMAL));
         add(t, "tag_coupon", "Coupon Tag", true, Timing.ON_SHOP, new Effect.ShopFlag(Effect.ShopFlag.Flag.COUPON));
         add(t, "tag_double", "Double Tag", true, Timing.HELD);
         add(t, "tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND, new Effect.Write(Modify.add(Hand.SIZE, 3)));
@@ -63,7 +65,7 @@ public final class TagDefs {
     }
 
     /** A booster pack in the next shop (Charm/Meteor/Buffoon/Standard/Ethereal). */
-    private static Effect pack(String kind, String size) {
+    private static Effect pack(PackKind kind, PackSize size) {
         return new Effect.AddPack(kind, size);
     }
 

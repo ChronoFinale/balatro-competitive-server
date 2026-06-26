@@ -919,7 +919,7 @@ public final class Run {
                 if (survivingJoker < 0) survivingJoker = ctx.selfIndex; // first saver wins; consumed by caller
             }
             case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
-                shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind()), PackCatalog.Size.valueOf(ap.size())));
+                shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind().name()), PackCatalog.Size.valueOf(ap.size().name())));
             case Effect.Create cr -> { // run-loop create: destination decides where it lands
                 CreateSpec s = cr.spec();
                 if (s.destination() == CreateSpec.Destination.SHOP) { // free-joker tags into the next shop

@@ -205,10 +205,9 @@ public sealed interface Effect {
      *  a {@code BLIND_LOST} rule gated on {@code BLIND_PROGRESS} — the Blind lifecycle made hookable. */
     record SurviveBlind() implements Effect {}
 
-    /** Add a booster pack to the next shop (Charm/Meteor/Buffoon/Standard/Ethereal tags). {@code kind} and
-     *  {@code size} are the {@code PackCatalog.Kind}/{@code Size} names — strings so the model layer needn't
-     *  depend on the game layer; {@code Run} resolves them when the shop opens. */
-    record AddPack(String kind, String size) implements Effect {}
+    /** Add a booster pack to the next shop (Charm/Meteor/Buffoon/Standard/Ethereal tags); {@code Run} resolves
+     *  the grammar {@link PackKind}/{@link PackSize} to the game's {@code PackCatalog} when the shop opens. */
+    record AddPack(PackKind kind, PackSize size) implements Effect {}
 
 
     /** Add an extra Voucher to the next shop (Voucher tag). */
