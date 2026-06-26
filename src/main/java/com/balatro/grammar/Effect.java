@@ -214,9 +214,11 @@ public sealed interface Effect {
     /** Add an extra Voucher to the next shop (Voucher tag). */
     record AddShopVoucher() implements Effect {}
 
-    /** Set a shop policy flag for the next shop: {@code "COUPON"} (free initial items) or {@code "D6"}
-     *  ($0 base reroll) — Coupon / D6 tags. */
-    record ShopFlag(String flag) implements Effect {}
+    /** Set a shop policy flag for the next shop — Coupon / D6 tags. */
+    record ShopFlag(Flag flag) implements Effect {
+        /** Free initial items (Coupon) or $0 base reroll (D6) — a closed set, not a magic string. */
+        public enum Flag { COUPON, D6 }
+    }
 
     /**
      * Write a durable {@link Property} — the ONE data verb, the action/run-loop twin of the passive {@link

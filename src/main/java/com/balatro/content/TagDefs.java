@@ -34,10 +34,10 @@ public final class TagDefs {
         add(t, "tag_meteor", "Meteor Tag", false, Timing.ON_SHOP, pack("CELESTIAL", "MEGA"));
         add(t, "tag_buffoon", "Buffoon Tag", false, Timing.ON_SHOP, pack("BUFFOON", "MEGA"));
         add(t, "tag_ethereal", "Ethereal Tag", false, Timing.ON_SHOP, pack("SPECTRAL", "NORMAL"));
-        add(t, "tag_coupon", "Coupon Tag", true, Timing.ON_SHOP, new Effect.ShopFlag("COUPON"));
+        add(t, "tag_coupon", "Coupon Tag", true, Timing.ON_SHOP, new Effect.ShopFlag(Effect.ShopFlag.Flag.COUPON));
         add(t, "tag_double", "Double Tag", true, Timing.HELD);
         add(t, "tag_juggle", "Juggle Tag", true, Timing.NEXT_BLIND, new Effect.Write(Modify.add(Hand.SIZE, 3)));
-        add(t, "tag_d_six", "D6 Tag", true, Timing.ON_SHOP, new Effect.ShopFlag("D6"));
+        add(t, "tag_d_six", "D6 Tag", true, Timing.ON_SHOP, new Effect.ShopFlag(Effect.ShopFlag.Flag.D6));
         add(t, "tag_voucher", "Voucher Tag", true, Timing.ON_SHOP, new Effect.AddShopVoucher());
         // Economy: gain min(money, 40) — AdjustMoney(ADD, clamp(money, 0, 40)) — a double, capped at +$40.
         add(t, "tag_economy", "Economy Tag", true, Timing.IMMEDIATE,

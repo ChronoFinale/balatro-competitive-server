@@ -941,8 +941,8 @@ public final class Run {
             }
             case Effect.AddShopVoucher ignored -> addTagVoucher();          // Voucher tag
             case Effect.ShopFlag sf -> {                                    // Coupon / D6 tags
-                if ("COUPON".equals(sf.flag())) couponActive = true;
-                else if ("D6".equals(sf.flag())) d6Active = true;
+                if (sf.flag() == Effect.ShopFlag.Flag.COUPON) couponActive = true;
+                else if (sf.flag() == Effect.ShopFlag.Flag.D6) d6Active = true;
             }
             case Effect.Write w -> applyWrite(w.mod(), ctx);               // Juggle (Hand.SIZE) / Tooth/Ox (MONEY)
             case Effect.Copy cp -> { // run-loop copies (the rounds-owned gate is now a Condition on the rule)
