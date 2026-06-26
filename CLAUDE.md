@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-Guidance for working in this repo. Read alongside `README.md`.
+Guidance for working in this repo. **New here? Read `docs/HANDOFF.md` first** — the honest current state,
+how a joker works, and the known tech debt. Read alongside `README.md` and `ORIENT.md` (the code map).
 
 ## What this is
 
@@ -39,8 +40,13 @@ Four layers, one-directional deps (`engine → content → dsl → model`). **Se
     now load content from the compiled JSON; their authoring lives in `content/`).
   - `scoring/` — `ScoringEngine`, `ScoreResult`, `ReplayEntry` (the animation stream the client renders).
   - `rng/` — the **composable RngSource model** (see below) + `rng/vanilla/` bit-exact Balatro PRNG.
-  - `consumable/`, `joker/` (incl. `joker/def/` — the data model: `JokerDef`/`Effect`/`Condition`/…), `state/`,
+  - `eval/` — the interpreters (`ValueResolver`/`ConditionEvaluator`/`EffectInterpreter`/`ModifyFolder`);
+    `exec/` — the `Command` model + `Run.apply` (the single action-mutation path).
+  - `consumable/`, `joker/` (`joker/def/` now holds only overlay/library/schema infra — `DataJoker`,
+    `RulesetOverlay`, `BuilderSchema`; the **data model** moved to `com.balatro.grammar/`), `state/`,
     `codegen/` (TS + manifest), `content/ContentStore`, `i18n/Loc`, `ui/` (server-driven-UI vocabulary).
+- `src/main/java/com/balatro/grammar/` — **the pure-data DSL grammar** (`Effect`, `Condition`, `Value`,
+  `Modify`, `Selector`, `Rule`, `Property`, `JokerDef`) — no behavior; interpreted by `engine.eval`.
 - `src/main/java/com/balatro/dsl/` — **the fluent builders** (`Jokers`, `Cond`, `Val`, `Decks`, `Bosses`,
   `Consumables`) you author content with.
 - `src/main/java/com/balatro/content/` — **the content authored in the dsl**: `jokers/BuiltinJokerDefs`

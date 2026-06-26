@@ -30,7 +30,7 @@ mod in real Balatro** (thin shell + server config); the Electron app is a fast p
 | `game/` | `Run` (the game loop), `Shop`, `Match` (PvP), and the content catalogs (`DeckCatalog`, `BossCatalog`, …) |
 | `scoring/` | `ScoringEngine` — turns a played hand into a score |
 | `rng/` | the deterministic PRNG (incl. bit-exact vanilla in `rng/vanilla/`) |
-| `joker/`, `consumable/`, `card/`, `hand/` | the domain model + the data-driven joker definitions (`joker/def/`) |
+| `joker/`, `consumable/`, `card/`, `hand/` | the domain model (the data-driven **grammar** the jokers are authored in lives in `com.balatro.grammar/`) |
 | `intent/` | the actions a client can send (`PlayHand`, `Discard`, `BuyShopItem`, …) |
 | `net/` | `GameServer` (routes intents, serves HTTP), `ClientView` (the info-hiding boundary) |
 | `state/` | `Ruleset`, `RulesetBundle` (content + capabilities + mode), overlays, the stores |
@@ -39,7 +39,7 @@ mod in real Balatro** (thin shell + server config); the Electron app is a fast p
 **Four layers, kept separate (the reorg boundary):**
 | layer | package | what it is |
 |---|---|---|
-| **model** | `joker/def/` (`JokerDef`, `Effect`, `Condition`, `Value`, …), `ui/` (`UiScreen`/`UiComponent`), `state/` (`RulesetBundle`) | the closed vocabulary — pure data records. The contract everything else speaks. |
+| **model** | **`com.balatro.grammar/`** (`Effect`, `Condition`, `Value`, `Modify`, `Selector`, `JokerDef`, …), `ui/` (`UiScreen`/`UiComponent`), `state/` (`RulesetBundle`) | the closed vocabulary — pure data records, **no behavior** (interpretation lives in `engine.eval`). The contract everything else speaks. (`joker/def/` now holds only overlay/library/schema infra — `DataJoker`, `RulesetOverlay`, `BuilderSchema`.) |
 | **dsl** | **`com.balatro.dsl/`** — `Jokers`, `Cond`, `Val`, `Decks`, `Bosses`, `Consumables` | the fluent builders you *write content with*. Its own package now (decoupled — the model's convenience ctors were made public). |
 | **content** | **`com.balatro.content/`** — `jokers/BuiltinJokerDefs` (**← the 141 jokers**), `DeckDefs`, `BossDefs`, `TagDefs`, `VoucherDefs`, `ConsumableDefs`, `PlanetDefs`, `Bundles`, `Screens` | what's *authored in* the dsl. "What gets turned into JSON/client-libs." Every content type's definitions live here. |
 | **engine** | `game/ scoring/ rng/ net/ …` | interprets the model → outcomes. |

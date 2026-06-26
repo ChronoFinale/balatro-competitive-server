@@ -1,5 +1,12 @@
 # 00 — Master Design: Server-Authoritative Competitive Balatro
 
+> **Read `docs/HANDOFF.md` first** — it is the current honest state. This charter is still the program
+> vision + milestones (M0–M7), but two things here are dated: (1) the effect **model** is now the
+> **`com.balatro.grammar`** package, not "JokerDef algebra v2 / `joker/def`"; (2) docs `40`/`41` were deleted
+> and `42`/`44`/`50`/`51` moved to `docs/design/history/` — where this doc cites doc `40` for the
+> building-blocks, read `43-the-dsl-vocabulary.md` (the live DSL dictionary) instead. The grammar has since
+> collapsed the v1/v2 "ops" into one `Operation` enum and a `Modify` write-spine.
+
 This is the cohesive program design that ties together the foundation specs
 (`balatro-engine-spec.md`, `queue-model.md`, `README.md`) and the detailed
 content/system sections (`10-*` … `40-*`). It states the vision, the target
