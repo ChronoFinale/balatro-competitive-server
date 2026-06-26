@@ -126,8 +126,8 @@ public final class BuiltinJokerDefs {
                         .create(CreateSpec.Kind.SPECTRAL).build(),
                 // Penny Pincher: Nemesis shop-spend economy.
                 Jokers.of("j_penny_pincher", "Penny Pincher")
-                        .on(Trigger.SHOP_ENTER).effect(new Effect.AdjustMoney(Effect.Operation.ADD,
-                                new Value.RunVarStep(Value.Var.OPP_SHOP_SPENT, 0, 1, 3))).build(),
+                        .on(Trigger.SHOP_ENTER).effect(new Effect.Write(new Modify(Value.Var.MONEY, Effect.Operation.ADD,
+                                new Value.RunVarStep(Value.Var.OPP_SHOP_SPENT, 0, 1, 3)))).build(),
                 // Skip-Off / Let's Go Gambling.
                 // Skip-Off: +1 Hand and +1 Discard per extra blind skipped vs the Nemesis — a DYNAMIC Modify
                 // (the amount is a Value: clamp(blindsSkipped − opp.blindsSkipped, 0, ∞)), not a RunMod.

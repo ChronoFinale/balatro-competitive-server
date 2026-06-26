@@ -6,6 +6,7 @@ import com.balatro.engine.card.Enhancement;
 import com.balatro.engine.card.Seal;
 
 import com.balatro.grammar.Effect;
+import com.balatro.grammar.Modify;
 import com.balatro.grammar.Value;
 import java.util.List;
 import java.util.Locale;
@@ -46,7 +47,7 @@ public enum Sticker {
      *  with every other money effect); Eternal/Perishable have no end-of-round effect of this shape. */
     public List<Effect> endOfRound() {
         return this == RENTAL
-                ? List.of(new Effect.AdjustMoney(Effect.Operation.SUBTRACT, new Value.Const(RENTAL_RATE)))
+                ? List.of(new Effect.Write(new Modify(Value.Var.MONEY, Effect.Operation.SUBTRACT, new Value.Const(RENTAL_RATE))))
                 : List.of();
     }
 }

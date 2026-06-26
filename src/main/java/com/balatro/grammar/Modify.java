@@ -10,9 +10,7 @@ package com.balatro.grammar;
  * decaying bonus, Skip-Off's cross-player diff). The {@code double} factories wrap the number in a
  * {@link Value.Const}; {@code com.balatro.engine.eval.ModifyFolder} resolves + folds a list of modifiers.
  */
-public record Modify(Property variable, Op op, Value value) {
-
-    public enum Op { ADD, SET, MULTIPLY, MAX, MIN }
+public record Modify(Property variable, Effect.Operation op, Value value) {
 
     public static Modify add(Property variable, double value) { return add(variable, new Value.Const(value)); }
     public static Modify set(Property variable, double value) { return set(variable, new Value.Const(value)); }
@@ -25,9 +23,9 @@ public record Modify(Property variable, Op op, Value value) {
     public static Modify min(Property variable, double value) { return min(variable, new Value.Const(value)); }
 
     // --- Value overloads: a DYNAMIC modifier whose amount is resolved per fold (Turtle Bean / Skip-Off) ---
-    public static Modify add(Property variable, Value value) { return new Modify(variable, Op.ADD, value); }
-    public static Modify set(Property variable, Value value) { return new Modify(variable, Op.SET, value); }
-    public static Modify multiply(Property variable, Value value) { return new Modify(variable, Op.MULTIPLY, value); }
-    public static Modify max(Property variable, Value value) { return new Modify(variable, Op.MAX, value); }
-    public static Modify min(Property variable, Value value) { return new Modify(variable, Op.MIN, value); }
+    public static Modify add(Property variable, Value value) { return new Modify(variable, Effect.Operation.ADD, value); }
+    public static Modify set(Property variable, Value value) { return new Modify(variable, Effect.Operation.SET, value); }
+    public static Modify multiply(Property variable, Value value) { return new Modify(variable, Effect.Operation.MULTIPLY, value); }
+    public static Modify max(Property variable, Value value) { return new Modify(variable, Effect.Operation.MAX, value); }
+    public static Modify min(Property variable, Value value) { return new Modify(variable, Effect.Operation.MIN, value); }
 }

@@ -218,14 +218,17 @@
             },
             "effects" : [
               {
-                "type" : "adjustMoney",
-                "op" : "ADD",
-                "amount" : {
-                  "type" : "runVarStep",
-                  "which" : "OPP_SHOP_SPENT",
-                  "base" : 0.0,
-                  "scale" : 1.0,
-                  "per" : 3.0
+                "type" : "write",
+                "mod" : {
+                  "variable" : "MONEY",
+                  "op" : "ADD",
+                  "value" : {
+                    "type" : "runVarStep",
+                    "which" : "OPP_SHOP_SPENT",
+                    "base" : 0.0,
+                    "scale" : 1.0,
+                    "per" : 3.0
+                  }
                 }
               }
             ]

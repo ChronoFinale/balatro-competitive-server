@@ -223,16 +223,19 @@
         },
         "effects" : [
           {
-            "type" : "adjustMoney",
-            "op" : "SUBTRACT",
-            "amount" : {
-              "type" : "count",
-              "source" : "PLAYED",
-              "match" : {
-                "type" : "always"
-              },
-              "base" : 0.0,
-              "scale" : 1.0
+            "type" : "write",
+            "mod" : {
+              "variable" : "MONEY",
+              "op" : "SUBTRACT",
+              "value" : {
+                "type" : "count",
+                "source" : "PLAYED",
+                "match" : {
+                  "type" : "always"
+                },
+                "base" : 0.0,
+                "scale" : 1.0
+              }
             }
           }
         ]
@@ -261,11 +264,14 @@
         },
         "effects" : [
           {
-            "type" : "adjustMoney",
-            "op" : "SET",
-            "amount" : {
-              "type" : "const",
-              "amount" : 0.0
+            "type" : "write",
+            "mod" : {
+              "variable" : "MONEY",
+              "op" : "SET",
+              "value" : {
+                "type" : "const",
+                "amount" : 0.0
+              }
             }
           }
         ]

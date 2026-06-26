@@ -589,7 +589,7 @@ public final class Run {
                     case MULTIPLY -> Math.max(0, (int) Math.round(state.money * m.amount()));
                     case DIVIDE -> m.amount() == 0 ? state.money : Math.max(0, (int) Math.round(state.money / m.amount()));
                     case SET -> Math.max(0, v);                            // The Ox: set to $0
-                    case POWER -> throw new IllegalStateException("POWER is not a money operation");
+                    case POWER, MAX, MIN -> throw new IllegalStateException(m.op() + " is not a money operation");
                 };
             }
             case com.balatro.engine.exec.Command.HandSize h -> state.handSize += h.delta();
@@ -898,9 +898,6 @@ public final class Run {
      *  rules) and tags (Speed/Handy/Garbage money gains) — any effect fired outside the scoring pipeline. */
     private void applyRunLoopEffect(Effect e, com.balatro.engine.joker.EvaluationContext ctx) {
         switch (e) {
-            case Effect.AdjustMoney am ->  // interpret → resolved Money command → one apply+trace path
-                apply(new com.balatro.engine.exec.Command.Money(am.op(),
-                        com.balatro.engine.eval.ValueResolver.resolve(am.amount(), ctx)));
             case Effect.DiscardRandomHeld d -> hookDiscardAndRefill(d.count()); // The Hook
             case Effect.FlipAndShuffleJokers ignored -> { // Amber Acorn (blind start)
                 jokersHidden = true;
@@ -952,7 +949,7 @@ public final class Run {
                 if ("COUPON".equals(sf.flag())) couponActive = true;
                 else if ("D6".equals(sf.flag())) d6Active = true;
             }
-            case Effect.Write w -> applyWrite(w.mod());                     // Juggle tag (+3 this round): Modify(Hand.SIZE)
+            case Effect.Write w -> applyWrite(w.mod(), ctx);               // Juggle (Hand.SIZE) / Tooth/Ox (MONEY)
             case Effect.Copy cp -> { // run-loop copies (the rounds-owned gate is now a Condition on the rule)
                 if (cp.selector() instanceof Selector.RandomConsumable && !state.consumables.isEmpty()) {
                     // Perkeo (shop exit): a slot-cap-ignoring Negative copy of a random held consumable.
@@ -1392,10 +1389,14 @@ public final class Run {
     /** Apply a {@link com.balatro.grammar.Modify} property-write at action time — the spine the bespoke
      *  property verbs collapse onto. Hand.SIZE routes to the existing {@code HandSize} command (byte-identical
      *  to the old {@code AdjustHandSize}); other properties are added here as their verbs are folded in. */
-    private void applyWrite(com.balatro.grammar.Modify m) {
-        if (m.variable() == com.balatro.grammar.Hand.SIZE && m.op() == com.balatro.grammar.Modify.Op.ADD
-                && m.value() instanceof com.balatro.grammar.Value.Const cst) {
-            apply(new com.balatro.engine.exec.Command.HandSize((int) Math.round(cst.amount())));
+    private void applyWrite(com.balatro.grammar.Modify m, com.balatro.engine.joker.EvaluationContext ctx) {
+        double v = com.balatro.engine.eval.ValueResolver.resolve(m.value(), ctx);
+        if (m.variable() == com.balatro.grammar.Hand.SIZE && m.op() == com.balatro.grammar.Effect.Operation.ADD) {
+            apply(new com.balatro.engine.exec.Command.HandSize((int) Math.round(v)));   // Juggle / Ectoplasm / Ouija
+            return;
+        }
+        if (m.variable() == com.balatro.grammar.Value.Var.MONEY) {                       // Tooth/Ox/Rental/Immolate/tags
+            apply(new com.balatro.engine.exec.Command.Money(m.op(), v));
             return;
         }
         throw new IllegalStateException("unsupported action Write: " + m);
@@ -1442,7 +1443,6 @@ public final class Run {
             }
             case Effect.LevelHands lh -> applyLevelHands(lh); // Black Hole (ALL)
             case Effect.AddCards a -> addRankClassCards(c, a);                  // Familiar / Grim rank-class adds
-            case Effect.AdjustMoney am -> applyRunLoopEffect(am, runLoopContext()); // Immolate/Hermit/Temperance/Wraith
             case Effect.EditionJoker ej -> { // Ectoplasm/Hex: edition the bound joker (Wheel keeps JokerEdition)
                 Joker target = ej.selector() instanceof Selector.Bound bnd ? bindings.get(bnd.name())
                         : (!state.jokers().isEmpty() ? state.queues.pick(state.jokers(),
@@ -1450,7 +1450,7 @@ public final class Run {
                            : null);
                 if (target != null) apply(new com.balatro.engine.exec.Command.EditionJoker(target, resolveEdition(c, ej.edition())));
             }
-            case Effect.Write w -> applyWrite(w.mod());                          // Ouija -1 / Ectoplasm -1: Modify(Hand.SIZE)
+            case Effect.Write w -> applyWrite(w.mod(), runLoopContext());        // Ouija/Ectoplasm (Hand.SIZE) / Immolate (MONEY)
             case Effect.ConvertHand ch -> applyConvertHand(c, ch);
             case Effect.Copy cp -> { // consumable-context copy
                 if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) { // Cryptid: copy the card cp.count()×

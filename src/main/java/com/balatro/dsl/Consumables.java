@@ -39,7 +39,7 @@ public final class Consumables {
     private CreateSpec create;
     private int destroyInHand;
     private AddCards add;
-    private Effect money; // an Effect.AdjustMoney
+    private Effect money; // a Write(Modify(MONEY, …))
 
     private Consumables(String key, String name, ConsumableType type) {
         this.key = key;
@@ -161,7 +161,7 @@ public final class Consumables {
     public Consumables setMoney(int value) { return money(Effect.Operation.SET, new Value.Const(value)); }
 
     private Consumables money(Effect.Operation op, Value amount) {
-        this.money = new Effect.AdjustMoney(op, amount);
+        this.money = new Effect.Write(new Modify(Value.Var.MONEY, op, amount));
         return this;
     }
 

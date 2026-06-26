@@ -151,11 +151,14 @@
     "timing" : "ON_BOSS_DEFEAT",
     "effects" : [
       {
-        "type" : "adjustMoney",
-        "op" : "ADD",
-        "amount" : {
-          "type" : "const",
-          "amount" : 25.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "ADD",
+          "value" : {
+            "type" : "const",
+            "amount" : 25.0
+          }
         }
       }
     ]
@@ -312,18 +315,21 @@
     "timing" : "IMMEDIATE",
     "effects" : [
       {
-        "type" : "adjustMoney",
-        "op" : "ADD",
-        "amount" : {
-          "type" : "clamp",
-          "inner" : {
-            "type" : "runVar",
-            "which" : "MONEY",
-            "base" : 0.0,
-            "scale" : 1.0
-          },
-          "min" : 0.0,
-          "max" : 40.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "ADD",
+          "value" : {
+            "type" : "clamp",
+            "inner" : {
+              "type" : "runVar",
+              "which" : "MONEY",
+              "base" : 0.0,
+              "scale" : 1.0
+            },
+            "min" : 0.0,
+            "max" : 40.0
+          }
         }
       }
     ]
@@ -336,13 +342,16 @@
     "timing" : "IMMEDIATE",
     "effects" : [
       {
-        "type" : "adjustMoney",
-        "op" : "ADD",
-        "amount" : {
-          "type" : "runVar",
-          "which" : "BLINDS_SKIPPED",
-          "base" : 0.0,
-          "scale" : 5.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "ADD",
+          "value" : {
+            "type" : "runVar",
+            "which" : "BLINDS_SKIPPED",
+            "base" : 0.0,
+            "scale" : 5.0
+          }
         }
       }
     ]
@@ -372,13 +381,16 @@
     "timing" : "IMMEDIATE",
     "effects" : [
       {
-        "type" : "adjustMoney",
-        "op" : "ADD",
-        "amount" : {
-          "type" : "runVar",
-          "which" : "HANDS_PLAYED_TOTAL",
-          "base" : 0.0,
-          "scale" : 1.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "ADD",
+          "value" : {
+            "type" : "runVar",
+            "which" : "HANDS_PLAYED_TOTAL",
+            "base" : 0.0,
+            "scale" : 1.0
+          }
         }
       }
     ]
@@ -391,13 +403,16 @@
     "timing" : "IMMEDIATE",
     "effects" : [
       {
-        "type" : "adjustMoney",
-        "op" : "ADD",
-        "amount" : {
-          "type" : "runVar",
-          "which" : "CARDS_DISCARDED_TOTAL",
-          "base" : 0.0,
-          "scale" : 1.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "ADD",
+          "value" : {
+            "type" : "runVar",
+            "which" : "CARDS_DISCARDED_TOTAL",
+            "base" : 0.0,
+            "scale" : 1.0
+          }
         }
       }
     ]

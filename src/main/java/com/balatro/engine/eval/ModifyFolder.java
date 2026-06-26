@@ -1,6 +1,7 @@
 package com.balatro.engine.eval;
 
 import com.balatro.engine.joker.EvaluationContext;
+import com.balatro.grammar.Effect;
 import com.balatro.grammar.Modify;
 import com.balatro.grammar.Property;
 import java.util.List;
@@ -22,11 +23,11 @@ public final class ModifyFolder {
      */
     public static double fold(double base, Property variable, List<Modify> mods, EvaluationContext ctx) {
         double v = base;
-        for (Modify m : mods) if (m.variable() == variable && m.op() == Modify.Op.SET) v = ValueResolver.resolve(m.value(), ctx);
-        for (Modify m : mods) if (m.variable() == variable && m.op() == Modify.Op.ADD) v += ValueResolver.resolve(m.value(), ctx);
-        for (Modify m : mods) if (m.variable() == variable && m.op() == Modify.Op.MULTIPLY) v *= ValueResolver.resolve(m.value(), ctx);
-        for (Modify m : mods) if (m.variable() == variable && m.op() == Modify.Op.MAX) v = Math.max(v, ValueResolver.resolve(m.value(), ctx));
-        for (Modify m : mods) if (m.variable() == variable && m.op() == Modify.Op.MIN) v = Math.min(v, ValueResolver.resolve(m.value(), ctx));
+        for (Modify m : mods) if (m.variable() == variable && m.op() == Effect.Operation.SET) v = ValueResolver.resolve(m.value(), ctx);
+        for (Modify m : mods) if (m.variable() == variable && m.op() == Effect.Operation.ADD) v += ValueResolver.resolve(m.value(), ctx);
+        for (Modify m : mods) if (m.variable() == variable && m.op() == Effect.Operation.MULTIPLY) v *= ValueResolver.resolve(m.value(), ctx);
+        for (Modify m : mods) if (m.variable() == variable && m.op() == Effect.Operation.MAX) v = Math.max(v, ValueResolver.resolve(m.value(), ctx));
+        for (Modify m : mods) if (m.variable() == variable && m.op() == Effect.Operation.MIN) v = Math.min(v, ValueResolver.resolve(m.value(), ctx));
         return v;
     }
 

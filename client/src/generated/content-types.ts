@@ -42,12 +42,11 @@ export type ConditionType =
   | "scoringAnyFace"
   | "scoringContainsSuit";
 
-/** 27 discriminators the server dispatches on — the client must handle exactly these. */
+/** 26 discriminators the server dispatches on — the client must handle exactly these. */
 export type EffectType =
   | "addCards"
   | "addPack"
   | "addShopVoucher"
-  | "adjustMoney"
   | "bind"
   | "convertHand"
   | "copy"
@@ -147,7 +146,7 @@ export interface JokerDef {
 
 export interface Modify {
   variable?: unknown;
-  op?: "ADD" | "SET" | "MULTIPLY" | "MAX" | "MIN";
+  op?: "ADD" | "SUBTRACT" | "MULTIPLY" | "DIVIDE" | "POWER" | "SET" | "MAX" | "MIN";
   value?: Value;
 }
 

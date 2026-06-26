@@ -643,18 +643,21 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "adjustMoney",
-        "op" : "ADD",
-        "amount" : {
-          "type" : "clamp",
-          "inner" : {
-            "type" : "runVar",
-            "which" : "MONEY",
-            "base" : 0.0,
-            "scale" : 1.0
-          },
-          "min" : 0.0,
-          "max" : 20.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "ADD",
+          "value" : {
+            "type" : "clamp",
+            "inner" : {
+              "type" : "runVar",
+              "which" : "MONEY",
+              "base" : 0.0,
+              "scale" : 1.0
+            },
+            "min" : 0.0,
+            "max" : 20.0
+          }
         }
       }
     ]
@@ -667,18 +670,21 @@
     "maxTargets" : 0,
     "effects" : [
       {
-        "type" : "adjustMoney",
-        "op" : "ADD",
-        "amount" : {
-          "type" : "clamp",
-          "inner" : {
-            "type" : "runVar",
-            "which" : "TOTAL_SELL_VALUE",
-            "base" : 0.0,
-            "scale" : 1.0
-          },
-          "min" : 0.0,
-          "max" : 50.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "ADD",
+          "value" : {
+            "type" : "clamp",
+            "inner" : {
+              "type" : "runVar",
+              "which" : "TOTAL_SELL_VALUE",
+              "base" : 0.0,
+              "scale" : 1.0
+            },
+            "min" : 0.0,
+            "max" : 50.0
+          }
         }
       }
     ]
@@ -730,11 +736,14 @@
         }
       },
       {
-        "type" : "adjustMoney",
-        "op" : "SET",
-        "amount" : {
-          "type" : "const",
-          "amount" : 0.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "SET",
+          "value" : {
+            "type" : "const",
+            "amount" : 0.0
+          }
         }
       }
     ]
@@ -754,11 +763,14 @@
         }
       },
       {
-        "type" : "adjustMoney",
-        "op" : "ADD",
-        "amount" : {
-          "type" : "const",
-          "amount" : 20.0
+        "type" : "write",
+        "mod" : {
+          "variable" : "MONEY",
+          "op" : "ADD",
+          "value" : {
+            "type" : "const",
+            "amount" : 20.0
+          }
         }
       }
     ]

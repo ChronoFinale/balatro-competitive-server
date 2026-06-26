@@ -83,15 +83,15 @@ public final class Bosses {
      *  sign — a loss is {@code AdjustMoney(SUBTRACT, count(played))}, a gain {@code ADD}. */
     public Bosses dollarsPerCard(int d) {
         Effect.Operation op = d < 0 ? Effect.Operation.SUBTRACT : Effect.Operation.ADD;
-        return onHandPlayed(new Condition.Always(), new Effect.AdjustMoney(op,
-                new Value.Count(Value.Source.PLAYED, new Condition.Always(), 0, Math.abs(d))));
+        return onHandPlayed(new Condition.Always(), new Effect.Write(new Modify(Value.Var.MONEY, op,
+                new Value.Count(Value.Source.PLAYED, new Condition.Always(), 0, Math.abs(d)))));
     }
 
     /** The Ox: playing your most-played hand sets money to $0 — {@code AdjustMoney(SET, 0)} gated on
      *  {@link Condition.PlayedHandIsMostPlayed}. */
     public Bosses zeroMoneyOnMostPlayed() {
         return onHandPlayed(new Condition.PlayedHandIsMostPlayed(),
-                new Effect.AdjustMoney(Effect.Operation.SET, new Value.Const(0)));
+                new Effect.Write(new Modify(Value.Var.MONEY, Effect.Operation.SET, new Value.Const(0))));
     }
 
     /** The Arm: the played poker hand drops a level — {@code LevelHands(PLAYED, -1)} (delevel = level by -1). */

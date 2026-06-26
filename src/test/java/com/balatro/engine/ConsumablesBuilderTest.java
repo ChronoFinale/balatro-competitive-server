@@ -36,9 +36,10 @@ class ConsumablesBuilderTest {
         Effect.Create create = (Effect.Create) wraith.effects().get(0);
         assertThat(create.spec().kind()).isEqualTo(CreateSpec.Kind.JOKER);
         assertThat(create.spec().rarity()).isEqualTo("Rare");
-        Effect.AdjustMoney money = (Effect.AdjustMoney) wraith.effects().get(1);
-        assertThat(money.op()).isEqualTo(Effect.Operation.SET);
-        assertThat(com.balatro.engine.eval.ValueResolver.resolve(money.amount(), null)).isZero(); // Const(0) resolves without a run
+        Effect.Write money = (Effect.Write) wraith.effects().get(1);          // money is a Modify(MONEY) write now
+        assertThat(money.mod().variable()).isEqualTo(com.balatro.grammar.Value.Var.MONEY);
+        assertThat(money.mod().op()).isEqualTo(Effect.Operation.SET);
+        assertThat(com.balatro.engine.eval.ValueResolver.resolve(money.mod().value(), null)).isZero(); // Const(0) resolves without a run
     }
 
     @Test

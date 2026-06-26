@@ -37,7 +37,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.NemesisDelevel.class, name = "nemesisDelevel"),
     @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
     // --- boss run-loop effects (applied by Run's action interpreter at a lifecycle trigger) ---
-    @JsonSubTypes.Type(value = Effect.AdjustMoney.class, name = "adjustMoney"),
     @JsonSubTypes.Type(value = Effect.DiscardRandomHeld.class, name = "discardRandomHeld"),
     @JsonSubTypes.Type(value = Effect.FlipAndShuffleJokers.class, name = "flipAndShuffleJokers"),
     @JsonSubTypes.Type(value = Effect.DisableRandomJoker.class, name = "disableRandomJoker"),
@@ -68,12 +67,13 @@ public sealed interface Effect {
     enum Term { CHIPS, MULT, DOLLARS, RETRIGGERS, HELD_MULT }
 
     /**
-     * How a contribution combines with its term — the operation, separated from the term. ONE shared
-     * verb vocabulary across scoring and money (and conceptually {@code Modify}); each effect supports the
-     * subset that makes sense for it: scoring uses {@code ADD/MULTIPLY/POWER}, money uses
-     * {@code ADD/SUBTRACT/MULTIPLY/DIVIDE/SET}. Unsupported cells are rejected loudly, not silently coerced.
+     * How a write combines with its target — the operation, separated from the term/property. THE ONE
+     * operation enum across the whole grammar: scoring contributions, money, and {@link Modify} property
+     * writes all draw from it (the old {@code Modify.Op} was merged in). Each site supports the subset that
+     * makes sense for it — scoring uses {@code ADD/MULTIPLY/POWER}, money uses {@code ADD/SUBTRACT/MULTIPLY/
+     * DIVIDE/SET}, a property cap uses {@code MAX/MIN} — and unsupported cells are rejected loudly.
      */
-    enum Operation { ADD, SUBTRACT, MULTIPLY, DIVIDE, POWER, SET }
+    enum Operation { ADD, SUBTRACT, MULTIPLY, DIVIDE, POWER, SET, MAX, MIN }
 
     /**
      * A numeric contribution to the running score, modelled as {@code operation × term × value} — e.g.
@@ -192,13 +192,6 @@ public sealed interface Effect {
     // --- boss run-loop effects: pure data fired by Run at a lifecycle trigger (ON_HAND_PLAYED), never in
     //     the scorer. They mutate run state directly through Run's action interpreter, exactly like the
     //     consumable verbs above — one Effect vocabulary, so a boss is authored as Rules like a joker. ---
-
-    /** Change the run's money outside scoring. The verb carries the direction so {@code amount} is a plain
-     *  magnitude (no signed operands): {@code ADD}/{@code SUBTRACT} a (possibly per-card) amount — floored
-     *  at the run's minimum money — {@code MULTIPLY}/{@code DIVIDE} the balance, or {@code SET} it to a
-     *  fixed value. The Tooth is {@code SUBTRACT(count(played))}; the Ox is {@code SET(0)}. Mirrors the
-     *  scoring op model (MULT vs XMULT vs POW_MULT), where each arithmetic verb is its own primitive. */
-    record AdjustMoney(Operation op, Value amount) implements Effect {}
 
     /** Discard {@code count} random held cards, then refill the hand (The Hook). */
     record DiscardRandomHeld(int count) implements Effect {}

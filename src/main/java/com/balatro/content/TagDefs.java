@@ -26,7 +26,7 @@ public final class TagDefs {
         add(t, "tag_holo", "Holographic Tag", true, Timing.ON_SHOP, editioned(Edition.HOLOGRAPHIC));
         add(t, "tag_polychrome", "Polychrome Tag", true, Timing.ON_SHOP, editioned(Edition.POLYCHROME));
         add(t, "tag_investment", "Investment Tag", true, Timing.ON_BOSS_DEFEAT,
-                new Effect.AdjustMoney(Effect.Operation.ADD, new Value.Const(25)));
+                new Effect.Write(new Modify(Value.Var.MONEY, Effect.Operation.ADD, new Value.Const(25))));
         add(t, "tag_boss", "Boss Tag", true, Timing.HELD);
         // Pack tags are data: a booster pack appears in the next shop — AddPack(kind, size).
         add(t, "tag_standard", "Standard Tag", false, Timing.ON_SHOP, pack("STANDARD", "MEGA"));
@@ -41,8 +41,8 @@ public final class TagDefs {
         add(t, "tag_voucher", "Voucher Tag", true, Timing.ON_SHOP, new Effect.AddShopVoucher());
         // Economy: gain min(money, 40) — AdjustMoney(ADD, clamp(money, 0, 40)) — a double, capped at +$40.
         add(t, "tag_economy", "Economy Tag", true, Timing.IMMEDIATE,
-                new Effect.AdjustMoney(Effect.Operation.ADD,
-                        new Value.Clamp(new Value.RunVar(Value.Var.MONEY, 0, 1), 0, 40)));
+                new Effect.Write(new Modify(Value.Var.MONEY, Effect.Operation.ADD,
+                        new Value.Clamp(new Value.RunVar(Value.Var.MONEY, 0, 1), 0, 40))));
         // The money tags are data: gain $ per run-state quantity — AdjustMoney(ADD, runVar * scale).
         add(t, "tag_skip", "Speed Tag", true, Timing.IMMEDIATE, gain(Value.Var.BLINDS_SKIPPED, 5));
         add(t, "tag_orbital", "Orbital Tag", false, Timing.IMMEDIATE, new Effect.LevelHands(
@@ -59,7 +59,7 @@ public final class TagDefs {
 
     /** Gain ${@code scale} per unit of a run-state variable (Speed/Handy/Garbage). */
     private static Effect gain(Value.Var which, double scale) {
-        return new Effect.AdjustMoney(Effect.Operation.ADD, new Value.RunVar(which, 0, scale));
+        return new Effect.Write(new Modify(Value.Var.MONEY, Effect.Operation.ADD, new Value.RunVar(which, 0, scale)));
     }
 
     /** A booster pack in the next shop (Charm/Meteor/Buffoon/Standard/Ethereal). */
