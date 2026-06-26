@@ -390,21 +390,18 @@ public final class Run {
                         state.jokers(), Value.Var.BOSS_ABILITY_DISABLED);
     }
 
-    private int survivingJoker = -1; // set by a SurviveBlind effect during raiseJokerRules(BLIND_LOST)
+    // Jokers that did Destroy(Self) during a run-loop rule pass — removed after the pass (no concurrent mod).
+    private final java.util.List<Joker> pendingSelfDestruct = new java.util.ArrayList<>();
 
     /** A failed blind, as a hookable Blind-lifecycle event: raise {@code BLIND_LOST} over the joker rules.
-     *  A {@link Effect.SurviveBlind} (Mr Bones, gated on {@code BLIND_PROGRESS} >= 0.25) marks its joker as
-     *  the saver; we consume it and the run continues. No more bespoke capability — the blind is a noun. */
+     *  Mr Bones (gated on {@code BLIND_PROGRESS} >= 0.25) reacts by {@code Write(BLIND_SURVIVED)} + {@code Destroy(Self)}
+     *  — the survive is just a write, the consume is the shared self-destruct primitive. No bespoke capability. */
     private boolean survivesLostBlind() {
         if (requirement <= 0) return false;
         state.blindProgress = (double) state.roundScore / requirement;
-        survivingJoker = -1;
-        raiseJokerRules(Trigger.BLIND_LOST);
-        if (survivingJoker >= 0 && survivingJoker < state.jokers().size()) {
-            state.jokers().remove(survivingJoker); // consume the saver, after iteration (no concurrent mod)
-            return true;
-        }
-        return false;
+        state.blindSurvived = false;
+        raiseJokerRules(Trigger.BLIND_LOST); // Mr Bones: Write(BLIND_SURVIVED) + Destroy(Self), both applied in the pass
+        return state.blindSurvived;
     }
 
     /**
@@ -916,9 +913,6 @@ public final class Run {
             case Effect.DisableBoss ignored -> { // Verdant Leaf (boss) / Luchador (sold during a boss)
                 if (boss != null) { luchadorDisabledBoss = true; refreshDebuffs(); }
             }
-            case Effect.SurviveBlind ignored -> { // Mr Bones: this joker (ctx.selfIndex) saves the lost blind
-                if (survivingJoker < 0) survivingJoker = ctx.selfIndex; // first saver wins; consumed by caller
-            }
             case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
                 shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind().name()), PackCatalog.Size.valueOf(ap.size().name())));
             case Effect.Create cr -> { // run-loop create: destination decides where it lands
@@ -964,6 +958,10 @@ public final class Run {
                 }
             }
             case Effect.CreateTag ct -> grantTag(ct.tag());                 // Diet Cola (on sell)
+            case Effect.Destroy d -> { // self-destruct primitive (Mr Bones at BLIND_LOST; shared with Gros Michel/Pizza)
+                if (d.selector() instanceof Selector.Self) pendingSelfDestruct.add(state.jokers().get(ctx.selfIndex));
+                else throw new IllegalStateException("run-loop Destroy supports only Self: " + d);
+            }
             default -> throw new IllegalStateException("not a run-loop effect: " + e);
         }
     }
@@ -1397,6 +1395,10 @@ public final class Run {
             apply(new com.balatro.engine.exec.Command.Money(m.op(), v));
             return;
         }
+        if (m.variable() == com.balatro.grammar.Value.Var.BLIND_SURVIVED) {              // Mr Bones: save the lost blind
+            state.blindSurvived = v != 0;
+            return;
+        }
         throw new IllegalStateException("unsupported action Write: " + m);
     }
 
@@ -1415,8 +1417,16 @@ public final class Run {
                     for (Effect inner : w.effects()) applyConsumableEffect(c, inner, targets, bindings);
                 }
             }
-            case Effect.MutateCard mc -> apply(new com.balatro.engine.exec.Command.MutateCards(
-                    resolveTargets(c, mc.selector(), targets), mc.mod()));
+            case Effect.MutateCard mc -> {
+                List<Card> sel = resolveTargets(c, mc.selector(), targets);
+                if (mc.mod().action() == com.balatro.engine.card.CardMod.Action.COPY_IDENTITY) {
+                    // Death: each selected card becomes a copy of the last selected (the multi-property copy).
+                    Card source = sel.get(sel.size() - 1);
+                    for (Card t : sel) if (t != source) apply(new com.balatro.engine.exec.Command.OverwriteCard(t, source));
+                } else {
+                    apply(new com.balatro.engine.exec.Command.MutateCards(sel, mc.mod()));
+                }
+            }
             case Effect.Create cr -> // pure-create consumable (Emperor/High Priestess/Judgement/Soul)
                 apply(new com.balatro.engine.exec.Command.Create(cr.spec()));
             case Effect.Destroy d -> { // consumable-context destroy
@@ -1456,10 +1466,6 @@ public final class Run {
                     if (src != null && state.jokers().size() < state.jokerSlots)
                         apply(new com.balatro.engine.exec.Command.CopyJoker(src, ruleset.jokerVariant()));
                 }
-            }
-            case Effect.OverwriteSelected ignored -> {
-                if (targets.size() == 2) // Death: the left (first) card becomes a copy of the right
-                    apply(new com.balatro.engine.exec.Command.OverwriteCard(targets.get(0), targets.get(1)));
             }
             default -> throw new IllegalStateException("not a consumable effect: " + e);
         }
@@ -1915,6 +1921,7 @@ public final class Run {
      *  the joker-side twin of {@link #raiseBossRules}. Used for capability effects (Perkeo on shop exit) that
      *  mutate run state, which the scoring/GameEvents paths don't apply. */
     private void raiseJokerRules(Trigger trigger) {
+        pendingSelfDestruct.clear();
         com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
         ctx.jokers = state.jokers();
         List<Joker> owned = state.jokers();
@@ -1927,6 +1934,7 @@ public final class Run {
                 for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
             }
         }
+        state.jokers().removeAll(pendingSelfDestruct); // consume jokers that did Destroy(Self) this pass
     }
 
     /** Grant a tag, honoring a held Double Tag (which duplicates the next tag gained). */

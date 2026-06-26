@@ -32,14 +32,12 @@ import java.util.List;
     @JsonSubTypes.Type(value = Effect.EditionJoker.class, name = "editionJoker"),
     @JsonSubTypes.Type(value = Effect.AddCards.class, name = "addCards"),
     @JsonSubTypes.Type(value = Effect.ConvertHand.class, name = "convertHand"),
-    @JsonSubTypes.Type(value = Effect.OverwriteSelected.class, name = "overwriteSelected"),
     @JsonSubTypes.Type(value = Effect.GrantDiscards.class, name = "grantDiscards"),
     // --- boss run-loop effects (applied by Run's action interpreter at a lifecycle trigger) ---
     @JsonSubTypes.Type(value = Effect.DiscardRandomHeld.class, name = "discardRandomHeld"),
     @JsonSubTypes.Type(value = Effect.FlipAndShuffleJokers.class, name = "flipAndShuffleJokers"),
     @JsonSubTypes.Type(value = Effect.DisableRandomJoker.class, name = "disableRandomJoker"),
     @JsonSubTypes.Type(value = Effect.DisableBoss.class, name = "disableBoss"),
-    @JsonSubTypes.Type(value = Effect.SurviveBlind.class, name = "surviveBlind"),
     @JsonSubTypes.Type(value = Effect.AddPack.class, name = "addPack"),
     @JsonSubTypes.Type(value = Effect.AddShopVoucher.class, name = "addShopVoucher"),
     @JsonSubTypes.Type(value = Effect.ShopFlag.class, name = "shopFlag"),
@@ -180,7 +178,6 @@ public sealed interface Effect {
     }
 
     /** Overwrite the first selected card with the attributes of the second (Death: left becomes right). */
-    record OverwriteSelected() implements Effect {}
 
 
 
@@ -200,10 +197,6 @@ public sealed interface Effect {
 
     /** Disable this boss's ability for the rest of the blind (Verdant Leaf, when any Joker is sold). */
     record DisableBoss() implements Effect {}
-
-    /** Mr Bones: survive a failed blind (the run continues) and consume the joker that did it. Emitted from
-     *  a {@code BLIND_LOST} rule gated on {@code BLIND_PROGRESS} — the Blind lifecycle made hookable. */
-    record SurviveBlind() implements Effect {}
 
     /** Add a booster pack to the next shop (Charm/Meteor/Buffoon/Standard/Ethereal tags); {@code Run} resolves
      *  the grammar {@link PackKind}/{@link PackSize} to the game's {@code PackCatalog} when the shop opens. */

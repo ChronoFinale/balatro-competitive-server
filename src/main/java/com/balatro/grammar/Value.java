@@ -72,7 +72,7 @@ public sealed interface Value {
         MONEY, CONSUMABLE_SLOTS, JOKER_SLOTS, ANTE, DISCARDS_USED,
         HANDS_PLAYED, HANDS_PLAYED_TOTAL, ROUNDS_PLAYED, CARDS_DISCARDED_TOTAL, LUCKY_TRIGGERS,
         UNIQUE_PLANETS, OBELISK_STREAK, BLINDS_SKIPPED, OPP_BLINDS_SKIPPED, OPP_LIVES_BEHIND, OPP_HANDS_LEFT, OPP_CARDS_SOLD,
-        OPP_SHOP_SPENT, GLASS_MULT, BLIND_PROGRESS, TOTAL_SELL_VALUE,
+        OPP_SHOP_SPENT, GLASS_MULT, BLIND_PROGRESS, BLIND_SURVIVED, TOTAL_SELL_VALUE,
         // --- derived economy/shop policy variables: written by Modifys (folded in EconomyConfig /
         //     ShopEconomy), not yet read by any condition. Reading one throws (see ValueResolver.readVar). ---
         INTEREST_CAP, MONEY_PER_HAND, MONEY_PER_DISCARD, MIN_MONEY,

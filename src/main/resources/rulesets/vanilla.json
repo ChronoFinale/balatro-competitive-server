@@ -6004,7 +6004,21 @@
         },
         "effects" : [
           {
-            "type" : "surviveBlind"
+            "type" : "write",
+            "mod" : {
+              "variable" : "BLIND_SURVIVED",
+              "op" : "SET",
+              "value" : {
+                "type" : "const",
+                "amount" : 1.0
+              }
+            }
+          },
+          {
+            "type" : "destroy",
+            "selector" : {
+              "type" : "self"
+            }
           }
         ]
       }

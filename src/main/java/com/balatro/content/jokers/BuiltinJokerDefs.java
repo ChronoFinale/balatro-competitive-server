@@ -625,7 +625,8 @@ public final class BuiltinJokerDefs {
                 // A data rule on the Blind lifecycle — BLIND_LOST gated on BLIND_PROGRESS — not a RunMod.
                 Jokers.of("j_mr_bones", "Mr. Bones")
                         .on(Trigger.BLIND_LOST).when(Cond.runVar(Value.Var.BLIND_PROGRESS).atLeast(0.25))
-                        .effect(new Effect.SurviveBlind()).build(),
+                        .effect(new Effect.Write(com.balatro.grammar.Modify.set(Value.Var.BLIND_SURVIVED, 1)),
+                                new Effect.Destroy(new Selector.Self())).build(),
                 Jokers.of("j_to_the_moon", "To the Moon")
                         .mods(Modify.max(Value.Var.UNCAPPED_INTEREST, 1)).build(),
 

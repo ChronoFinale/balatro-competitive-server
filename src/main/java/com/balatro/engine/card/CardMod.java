@@ -17,7 +17,10 @@ public record CardMod(Action action, int amount, Enhancement enhancement, Seal s
 
     public enum Action {
         ADD_PERMA_CHIPS, ADD_PERMA_MULT, SET_ENHANCEMENT, REMOVE_ENHANCEMENT, SET_SEAL, SET_EDITION,
-        INC_RANK, SET_SUIT
+        INC_RANK, SET_SUIT,
+        // Copy another card's full identity (rank+suit+enhancement+edition+seal) — the multi-property copy.
+        // The source card is supplied by the MutateCard interpreter (the partner selected card), not applyTo.
+        COPY_IDENTITY
     }
 
     public static CardMod addChips(int n) {
@@ -54,6 +57,12 @@ public record CardMod(Action action, int amount, Enhancement enhancement, Seal s
         return new CardMod(Action.SET_SUIT, 0, null, null, null, s);
     }
 
+    /** Become a copy of another card (Death) — the source is the partner selected card, resolved by the
+     *  {@code MutateCard} interpreter; this mod carries no static fields. */
+    public static CardMod copyIdentity() {
+        return new CardMod(Action.COPY_IDENTITY, 0, null, null, null, null);
+    }
+
     /** Apply this mutation to a card (server-authoritative; mutates in place). */
     public void applyTo(Card c) {
         switch (action) {
@@ -65,6 +74,8 @@ public record CardMod(Action action, int amount, Enhancement enhancement, Seal s
             case SET_EDITION -> c.edition = edition;
             case INC_RANK -> c.rank = c.rank.shifted(amount);
             case SET_SUIT -> c.suit = suit;
+            case COPY_IDENTITY -> throw new IllegalStateException(
+                    "COPY_IDENTITY copies another card's identity; the MutateCard interpreter resolves it with a source");
         }
     }
 }

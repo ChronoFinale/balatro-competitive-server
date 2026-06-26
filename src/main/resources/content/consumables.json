@@ -845,7 +845,18 @@
     "maxTargets" : 2,
     "effects" : [
       {
-        "type" : "overwriteSelected"
+        "type" : "mutateCard",
+        "selector" : {
+          "type" : "selected"
+        },
+        "mod" : {
+          "action" : "COPY_IDENTITY",
+          "amount" : 0,
+          "enhancement" : null,
+          "seal" : null,
+          "edition" : null,
+          "suit" : null
+        }
       }
     ]
   },

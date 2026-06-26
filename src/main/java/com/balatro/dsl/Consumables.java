@@ -107,8 +107,9 @@ public final class Consumables {
     /** Create {@code copies} exact copies of the single selected card (Cryptid). */
     public Consumables copySelected(int copies) { return direct(new Effect.Copy(new Selector.Selected(), copies)); }
 
-    /** Overwrite the first selected card with the second (Death). */
-    public Consumables overwriteSelected() { return direct(new Effect.OverwriteSelected()); }
+    /** Overwrite the first selected card with the second (Death) — one card-mutation verb: {@code MutateCard}
+     *  with a {@code COPY_IDENTITY} mod (the multi-property copy of the partner card's full identity). */
+    public Consumables overwriteSelected() { return direct(new Effect.MutateCard(new Selector.Selected(), CardMod.copyIdentity())); }
 
     /** Copy a random owned joker; optionally destroy all others (Ankh). Authored as composable grammar over
      *  a SHARED selection: bind one random joker, (destroy all the others,) then copy that same bound joker —
