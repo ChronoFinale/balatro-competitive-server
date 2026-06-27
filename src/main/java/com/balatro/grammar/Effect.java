@@ -172,7 +172,12 @@ public sealed interface Effect {
     }
 
     /** Convert EVERY card in hand to one random {@code axis} — SUIT (Sigil) or RANK (Ouija) — with an
-     *  optional {@code handSizeDelta} (Ouija's -1). The axis is an argument, not two fused booleans. */
+     *  optional {@code handSizeDelta} (Ouija's -1). The axis is an argument, not two fused booleans.
+     *  <p>{@code handSizeDelta} stays a field here rather than a separate {@code Write(Hand.SIZE)} effect on
+     *  purpose: vanilla Ouija loses 1 hand size but the MP Ouija rework does NOT, and that switch is a
+     *  ruleset capability resolved inside the interpreter (it destroys cards + returns before the reduction).
+     *  A standalone Write couldn't be capability-gated, so it would wrongly fire under the MP rework. Decoupling
+     *  would first require moving the MP rework out of the interpreter into a ruleset overlay. */
     record ConvertHand(Axis axis, int handSizeDelta) implements Effect {
         public enum Axis { SUIT, RANK }
     }
