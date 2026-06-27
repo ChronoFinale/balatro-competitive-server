@@ -179,7 +179,6 @@
                   "count" : 1,
                   "rarity" : null,
                   "enhancement" : null,
-                  "seal" : null,
                   "sealStrategy" : "NONE",
                   "stream" : "CREATE",
                   "dedup" : true,

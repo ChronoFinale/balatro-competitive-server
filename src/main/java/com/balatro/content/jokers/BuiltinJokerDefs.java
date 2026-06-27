@@ -505,7 +505,7 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
                 Jokers.of("j_certificate", "Certificate")
                         .on(Trigger.FIRST_HAND_DRAWN)
-                        .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, null, CreateSpec.SealStrategy.RANDOM)).build(),
+                        .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, CreateSpec.SealStrategy.RANDOM)).build(),
 
                 // --- batch 18: decay jokers (run-long counters + clamped values) ---
                 Jokers.of("j_ice_cream", "Ice Cream")
