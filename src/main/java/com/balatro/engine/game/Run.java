@@ -933,15 +933,12 @@ public final class Run {
                 }
             }
             case Effect.LevelHands lh -> { // Orbital tag (MOST_PLAYED) / The Arm (PLAYED, -1 = delevel)
-                if (lh.target() == com.balatro.grammar.Side.OPPONENT) {
-                    state.nemesisDelevelPending += Math.abs((int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx)));
-                } else if (lh.scope() == Effect.LevelHands.Scope.PLAYED) {
-                    if (ctx.handType != null) {
-                        int n = (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx));
-                        apply(new com.balatro.engine.exec.Command.LevelHand(ctx.handType, n));
-                    }
+                if (lh.target() == com.balatro.grammar.Side.SELF && lh.scope() == Effect.LevelHands.Scope.PLAYED) {
+                    if (ctx.handType != null) // The Arm: delevel the just-played hand now (n may be negative)
+                        apply(new com.balatro.engine.exec.Command.LevelHand(ctx.handType,
+                                (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx))));
                 } else {
-                    applyLevelHands(lh);
+                    applyLevelHands(lh, ctx); // OPPONENT routing + ALL/MOST_PLAYED, all in one place
                 }
             }
             case Effect.AddShopVoucher ignored -> addTagVoucher();          // Voucher tag
@@ -1057,8 +1054,12 @@ public final class Run {
 
     /** Run-loop hand leveling — the ALL (Black Hole) and MOST_PLAYED (Orbital) scopes of {@link
      *  Effect.LevelHands}; the PLAYED scope is scoring-time (the levelUpHand flag), never reaches here. */
-    private void applyLevelHands(Effect.LevelHands lh) {
-        int n = Math.max(1, (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), runLoopContext())));
+    private void applyLevelHands(Effect.LevelHands lh, com.balatro.engine.joker.EvaluationContext ctx) {
+        if (lh.target() == com.balatro.grammar.Side.OPPONENT) { // Asteroid: route to the Nemesis (Match consumes the pending)
+            state.nemesisDelevelPending += Math.abs((int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx)));
+            return;
+        }
+        int n = Math.max(1, (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx)));
         switch (lh.scope()) {
             case ALL -> { for (HandType t : HandType.values()) apply(new com.balatro.engine.exec.Command.LevelHand(t, n)); }
             case MOST_PLAYED -> {
@@ -1066,7 +1067,7 @@ public final class Run {
                 if (best == null) best = HandType.HIGH_CARD;
                 apply(new com.balatro.engine.exec.Command.LevelHand(best, n));
             }
-            case PLAYED -> { /* scoring-time; applied by the scorer via the levelUpHand flag */ }
+            case PLAYED -> { /* SELF+PLAYED is scoring-time (the scorer) or The Arm (run-loop applies it inline) */ }
         }
     }
 
@@ -1445,11 +1446,8 @@ public final class Run {
                     apply(new com.balatro.engine.exec.Command.DestroyCards(resolveTargets(c, d.selector(), targets)));
                 }
             }
-            case Effect.LevelHands lh -> { // Black Hole (ALL); Asteroid (OPPONENT) routes to the Nemesis
-                if (lh.target() == com.balatro.grammar.Side.OPPONENT)
-                    state.nemesisDelevelPending += Math.abs((int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), runLoopContext())));
-                else applyLevelHands(lh);
-            }
+            case Effect.LevelHands lh -> // Black Hole (ALL); Asteroid (OPPONENT) routes to the Nemesis
+                applyLevelHands(lh, runLoopContext());
             case Effect.AddCards a -> addRankClassCards(c, a);                  // Familiar / Grim rank-class adds
             case Effect.EditionJoker ej -> { // Ectoplasm/Hex: edition the bound joker (Wheel keeps JokerEdition)
                 Joker target = ej.selector() instanceof Selector.Bound bnd ? bindings.get(bnd.name())
