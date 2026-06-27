@@ -245,23 +245,6 @@ class DataJokerTest {
     }
 
     @Test
-    void scoredEditionAndSealConditions() {
-        DataJoker foil = oneRule(Trigger.ON_SCORED, new Condition.ScoredEdition(Edition.POLYCHROME), Term.MULT, 5);
-        assertThat(mult(foil.calculate(fresh(foil, c -> {
-            c.phase = Trigger.ON_SCORED;
-            Card poly = c(Rank.NINE, Suit.SPADES);
-            poly.edition = Edition.POLYCHROME;
-            c.scoredCard = poly;
-        })))).isEqualTo(5.0);
-
-        DataJoker sealed = oneRule(Trigger.ON_SCORED, new Condition.ScoredSeal(Seal.GOLD), Term.DOLLARS, 2);
-        assertThat(dollars(sealed.calculate(fresh(sealed, c -> {
-            c.phase = Trigger.ON_SCORED;
-            c.scoredCard = new Card(Rank.NINE, Suit.SPADES, Enhancement.NONE, Edition.NONE, Seal.GOLD);
-        })))).isEqualTo(2.0);
-    }
-
-    @Test
     void runStateConditions() {
         DataJoker rich = oneRule(Trigger.JOKER_MAIN, new Condition.Compare(Value.Var.MONEY, Condition.Cmp.GTE, 10), Term.MULT, 3);
         assertThat(mult(rich.calculate(fresh(rich, c -> { c.phase = Trigger.JOKER_MAIN; c.run.money = 12; }))))

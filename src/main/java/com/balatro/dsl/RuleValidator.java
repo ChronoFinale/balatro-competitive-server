@@ -56,8 +56,6 @@ public final class RuleValidator {
             case Condition.ScoredAmongFirst ignored -> need.add(Facet.SCORED_CARD);
             case Condition.ScoredFirstFace ignored -> need.add(Facet.SCORED_CARD);
             case Condition.ScoredEnhancement ignored -> need.add(Facet.SCORED_CARD);
-            case Condition.ScoredEdition ignored -> need.add(Facet.SCORED_CARD);
-            case Condition.ScoredSeal ignored -> need.add(Facet.SCORED_CARD);
             case Condition.ScoredRankIsTarget ignored -> need.add(Facet.SCORED_CARD);
             case Condition.HandContainsPair ignored -> need.add(Facet.PLAYED_HAND);
             case Condition.HandContains ignored -> need.add(Facet.PLAYED_HAND);

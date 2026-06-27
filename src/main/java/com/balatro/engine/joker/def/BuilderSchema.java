@@ -30,7 +30,7 @@ public final class BuilderSchema {
         s.put("triggers", names(Trigger.values()));
         s.put("conditionTypes", List.of(
                 "always", "scoredSuit", "scoredParity", "scoredIsFace", "scoredRankBetween",
-                "scoredEnhancement", "scoredEdition", "scoredSeal", "handContainsPair", "handIs",
+                "scoredEnhancement", "handContainsPair", "handIs",
                 "playedCount", "discardedFaceCount", "scoringAnyFace", "consumableType",
                 "stateAtLeast", "moneyAtLeast", "handsLeft", "discardsLeft", "ante",
                 "inPvpBlind", "reachedPvpFirst", "and", "or", "not"));

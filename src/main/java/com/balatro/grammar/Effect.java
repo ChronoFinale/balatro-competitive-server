@@ -168,7 +168,7 @@ public sealed interface Effect {
      *  gone — a generative consumable is now just an ordered {@code List<Effect>}: Destroy / Create / AddCards
      *  / AdjustMoney.) */
     record AddCards(RankClass rankClass, int count, Enhancement enhancement) implements Effect {
-        public enum RankClass { FACE, ACE, NUMBER, ANY }
+        public enum RankClass { FACE, ACE, NUMBER }
     }
 
     /** Convert EVERY card in hand to one random {@code axis} — SUIT (Sigil) or RANK (Ouija) — with an

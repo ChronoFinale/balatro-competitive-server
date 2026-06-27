@@ -111,7 +111,7 @@ public sealed interface Value {
     record Random(double min, double max, String seedKey) implements Value {}
 
     /** Which deck/run aggregate a {@link Stat} reads. */
-    enum Which { DECK_SIZE, DECK_REMAINING, ENHANCED_CARD_COUNT, DECK_ENH_COUNT, OWNED_JOKERS,
+    enum Which { DECK_REMAINING, ENHANCED_CARD_COUNT, DECK_ENH_COUNT, OWNED_JOKERS,
         EMPTY_JOKER_SLOTS, CARDS_BELOW_FULL }
 
     /** A standard full deck size — Erosion's reference point. */

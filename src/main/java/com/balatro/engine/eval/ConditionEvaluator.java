@@ -60,8 +60,6 @@ public final class ConditionEvaluator {
                     && !ctx.scoringCards.isEmpty() && ctx.scoringCards.get(0) == ctx.scoredCard;
             case Condition.ScoredEnhancement se ->
                     ctx.scoredCard != null && ctx.scoredCard.enhancement == se.enhancement();
-            case Condition.ScoredEdition se -> ctx.scoredCard != null && ctx.scoredCard.edition == se.edition();
-            case Condition.ScoredSeal se -> ctx.scoredCard != null && ctx.scoredCard.seal == se.seal();
             case Condition.HandContainsPair ignored -> ctx.handType != null && ctx.handType.containsPair();
             case Condition.HandContains hc -> ctx.handType != null && ctx.handType.contains(hc.hand());
             case Condition.HandIs hi -> {

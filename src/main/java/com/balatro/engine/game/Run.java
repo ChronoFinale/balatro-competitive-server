@@ -1486,7 +1486,6 @@ public final class Run {
             case Selector.Selected ignored -> selected;
             case Selector.Focus ignored ->
                     throw new IllegalStateException("Focus targets the scored card — meaningless outside scoring");
-            case Selector.AllInHand ignored -> new ArrayList<>(state.hand);
             case Selector.RandomInHand r -> {
                 List<Card> out = new ArrayList<>();
                 for (int i = 0; i < r.count(); i++) {
@@ -1560,7 +1559,6 @@ public final class Run {
             case FACE -> new Rank[]{Rank.JACK, Rank.QUEEN, Rank.KING};
             case ACE -> new Rank[]{Rank.ACE};
             case NUMBER -> java.util.Arrays.stream(Rank.values()).filter(r -> r.id <= 10).toArray(Rank[]::new);
-            case ANY -> Rank.values();
         };
         List<Card> made = new ArrayList<>();
         for (int i = 0; i < add.count(); i++) {

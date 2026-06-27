@@ -150,8 +150,6 @@
       case 'scoredFirst': return !!c && ctx.scoring.length > 0 && ctx.scoring[0] === c;
       case 'scoredAmongFirst': { const i = c ? ctx.scoring.indexOf(c) : -1; return i >= 0 && i < cond.n; }
       case 'scoredEnhancement': return !!c && c.enhancement === cond.enhancement;
-      case 'scoredEdition': return !!c && c.edition === cond.edition;
-      case 'scoredSeal': return !!c && c.seal === cond.seal;
       case 'handContainsPair': return handContains(ctx.handType, 'PAIR');
       case 'handContains': return handContains(ctx.handType, cond.hand);
       case 'handIs': {
@@ -296,7 +294,6 @@
   function statCount(v, ctx) {
     const d = ctx.run.deck || {};
     switch (v.which) {
-      case 'DECK_SIZE': return d.size || 0;
       case 'DECK_REMAINING': return d.remaining || 0;
       case 'ENHANCED_CARD_COUNT': return Object.values(d.enhancements || {}).reduce((a, b) => a + b, 0);
       case 'DECK_ENH_COUNT': return (d.enhancements || {})[v.enhancement] || 0;

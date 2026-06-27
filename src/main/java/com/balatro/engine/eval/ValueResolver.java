@@ -95,7 +95,6 @@ public final class ValueResolver {
             case Value.Stat st -> {
                 if (ctx.run == null) yield st.base();
                 long n = switch (st.which()) {
-                    case DECK_SIZE -> ctx.run.deckComposition.size();
                     case DECK_REMAINING -> ctx.run.deck != null ? ctx.run.deck.remaining() : 0;
                     case ENHANCED_CARD_COUNT -> ctx.run.deckComposition.stream()
                             .filter(c -> c.enhancement != Enhancement.NONE).count();

@@ -101,12 +101,6 @@ class DslRailsTest {
                 .isEmpty();
     }
 
-    /** Words the word-coverage check already flagged as unused by any content def — tracked as known debt
-     *  (a baseline) so the guard still fails on NEW dead vocabulary. These two Conditions are interpreted +
-     *  schema'd + unit-tested but no joker/consumable/boss keys off a scored card's edition or seal; the
-     *  existing-vs-goal audit decides whether to delete them or author the cards that justify them. */
-    private static final Set<String> KNOWN_DEAD_PENDING_AUDIT = Set.of("scoredEdition", "scoredSeal");
-
     @Test
     void everyEffectAndConditionWordIsUsedByContent() {
         String content = allContentJson().replaceAll("\\s+", "");
@@ -114,7 +108,7 @@ class DslRailsTest {
         for (Class<?> root : List.of(com.balatro.grammar.Effect.class, com.balatro.grammar.Condition.class)) {
             var ann = root.getAnnotation(com.fasterxml.jackson.annotation.JsonSubTypes.class);
             for (var t : ann.value()) {
-                if (!content.contains("\"type\":\"" + t.name() + "\"") && !KNOWN_DEAD_PENDING_AUDIT.contains(t.name())) {
+                if (!content.contains("\"type\":\"" + t.name() + "\"")) {
                     dead.add(root.getSimpleName() + "." + t.name());
                 }
             }

@@ -14,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Selector.Focus.class, name = "focus"),
     @JsonSubTypes.Type(value = Selector.Selected.class, name = "selected"),
-    @JsonSubTypes.Type(value = Selector.AllInHand.class, name = "allInHand"),
     @JsonSubTypes.Type(value = Selector.RandomInHand.class, name = "randomInHand"),
     @JsonSubTypes.Type(value = Selector.RandomJoker.class, name = "randomJoker"),
     @JsonSubTypes.Type(value = Selector.Discarded.class, name = "discarded"),
@@ -33,9 +32,6 @@ public sealed interface Selector {
 
     /** The cards the player chose as targets (resolved by uid) — Magician, Hanged Man, Death, Cryptid. */
     record Selected() implements Selector {}
-
-    /** Every card currently in hand — Sigil / Ouija convert the whole hand. */
-    record AllInHand() implements Selector {}
 
     /** {@code count} random cards drawn from hand — Immolate / Familiar / Grim destroy at random. */
     record RandomInHand(int count) implements Selector {}

@@ -26,8 +26,6 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.ScoredFirst.class, name = "scoredFirst"),
     @JsonSubTypes.Type(value = Condition.ScoredAmongFirst.class, name = "scoredAmongFirst"),
     @JsonSubTypes.Type(value = Condition.ScoredEnhancement.class, name = "scoredEnhancement"),
-    @JsonSubTypes.Type(value = Condition.ScoredEdition.class, name = "scoredEdition"),
-    @JsonSubTypes.Type(value = Condition.ScoredSeal.class, name = "scoredSeal"),
     @JsonSubTypes.Type(value = Condition.HandContainsPair.class, name = "handContainsPair"),
     @JsonSubTypes.Type(value = Condition.HandContains.class, name = "handContains"),
     @JsonSubTypes.Type(value = Condition.HandIs.class, name = "handIs"),
@@ -91,12 +89,6 @@ public sealed interface Condition {
 
     /** The scoring card has a given enhancement. */
     record ScoredEnhancement(Enhancement enhancement) implements Condition {}
-
-    /** The scoring card has a given edition. */
-    record ScoredEdition(Edition edition) implements Condition {}
-
-    /** The scoring card has a given seal. */
-    record ScoredSeal(Seal seal) implements Condition {}
 
     /** The played poker hand contains a pair. */
     record HandContainsPair() implements Condition {}
