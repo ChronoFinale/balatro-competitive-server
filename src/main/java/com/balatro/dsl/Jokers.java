@@ -76,7 +76,7 @@ public final class Jokers {
     public Jokers notCopyable() { this.blueprintCompatible = false; return this; }
 
     /** This joker copies another's effect (Blueprint/Brainstorm) — the higher-order {@link CopySpec}. */
-    public Jokers copies(CopySpec.Selector selector) { this.copy = new CopySpec(selector); return this; }
+    public Jokers copies(CopySpec.Direction selector) { this.copy = new CopySpec(selector); return this; }
 
     /** Declare a named constant property (a number, or a domain enum like a Suit) — referenced via Val.prop. */
     public Jokers prop(String name, Object value) { this.props.put(name, value); return this; }

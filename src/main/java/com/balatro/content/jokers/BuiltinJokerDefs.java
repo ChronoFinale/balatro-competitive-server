@@ -187,9 +187,9 @@ public final class BuiltinJokerDefs {
                 //     COPYABLE (blueprint_compat=true in real Balatro, game.lua:498/514) — that is what lets
                 //     Blueprint copy a Blueprint and chain; the depth guard stops cycles. ---
                 Jokers.of("j_blueprint", "Blueprint")
-                        .copies(CopySpec.Selector.RIGHT_NEIGHBOR).build(),
+                        .copies(CopySpec.Direction.RIGHT_NEIGHBOR).build(),
                 Jokers.of("j_brainstorm", "Brainstorm")
-                        .copies(CopySpec.Selector.LEFTMOST).build(),
+                        .copies(CopySpec.Direction.LEFTMOST).build(),
 
                 // --- type / conditional ---
                 Jokers.of("j_jolly", "Jolly Joker")
