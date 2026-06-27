@@ -14,7 +14,6 @@ package com.balatro.grammar;
 public enum Trigger {
 
     // ---- scoring pipeline (ordered, raised by ScoringEngine) ----
-    MODIFY_SCORING_HAND, // build the scoring set (Splash add-all, joker add/remove) — set phase
     BEFORE,             // before any card scores
     INITIAL_SCORING_STEP, // right after base chips/mult, before per-card scoring (effect phase)
     ON_SCORED,          // per played scoring card (individual, play area)
@@ -24,10 +23,6 @@ public enum Trigger {
     JOKER_MAIN,         // the joker's main effect
     ON_OTHER_JOKER,     // a joker reacting to another joker
     FINAL_SCORING_STEP, // after the main joker pass, before final chips×mult (effect phase)
-    AFTER,              // after scoring resolves (pre-destruction)
-    DEBUFFED_HAND,      // a boss vetoed the hand (raised by the Blind, WP-M0-5)
-    DESTROYING_CARD,    // a card is about to be destroyed (destruction pass, WP-M0-7)
-    REMOVE_PLAYING_CARDS, // cards were removed this evaluation (carries removedCards)
 
     // ---- lifecycle (raised by GameEvents) ----
     BLIND_SELECTED,     // a blind is chosen (the boss's blind-start effects: Amber Acorn flip+shuffle)

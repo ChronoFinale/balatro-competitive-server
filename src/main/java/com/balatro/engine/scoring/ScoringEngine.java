@@ -70,9 +70,9 @@ public final class ScoringEngine {
 
     /*
      * ── ORDERING CONTRACT (the determinism invariant; do not change without updating the guard tests) ──
-     * 1. PHASES run in {@link Trigger} order: MODIFY_SCORING_HAND → BEFORE → INITIAL_SCORING_STEP →
+     * 1. PHASES run in {@link Trigger} order: BEFORE → INITIAL_SCORING_STEP →
      *    (per scored card: ON_SCORED + its REPETITION_PLAYED retriggers) → (per held card: ON_HELD +
-     *    REPETITION_HELD) → JOKER_MAIN → ON_OTHER_JOKER → FINAL_SCORING_STEP → AFTER → destruction.
+     *    REPETITION_HELD) → JOKER_MAIN → ON_OTHER_JOKER → FINAL_SCORING_STEP → destruction.
      * 2. WITHIN a phase, jokers apply in JOKER-AREA ORDER (left→right, the {@code run.jokers()} index). This
      *    is POSITIONAL, not arithmetic: a +Mult joker LEFT of a ×Mult joker is inside the multiply; to its
      *    RIGHT it is not. Guard: {@code JokerOrderTest.effectsApplyInJokerOrderNotAddThenMultiply}.

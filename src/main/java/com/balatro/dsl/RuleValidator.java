@@ -29,9 +29,9 @@ public final class RuleValidator {
     /** What a trigger provides. Conservative: lifecycle/shop triggers provide nothing card-shaped. */
     public static EnumSet<Facet> provides(Trigger t) {
         return switch (t) {
-            case MODIFY_SCORING_HAND, BEFORE, INITIAL_SCORING_STEP, ON_SCORED, ON_HELD,
-                 REPETITION_PLAYED, REPETITION_HELD, JOKER_MAIN, FINAL_SCORING_STEP, AFTER,
-                 DEBUFFED_HAND, DESTROYING_CARD, REMOVE_PLAYING_CARDS, ON_HAND_PLAYED, PRE_HAND ->
+            case BEFORE, INITIAL_SCORING_STEP, ON_SCORED, ON_HELD,
+                 REPETITION_PLAYED, REPETITION_HELD, JOKER_MAIN, FINAL_SCORING_STEP,
+                 ON_HAND_PLAYED, PRE_HAND ->
                     EnumSet.copyOf(SCORING);
             case ON_OTHER_JOKER -> { var s = EnumSet.copyOf(SCORING); s.add(Facet.OTHER_JOKER); yield s; }
             // The just-destroyed card is the focus (Canio reads "was it a face?", Glass Joker "was it glass?").

@@ -26,8 +26,6 @@ public final class EvaluationContext {
     public List<Card> scoringCards;
     /** Cards still held in hand during this evaluation (for held-card scaling). */
     public List<Card> heldCards;
-    /** Cards removed/destroyed this evaluation (carried by REMOVE_PLAYING_CARDS). */
-    public List<Card> removedCards;
     /** Cards relevant to a lifecycle event (discarded set, held-at-round-end, ...). */
     public List<Card> eventCards;
     /** For USE_CONSUMABLE: the consumable category (Tarot / Planet / Spectral). */
@@ -107,7 +105,6 @@ public final class EvaluationContext {
         c.playedCards = playedCards;
         c.scoringCards = scoringCards;
         c.heldCards = heldCards;
-        c.removedCards = removedCards;
         c.eventCards = eventCards;
         c.consumableType = consumableType;
         c.scoredCard = scoredCard;
