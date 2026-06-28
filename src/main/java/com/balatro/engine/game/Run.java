@@ -99,7 +99,7 @@ public final class Run {
     private boolean d6Active = false;         // D6 Tag: rerolls start at $0 this shop
     private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
     boolean jokersHidden = false;         // Amber Acorn: Jokers flipped face down (hidden in the view)
-    private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
+    final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
     // Identity tiebreaks for composition picks. Same-key jokers/consumables are interchangeable for a
     // "random" pick, so the comparator is neutral; the grouping (by key) is what makes the choice
@@ -562,66 +562,14 @@ public final class Run {
     }
 
     /** The lowest money a purchase may leave you at — derived economy (Credit Card allows -$20 of debt). */
-    private int minMoney() {
+    int minMoney() {
         return EconomyConfig.resolve(deckType, state.vouchers, state.jokers()).minMoney();
     }
 
     /** Apply one resolved {@link com.balatro.engine.exec.Command} — the single mutation path that the
      *  action-effect families migrate onto (replacing the direct mutation in the interpreter switches). */
     private void apply(com.balatro.engine.exec.Command cmd) {
-        // Each case ONLY mutates. The trace is the structured command itself (added once below) — the engine
-        // never builds a human string; presentation/localization is the client's job, reading the command's
-        // typed fields. Same discipline as ClientView/ReplayEntry: the server emits data, not English.
-        switch (cmd) {
-            case com.balatro.engine.exec.Command.Money m -> {
-                int floor = minMoney();
-                int v = (int) Math.round(m.amount());
-                state.money = switch (m.op()) {
-                    case ADD -> Math.max(floor, state.money + v);          // gains / The Tooth uses SUBTRACT
-                    case SUBTRACT -> Math.max(floor, state.money - v);
-                    case MULTIPLY -> Math.max(0, (int) Math.round(state.money * m.amount()));
-                    case DIVIDE -> m.amount() == 0 ? state.money : Math.max(0, (int) Math.round(state.money / m.amount()));
-                    case SET -> Math.max(0, v);                            // The Ox: set to $0
-                    case POWER, MAX, MIN -> throw new IllegalStateException(m.op() + " is not a money operation");
-                };
-            }
-            case com.balatro.engine.exec.Command.HandSize h -> state.handSize += h.delta();
-            case com.balatro.engine.exec.Command.EditionJoker ej -> state.setJokerEdition(ej.target(), ej.edition());
-            case com.balatro.engine.exec.Command.CopyJoker cj ->
-                    state.addJoker(JokerLibrary.create(cj.source().key(), cj.variant())); // copy has no edition
-            case com.balatro.engine.exec.Command.DestroyOtherJokers d -> state.jokers().removeIf(j -> j != d.keep());
-            case com.balatro.engine.exec.Command.CopyConsumable cc -> {
-                if (cc.slotPolicy() == com.balatro.engine.exec.Command.CopyConsumable.SlotPolicy.IGNORE_CAP
-                        || state.consumables.size() < state.consumableSlots) state.consumables.add(cc.key());
-            }
-            case com.balatro.engine.exec.Command.DestroyCards dc -> {
-                dc.cards().forEach(t -> t.destroyed = true);
-                composition.removeIf(x -> x.destroyed);
-                state.hand.removeIf(x -> x.destroyed);
-            }
-            case com.balatro.engine.exec.Command.MutateCards mc -> mc.cards().forEach(t -> mc.mod().applyTo(t));
-            case com.balatro.engine.exec.Command.Create cr -> com.balatro.engine.consumable.Creation.apply(state, cr.spec(), state.queues);
-            case com.balatro.engine.exec.Command.AddCardsToDeck ac -> {
-                for (Card made : ac.cards()) { composition.add(made); state.hand.add(made); }
-            }
-            case com.balatro.engine.exec.Command.OverwriteCard ow -> {
-                Card t = ow.target(), s = ow.source();
-                t.rank = s.rank; t.suit = s.suit; t.enhancement = s.enhancement; t.edition = s.edition; t.seal = s.seal;
-            }
-            case com.balatro.engine.exec.Command.LevelHand lvl -> {
-                for (int i = 0; i < Math.abs(lvl.levels()); i++) {
-                    if (lvl.levels() < 0) state.levelDownHand(lvl.hand()); else state.levelUpHand(lvl.hand());
-                }
-            }
-            // Scoring-time commands are applied by ScoringEngine at the scoring moment, never by the run loop.
-            case com.balatro.engine.exec.Command.DestroyScored _,
-                 com.balatro.engine.exec.Command.DestroyEventCards _,
-                 com.balatro.engine.exec.Command.CopyScored _,
-                 com.balatro.engine.exec.Command.MutateScoredCard _,
-                 com.balatro.engine.exec.Command.DestroySelf _,
-                 com.balatro.engine.exec.Command.GrantDiscards _ ->
-                    throw new IllegalStateException("scoring-time command applied by ScoringEngine, not Run: " + cmd);
-        }
+        CommandApply.apply(this, cmd);
     }
 
     /** The effective shop rules, derived from owned jokers (Showman/Astronomer/Chaos). */
