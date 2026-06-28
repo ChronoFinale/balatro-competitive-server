@@ -32,6 +32,13 @@ class MatchReconnectTest {
     private static final ObjectMapper JSON = new ObjectMapper();
     private final HttpClient http = HttpClient.newHttpClient();
 
+    @org.junit.jupiter.api.AfterEach
+    void cleanup() throws Exception {
+        // The forfeit path feeds the ranked ladder, persisting these dev accounts (default dir).
+        java.nio.file.Files.deleteIfExists(java.nio.file.Path.of("web-assets/accounts/alice.json"));
+        java.nio.file.Files.deleteIfExists(java.nio.file.Path.of("web-assets/accounts/bob.json"));
+    }
+
     @Test
     void reconnectWithinGraceReattachesToTheLiveMatch() throws Exception {
         try (GameServer server = new GameServer(Ruleset.standard()).start(0).startTcp(0)) {

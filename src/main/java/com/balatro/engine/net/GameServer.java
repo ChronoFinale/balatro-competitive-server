@@ -74,6 +74,7 @@ public final class GameServer implements AutoCloseable {
     private final AuthService auth = new AuthService();
     private final AccountStore accounts = new AccountStore(
             new java.io.File("web-assets/accounts").getAbsoluteFile().toPath());
+    private final com.balatro.engine.rank.RankingService ranking = new com.balatro.engine.rank.RankingService(accounts);
     private final ProviderRegistry providers = new ProviderRegistry();
     private final ObjectMapper json = new ObjectMapper();
 
@@ -310,6 +311,29 @@ public final class GameServer implements AutoCloseable {
                     "name", acc != null ? acc.displayName() : auth.displayName(token)));
         });
 
+        // Public ranked leaderboard: the top accounts by MMR, with their derived tier + record.
+        cfg.routes.get("/leaderboard", ctx -> {
+            int limit = 50;
+            try {
+                String q = ctx.queryParam("limit");
+                if (q != null) limit = Math.min(500, Math.max(1, Integer.parseInt(q)));
+            } catch (NumberFormatException ignored) { /* keep default */ }
+            List<Map<String, Object>> rows = new ArrayList<>();
+            int position = 1;
+            for (Account a : ranking.top(limit)) {
+                rows.add(Map.of(
+                        "position", position++,
+                        "playerId", a.id(),
+                        "name", a.displayName(),
+                        "mmr", Math.round(a.mmr()),
+                        "rank", com.balatro.engine.rank.RankTier.display(a.mmr()),
+                        "wins", a.wins(),
+                        "losses", a.losses(),
+                        "gamesPlayed", a.gamesPlayed()));
+            }
+            ctx.json(rows);
+        });
+
         // Auth: issue a session token (dev: any username; later: Steam ticket).
         cfg.routes.post("/login", ctx -> {
             JsonNode body = json.readTree(ctx.body());
@@ -532,8 +556,13 @@ public final class GameServer implements AutoCloseable {
                 // Reconnected within the grace window: cancel the pending cleanup.
                 ScheduledFuture<?> grace = graceTasks.remove(playerId);
                 if (grace != null) grace.cancel(false);
+                Account ranked = accounts.get(playerId);
+                double mmr = ranked != null ? ranked.mmr() : Account.DEFAULT_MMR;
+                String rank = (ranked != null && ranked.gamesPlayed() > 0)
+                        ? com.balatro.engine.rank.RankTier.display(mmr) : "Unranked";
                 conn.send(Map.of("type", "authed", "seq", seq, "playerId", playerId,
-                        "rulesets", rulesetStore.names()));
+                        "rulesets", rulesetStore.names(),
+                        "mmr", Math.round(mmr), "rank", rank));
                 // Resume a LIVE MATCH: rebind the player's Side to this new socket, re-route, and
                 // re-push their match start + view. The match kept running for the opponent while
                 // they were gone; this re-attaches them in place.
@@ -722,6 +751,7 @@ public final class GameServer implements AutoCloseable {
             String host = queuedSession;
             queuedSession = null;
             Match match = new Match(newCode(), com.balatro.engine.rng.Seeds.random(), ruleset, rulesetStore, this::deliver);
+            match.onResult(ranking::recordResult);
             match.setHost(host, players.get(host));
             matchBySession.put(host, match);
             matchBySession.put(me, match);
@@ -743,6 +773,7 @@ public final class GameServer implements AutoCloseable {
         String code = newCode();
         String seed = com.balatro.engine.rng.Seeds.random(); // a valid, reproducible Balatro seed
         Match match = new Match(code, seed, ruleset, rulesetStore, this::deliver);
+        match.onResult(ranking::recordResult);
         match.setHost(conn.sessionId(), players.get(conn.sessionId()));
         pendingByCode.put(code, match);
         matchBySession.put(conn.sessionId(), match);

@@ -46,6 +46,10 @@ public final class Match {
 
     private Gamemode mode = Gamemode.ATTRITION; // the match's gamemode — its config (starting lives, PvP-from-ante)
 
+    // Result sink: (winnerId, loserId) on a decisive finish. Injected by GameServer to feed the ranked
+    // ladder; default no-op keeps Match store/rank-agnostic (unit tests need not wire it).
+    private BiConsumer<String, String> onResult = (winnerId, loserId) -> {};
+
     private Side host;
     private Side guest;
     private Phase phase = Phase.WAITING;
@@ -66,6 +70,11 @@ public final class Match {
     /** The match's gamemode (Attrition today). */
     public Gamemode mode() {
         return mode;
+    }
+
+    /** Wire the decisive-result sink (winnerId, loserId) — GameServer feeds the ranked ladder. */
+    public void onResult(BiConsumer<String, String> sink) {
+        this.onResult = sink;
     }
 
     /** This pairing's two players (null until each side joins). */
@@ -309,12 +318,15 @@ public final class Match {
 
     private void finish(String winner) {
         phase = Phase.FINISHED;
-        if (host != null && host.playerId.equals(winner)) hostWins++;
-        else if (guest != null && guest.playerId.equals(winner)) guestWins++;
+        Side winnerSide = sideForPlayer(winner);
+        Side loserSide = (winnerSide == host) ? guest : host;
+        if (winnerSide == host) hostWins++;
+        else if (winnerSide == guest) guestWins++;
         rematchAgreed.clear(); // a fresh result -> fresh rematch agreement
         Map<String, Object> end = map("type", "matchResult", "winner", winner, "headToHead", headToHead());
         send(host, end);
         send(guest, end);
+        if (loserSide != null) onResult.accept(winner, loserSide.playerId); // feed the ranked ladder
     }
 
     /** This pairing's running score, by playerId. */

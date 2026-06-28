@@ -43,14 +43,16 @@ public final class AccountStore {
         }
     }
 
-    /** Find or create the account for a provider identity; updates a changed display name. */
+    /** Find or create the account for a provider identity; updates a changed display name (ranked state kept). */
     public synchronized Account upsert(String provider, Identity identity) {
         String id = Account.idFor(provider, identity.providerUserId());
         Account existing = byId.get(id);
         if (existing != null) {
             if (!existing.displayName().equals(identity.displayName())) {
                 existing = new Account(id, provider, identity.providerUserId(),
-                        identity.displayName(), existing.createdAt());
+                        identity.displayName(), existing.createdAt(),
+                        existing.mmr(), existing.volatility(), existing.wins(),
+                        existing.losses(), existing.gamesPlayed());
                 persist(existing);
             }
             return existing;
@@ -61,8 +63,28 @@ public final class AccountStore {
         return created;
     }
 
+    /** Find an account by id, or create a minimal one (used by ranked, keyed on the socket's playerId —
+     *  found for OAuth accounts, created for dev logins that never went through {@link #upsert}). */
+    public synchronized Account ensure(String id, String displayName) {
+        Account a = byId.get(id);
+        if (a != null) return a;
+        Account created = new Account(id, "ranked", id, displayName, System.currentTimeMillis());
+        persist(created);
+        return created;
+    }
+
     public Account get(String id) {
         return byId.get(id);
+    }
+
+    /** Every known account (for the leaderboard). */
+    public java.util.Collection<Account> all() {
+        return byId.values();
+    }
+
+    /** Persist an updated account (e.g. a new MMR after a match). */
+    public void save(Account a) {
+        persist(a);
     }
 
     private void persist(Account a) {
