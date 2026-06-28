@@ -381,6 +381,41 @@ public final class Match {
         return null;
     }
 
+    private Side sideForPlayer(String playerId) {
+        if (host != null && host.playerId.equals(playerId)) return host;
+        if (guest != null && guest.playerId.equals(playerId)) return guest;
+        return null;
+    }
+
+    // ---- reconnect (the identity is the playerId; the socket may change) ----
+
+    /** Point a player's Side at a new session (they reconnected on a fresh socket). */
+    public synchronized boolean rebindSession(String playerId, String newSessionId) {
+        Side s = sideForPlayer(playerId);
+        if (s == null) return false;
+        s.sessionId = newSessionId;
+        return true;
+    }
+
+    /** Re-push a reconnected player their match start + current authoritative view, so the client
+     *  re-renders exactly the live state. No-op unless the match is in progress. */
+    public synchronized void resendStateTo(String playerId) {
+        if (phase != Phase.PLAYING) return;
+        Side me = sideForPlayer(playerId);
+        if (me == null) return;
+        sendStart(me, (me == host) ? guest : host);
+    }
+
+    /** A player abandoned the match (grace window elapsed without a reconnect): the opponent wins.
+     *  No-op unless the match is in progress. */
+    public synchronized void forfeit(String playerId) {
+        if (phase != Phase.PLAYING) return;
+        Side leaver = sideForPlayer(playerId);
+        if (leaver == null) return;
+        Side opp = (leaver == host) ? guest : host;
+        if (opp != null) finish(opp.playerId);
+    }
+
     private static Map<String, Object> map(Object... kv) {
         Map<String, Object> m = new LinkedHashMap<>();
         for (int i = 0; i < kv.length; i += 2) m.put((String) kv[i], kv[i + 1]);
@@ -388,7 +423,7 @@ public final class Match {
     }
 
     private static final class Side {
-        final String sessionId;
+        String sessionId;       // rebound on reconnect (the identity is playerId, not the socket)
         final String playerId;
         Run run;
         int lives;

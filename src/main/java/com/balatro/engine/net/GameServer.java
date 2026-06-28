@@ -83,6 +83,7 @@ public final class GameServer implements AutoCloseable {
     private final Map<String, Run> runs = new ConcurrentHashMap<>();            // playerId -> solo run (survives disconnect)
     private final Map<String, ScheduledFuture<?>> graceTasks = new ConcurrentHashMap<>(); // playerId -> pending forfeit
     private final Map<String, Match> matchBySession = new ConcurrentHashMap<>();
+    private final Map<String, Match> matchByPlayer = new ConcurrentHashMap<>();  // playerId -> match (survives a socket drop, for reconnect)
     private final Map<String, Match> pendingByCode = new ConcurrentHashMap<>();
     private final Set<String> activeCodes = ConcurrentHashMap.newKeySet();
     private final ScheduledExecutorService scheduler =
@@ -470,8 +471,8 @@ public final class GameServer implements AutoCloseable {
     /**
      * A connection went away. The game state is owned by the player identity, not the
      * socket, so we DON'T destroy it here — we detach the connection and start a grace
-     * timer; if the player re-auths within {@link #graceSeconds} the run is resumed,
-     * otherwise it's cleaned up. (Match reconnect is a follow-up; matches still detach.)
+     * timer; if the player re-auths within {@link #graceSeconds} the run (solo) or match is
+     * resumed, otherwise the solo run is cleaned up and a live match is forfeit to the opponent.
      */
     private void dropSession(String sessionId) {
         String playerId = players.remove(sessionId);
@@ -491,9 +492,19 @@ public final class GameServer implements AutoCloseable {
         if (prev != null) prev.cancel(false);
         ScheduledFuture<?> f = scheduler.schedule(() -> {
             graceTasks.remove(playerId);
-            if (!connByPlayer.containsKey(playerId)) runs.remove(playerId); // never came back
+            if (!connByPlayer.containsKey(playerId)) { // never came back
+                runs.remove(playerId);
+                forfeitMatch(playerId); // a live match they abandoned -> opponent wins
+            }
         }, graceSeconds, TimeUnit.SECONDS);
         graceTasks.put(playerId, f);
+    }
+
+    /** Grace elapsed without a reconnect: if the player was in a live match, forfeit it to the opponent
+     *  and drop the player's match routing. Solo players (no match) are a no-op. */
+    private void forfeitMatch(String playerId) {
+        Match m = matchByPlayer.remove(playerId);
+        if (m != null) m.forfeit(playerId);
     }
 
     /** Test/config hook: shorten the reconnect grace window. */
@@ -523,7 +534,17 @@ public final class GameServer implements AutoCloseable {
                 if (grace != null) grace.cancel(false);
                 conn.send(Map.of("type", "authed", "seq", seq, "playerId", playerId,
                         "rulesets", rulesetStore.names()));
-                // Resume: if a solo run is still alive for this identity, resend its view so the
+                // Resume a LIVE MATCH: rebind the player's Side to this new socket, re-route, and
+                // re-push their match start + view. The match kept running for the opponent while
+                // they were gone; this re-attaches them in place.
+                Match liveMatch = matchByPlayer.get(playerId);
+                if (liveMatch != null && liveMatch.phase() == Match.Phase.PLAYING) {
+                    liveMatch.rebindSession(playerId, conn.sessionId());
+                    matchBySession.put(conn.sessionId(), liveMatch);
+                    liveMatch.resendStateTo(playerId);
+                    return;
+                }
+                // Resume a SOLO run: if one is still alive for this identity, resend its view so the
                 // reconnected client re-renders the exact authoritative state.
                 Run existing = runs.get(playerId);
                 if (existing != null) {
@@ -704,6 +725,8 @@ public final class GameServer implements AutoCloseable {
             match.setHost(host, players.get(host));
             matchBySession.put(host, match);
             matchBySession.put(me, match);
+            matchByPlayer.put(players.get(host), match);
+            matchByPlayer.put(players.get(me), match);
             match.setGuestAndStart(me, players.get(me)); // both players matched -> ruleset agreement -> play
         } else {
             queuedSession = me;
@@ -723,6 +746,7 @@ public final class GameServer implements AutoCloseable {
         match.setHost(conn.sessionId(), players.get(conn.sessionId()));
         pendingByCode.put(code, match);
         matchBySession.put(conn.sessionId(), match);
+        matchByPlayer.put(players.get(conn.sessionId()), match);
         conn.send(Map.of("type", "lobbyCreated", "seq", seq, "code", code));
     }
 
@@ -733,6 +757,7 @@ public final class GameServer implements AutoCloseable {
             return;
         }
         matchBySession.put(conn.sessionId(), match);
+        matchByPlayer.put(players.get(conn.sessionId()), match);
         match.setGuestAndStart(conn.sessionId(), players.get(conn.sessionId())); // pushes matchStart to both
     }
 
