@@ -348,6 +348,11 @@ public final class GameServer implements AutoCloseable {
 
     public GameServer start(int port) {
         app.start("127.0.0.1", port);
+        // Periodic matchmaking sweep: re-pairs waiting players as their tolerance widens, so an isolated
+        // rating eventually matches even if no close opponent ever arrives. (joinQueue also pairs on arrival.)
+        scheduler.scheduleAtFixedRate(() -> {
+            try { tryMatch(); } catch (Exception ignored) { /* keep the sweep alive */ }
+        }, 1, 1, TimeUnit.SECONDS);
         return this;
     }
 
@@ -502,6 +507,7 @@ public final class GameServer implements AutoCloseable {
         String playerId = players.remove(sessionId);
         conns.remove(sessionId);
         matchBySession.remove(sessionId);
+        queue.remove(sessionId); // a waiting player who dropped is no longer matchable
         if (playerId == null) return;
         Connection current = connByPlayer.get(playerId);
         if (current != null && current.sessionId().equals(sessionId)) {
@@ -741,32 +747,70 @@ public final class GameServer implements AutoCloseable {
         afterAction(conn.sessionId());
     }
 
-    /** The one session waiting in the matchmaking queue (minimal 1-slot FIFO); null when empty. */
-    private volatile String queuedSession;
+    /** Sessions waiting in the ranked queue -> the nanoTime they enqueued (for tolerance widening). */
+    private final Map<String, Long> queue = new ConcurrentHashMap<>();
 
-    /** Join the match queue: pair with a waiting player into a Match (reusing the lobby flow), else wait. */
+    /** Matchmaking tolerance: a pair matches when their MMR gap <= base + widenPerSecond * waitSeconds.
+     *  The (uncapped) widening guarantees even an isolated rating eventually pairs. */
+    private volatile double mmBaseTolerance = 150.0;
+    private volatile double mmWidenPerSecond = 100.0;
+
+    /** Test/config hook: tune the matchmaking tolerance + how fast it widens with wait time. */
+    public void setMatchmakingTolerance(double base, double widenPerSecond) {
+        this.mmBaseTolerance = base;
+        this.mmWidenPerSecond = widenPerSecond;
+    }
+
+    /** Join the ranked queue. Pairs by closest MMR (see {@link Matchmaker}); if no opponent is within
+     *  tolerance yet, the player waits and a periodic sweep (with widening tolerance) pairs them later. */
     private synchronized void joinQueue(Connection conn, long seq) {
         String me = conn.sessionId();
-        if (queuedSession != null && !queuedSession.equals(me) && conns.containsKey(queuedSession)) {
-            String host = queuedSession;
-            queuedSession = null;
-            Match match = new Match(newCode(), com.balatro.engine.rng.Seeds.random(), ruleset, rulesetStore, this::deliver);
-            match.onResult(ranking::recordResult);
-            match.setHost(host, players.get(host));
-            matchBySession.put(host, match);
-            matchBySession.put(me, match);
-            matchByPlayer.put(players.get(host), match);
-            matchByPlayer.put(players.get(me), match);
-            match.setGuestAndStart(me, players.get(me)); // both players matched -> ruleset agreement -> play
-        } else {
-            queuedSession = me;
+        queue.putIfAbsent(me, System.nanoTime());
+        tryMatch();
+        if (queue.containsKey(me)) { // still waiting (wasn't paired just now)
             conn.send(Map.of("type", "queued", "seq", seq, "status", "waiting for an opponent"));
         }
     }
 
     private synchronized void leaveQueue(Connection conn, long seq) {
-        if (conn.sessionId().equals(queuedSession)) queuedSession = null;
+        queue.remove(conn.sessionId());
         conn.send(Map.of("type", "leftQueue", "seq", seq));
+    }
+
+    /** Pair every waiting player the matchmaker can (closest MMR within the widening tolerance). */
+    private synchronized void tryMatch() {
+        long now = System.nanoTime();
+        List<Matchmaker.Waiter> waiters = new ArrayList<>();
+        for (String s : queue.keySet()) {
+            if (conns.containsKey(s)) waiters.add(new Matchmaker.Waiter(s, mmrOf(s), waitSeconds(s, now)));
+        }
+        for (Matchmaker.Pairing p : Matchmaker.pair(waiters, mmBaseTolerance, mmWidenPerSecond)) {
+            if (queue.remove(p.a()) != null && queue.remove(p.b()) != null) startQueuedMatch(p.a(), p.b());
+        }
+    }
+
+    /** Build a Match for two queued sessions and start it (ruleset agreement -> play), wired to ranked. */
+    private void startQueuedMatch(String hostSession, String guestSession) {
+        Match match = new Match(newCode(), com.balatro.engine.rng.Seeds.random(), ruleset, rulesetStore, this::deliver);
+        match.onResult(ranking::recordResult);
+        match.setHost(hostSession, players.get(hostSession));
+        matchBySession.put(hostSession, match);
+        matchBySession.put(guestSession, match);
+        matchByPlayer.put(players.get(hostSession), match);
+        matchByPlayer.put(players.get(guestSession), match);
+        match.setGuestAndStart(guestSession, players.get(guestSession));
+    }
+
+    /** A waiting session's current MMR (their account's, or the default for a never-played dev login). */
+    private double mmrOf(String sessionId) {
+        String playerId = players.get(sessionId);
+        Account a = playerId == null ? null : accounts.get(playerId);
+        return a != null ? a.mmr() : Account.DEFAULT_MMR;
+    }
+
+    private double waitSeconds(String sessionId, long now) {
+        Long enqueued = queue.get(sessionId);
+        return enqueued == null ? 0 : (now - enqueued) / 1_000_000_000.0;
     }
 
     private void createLobby(Connection conn, long seq) {
