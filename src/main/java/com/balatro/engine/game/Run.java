@@ -85,12 +85,12 @@ public final class Run {
     private boolean pvpActive = false;
     private int freeRerollsUsedThisShop = 0; // free rerolls spent this shop (vs the FREE_REROLLS fold: Chaos)
     private int rerollsThisShop = 0;         // reroll cost escalates +$1 per reroll, reset each shop
-    private final java.util.List<PackCatalog.Pack> shopPacks = new ArrayList<>(); // 2 packs/shop, kept across rerolls
-    private java.util.List<RevealedItem> openPack = null; // the currently-open pack's revealed cards (null = none open)
-    private int packPicksLeft = 0;
+    final java.util.List<PackCatalog.Pack> shopPacks = new ArrayList<>(); // 2 packs/shop, kept across rerolls
+    java.util.List<RevealedItem> openPack = null; // the currently-open pack's revealed cards (null = none open)
+    int packPicksLeft = 0;
 
     /** A revealed pack card — enough to render it and to resolve a pick. type: CONSUMABLE | JOKER | CARD. */
-    private record RevealedItem(String type, String key, Card card) {}
+    record RevealedItem(String type, String key, Card card) {}
     private String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
     private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
     private String lastVoucherShown = null;   // last resolved voucher (for the queue's dup-skip rule)
@@ -98,7 +98,7 @@ public final class Run {
     private boolean couponActive = false;     // Coupon Tag: this shop's initial cards/packs are free
     private boolean d6Active = false;         // D6 Tag: rerolls start at $0 this shop
     private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
-    private boolean jokersHidden = false;         // Amber Acorn: Jokers flipped face down (hidden in the view)
+    boolean jokersHidden = false;         // Amber Acorn: Jokers flipped face down (hidden in the view)
     private final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
     // Identity tiebreaks for composition picks. Same-key jokers/consumables are interchangeable for a
@@ -1272,7 +1272,7 @@ public final class Run {
 
     /** Apply the Clearance Sale (25% off) / Liquidation (50% off) shop discount, rounded down.
      *  Coupon Tag makes this shop's initial cards/packs free until the first reroll. */
-    private int price(int cost) {
+    int price(int cost) {
         if (couponActive) return 0;
         return (int) (cost * shopEconomy().priceMultiplier()); // Clearance/Liquidation, derived
     }
@@ -1308,7 +1308,7 @@ public final class Run {
 
     /** Current reroll cost: a base ($5, or $0 under the D6 Tag), reduced $2 each by Reroll Surplus/Glut
      *  (floor $0), then escalated +$1 for every reroll already done this shop (game.lua's inc_reroll_cost). */
-    private int rerollCost() {
+    int rerollCost() {
         int base = d6Active ? 0 : Shop.REROLL_COST; // D6 Tag: $0 base for the shop (still escalates)
         return Math.max(0, base - shopEconomy().rerollDiscount()) + rerollsThisShop;
     }
@@ -1673,234 +1673,12 @@ public final class Run {
     }
 
     /** The data definition backing a joker (for the client preview); every joker is data now. */
-    private static JokerDef defFor(Joker j) {
-        return (j instanceof DataJoker dj) ? dj.def() : null;
-    }
-
     /** The locale the client wants its server-rendered text in (set per session); "en" by default. */
     public String viewLocale = "en";
 
-    /** The boss's effect text in {@link #viewLocale}: the localized template filled with the boss's own data
-     *  (numbers single-sourced). For "en" this equals {@code boss.effect()}. */
-    private String bossText(BossBlind b) {
-        double rm = b.reqMult();
-        Object req = rm == Math.rint(rm) ? (Object) (long) rm : (Object) rm;
-        return com.balatro.engine.i18n.Loc.fill(viewLocale, b.key(), java.util.Map.of(
-                "reqMult", req, "minAnte", b.minAnte(), "reward", b.reward()));
-    }
-
-    /** A localized description for a content key in {@link #viewLocale}, falling back to {@code original}
-     *  when neither the locale nor English has text (e.g. a custom joker not in localization). */
-    private String locDesc(String key, String original) {
-        String t = com.balatro.engine.i18n.Loc.text(viewLocale, key);
-        return t.isEmpty() ? original : t;
-    }
-
-    /** The safe projection of authoritative state the client may render (spec §8). */
+    /** The safe projection of authoritative state the client may render (spec §8) — built by {@link RunView}. */
     public ClientView view() {
-        List<CardView> handView = new ArrayList<>();
-        for (Card c : state.hand) handView.add(CardView.of(c));
-        Map<String, Object> handLevels = new LinkedHashMap<>();
-        for (HandType t : HandType.values()) handLevels.put(t.display, state.handLevel(t));
-        boolean inShop = phase == Phase.SHOP && shop != null;
-        int rerollCost = inShop ? rerollCost() : 0;
-
-        return new ClientView(ante, blind.display, requirement, state.roundScore,
-                state.handsLeft, state.discardsLeft, state.money, state.handSize,
-                phase.name(), handView, jokerView(), shopItemsView(), rerollCost,
-                boss != null ? boss.name() : null, boss != null ? bossText(boss) : null,
-                consumablesView(), handLevels, deckStatsView(), countersView(), shopVouchersView(),
-                shopPacksView(), openPackView(),
-                stake.display, deckType.name(), boss != null ? boss.key() : null);
-    }
-
-    /** The owned Jokers, each as a render map (or just a face-down placeholder under Amber Acorn) with the
-     *  data def + live state so the client can run an instant local preview. */
-    private List<Map<String, Object>> jokerView() {
-        List<Map<String, Object>> jokerView = new ArrayList<>();
-        for (int i = 0; i < state.jokers().size(); i++) {
-            Joker j = state.jokers().get(i);
-            var info = j.info();
-            Map<String, Object> jv = new LinkedHashMap<>();
-            if (jokersHidden) {
-                // Amber Acorn: the Joker is face down — reveal nothing but a placeholder card back. The
-                // server still scores it; the client just can't see which Joker sits in which (shuffled) slot.
-                jv.put("faceDown", true);
-                jokerView.add(jv);
-                continue;
-            }
-            jv.put("key", info.key());
-            jv.put("name", info.name());
-            jv.put("description", locDesc(info.key(), info.description()));
-            jv.put("rarity", info.rarity());
-            jv.put("cost", info.cost()); // for Swashbuckler's sell-value sum on the client
-            jv.put("x", info.atlasX());
-            jv.put("y", info.atlasY());
-            // Built-in joker display: the joker's current live value (server-computed, no mod).
-            jv.put("display", JokerDisplay.currentValue(state.jokers(), i, state));
-            // The joker's data definition + live state, so the client can compute an
-            // instant local score preview (interpreting the same JokerDef the server uses).
-            JokerDef def = defFor(j);
-            if (def != null) jv.put("def", def);
-            jv.put("state", state.jokerState(j));
-            jokerView.add(jv);
-        }
-        return jokerView;
-    }
-
-    /** The shop's mixed main slots (Joker / Tarot / Planet), or null when not in the shop. {@code kind}
-     *  tells the client how to render/label and which buy path {@code buyShopItem} takes. */
-    private List<Map<String, Object>> shopItemsView() {
-        if (phase != Phase.SHOP || shop == null) return null;
-        List<Map<String, Object>> shopView = new ArrayList<>();
-        for (Shop.Item it : shop.items()) {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("kind", it.kind().name());
-            m.put("key", it.key());
-            m.put("name", it.name());
-            m.put("description", locDesc(it.key(), it.description()));
-            m.put("cost", it.cost());
-            m.put("rarity", it.rarity());
-            m.put("edition", it.edition().name());
-            if (it.eternal()) m.put("eternal", true);
-            if (it.perishable()) m.put("perishable", true);
-            if (it.rental()) m.put("rental", true);
-            shopView.add(m);
-        }
-        return shopView;
-    }
-
-    /** Held consumables (Tarot/Planet) as render maps. */
-    private List<Map<String, Object>> consumablesView() {
-        List<Map<String, Object>> consumables = new ArrayList<>();
-        for (String key : state.consumables) {
-            PlanetCatalog.Planet p = PlanetCatalog.get(key);
-            if (p != null) {
-                consumables.add(Map.of("key", key, "name", p.name(), "description", locDesc(key, p.description())));
-                continue;
-            }
-            Consumable c = TarotCatalog.get(key);
-            if (c != null) {
-                consumables.add(Map.of("key", key, "name", c.name(), "description", locDesc(key, c.description()),
-                        "maxTargets", c.maxTargets()));
-            }
-        }
-        return consumables;
-    }
-
-    /** Deck aggregates the client needs for deck-stat joker previews (size / remaining / enhancement counts). */
-    private Map<String, Object> deckStatsView() {
-        Map<String, Object> deckStats = new LinkedHashMap<>();
-        deckStats.put("size", state.deckComposition.size());
-        deckStats.put("remaining", state.deck != null ? state.deck.remaining() : 0);
-        Map<String, Integer> enh = new LinkedHashMap<>();
-        for (Card c : state.deckComposition) {
-            if (c.enhancement != com.balatro.engine.card.Enhancement.NONE) {
-                enh.merge(c.enhancement.name(), 1, Integer::sum);
-            }
-        }
-        deckStats.put("enhancements", enh);
-        return deckStats;
-    }
-
-    /** The run-state counters the client mirrors for previews/screens (run totals, hand-type plays, round
-     *  targets, cash-out breakdown, offered/held tags, opponent state). */
-    private Map<String, Object> countersView() {
-        Map<String, Object> counters = new LinkedHashMap<>();
-        counters.put("HANDS_PLAYED_TOTAL", state.handsPlayedTotal);
-        counters.put("ROUNDS_PLAYED", state.roundsPlayedTotal);
-        counters.put("CARDS_DISCARDED_TOTAL", state.cardsDiscardedTotal);
-        counters.put("LUCKY_TRIGGERS", state.luckyTriggersTotal);
-        counters.put("DISCARDS_USED", state.discardsUsedThisRound);
-        counters.put("HANDS_PLAYED", state.handsPlayedThisRound);
-        Map<String, Object> typePlays = new LinkedHashMap<>();
-        state.handTypePlays.forEach((t, n) -> typePlays.put(t.name(), n));
-        counters.put("handTypePlays", typePlays);
-        counters.put("handTypesThisRound", state.handTypesThisRound.stream().map(Enum::name).toList());
-        // Per-round targets: emit each by its id; enums (Suit/HandType) as names, rank ids as ints.
-        for (com.balatro.engine.state.RoundTargets.Spec t : com.balatro.engine.state.RoundTargets.ALL) {
-            Object v = state.roundTargets.get(t.id());
-            counters.put(t.id(), v instanceof Enum<?> e ? e.name() : v);
-        }
-        counters.put("OBELISK_STREAK", state.obeliskStreak);
-        counters.put("BLINDS_SKIPPED", state.blindsSkipped);
-        counters.put("inPvpBlind", state.inPvpBlind);
-        counters.put("bossHalveBase", state.bossHalveBase); // The Flint: preview halves base too
-        counters.put("multiplayer", state.capabilities.restrictedPools());
-        // Cash-out breakdown (the end-of-round screen reads these when entering the shop).
-        counters.put("cashOutReward", state.lastBlindReward);
-        counters.put("cashOutInterest", state.lastInterest);
-        // The tag offered for skipping this blind (shown on the Select/Skip screen).
-        counters.put("offeredTag", state.offeredTag == null ? "" : state.offeredTag);
-        counters.put("offeredTagName", state.offeredTag == null ? ""
-                : (TagCatalog.get(state.offeredTag) != null ? TagCatalog.get(state.offeredTag).name() : state.offeredTag));
-        counters.put("heldTags", new ArrayList<>(state.tags));
-        counters.put("OPP_LIVES_BEHIND", Math.max(0, state.opponent.lives - state.myLives));
-        counters.put("OPP_HANDS_LEFT", state.opponent.handsLeft);
-        counters.put("OPP_CARDS_SOLD", state.opponent.cardsSold);
-        return counters;
-    }
-
-    /** The extra Voucher(s) offered in the shop (Voucher Tag / second slot), or null if none. */
-    private List<Map<String, Object>> shopVouchersView() {
-        if (phase != Phase.SHOP || shop == null || shop.vouchers().isEmpty()) return null;
-        List<Map<String, Object>> shopVouchers = new ArrayList<>();
-        for (String vk : shop.vouchers()) {
-            var v = VoucherCatalog.get(vk);
-            shopVouchers.add(Map.of("key", v.key(), "name", v.name(),
-                    "description", locDesc(v.key(), v.description()), "cost", price(v.cost())));
-        }
-        return shopVouchers;
-    }
-
-    /** The shop's booster packs (kept across rerolls), or null when not in the shop. */
-    private List<Map<String, Object>> shopPacksView() {
-        if (phase != Phase.SHOP) return null;
-        List<Map<String, Object>> packsView = new ArrayList<>();
-        for (PackCatalog.Pack p : shopPacks) {
-            packsView.add(Map.of("kind", p.kind().name(), "size", p.size().name(),
-                    "name", p.displayName(), "cost", price(p.cost()),
-                    "shown", p.shown(), "choose", p.choose()));
-        }
-        return packsView;
-    }
-
-    /** The currently-open booster pack's revealed items + picks left, or null if no pack is open. */
-    private Map<String, Object> openPackView() {
-        if (openPack == null) return null;
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (RevealedItem it : openPack) items.add(revealedItemView(it));
-        return Map.of("picksLeft", packPicksLeft, "items", items);
-    }
-
-    /** View of one revealed pack card: a consumable/joker (key+name+desc) or a playing card. */
-    private Map<String, Object> revealedItemView(RevealedItem it) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("type", it.type());
-        switch (it.type()) {
-            case "JOKER" -> {
-                var info = JokerLibrary.create(it.key()).info();
-                m.put("key", it.key());
-                m.put("name", info.name());
-                m.put("description", locDesc(it.key(), info.description()));
-            }
-            case "CARD" -> {
-                Card c = it.card();
-                m.put("name", c.rank.name() + " of " + c.suit.name());
-                m.put("rank", c.rank.name());
-                m.put("suit", c.suit.name());
-                m.put("enhancement", c.enhancement.name());
-            }
-            default -> { // CONSUMABLE
-                PlanetCatalog.Planet p = PlanetCatalog.get(it.key());
-                Consumable c = TarotCatalog.get(it.key());
-                m.put("key", it.key());
-                m.put("name", p != null ? p.name() : (c != null ? c.name() : it.key()));
-                m.put("description", locDesc(it.key(),
-                        p != null ? p.description() : (c != null ? c.description() : "")));
-            }
-        }
-        return m;
+        return RunView.build(this);
     }
 
     /** Perkeo: leaving the shop, a SHOP_EXIT joker rule duplicates a random held consumable (data). */
