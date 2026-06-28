@@ -95,9 +95,9 @@ public final class Run {
     private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
     private String lastVoucherShown = null;   // last resolved voucher (for the queue's dup-skip rule)
     private final List<String> tagVouchers = new ArrayList<>(); // extra vouchers a Voucher Tag added this shop visit
-    private boolean couponActive = false;     // Coupon Tag: this shop's initial cards/packs are free
-    private boolean d6Active = false;         // D6 Tag: rerolls start at $0 this shop
-    private boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
+    boolean couponActive = false;     // Coupon Tag: this shop's initial cards/packs are free
+    boolean d6Active = false;         // D6 Tag: rerolls start at $0 this shop
+    boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
     boolean jokersHidden = false;         // Amber Acorn: Jokers flipped face down (hidden in the view)
     final List<Card> composition = state.deckComposition; // the full deck (lives on RunState)
 
@@ -160,7 +160,7 @@ public final class Run {
 
     /** Fold {@code var} from every owned voucher's Modifys over {@code base} — the derived-from-ownership
      *  pattern for voucher-driven variables (win ante, boss rerolls, held-planet mult, ...). */
-    private double voucherFoldD(Value.Var var, double base) {
+    double voucherFoldD(Value.Var var, double base) {
         List<Modify> mods = new ArrayList<>();
         for (String v : state.vouchers) {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
@@ -261,7 +261,7 @@ public final class Run {
         // rounded requirement equals doubling inside get_blind_amount.
         requirement *= deckType.blindSizeMult();
         applyResourceMods(); // fold every resource Modify (deck/boss/joker/voucher/skip-off/pizza/Oops!) at once
-        applyJokerDestroyers(); // Ceremonial Dagger / Madness eat a joker at blind select
+        RunLoopRules.applyJokerDestroyers(this); // Ceremonial Dagger / Madness eat a joker at blind select
         rollRoundTargets();  // The Idol / Ancient targets, re-rolled each blind
         int deckBefore = composition.size();
         boolean bossNow = blind == BlindType.BOSS;
@@ -291,9 +291,9 @@ public final class Run {
         state.drawCountOverride = (int) com.balatro.engine.eval.ModifyFolder.fold(-1, Hand.DRAW_COUNT, resourceMods());
         for (Joker j : state.jokers()) state.jokerState(j).put("bossDisabled", false); // Crimson Heart re-arms each blind
         jokersHidden = false; // reset; Amber Acorn's BLIND_SELECTED rule re-hides + shuffles the Jokers
-        raiseBossRules(Trigger.BLIND_SELECTED, null);
+        RunLoopRules.raiseBossRules(this,Trigger.BLIND_SELECTED, null);
         ensureForcedSelection(); // Cerulean Bell: lock one opening-hand card as force-selected
-        refreshDebuffs();
+        RunLoopRules.refreshDebuffs(this);
         GameEvents.raise(Trigger.FIRST_HAND_DRAWN, state, rng, null); // Certificate: add a sealed card on first draw
         // The blind is set up and dealt; the player now Selects it (play) or Skips it (Small/Big,
         // for a tag). Boss/PvP blinds can't be skipped. play() auto-selects for convenience.
@@ -323,7 +323,7 @@ public final class Run {
                 * boss.reqMult() * ruleset.anteScaling()) * deckType.blindSizeMult();
         applyResourceMods();                            // recompute hands/discards/size for the new boss
         markFaceDown(state.hand, DrawContext.INITIAL);  // re-mark face-down for the new boss
-        refreshDebuffs();                               // re-mark card debuffs for the new boss
+        RunLoopRules.refreshDebuffs(this);                               // re-mark card debuffs for the new boss
         return null;
     }
 
@@ -331,49 +331,8 @@ public final class Run {
 
     /** Jokers that consume another joker at blind select: Ceremonial Dagger (right neighbour ->
      *  +Mult from 2x its sell value) and Madness (a random other joker -> +x0.5 Mult, non-boss only). */
-    private void applyJokerDestroyers() {
-        List<Joker> js = state.jokers();
-        // Ceremonial Dagger (RIGHT_NEIGHBOR): any blind; eats its right neighbour, gains 2x its sell value as Mult.
-        for (int i = 0; i < js.size(); i++) {
-            Selector.OtherJoker d = jokerDestroyer(js.get(i));
-            if (d == null || d.scope() != Selector.OtherJoker.Scope.RIGHT_NEIGHBOR || i + 1 >= js.size()) continue;
-            if (state.jokerFlag(js.get(i + 1), "eternal")) continue; // eternal can't be eaten
-            Joker victim = js.remove(i + 1);
-            if (d.mode() == Selector.OtherJoker.Mode.STEAL_MULT) state.addJokerInt(js.get(i), "mult", 2 * Math.max(1, victim.info().cost() / 2));
-        }
-        if (blind == BlindType.BOSS) return; // random joker-eaters (Madness) don't trigger on boss blinds
-        // Madness (RANDOM_OTHER): Small/Big only; the ×0.5 Mult rides a state-write rule, this is just "eat a joker".
-        for (int i = 0; i < js.size(); i++) {
-            Selector.OtherJoker d = jokerDestroyer(js.get(i));
-            if (d == null || d.scope() != Selector.OtherJoker.Scope.RANDOM_OTHER) continue;
-            List<Joker> others = new ArrayList<>();
-            for (int k = 0; k < js.size(); k++) { // eternal jokers can't be destroyed -> excluded as targets
-                if (k != i && !state.jokerFlag(js.get(k), "eternal")) others.add(js.get(k));
-            }
-            if (others.isEmpty()) continue;
-            // Identity-based pick: which joker is destroyed depends on the set held, not its order.
-            Joker victim = state.queues.pick(others, RngSources.MADNESS_DESTROY, rngCtx(), Joker::key, JOKER_QUALITY);
-            int vidx = js.indexOf(victim);
-            js.remove(vidx);
-            if (vidx < i) i--; // a joker before us was removed; stay aligned
-        }
-    }
-
-    /** A joker's blind-select "eat a joker" intent as DATA — the {@link Selector.OtherJoker} of its
-     *  {@code BLIND_SELECTED} {@code Destroy} rule, or null. The careful destruction stays engine machinery above. */
-    private static Selector.OtherJoker jokerDestroyer(Joker j) {
-        if (!(j instanceof DataJoker dj)) return null;
-        for (Rule r : dj.def().rules()) {
-            if (r.when() != Trigger.BLIND_SELECTED) continue;
-            for (Effect e : r.effects()) {
-                if (e instanceof Effect.Destroy d && d.selector() instanceof Selector.OtherJoker oj) return oj;
-            }
-        }
-        return null;
-    }
-
     /** Whether the active boss has an ability (a debuff or a hand/discard/size override). */
-    private boolean bossHasAbility() {
+    boolean bossHasAbility() {
         return boss != null && (boss.debuff() != null || boss.halveBase()
                 || !boss.mods().isEmpty() // hand/discard/size resource modifiers
                 || !boss.rules().isEmpty() // rule-driven effects (per-hand, blind-start, pre-hand, on-sell)
@@ -382,7 +341,7 @@ public final class Run {
     }
 
     /** The boss blind's ability is off — Chicot (always) or Luchador (sold this blind). */
-    private boolean bossDisabled() {
+    boolean bossDisabled() {
         // Chicot is a dynamic boolean policy now (mods(max(BOSS_ABILITY_DISABLED, 1))), folded from the
         // owned jokers — same pattern as Showman/Astronomer — so it re-arms the boss if Chicot is sold.
         return luchadorDisabledBoss
@@ -391,7 +350,7 @@ public final class Run {
     }
 
     // Jokers that did Destroy(Self) during a run-loop rule pass — removed after the pass (no concurrent mod).
-    private final java.util.List<Joker> pendingSelfDestruct = new java.util.ArrayList<>();
+    final java.util.List<Joker> pendingSelfDestruct = new java.util.ArrayList<>();
 
     /** A failed blind, as a hookable Blind-lifecycle event: raise {@code BLIND_LOST} over the joker rules.
      *  Mr Bones (gated on {@code BLIND_PROGRESS} >= 0.25) reacts by {@code Write(BLIND_SURVIVED)} + {@code Destroy(Self)}
@@ -400,7 +359,7 @@ public final class Run {
         if (requirement <= 0) return false;
         state.blindProgress = (double) state.roundScore / requirement;
         state.blindSurvived = false;
-        raiseJokerRules(Trigger.BLIND_LOST); // Mr Bones: Write(BLIND_SURVIVED) + Destroy(Self), both applied in the pass
+        RunLoopRules.raiseJokerRules(this, Trigger.BLIND_LOST); // Mr Bones: Write(BLIND_SURVIVED) + Destroy(Self), both applied in the pass
         return state.blindSurvived;
     }
 
@@ -491,7 +450,7 @@ public final class Run {
             ctx.selfIndex = state.jokers().indexOf(j);
             for (com.balatro.content.Sticker s : com.balatro.content.Sticker.values()) {
                 if (state.jokerFlag(j, s.flag())) {
-                    for (Effect e : s.endOfRound()) applyRunLoopEffect(e, ctx);
+                    for (Effect e : s.endOfRound()) RunLoopRules.applyRunLoopEffect(this, e, ctx);
                 }
             }
         }
@@ -690,25 +649,6 @@ public final class Run {
     }
 
     /** Mark hand cards debuffed per the active boss (recomputed each deal/draw). */
-    private void refreshDebuffs() {
-        boolean disabled = bossDisabled(); // Chicot turns off the boss's debuffs
-        com.balatro.grammar.Condition debuff = (boss != null) ? boss.debuff() : null;
-        for (Card c : state.hand) {
-            c.debuffed = !disabled && debuff != null && testCardDebuff(debuff, c);
-        }
-        // Keep Matador's trigger condition current (recomputed when the boss is disabled mid-blind too).
-        state.bossHasActiveAbility = boss != null && !disabled && bossHasAbility();
-    }
-
-    /** Evaluate a boss debuff condition for one card (reuses the shared {@link com.balatro.grammar.Condition}
-     *  vocabulary — "Clubs don't score" is {@code card().suit(CLUBS)}). */
-    private boolean testCardDebuff(com.balatro.grammar.Condition cond, Card c) {
-        com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
-        ctx.scoredCard = c;
-        ctx.run = state;
-        return com.balatro.engine.eval.ConditionEvaluator.test(cond, ctx);
-    }
-
     /** Which deal put a card into hand — selects the boss face-down rules that fire (The House/Fish). */
     private enum DrawContext { INITIAL, AFTER_PLAY, AFTER_DISCARD }
 
@@ -722,7 +662,7 @@ public final class Run {
                 c.faceDown = false;
                 continue;
             }
-            boolean cardMatches = rule.card() == null || testCardDebuff(rule.card(), c);
+            boolean cardMatches = rule.card() == null || RunLoopRules.testCardDebuff(this, rule.card(), c);
             c.faceDown = cardMatches
                     && (rule.chance() <= 0 || roll(RngSources.BOSS_FACE_DOWN) < rule.chance());
         }
@@ -752,7 +692,7 @@ public final class Run {
         String illegal = bossLegality(intent);
         if (illegal != null) return IntentResult.rejected(illegal);
         // Crimson Heart: disable one random Joker for this hand, before it scores.
-        if (intent instanceof Intent.PlayHand) { raiseBossRules(Trigger.PRE_HAND, null); resolveObservatory(); }
+        if (intent instanceof Intent.PlayHand) { RunLoopRules.raiseBossRules(this,Trigger.PRE_HAND, null); RunLoopRules.resolveObservatory(this); }
         // Snapshot the hand so we can tell which cards the upcoming refill freshly drew (boss face-down).
         java.util.Set<java.util.UUID> handBefore = new java.util.HashSet<>();
         for (Card c : state.hand) handBefore.add(c.uid);
@@ -784,7 +724,7 @@ public final class Run {
         }
         composition.removeIf(c -> c.destroyed);
         state.hand.removeIf(c -> c.destroyed);
-        refreshDebuffs(); // re-mark the freshly drawn hand
+        RunLoopRules.refreshDebuffs(this); // re-mark the freshly drawn hand
         // The Fish (after a play) / Wheel / Mark: the refill's brand-new cards may arrive face down.
         if (intent instanceof Intent.PlayHand || intent instanceof Intent.Discard) {
             java.util.List<Card> drawn = new ArrayList<>();
@@ -797,7 +737,7 @@ public final class Run {
         if (intent instanceof Intent.PlayHand ph) {
             state.handsPlayedThisRound++; // after scoring, so DNA's "first hand" check saw 0
             state.handsPlayedTotal++;
-            applyBossOnHandPlayed(playedCards, result.score()); // Tooth / Ox / Arm / Hook per-hand boss effects
+            RunLoopRules.applyBossOnHandPlayed(this, playedCards, result.score()); // Tooth / Ox / Arm / Hook per-hand boss effects
             // (Matador's $8 vs an active boss ability is now a data Rule: DOLLARS gated on bossAbilityActive.)
             if (pvpActive) {
                 // PvP blind: play all hands, then await the head-to-head comparison.
@@ -822,116 +762,6 @@ public final class Run {
      * at BLIND_SELECTED (Amber Acorn) / PRE_HAND (Crimson Heart) / ON_HAND_PLAYED (Tooth/Ox/Arm/Hook) /
      * SELL_CARD (Verdant Leaf). One condition language, one effect vocabulary, one dispatch.
      */
-    private void raiseBossRules(Trigger trigger, java.util.function.Consumer<com.balatro.engine.joker.EvaluationContext> setup) {
-        if (boss == null || bossDisabled() || boss.rules().isEmpty()) return;
-        com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
-        ctx.phase = trigger;
-        if (setup != null) setup.accept(ctx);
-        for (Rule r : boss.rules()) {
-            if (r.when() != trigger) continue;
-            if (r.condition() != null && !com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
-            for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
-        }
-    }
-
-    /** Boss per-hand effects (Tooth / Ox / Arm / Hook), fired after a hand is played + scored. */
-    private void applyBossOnHandPlayed(List<Card> playedCards, ScoreResult score) {
-        raiseBossRules(Trigger.ON_HAND_PLAYED, ctx -> {
-            ctx.playedCards = playedCards;
-            ctx.handType = (score != null) ? score.handType() : null;
-        });
-    }
-
-    /** The run-loop effect interpreter (the action-side twin of {@link #applyConsumableEffect}): resolve a
-     *  {@link Value} against the run and mutate authoritative state. Shared by bosses (per-hand/blind/sell
-     *  rules) and tags (Speed/Handy/Garbage money gains) — any effect fired outside the scoring pipeline. */
-    private void applyRunLoopEffect(Effect e, com.balatro.engine.joker.EvaluationContext ctx) {
-        switch (e) {
-            case Effect.DiscardRandomHeld d -> hookDiscardAndRefill(d.count()); // The Hook
-            case Effect.FlipAndShuffleJokers ignored -> { // Amber Acorn (blind start)
-                jokersHidden = true;
-                List<Joker> js = state.jokers();
-                for (int i = js.size() - 1; i > 0; i--) { // deterministic Fisher–Yates from the seeded stream
-                    int k = (int) (roll(RngSources.BOSS_ACORN) * (i + 1));
-                    if (k > i) k = i;
-                    java.util.Collections.swap(js, i, k);
-                }
-            }
-            case Effect.DisableRandomJoker ignored -> { // Crimson Heart (pre-hand)
-                List<Joker> js = state.jokers();
-                for (Joker j : js) state.jokerState(j).put("bossDisabled", false); // re-arm the rest
-                if (!js.isEmpty()) {
-                    int idx = (int) (roll(RngSources.BOSS_CRIMSON) * js.size());
-                    if (idx >= js.size()) idx = js.size() - 1;
-                    state.jokerState(js.get(idx)).put("bossDisabled", true);
-                }
-            }
-            case Effect.DisableBoss ignored -> { // Verdant Leaf (boss) / Luchador (sold during a boss)
-                if (boss != null) { luchadorDisabledBoss = true; refreshDebuffs(); }
-            }
-            case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
-                shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind().name()), PackCatalog.Size.valueOf(ap.size().name())));
-            case Effect.Create cr -> { // run-loop create: destination decides where it lands
-                CreateSpec s = cr.spec();
-                if (s.destination() == CreateSpec.Destination.SHOP) { // free-joker tags into the next shop
-                    if (s.edition() == Edition.NONE) addFreeJoker(s.rarity()); // Rare/Uncommon by rarity
-                    else addFreeEditionedJoker(s.edition());                   // Foil/Holo/Poly/Negative
-                } else { // PLAYER: jokers/consumables/cards straight into the run's slots (Top-Up tag)
-                    apply(new com.balatro.engine.exec.Command.Create(s));
-                }
-            }
-            case Effect.LevelHands lh -> { // Orbital tag (MOST_PLAYED) / The Arm (PLAYED, -1 = delevel)
-                if (lh.target() == com.balatro.grammar.Side.SELF && lh.scope() == Effect.LevelHands.Scope.PLAYED) {
-                    if (ctx.handType != null) // The Arm: delevel the just-played hand now (n may be negative)
-                        apply(new com.balatro.engine.exec.Command.LevelHand(ctx.handType,
-                                (int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx))));
-                } else {
-                    applyLevelHands(lh, ctx); // OPPONENT routing + ALL/MOST_PLAYED, all in one place
-                }
-            }
-            case Effect.AddShopVoucher ignored -> addTagVoucher();          // Voucher tag
-            case Effect.ShopFlag sf -> {                                    // Coupon / D6 tags
-                if (sf.flag() == Effect.ShopFlag.Flag.COUPON) couponActive = true;
-                else if (sf.flag() == Effect.ShopFlag.Flag.D6) d6Active = true;
-            }
-            case Effect.Write w -> applyWrite(w.mod(), ctx);               // Juggle (Hand.SIZE) / Tooth/Ox (MONEY)
-            case Effect.Copy cp -> { // run-loop copies (the rounds-owned gate is now a Condition on the rule)
-                if (cp.selector() instanceof Selector.RandomConsumable && !state.consumables.isEmpty()) {
-                    // Perkeo (shop exit): a slot-cap-ignoring Negative copy of a random held consumable.
-                    String dup = state.queues.pick(state.consumables, RngSources.PERKEO_DUP, rngCtx(), s -> s, (a, b) -> 0);
-                    apply(new com.balatro.engine.exec.Command.CopyConsumable(dup, com.balatro.engine.exec.Command.CopyConsumable.SlotPolicy.IGNORE_CAP));
-                } else if (cp.selector() instanceof Selector.RandomJoker
-                        && !state.jokers().isEmpty() && state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
-                    // Invisible Joker (on sell): copy a joker — the rightmost in MP (deterministic), else a
-                    // random one by identity (INVISIBLE_DUP).
-                    Joker source = ruleset.capabilities().duplicateRightmost()
-                            ? state.jokers().get(state.jokers().size() - 1)
-                            : state.queues.pick(state.jokers(), RngSources.INVISIBLE_DUP, rngCtx(), Joker::key, JOKER_QUALITY);
-                    apply(new com.balatro.engine.exec.Command.CopyJoker(source, null));
-                }
-            }
-            case Effect.CreateTag ct -> grantTag(ct.tag());                 // Diet Cola (on sell)
-            case Effect.Destroy d -> { // self-destruct primitive (Mr Bones at BLIND_LOST; shared with Gros Michel/Pizza)
-                if (d.selector() instanceof Selector.Self) pendingSelfDestruct.add(state.jokers().get(ctx.selfIndex));
-                else throw new IllegalStateException("run-loop Destroy supports only Self: " + d);
-            }
-            default -> throw new IllegalStateException("not a run-loop effect: " + e);
-        }
-    }
-
-    /** The Hook: discard {@code count} random held cards, then refill (honouring a Serpent draw override). */
-    private void hookDiscardAndRefill(int count) {
-        for (int i = 0; i < count && !state.hand.isEmpty(); i++) {
-            int idx = (int) (roll(RngSources.BOSS_HOOK) * state.hand.size());
-            if (idx >= state.hand.size()) idx = state.hand.size() - 1;
-            state.hand.remove(idx);
-        }
-        if (state.deck != null) {
-            if (state.drawCountOverride > 0) state.deck.drawCount(state.hand, count);
-            else state.deck.drawTo(state.hand, state.handSize);
-        }
-    }
-
     /** Cerulean Bell: keep exactly one held card force-selected. Re-picks when the previously-forced
      *  card has left the hand (it was just played); clears the flag entirely when the boss is inactive. */
     private void ensureForcedSelection() {
@@ -984,20 +814,6 @@ public final class Run {
             }
         }
         return null;
-    }
-
-    /** Crimson Heart: before a hand scores, switch off one random Joker for that hand (clearing any
-     *  prior pick). The scorer skips a Joker flagged {@code bossDisabled}, so it contributes nothing. */
-    /** Observatory: resolve the held-Planet mult and which hand types you currently hold a Planet for,
-     *  so the scorer can apply x1.5 to a played hand whose Planet you hold. */
-    private void resolveObservatory() {
-        state.heldPlanetMult = voucherFoldD(Value.Var.HELD_PLANET_MULT, 1.0);
-        state.heldPlanetHands.clear();
-        if (state.heldPlanetMult <= 1.0) return;
-        for (String c : state.consumables) {
-            PlanetCatalog.Planet p = PlanetCatalog.get(c);
-            if (p != null) state.heldPlanetHands.add(p.hand());
-        }
     }
 
     /** Run-loop hand leveling — the ALL (Black Hole) and MOST_PLAYED (Orbital) scopes of {@link
@@ -1086,7 +902,7 @@ public final class Run {
         state.money += NEMESIS.reward() + endOfRoundMoney();
         applyBossDefeatTags(); // Investment Tag pays out after the PvP (Boss) blind too
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind (Gift Card's sell-value bump rides this)
-        raiseJokerRules(Trigger.SHOP_ENTER);
+        RunLoopRules.raiseJokerRules(this, Trigger.SHOP_ENTER);
         refreshShopStock();
         phase = Phase.SHOP;
     }
@@ -1123,7 +939,7 @@ public final class Run {
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
         applyJokerStickerEffects(); // perishable countdown + rental rent (stakes)
-        raiseJokerRules(Trigger.SHOP_ENTER);
+        RunLoopRules.raiseJokerRules(this, Trigger.SHOP_ENTER);
         phase = Phase.SHOP;
         refreshShopStock();
     }
@@ -1246,11 +1062,11 @@ public final class Run {
         state.money += Math.max(1, sold.info().cost() / 2) + bonus; // sell value (+ Egg/Gift bonus)
         // The sold joker's own SELL_SELF rules: Invisible (duplicate a joker), Luchador (disable boss),
         // Diet Cola (create a tag) — all data now, fired through the run-loop interpreter.
-        raiseSelfSellRules(sold);
+        RunLoopRules.raiseSelfSellRules(this, sold);
         // A card was sold: remaining jokers react (Campfire gains x0.25 each), and the boss reacts
         // (Verdant Leaf: DisableBoss) — both through the same SELL_CARD trigger.
         GameEvents.raise(Trigger.SELL_CARD, state, rng, null);
-        raiseBossRules(Trigger.SELL_CARD, null);
+        RunLoopRules.raiseBossRules(this,Trigger.SELL_CARD, null);
         return null;
     }
 
@@ -1410,44 +1226,12 @@ public final class Run {
 
     /** Perkeo: leaving the shop, a SHOP_EXIT joker rule duplicates a random held consumable (data). */
     private void applyShopExit() {
-        raiseJokerRules(Trigger.SHOP_EXIT);
+        RunLoopRules.raiseJokerRules(this, Trigger.SHOP_EXIT);
     }
 
     /** Fire a just-sold joker's own SELL_SELF rules (Luchador disables the boss, Diet Cola makes a tag). */
-    private void raiseSelfSellRules(Joker sold) {
-        if (!(sold instanceof DataJoker dj)) return;
-        com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
-        ctx.jokers = List.of(sold); // self() = the sold joker, so its state (e.g. "rounds") is readable
-        ctx.selfIndex = 0;
-        for (Rule r : dj.def().rules()) {
-            if (r.when() != Trigger.SELL_SELF) continue;
-            if (r.condition() != null && !com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
-            for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
-        }
-    }
-
-    /** Fire every owned data-joker's rules for a lifecycle {@code trigger} through the run-loop interpreter —
-     *  the joker-side twin of {@link #raiseBossRules}. Used for capability effects (Perkeo on shop exit) that
-     *  mutate run state, which the scoring/GameEvents paths don't apply. */
-    private void raiseJokerRules(Trigger trigger) {
-        pendingSelfDestruct.clear();
-        com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
-        ctx.jokers = state.jokers();
-        List<Joker> owned = state.jokers();
-        for (int i = 0; i < owned.size(); i++) {
-            if (!(owned.get(i) instanceof DataJoker dj)) continue;
-            ctx.selfIndex = i;
-            for (Rule r : dj.def().rules()) {
-                if (r.when() != trigger) continue;
-                if (r.condition() != null && !com.balatro.engine.eval.ConditionEvaluator.test(r.condition(), ctx)) continue;
-                for (Effect e : r.effects()) applyRunLoopEffect(e, ctx);
-            }
-        }
-        state.jokers().removeAll(pendingSelfDestruct); // consume jokers that did Destroy(Self) this pass
-    }
-
     /** Grant a tag, honoring a held Double Tag (which duplicates the next tag gained). */
-    private void grantTag(String key) {
+    void grantTag(String key) {
         if (key == null) return;
         int copies = state.tags.remove("tag_double") ? 2 : 1; // Double Tag duplicates the next tag
         for (int i = 0; i < copies; i++) applyTag(key);
@@ -1481,7 +1265,7 @@ public final class Run {
     private void applyTagEffects(TagCatalog.Tag tag) {
         if (tag == null) return;
         com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
-        for (Effect e : tag.effects()) applyRunLoopEffect(e, ctx);
+        for (Effect e : tag.effects()) RunLoopRules.applyRunLoopEffect(this, e, ctx);
     }
 
     /** NEXT_BLIND tags, applied at blind start (Juggle: +3 hand size — a data AdjustHandSize effect). */
@@ -1507,7 +1291,7 @@ public final class Run {
 
     /** Voucher Tag: draw the next voucher from the same game-long voucher queue and add it as an extra
      *  shop slot (BMP: get_next_voucher_key(true) + card_limit + 1). Persists across rerolls this visit. */
-    private void addTagVoucher() {
+    void addTagVoucher() {
         String key = nextShowableVoucher();
         if (key == null) return;
         tagVouchers.add(key);
@@ -1515,7 +1299,7 @@ public final class Run {
     }
 
     /** Add a free Joker of the given rarity to the shop, drawn from a tag-only off-shop queue. */
-    private void addFreeJoker(com.balatro.grammar.Rarity rarity) {
+    void addFreeJoker(com.balatro.grammar.Rarity rarity) {
         List<String> pool = JokerLibrary.keysByRarity(rarity);
         if (pool.isEmpty()) return;
         String key = state.queues.queue(RngSources.tagJoker(rarity.wire()), r -> pool.get(r.nextInt(pool.size()))).next();
@@ -1524,7 +1308,7 @@ public final class Run {
     }
 
     /** Add a free base Joker with a forced edition (Foil/Holo/Poly/Negative Tag). */
-    private void addFreeEditionedJoker(Edition ed) {
+    void addFreeEditionedJoker(Edition ed) {
         String key = Shop.drawJoker(state.queues, jokerPoolForShop(), java.util.Set.of(), new java.util.HashSet<>(), false);
         var info = JokerLibrary.create(key).info();
         shop.items().add(new Shop.Item(Shop.Kind.JOKER, key, info.name(), info.description(), 0, info.rarity(), ed));
