@@ -1,6 +1,7 @@
 package com.balatro.engine.game;
 
 import com.balatro.engine.net.ClientView;
+import com.balatro.engine.state.Gamemode;
 import com.balatro.engine.state.Ruleset;
 import com.balatro.engine.state.RulesetStore;
 import java.util.LinkedHashMap;
@@ -35,8 +36,7 @@ public final class Match {
     private Ruleset proposed;       // host's current proposal, awaiting the guest's response
     private String proposedName;
 
-    private static final int STARTING_LIVES = 4;     // Attrition default
-    private static final int PVP_FROM_ANTE = 2;      // bosses from ante 2 are Nemesis blinds
+    private Gamemode mode = Gamemode.ATTRITION; // the match's gamemode — its config (starting lives, PvP-from-ante)
 
     private Side host;
     private Side guest;
@@ -53,6 +53,11 @@ public final class Match {
 
     public Phase phase() {
         return phase;
+    }
+
+    /** The match's gamemode (Attrition today). */
+    public Gamemode mode() {
+        return mode;
     }
 
     public void setHost(String sessionId, String playerId) {
@@ -269,12 +274,12 @@ public final class Match {
 
     private void startPlaying() {
         phase = Phase.PLAYING;
-        host.lives = STARTING_LIVES;
-        guest.lives = STARTING_LIVES;
+        host.lives = mode.startingLives();
+        guest.lives = mode.startingLives();
         host.run = new Run(ruleset, seed);   // same seed -> identical content available
-        host.run.pvpFromAnte = PVP_FROM_ANTE;
+        host.run.pvpFromAnte = mode.pvpFromAnte();
         guest.run = new Run(ruleset, seed);
-        guest.run.pvpFromAnte = PVP_FROM_ANTE;
+        guest.run.pvpFromAnte = mode.pvpFromAnte();
         syncNemesis(); // seed each Run's opponent view before the first hand
         sendStart(host, guest);
         sendStart(guest, host);
