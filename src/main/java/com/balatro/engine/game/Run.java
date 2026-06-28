@@ -94,7 +94,7 @@ public final class Run {
     private String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
     private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
     private String lastVoucherShown = null;   // last resolved voucher (for the queue's dup-skip rule)
-    private final List<String> tagVouchers = new ArrayList<>(); // extra vouchers a Voucher Tag added this shop visit
+    final List<String> tagVouchers = new ArrayList<>(); // extra vouchers a Voucher Tag added this shop visit
     boolean couponActive = false;     // Coupon Tag: this shop's initial cards/packs are free
     boolean d6Active = false;         // D6 Tag: rerolls start at $0 this shop
     boolean luchadorDisabledBoss = false; // Luchador: boss disabled for the current blind
@@ -280,7 +280,7 @@ public final class Run {
         } else {
             state.offeredTag = null;
         }
-        applyBlindTags(); // NEXT_BLIND tags (Juggle: +3 hand size) before the hand is dealt
+        RunTags.applyBlindTags(this); // NEXT_BLIND tags (Juggle: +3 hand size) before the hand is dealt
         dealNewDeck(); // full deck reshuffled fresh each blind
         state.hand.clear();
         state.deck.drawTo(state.hand, state.handSize);
@@ -467,7 +467,7 @@ public final class Run {
 
     /** The joker pool the shop/packs draw from — in multiplayer the boss-interacting jokers
      *  are excluded from the pool entirely (not merely skipped). */
-    private List<String> jokerPoolForShop() {
+    List<String> jokerPoolForShop() {
         if (!ruleset.capabilities().restrictedPools()) return ruleset.jokerPool();
         List<String> base = ruleset.jokerPool().isEmpty() ? JokerLibrary.builtinKeys() : ruleset.jokerPool();
         // MP pool = configured base minus the overlay's bans, plus its MP-only adds (the Nemesis jokers, which
@@ -499,7 +499,7 @@ public final class Run {
      * by the per-ante voucher and the Voucher Tag — the BMP {@code get_next_voucher_key(_from_tag)}
      * model, where a tag draws the next voucher from the very same queue. Returns null if exhausted.
      */
-    private String nextShowableVoucher() {
+    String nextShowableVoucher() {
         boolean mp = ruleset.capabilities().restrictedPools();
         java.util.List<String> bases = VoucherCatalog.baseKeys(mp);
         var q = state.queues.queue(RngSources.VOUCHERS, r -> bases.get(r.nextInt(bases.size())));
@@ -713,7 +713,7 @@ public final class Run {
         }
         IntentResult result = intents.handle(state, rng, intent);
         if (!result.ok()) return result;
-        if (purpleDiscards > 0) applyPurpleSeals(purpleDiscards); // each makes a Tarot
+        if (purpleDiscards > 0) RunTags.applyPurpleSeals(this, purpleDiscards); // each makes a Tarot
         // Destroyed cards (Glass break, etc.) leave the deck permanently — raise
         // CARD_DESTROYED per card (Glass Joker / Canio count these), then purge from
         // the persistent composition + hand so they don't return next blind.
@@ -900,7 +900,7 @@ public final class Run {
         pvpActive = false;
         state.cardsSoldSinceLastPvp = 0; // Taxes counts sells between PvP blinds
         state.money += NEMESIS.reward() + endOfRoundMoney();
-        applyBossDefeatTags(); // Investment Tag pays out after the PvP (Boss) blind too
+        RunTags.applyBossDefeatTags(this); // Investment Tag pays out after the PvP (Boss) blind too
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind (Gift Card's sell-value bump rides this)
         RunLoopRules.raiseJokerRules(this, Trigger.SHOP_ENTER);
         refreshShopStock();
@@ -911,7 +911,7 @@ public final class Run {
     private void enterShopTags() {
         couponActive = false;
         d6Active = false;
-        applyShopTags();
+        RunTags.applyShopTags(this);
     }
 
     /** Regenerate shop stock, reset the free reroll, roll booster packs, and resolve shop tags —
@@ -934,35 +934,14 @@ public final class Run {
         state.money += reward + bonus;
         state.lastBlindReward = reward; // cash-out breakdown for the end-of-round screen
         state.lastInterest = bonus;     // the non-reward bonus (per-hand/discard money + interest)
-        if (boss != null) applyBossDefeatTags(); // Investment Tag pays out after a boss
-        applyBlueSeals(); // Blue Seal: held cards create the Planet for this round's last hand
+        if (boss != null) RunTags.applyBossDefeatTags(this); // Investment Tag pays out after a boss
+        RunTags.applyBlueSeals(this); // Blue Seal: held cards create the Planet for this round's last hand
         state.roundsPlayedTotal++;
         GameEvents.endOfRound(state, rng, boss != null);
         applyJokerStickerEffects(); // perishable countdown + rental rent (stakes)
         RunLoopRules.raiseJokerRules(this, Trigger.SHOP_ENTER);
         phase = Phase.SHOP;
         refreshShopStock();
-    }
-
-    /** Blue Seal: each card still held at end of round creates the Planet for the round's last-played
-     *  hand, if there's a consumable slot free (Balatro's "Must have room"). */
-    private void applyBlueSeals() {
-        if (state.lastPlayedHandType == null) return; // nothing played this round (can't clear a blind anyway)
-        String planet = PlanetCatalog.forHand(state.lastPlayedHandType);
-        if (planet == null) return;
-        for (Card c : state.hand) {
-            if (c.seal != Seal.BLUE) continue;
-            if (state.consumables.size() >= state.consumableSlots) return; // out of room: the rest fizzle
-            state.consumables.add(planet);
-        }
-    }
-
-    /** Purple Seal: each purple-sealed card discarded creates a random Tarot, room permitting. */
-    private void applyPurpleSeals(int count) {
-        for (int i = 0; i < count; i++) {
-            apply(new com.balatro.engine.exec.Command.Create(
-                    new com.balatro.grammar.CreateSpec(com.balatro.grammar.CreateSpec.Kind.TAROT)));
-        }
     }
 
     /**
@@ -1230,28 +1209,6 @@ public final class Run {
     }
 
     /** Fire a just-sold joker's own SELL_SELF rules (Luchador disables the boss, Diet Cola makes a tag). */
-    /** Grant a tag, honoring a held Double Tag (which duplicates the next tag gained). */
-    void grantTag(String key) {
-        if (key == null) return;
-        int copies = state.tags.remove("tag_double") ? 2 : 1; // Double Tag duplicates the next tag
-        for (int i = 0; i < copies; i++) applyTag(key);
-    }
-
-    /** Apply a tag: IMMEDIATE effects resolve now; the rest are held for their trigger
-     *  (ON_SHOP / ON_BOSS_DEFEAT / NEXT_BLIND), resolved at those moments. */
-    private void applyTag(String key) {
-        if (TagCatalog.timing(key) == TagCatalog.Timing.IMMEDIATE) {
-            applyImmediateTag(key);
-        } else {
-            state.tags.add(key);
-        }
-    }
-
-    /** IMMEDIATE tags: resolve their data {@link Effect}s on claim (Economy/Speed/Handy/Garbage/Orbital/Top-Up). */
-    private void applyImmediateTag(String key) {
-        applyTagEffects(TagCatalog.get(key));
-    }
-
     /** A base run-loop {@link com.balatro.engine.joker.EvaluationContext}: the run + its RNG, nothing more.
      *  Every run-loop dispatcher (boss/joker/tag effects) starts from this and adds what it needs. */
     com.balatro.engine.joker.EvaluationContext runLoopContext() {
@@ -1259,66 +1216,6 @@ public final class Run {
         ctx.run = state;
         ctx.rng = rng;
         return ctx;
-    }
-
-    /** Apply a tag's data effects through the run-loop interpreter (null/effectless tags are a no-op). */
-    private void applyTagEffects(TagCatalog.Tag tag) {
-        if (tag == null) return;
-        com.balatro.engine.joker.EvaluationContext ctx = runLoopContext();
-        for (Effect e : tag.effects()) RunLoopRules.applyRunLoopEffect(this, e, ctx);
-    }
-
-    /** NEXT_BLIND tags, applied at blind start (Juggle: +3 hand size — a data AdjustHandSize effect). */
-    private void applyBlindTags() {
-        applyHeldTagsOfTiming(TagCatalog.Timing.NEXT_BLIND);
-    }
-
-    /** ON_SHOP tags resolve as data when the shop opens (packs / free-jokers / voucher / coupon / d6). */
-    private void applyShopTags() {
-        if (shop == null) return;
-        applyHeldTagsOfTiming(TagCatalog.Timing.ON_SHOP);
-    }
-
-    /** Resolve and consume every held tag of {@code timing}, applying its data {@link Effect}s through the
-     *  shared run-loop interpreter. The one place held tags turn into behaviour. */
-    private void applyHeldTagsOfTiming(TagCatalog.Timing timing) {
-        List<String> held = state.tags.stream().filter(t -> TagCatalog.timing(t) == timing).toList();
-        for (String key : held) {
-            state.tags.remove(key); // consume one instance
-            applyTagEffects(TagCatalog.get(key));
-        }
-    }
-
-    /** Voucher Tag: draw the next voucher from the same game-long voucher queue and add it as an extra
-     *  shop slot (BMP: get_next_voucher_key(true) + card_limit + 1). Persists across rerolls this visit. */
-    void addTagVoucher() {
-        String key = nextShowableVoucher();
-        if (key == null) return;
-        tagVouchers.add(key);
-        shop.addVoucher(key);
-    }
-
-    /** Add a free Joker of the given rarity to the shop, drawn from a tag-only off-shop queue. */
-    void addFreeJoker(com.balatro.grammar.Rarity rarity) {
-        List<String> pool = JokerLibrary.keysByRarity(rarity);
-        if (pool.isEmpty()) return;
-        String key = state.queues.queue(RngSources.tagJoker(rarity.wire()), r -> pool.get(r.nextInt(pool.size()))).next();
-        var info = JokerLibrary.create(key).info();
-        shop.items().add(new Shop.Item(Shop.Kind.JOKER, key, info.name(), info.description(), 0, info.rarity(), Edition.NONE));
-    }
-
-    /** Add a free base Joker with a forced edition (Foil/Holo/Poly/Negative Tag). */
-    void addFreeEditionedJoker(Edition ed) {
-        String key = Shop.drawJoker(state.queues, jokerPoolForShop(), java.util.Set.of(), new java.util.HashSet<>(), false);
-        var info = JokerLibrary.create(key).info();
-        shop.items().add(new Shop.Item(Shop.Kind.JOKER, key, info.name(), info.description(), 0, info.rarity(), ed));
-    }
-
-    /** ON_BOSS_DEFEAT tags resolve as data after a boss is beaten (Investment: +$25 each). */
-    private void applyBossDefeatTags() {
-        applyHeldTagsOfTiming(TagCatalog.Timing.ON_BOSS_DEFEAT);
-        // Anaglyph Deck: gain a Double Tag after defeating each Boss Blind (back.lua:111-120).
-        state.tags.addAll(deckType.onBossDefeatTags());
     }
 
     /** Roll this shop's two booster packs from the game-long packs queue (kept across rerolls). */
@@ -1442,7 +1339,7 @@ public final class Run {
         if (blind == BlindType.BOSS || pvpActive) return "cannot skip this blind";
         state.blindsSkipped++;
         GameEvents.raise(Trigger.SKIP_BLIND, state, rng, null); // Throwback / skip-tag jokers
-        grantTag(state.offeredTag != null ? state.offeredTag : "tag_investment"); // claim the offered tag
+        RunTags.grantTag(this, state.offeredTag != null ? state.offeredTag : "tag_investment"); // claim the offered tag
         blind = (blind == BlindType.SMALL) ? BlindType.BIG : BlindType.BOSS;
         startBlind();
         return null;

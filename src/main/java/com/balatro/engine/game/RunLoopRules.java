@@ -150,8 +150,8 @@ final class RunLoopRules {
             case Effect.Create cr -> { // run-loop create: destination decides where it lands
                 CreateSpec s = cr.spec();
                 if (s.destination() == CreateSpec.Destination.SHOP) { // free-joker tags into the next shop
-                    if (s.edition() == Edition.NONE) r.addFreeJoker(s.rarity()); // Rare/Uncommon by rarity
-                    else r.addFreeEditionedJoker(s.edition());                   // Foil/Holo/Poly/Negative
+                    if (s.edition() == Edition.NONE) RunTags.addFreeJoker(r, s.rarity()); // Rare/Uncommon by rarity
+                    else RunTags.addFreeEditionedJoker(r, s.edition());                   // Foil/Holo/Poly/Negative
                 } else { // PLAYER: jokers/consumables/cards straight into the run's slots (Top-Up tag)
                     r.apply(new com.balatro.engine.exec.Command.Create(s));
                 }
@@ -165,7 +165,7 @@ final class RunLoopRules {
                     r.applyLevelHands(lh, ctx); // OPPONENT routing + ALL/MOST_PLAYED, all in one place
                 }
             }
-            case Effect.AddShopVoucher ignored -> r.addTagVoucher();          // Voucher tag
+            case Effect.AddShopVoucher ignored -> RunTags.addTagVoucher(r);   // Voucher tag
             case Effect.ShopFlag sf -> {                                      // Coupon / D6 tags
                 if (sf.flag() == Effect.ShopFlag.Flag.COUPON) r.couponActive = true;
                 else if (sf.flag() == Effect.ShopFlag.Flag.D6) r.d6Active = true;
@@ -186,7 +186,7 @@ final class RunLoopRules {
                     r.apply(new com.balatro.engine.exec.Command.CopyJoker(source, null));
                 }
             }
-            case Effect.CreateTag ct -> r.grantTag(ct.tag());                // Diet Cola (on sell)
+            case Effect.CreateTag ct -> RunTags.grantTag(r, ct.tag());       // Diet Cola (on sell)
             case Effect.Destroy d -> { // self-destruct primitive (Mr Bones at BLIND_LOST; shared with Gros Michel/Pizza)
                 if (d.selector() instanceof Selector.Self) r.pendingSelfDestruct.add(r.state.jokers().get(ctx.selfIndex));
                 else throw new IllegalStateException("run-loop Destroy supports only Self: " + d);
