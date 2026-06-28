@@ -104,7 +104,7 @@ public final class Run {
     // Identity tiebreaks for composition picks. Same-key jokers/consumables are interchangeable for a
     // "random" pick, so the comparator is neutral; the grouping (by key) is what makes the choice
     // depend on the set held rather than its left-to-right order.
-    private static final java.util.Comparator<Joker> JOKER_QUALITY = (a, b) -> 0;
+    static final java.util.Comparator<Joker> JOKER_QUALITY = (a, b) -> 0;
 
     public Run(Ruleset ruleset, String seed) {
         this(ruleset, seed, Deck.standard(), List.of(), Stake.WHITE);
@@ -568,7 +568,7 @@ public final class Run {
 
     /** Apply one resolved {@link com.balatro.engine.exec.Command} — the single mutation path that the
      *  action-effect families migrate onto (replacing the direct mutation in the interpreter switches). */
-    private void apply(com.balatro.engine.exec.Command cmd) {
+    void apply(com.balatro.engine.exec.Command cmd) {
         CommandApply.apply(this, cmd);
     }
 
@@ -634,12 +634,12 @@ public final class Run {
     }
 
     /** A roll in [0,1) from a declared source, resolved against the current context. */
-    private double roll(RngSource src) {
+    double roll(RngSource src) {
         return state.queues.roll(src, rngCtx());
     }
 
     /** Uniformly pick one element of {@code arr} using a roll from {@code src}. */
-    private <T> T pick(T[] arr, RngSource src) {
+    <T> T pick(T[] arr, RngSource src) {
         return arr[(int) (roll(src) * arr.length) % arr.length];
     }
 
@@ -1002,7 +1002,7 @@ public final class Run {
 
     /** Run-loop hand leveling — the ALL (Black Hole) and MOST_PLAYED (Orbital) scopes of {@link
      *  Effect.LevelHands}; the PLAYED scope is scoring-time (the levelUpHand flag), never reaches here. */
-    private void applyLevelHands(Effect.LevelHands lh, com.balatro.engine.joker.EvaluationContext ctx) {
+    void applyLevelHands(Effect.LevelHands lh, com.balatro.engine.joker.EvaluationContext ctx) {
         if (lh.target() == com.balatro.grammar.Side.OPPONENT) { // Asteroid: route to the Nemesis (Match consumes the pending)
             state.nemesisDelevelPending += Math.abs((int) Math.round(com.balatro.engine.eval.ValueResolver.resolve(lh.levels(), ctx)));
             return;
@@ -1295,54 +1295,13 @@ public final class Run {
      * create. Returns null on success, else a rejection reason.
      */
     public String useConsumable(int index, java.util.UUID[] targetUids) {
-        if (phase == Phase.RUN_WON || phase == Phase.RUN_LOST) return "run is over";
-        if (index < 0 || index >= state.consumables.size()) return "invalid consumable";
-        String key = state.consumables.get(index);
-
-        PlanetCatalog.Planet p = PlanetCatalog.get(key);
-        if (p != null) {
-            state.levelUpHand(p.hand());
-            state.planetsUsedThisRun.add(key); // Satellite counts unique planets used
-            state.lastTarotPlanetUsed = key;    // The Fool can copy it
-            GameEvents.useConsumable(state, rng, com.balatro.grammar.ConsumableKind.PLANET);
-            state.consumables.remove(index);
-            return null;
-        }
-
-        Consumable c = TarotCatalog.get(key);
-        if (c != null) {
-            List<Card> targets = new ArrayList<>();
-            for (java.util.UUID uid : targetUids) {
-                for (Card card : state.hand) {
-                    if (card.uid.equals(uid)) targets.add(card);
-                }
-            }
-            if (targets.size() > c.maxTargets()) return "too many targets";
-            // Free this consumable's slot BEFORE applying, so a generative effect's created
-            // consumables can occupy the slot it just vacated (Balatro's ordering).
-            state.consumables.remove(index);
-            applyConsumable(c, targets);
-            // The Fool copies the last Tarot/Planet used — track Tarots here (but never The Fool itself).
-            if (c.type() == com.balatro.engine.consumable.ConsumableType.TAROT && !key.equals("c_fool")) {
-                state.lastTarotPlanetUsed = key;
-            }
-            GameEvents.useConsumable(state, rng, com.balatro.grammar.ConsumableKind.valueOf(c.type().name()));
-            return null;
-        }
-        return "unknown consumable: " + key;
-    }
-
-    private void applyConsumable(Consumable c, List<Card> targets) {
-        // The binding map is action-scoped: it lives only for this one consumable's effect list, so a
-        // Bind/Bound/Others reference can't leak between actions. It names a joker, never a value.
-        java.util.Map<String, Joker> bindings = new java.util.HashMap<>();
-        for (Effect e : c.effects()) applyConsumableEffect(c, e, targets, bindings);
+        return ConsumableApply.use(this, index, targetUids);
     }
 
     /** Apply a {@link com.balatro.grammar.Modify} property-write at action time — the spine the bespoke
      *  property verbs collapse onto. Hand.SIZE routes to the existing {@code HandSize} command (byte-identical
      *  to the old {@code AdjustHandSize}); other properties are added here as their verbs are folded in. */
-    private void applyWrite(com.balatro.grammar.Modify m, com.balatro.engine.joker.EvaluationContext ctx) {
+    void applyWrite(com.balatro.grammar.Modify m, com.balatro.engine.joker.EvaluationContext ctx) {
         double v = com.balatro.engine.eval.ValueResolver.resolve(m.value(), ctx);
         if (m.variable() == com.balatro.grammar.Hand.SIZE && m.op() == com.balatro.grammar.Effect.Operation.ADD) {
             apply(new com.balatro.engine.exec.Command.HandSize((int) Math.round(v)));   // Juggle / Ectoplasm / Ouija
@@ -1359,186 +1318,6 @@ public final class Run {
         throw new IllegalStateException("unsupported action Write: " + m);
     }
 
-    /** The action interpreter: apply one unified {@link Effect} to the run, resolving its {@link Selector}
-     *  against the live hand. The joker scoring verbs (Score/MutateState/…) never appear on a consumable. */
-    private void applyConsumableEffect(Consumable c, Effect e, List<Card> targets, java.util.Map<String, Joker> bindings) {
-        switch (e) {
-            case Effect.Bind b -> { // resolve the selector ONCE and remember it for later effects in this list
-                if (b.selector() instanceof Selector.RandomJoker && !state.jokers().isEmpty()) {
-                    bindings.put(b.name(), state.queues.pick(state.jokers(),
-                            RngSources.consumable(c.key()).sub("joker").composition(), rngCtx(), Joker::key, JOKER_QUALITY));
-                }
-            }
-            case Effect.When w -> { // the consumable's IF — apply inner effects only if the gate holds (Wheel)
-                if (consumableConditionHolds(c, w.condition())) {
-                    for (Effect inner : w.effects()) applyConsumableEffect(c, inner, targets, bindings);
-                }
-            }
-            case Effect.MutateCard mc -> {
-                List<Card> sel = resolveTargets(c, mc.selector(), targets);
-                if (mc.mod().action() == com.balatro.engine.card.CardMod.Action.COPY_IDENTITY) {
-                    // Death: each selected card becomes a copy of the last selected (the multi-property copy).
-                    Card source = sel.get(sel.size() - 1);
-                    for (Card t : sel) if (t != source) apply(new com.balatro.engine.exec.Command.OverwriteCard(t, source));
-                } else {
-                    apply(new com.balatro.engine.exec.Command.MutateCards(sel, mc.mod()));
-                }
-            }
-            case Effect.Create cr -> // pure-create consumable (Emperor/High Priestess/Judgement/Soul)
-                apply(new com.balatro.engine.exec.Command.Create(cr.spec()));
-            case Effect.Destroy d -> { // consumable-context destroy
-                if (d.selector() instanceof Selector.Others o) { // Hex/Ankh: destroy every joker but the bound one
-                    Joker keep = bindings.get(o.name());
-                    if (keep != null) apply(new com.balatro.engine.exec.Command.DestroyOtherJokers(keep));
-                } else { // card selectors (Hanged Man, Immolate): select the victims, then destroy them
-                    apply(new com.balatro.engine.exec.Command.DestroyCards(resolveTargets(c, d.selector(), targets)));
-                }
-            }
-            case Effect.LevelHands lh -> // Black Hole (ALL); Asteroid (OPPONENT) routes to the Nemesis
-                applyLevelHands(lh, runLoopContext());
-            case Effect.AddCards a -> addRankClassCards(c, a);                  // Familiar / Grim rank-class adds
-            case Effect.EditionJoker ej -> { // Ectoplasm/Hex: edition the bound joker (Wheel keeps JokerEdition)
-                Joker target = ej.selector() instanceof Selector.Bound bnd ? bindings.get(bnd.name())
-                        : (!state.jokers().isEmpty() ? state.queues.pick(state.jokers(),
-                                RngSources.consumable(c.key()).sub("joker").composition(), rngCtx(), Joker::key, JOKER_QUALITY)
-                           : null);
-                if (target != null) apply(new com.balatro.engine.exec.Command.EditionJoker(target, resolveEdition(c, ej.edition())));
-            }
-            case Effect.Write w -> applyWrite(w.mod(), runLoopContext());        // Ouija/Ectoplasm (Hand.SIZE) / Immolate (MONEY)
-            case Effect.ConvertHand ch -> applyConvertHand(c, ch);
-            case Effect.Copy cp -> { // consumable-context copy
-                if (cp.selector() instanceof Selector.Selected && !targets.isEmpty()) { // Cryptid: copy the card cp.count()×
-                    Card src = targets.get(0);
-                    List<Card> copies = new ArrayList<>();
-                    for (int i = 0; i < cp.count(); i++) copies.add(src.copy()); // fresh uid, same attributes
-                    apply(new com.balatro.engine.exec.Command.AddCardsToDeck(copies));
-                } else if (cp.selector() instanceof Selector.LastConsumable      // The Fool: copy the last Tarot/Planet used
-                        && state.lastTarotPlanetUsed != null) {
-                    apply(new com.balatro.engine.exec.Command.CopyConsumable(state.lastTarotPlanetUsed, com.balatro.engine.exec.Command.CopyConsumable.SlotPolicy.RESPECT_CAP));
-                } else if (cp.selector() instanceof Selector.Bound bnd) {         // Ankh: copy the bound joker
-                    Joker src = bindings.get(bnd.name());
-                    if (src != null && state.jokers().size() < state.jokerSlots)
-                        apply(new com.balatro.engine.exec.Command.CopyJoker(src, ruleset.jokerVariant()));
-                }
-            }
-            default -> throw new IllegalStateException("not a consumable effect: " + e);
-        }
-    }
-
-    /** Resolve which held cards an effect targets. Selected = the player's chosen cards; the others let a
-     *  consumable reach the whole hand or a random subset without bespoke code. */
-    private List<Card> resolveTargets(Consumable c, Selector sel, List<Card> selected) {
-        return switch (sel) {
-            case Selector.Selected ignored -> selected;
-            case Selector.Focus ignored ->
-                    throw new IllegalStateException("Focus targets the scored card — meaningless outside scoring");
-            case Selector.RandomInHand r -> {
-                List<Card> out = new ArrayList<>();
-                for (int i = 0; i < r.count(); i++) {
-                    List<Card> live = state.hand.stream().filter(x -> !x.destroyed && !out.contains(x)).toList();
-                    if (live.isEmpty()) break;
-                    // "destroy:i" sub-key matches the old Generate destroy stream, so Immolate/Familiar/Grim
-                    // (now Destroy(RandomInHand) in their effect list) draw the same cards — byte-identical.
-                    out.add(state.queues.pick(live, RngSources.consumable(c.key()).sub("destroy:" + i).composition(),
-                            rngCtx(), Deck.CARD_GROUP, Deck.CARD_QUALITY));
-                }
-                yield out;
-            }
-            case Selector.RandomJoker ignored ->
-                    throw new IllegalStateException("RandomJoker selects jokers, not cards");
-            case Selector.Discarded ignored ->
-                    throw new IllegalStateException("Discarded targets the discard event — scoring-time only");
-            case Selector.Self ignored ->
-                    throw new IllegalStateException("Self targets the emitting joker, not cards");
-            case Selector.OtherJoker ignored ->
-                    throw new IllegalStateException("OtherJoker selects a joker, not cards");
-            case Selector.LastConsumable ignored ->
-                    throw new IllegalStateException("LastConsumable selects a consumable, not cards");
-            case Selector.RandomConsumable ignored ->
-                    throw new IllegalStateException("RandomConsumable selects a consumable, not cards");
-            case Selector.Bound ignored ->
-                    throw new IllegalStateException("Bound names a joker, not cards");
-            case Selector.Others ignored ->
-                    throw new IllegalStateException("Others names jokers, not cards");
-        };
-    }
-
-    /** Sigil (all cards to one random suit) / Ouija (all to one random rank, -1 hand size). */
-    private void applyConvertHand(Consumable c, Effect.ConvertHand ch) {
-        // MP Ouija rework: destroy 3 random cards first, convert the rest to one rank, and DON'T
-        // reduce hand size (vanilla Ouija converts the whole hand and loses 1 hand size).
-        boolean mpOuija = "c_ouija".equals(c.key()) && ruleset.capabilities().ouijaRework();
-        if (mpOuija) {
-            for (int i = 0; i < 3; i++) {
-                List<Card> live = state.hand.stream().filter(x -> !x.destroyed).toList();
-                if (live.isEmpty()) break;
-                Card victim = state.queues.pick(live, RngSources.consumable(c.key()).sub("destroy:" + i).composition(),
-                        rngCtx(), Deck.CARD_GROUP, Deck.CARD_QUALITY);
-                victim.destroyed = true;
-            }
-            composition.removeIf(x -> x.destroyed);
-            state.hand.removeIf(x -> x.destroyed);
-            Rank r = pick(Rank.values(), RngSources.consumable(c.key()).sub("rank"));
-            for (Card card : state.hand) card.rank = r;
-            return; // no hand-size reduction in MP
-        }
-        if (ch.axis() == Effect.ConvertHand.Axis.SUIT) {
-            Suit s = pick(Suit.values(), RngSources.consumable(c.key()).sub("suit"));
-            for (Card card : state.hand) card.suit = s;
-        }
-        if (ch.axis() == Effect.ConvertHand.Axis.RANK) {
-            Rank r = pick(Rank.values(), RngSources.consumable(c.key()).sub("rank"));
-            for (Card card : state.hand) card.rank = r;
-        }
-        if (ch.handSizeDelta() != 0) state.handSize = Math.max(1, state.handSize + ch.handSizeDelta());
-    }
-
-    /** Ankh: copy a random owned joker (edition-free) and, if set, destroy all other jokers. */
-    // Enhancements a "random Enhanced" created card (Familiar/Grim) may roll — every type but NONE.
-    private static final Enhancement[] RANDOM_ENHANCEMENTS = {
-        Enhancement.BONUS, Enhancement.MULT, Enhancement.GLASS, Enhancement.STEEL,
-        Enhancement.STONE, Enhancement.GOLD, Enhancement.WILD, Enhancement.LUCKY
-    };
-
-    private void addRankClassCards(Consumable c, Effect.AddCards add) {
-        Rank[] pool = switch (add.rankClass()) {
-            case FACE -> new Rank[]{Rank.JACK, Rank.QUEEN, Rank.KING};
-            case ACE -> new Rank[]{Rank.ACE};
-            case NUMBER -> java.util.Arrays.stream(Rank.values()).filter(r -> r.id <= 10).toArray(Rank[]::new);
-        };
-        List<Card> made = new ArrayList<>();
-        for (int i = 0; i < add.count(); i++) {
-            Rank r = pick(pool, RngSources.consumable(c.key()).sub("rank:" + i));
-            Suit s = pick(Suit.values(), RngSources.consumable(c.key()).sub("suit:" + i));
-            Enhancement e = add.enhancement() != null ? add.enhancement()
-                    : pick(RANDOM_ENHANCEMENTS, RngSources.consumable(c.key()).sub("enh:" + i));
-            made.add(new Card(r, s, e, Edition.NONE, Seal.NONE));
-        }
-        apply(new com.balatro.engine.exec.Command.AddCardsToDeck(made));
-    }
-
-    /**
-     * Add an edition to a random owned joker (Wheel of Fortune / Ectoplasm / Hex).
-     * Wheel gates on a 1-in-N roll and picks a random Foil/Holo/Poly; Ectoplasm and
-     * Hex always fire and carry their own side effects (hand-size / destroy-others).
-     */
-    /** Evaluate a consumable's {@link Effect.When} gate. A {@code Chance} rolls on the consumable's OWN
-     *  stream ({@code consumable(key).sub(seedKey)}) — the same draw the hardcoded Wheel gate used — and
-     *  PROBABILITY_MULTIPLIER (Oops!) scales the threshold like every other chance. Others test normally. */
-    private boolean consumableConditionHolds(Consumable c, com.balatro.grammar.Condition cond) {
-        if (cond instanceof com.balatro.grammar.Condition.Chance ch) {
-            double r = roll(RngSources.consumable(c.key()).sub(ch.seedKey()));
-            return r < (double) (ch.odds().numerator() * state.probabilityNumerator) / ch.odds().denominator();
-        }
-        return com.balatro.engine.eval.ConditionEvaluator.test(cond, runLoopContext());
-    }
-
-    /** {@code NONE} = roll a random Foil/Holo/Poly (the "ed" sub-stream); else the fixed edition. */
-    private Edition resolveEdition(Consumable c, Edition ed) {
-        if (ed != Edition.NONE) return ed;
-        return pick(new Edition[]{Edition.FOIL, Edition.HOLOGRAPHIC, Edition.POLYCHROME},
-                RngSources.consumable(c.key()).sub("ed"));
-    }
 
     /**
      * Side-effect-free preview of playing the selected hand cards — the
@@ -1691,7 +1470,7 @@ public final class Run {
 
     /** A base run-loop {@link com.balatro.engine.joker.EvaluationContext}: the run + its RNG, nothing more.
      *  Every run-loop dispatcher (boss/joker/tag effects) starts from this and adds what it needs. */
-    private com.balatro.engine.joker.EvaluationContext runLoopContext() {
+    com.balatro.engine.joker.EvaluationContext runLoopContext() {
         com.balatro.engine.joker.EvaluationContext ctx = new com.balatro.engine.joker.EvaluationContext();
         ctx.run = state;
         ctx.rng = rng;
