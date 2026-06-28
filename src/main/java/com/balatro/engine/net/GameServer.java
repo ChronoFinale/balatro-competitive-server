@@ -565,6 +565,14 @@ public final class GameServer implements AutoCloseable {
                     if (m != null) m.respond(conn.sessionId(), msg.path("accept").asBoolean());
                     else conn.send(error(seq, "not in a match"));
                 }
+                // Play the same pairing again (fresh seed, already-agreed ruleset). Both message names
+                // mean "I want a rematch"; the match starts once both sides have asked.
+                case "requestRematch", "acceptRematch" -> {
+                    Match m = matchBySession.get(conn.sessionId());
+                    if (m == null) conn.send(error(seq, "not in a match"));
+                    else if (m.requestRematch(conn.sessionId()))
+                        m.startRematch(com.balatro.engine.rng.Seeds.random());
+                }
                 case "preview" -> {
                     Run run = runFor(conn.sessionId());
                     if (run == null) {

@@ -28,9 +28,17 @@ public final class Match {
     public enum Phase { WAITING, AGREEING, PLAYING, FINISHED }
 
     private final String code;
-    private final String seed;
+    private String seed;            // re-rolled on a rematch (same pairing, fresh content)
     private final RulesetStore rulesets;
     private final BiConsumer<String, Object> transport;
+
+    // Head-to-head tally for THIS pairing — accumulates across rematches on the same Match object
+    // (one Match = one rivalry). In-memory only; durable W/L moves to Account in R3.
+    private int hostWins;
+    private int guestWins;
+    // Players who've agreed to a rematch after a FINISHED match (keyed by stable playerId, not sessionId,
+    // so it survives a reconnect). Both present -> start the rematch.
+    private final java.util.Set<String> rematchAgreed = new java.util.HashSet<>();
 
     private Ruleset ruleset;
     private Ruleset proposed;       // host's current proposal, awaiting the guest's response
@@ -58,6 +66,15 @@ public final class Match {
     /** The match's gamemode (Attrition today). */
     public Gamemode mode() {
         return mode;
+    }
+
+    /** This pairing's two players (null until each side joins). */
+    public String hostPlayerId() {
+        return host == null ? null : host.playerId;
+    }
+
+    public String guestPlayerId() {
+        return guest == null ? null : guest.playerId;
     }
 
     public void setHost(String sessionId, String playerId) {
@@ -292,9 +309,54 @@ public final class Match {
 
     private void finish(String winner) {
         phase = Phase.FINISHED;
-        Map<String, Object> end = map("type", "matchResult", "winner", winner);
+        if (host != null && host.playerId.equals(winner)) hostWins++;
+        else if (guest != null && guest.playerId.equals(winner)) guestWins++;
+        rematchAgreed.clear(); // a fresh result -> fresh rematch agreement
+        Map<String, Object> end = map("type", "matchResult", "winner", winner, "headToHead", headToHead());
         send(host, end);
         send(guest, end);
+    }
+
+    /** This pairing's running score, by playerId. */
+    private Map<String, Object> headToHead() {
+        Map<String, Object> h2h = new LinkedHashMap<>();
+        if (host != null) h2h.put(host.playerId, hostWins);
+        if (guest != null) h2h.put(guest.playerId, guestWins);
+        return h2h;
+    }
+
+    // ---- rematch (same pairing, fresh seed, agreed ruleset) ----
+
+    /**
+     * One side asks to play again after a FINISHED match. Marks them agreed and notifies the opponent.
+     * Returns true once BOTH have agreed — the caller then starts the rematch with a fresh seed. The
+     * rematch reuses the already-agreed ruleset (no second agreement round).
+     */
+    public synchronized boolean requestRematch(String sessionId) {
+        Side me = sideFor(sessionId);
+        if (me == null) return false;
+        if (phase != Phase.FINISHED) {
+            send(me, map("type", "error", "rejection", "no finished match to rematch"));
+            return false;
+        }
+        rematchAgreed.add(me.playerId);
+        if (host != null && guest != null
+                && rematchAgreed.contains(host.playerId) && rematchAgreed.contains(guest.playerId)) {
+            return true;
+        }
+        Side opp = (me == host) ? guest : host;
+        send(me, map("type", "rematchPending"));
+        if (opp != null) send(opp, map("type", "rematchOffered", "from", me.playerId));
+        return false;
+    }
+
+    /** Replay the same pairing on the agreed ruleset with a fresh seed. Caller supplies the seed (the
+     *  server owns seed generation). No-op unless the match is FINISHED. */
+    public synchronized void startRematch(String newSeed) {
+        if (phase != Phase.FINISHED) return;
+        this.seed = newSeed;
+        rematchAgreed.clear();
+        startPlaying(); // resets lives, builds fresh Runs on the agreed ruleset, pushes matchStart to both
     }
 
     private Map<String, Object> opponentSummary(Side opp) {
