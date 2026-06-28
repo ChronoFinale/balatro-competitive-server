@@ -83,17 +83,17 @@ public final class Run {
     public BossBlind forcedBoss; // test/dev hook to pin a boss
     public int pvpFromAnte = 0;  // Attrition: boss blinds at/after this ante are PvP (0 = never)
     private boolean pvpActive = false;
-    private int freeRerollsUsedThisShop = 0; // free rerolls spent this shop (vs the FREE_REROLLS fold: Chaos)
-    private int rerollsThisShop = 0;         // reroll cost escalates +$1 per reroll, reset each shop
+    int freeRerollsUsedThisShop = 0; // free rerolls spent this shop (vs the FREE_REROLLS fold: Chaos)
+    int rerollsThisShop = 0;         // reroll cost escalates +$1 per reroll, reset each shop
     final java.util.List<PackCatalog.Pack> shopPacks = new ArrayList<>(); // 2 packs/shop, kept across rerolls
     java.util.List<RevealedItem> openPack = null; // the currently-open pack's revealed cards (null = none open)
     int packPicksLeft = 0;
 
     /** A revealed pack card — enough to render it and to resolve a pick. type: CONSUMABLE | JOKER | CARD. */
     record RevealedItem(String type, String key, Card card) {}
-    private String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
-    private int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
-    private String lastVoucherShown = null;   // last resolved voucher (for the queue's dup-skip rule)
+    String anteVoucher = null;        // the single voucher offered this ante (persists across its shops)
+    int anteVoucherAnte = -1;         // which ante anteVoucher was rolled for (-1 = none yet)
+    String lastVoucherShown = null;   // last resolved voucher (for the queue's dup-skip rule)
     final List<String> tagVouchers = new ArrayList<>(); // extra vouchers a Voucher Tag added this shop visit
     boolean couponActive = false;     // Coupon Tag: this shop's initial cards/packs are free
     boolean d6Active = false;         // D6 Tag: rerolls start at $0 this shop
@@ -150,7 +150,7 @@ public final class Run {
 
     /** Grant a deck's starting vouchers/consumables (game.lua:633-638); consumable slots are derived. */
     private void applyDeckStartingItems() {
-        for (String v : deckType.startingVouchers()) grantVoucher(v);
+        for (String v : deckType.startingVouchers()) RunShop.grantVoucher(this, v);
         state.consumables.addAll(deckType.startingConsumables());
         recomputeSlots();
     }
@@ -169,14 +169,14 @@ public final class Run {
         return com.balatro.engine.eval.ModifyFolder.fold(base, var, mods);
     }
 
-    private int voucherFold(Value.Var var, int base) {
+    int voucherFold(Value.Var var, int base) {
         return (int) voucherFoldD(var, base);
     }
 
     /** Slot counts = base + every CONSUMABLE_SLOTS / JOKER_SLOTS Modify owned (deck + Crystal Ball/Omen
      *  Globe / Antimatter / Black/Painted decks), folded fresh — a pure function of what you own,
      *  recomputed whenever ownership changes. */
-    private void recomputeSlots() {
+    void recomputeSlots() {
         List<Modify> mods = new ArrayList<>(deckType.mods());
         for (String v : state.vouchers) {
             VoucherCatalog.Voucher def = VoucherCatalog.get(v);
@@ -313,8 +313,8 @@ public final class Run {
     public String rerollBoss() {
         if (phase != Phase.BLIND_SELECT || blind != BlindType.BOSS || boss == null) return "no boss to reroll";
         if (state.bossRerollsThisAnte >= voucherFold(Value.Var.BOSS_REROLLS_PER_ANTE, 0)) return "no boss rerolls left";
-        if (!canAfford(BOSS_REROLL_COST)) return "not enough money";
-        spend(BOSS_REROLL_COST);
+        if (!RunShop.canAfford(this, BOSS_REROLL_COST)) return "not enough money";
+        RunShop.spend(this, BOSS_REROLL_COST);
         state.bossRerollsThisAnte++;
         boss = BossCatalog.pick(ante, rng, state.bossRerollsThisAnte);
         boolean disabled = bossDisabled();
@@ -382,56 +382,6 @@ public final class Run {
     /** Jokers banned in Standard Ranked multiplayer (boss-blind interactions) — see {@link JokerLibrary#MP_BANNED}. */
     private static final java.util.Set<String> MP_DISABLED = JokerLibrary.MP_BANNED;
 
-    private Shop generateShop() {
-        java.util.Set<String> owned = new java.util.HashSet<>();
-        for (Joker j : state.jokers()) owned.add(j.key());
-        owned.addAll(state.vouchers); // skip vouchers you already own too (distinct v_ namespace)
-        ShopEconomy econ = shopEconomy(); // Overstock slots + Hone/Glow Up edition odds, derived from vouchers
-        rollAnteVoucherIfNeeded(owned);
-        Shop s = Shop.generate(state.queues, econ.slots(), jokerPoolForShop(), owned,
-                shopConfig().allowDuplicates(), econ.editionMultiplier(), econ.polyMultiplier(),
-                anteVoucher, playedHands(), econ.spectralWeight(), econ.tarotWeight(), econ.planetWeight(),
-                econ.playingCardWeight(), econ.playingCardsEnhanced());
-        // Re-add any Voucher-Tag vouchers so they persist across rerolls within this shop visit.
-        for (String tv : tagVouchers) {
-            if (!state.vouchers.contains(tv)) s.addVoucher(tv);
-        }
-        applyShopStickers(s);
-        return s;
-    }
-
-    /** Roll stake stickers (eternal/perishable/rental, 30% each) onto this shop's joker slots. */
-    private void applyShopStickers(Shop s) {
-        if (!(stake.eternalsInShop() || stake.perishablesInShop() || stake.rentalsInShop())) return;
-        double chance = com.balatro.content.Sticker.STICKER_CHANCE;
-        var q = state.queues.queue(RngSources.JOKER_STICKER, r -> new boolean[]{
-                r.nextDouble() < chance,   // eternal roll
-                r.nextDouble() < chance,   // perishable roll (gated: not if eternal)
-                r.nextDouble() < chance}); // rental roll
-        var items = s.items();
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).kind() != Shop.Kind.JOKER) continue;
-            boolean[] roll = q.next();
-            boolean eternal = stake.eternalsInShop() && roll[0];
-            boolean perishable = !eternal && stake.perishablesInShop() && roll[1];
-            boolean rental = stake.rentalsInShop() && roll[2];
-            if (eternal || perishable || rental) {
-                items.set(i, items.get(i).withStickers(eternal, perishable, rental));
-            }
-        }
-    }
-
-    /** Stamp a bought/created joker with its stake stickers (server-only state read by sell/score/economy). */
-    private void applyStickersToJoker(Joker j, boolean eternal, boolean perishable, boolean rental) {
-        var st = state.jokerState(j);
-        if (eternal) st.put(com.balatro.content.Sticker.ETERNAL.flag(), true);
-        if (perishable) {
-            st.put(com.balatro.content.Sticker.PERISHABLE.flag(), true);
-            st.put("perishTally", com.balatro.content.Sticker.PERISHABLE_ROUNDS);
-        }
-        if (rental) st.put(com.balatro.content.Sticker.RENTAL.flag(), true);
-    }
-
     /** End-of-round sticker upkeep, driven by the {@link com.balatro.content.Sticker} primitive: the
      *  Perishable countdown (a per-joker Counter that debuffs at 0) and each sticker's data end-of-round
      *  effects (Rental = AdjustMoney −$3, applied through the same interpreter a joker's money effect uses). */
@@ -456,15 +406,6 @@ public final class Run {
         }
     }
 
-    /** Hand types played at least once this run — gates the softlocked secret-hand planets. */
-    private java.util.Set<HandType> playedHands() {
-        java.util.Set<HandType> s = java.util.EnumSet.noneOf(HandType.class);
-        for (var e : state.handTypePlays.entrySet()) {
-            if (e.getValue() != null && e.getValue() > 0) s.add(e.getKey());
-        }
-        return s;
-    }
-
     /** The joker pool the shop/packs draw from — in multiplayer the boss-interacting jokers
      *  are excluded from the pool entirely (not merely skipped). */
     List<String> jokerPoolForShop() {
@@ -477,19 +418,6 @@ public final class Run {
             if (!out.contains(a.def().key())) out.add(a.def().key());
         }
         return out;
-    }
-
-    /**
-     * Decide the ante's single voucher once per ante, from the game-long voucher queue
-     * over the 16 base vouchers. Resolution per drawn position: show Tier 1 until bought,
-     * then Tier 2, then skip the position once both tiers are owned. Two consecutive
-     * positions resolving to the same voucher skip the second (dup-skip). The queue
-     * advances per ante (not per shop), so the voucher is stable within an ante.
-     */
-    private void rollAnteVoucherIfNeeded(java.util.Set<String> ownedUnused) {
-        if (anteVoucherAnte == ante) return;
-        anteVoucherAnte = ante;
-        anteVoucher = nextShowableVoucher();
     }
 
     /**
@@ -531,20 +459,6 @@ public final class Run {
         CommandApply.apply(this, cmd);
     }
 
-    /** The effective shop rules, derived from owned jokers (Showman/Astronomer/Chaos). */
-    private ShopConfig shopConfig() {
-        return ShopConfig.resolve(state.jokers());
-    }
-
-    /** The effective shop economy, derived from owned vouchers (Overstock/Clearance/Reroll/Hone). */
-    private ShopEconomy shopEconomy() {
-        return ShopEconomy.resolve(state.vouchers, deckType.mods()); // deck mods carry Ghost's Spectral rate
-    }
-
-    /** True if {@code cost} is affordable given the current debt floor. */
-    private boolean canAfford(int cost) {
-        return state.money - cost >= minMoney();
-    }
 
     /** Re-roll the per-round dynamic targets (The Idol's card, Ancient's suit). */
     private void rollRoundTargets() {
@@ -614,7 +528,7 @@ public final class Run {
      * type contributes through the same {@code mods()} interface; Run no longer special-cases any of
      * them. Has one side effect: it ticks down the Pizza counter (called once per blind start).
      */
-    private List<Modify> resourceMods() {
+    List<Modify> resourceMods() {
         List<Modify> all = new ArrayList<>();
         all.addAll(deckType.mods());                                       // deck: Blue/Red/Painted/...
         all.addAll(stake.mods());                                          // stake: Blue+ −1 discard (a Modify now)
@@ -843,7 +757,7 @@ public final class Run {
     }
 
     /** The Planet card key for your most-played hand (Telescope), or null if nothing's been played. */
-    private String mostPlayedPlanetKey() {
+    String mostPlayedPlanetKey() {
         com.balatro.engine.hand.HandType mp = mostPlayedHand();
         return mp == null ? null : PlanetCatalog.forHand(mp);
     }
@@ -886,10 +800,10 @@ public final class Run {
     public void continueAfterFail() {
         if (phase != Phase.BLIND_FAILED) return;
         pvpActive = false;
-        shop = generateShop(); // no reward for a failed blind
+        shop = RunShop.generateShop(this); // no reward for a failed blind
         shopPacks.clear(); // no packs after a failed blind
         openPack = null;
-        enterShopTags();
+        RunShop.enterShopTags(this);
         phase = Phase.SHOP;
     }
 
@@ -903,28 +817,11 @@ public final class Run {
         RunTags.applyBossDefeatTags(this); // Investment Tag pays out after the PvP (Boss) blind too
         GameEvents.endOfRound(state, rng, true); // Nemesis is a Boss blind (Gift Card's sell-value bump rides this)
         RunLoopRules.raiseJokerRules(this, Trigger.SHOP_ENTER);
-        refreshShopStock();
+        RunShop.refreshShopStock(this);
         phase = Phase.SHOP;
     }
 
     /** Reset per-shop tag flags and resolve any held ON_SHOP tags as the shop opens. */
-    private void enterShopTags() {
-        couponActive = false;
-        d6Active = false;
-        RunTags.applyShopTags(this);
-    }
-
-    /** Regenerate shop stock, reset the free reroll, roll booster packs, and resolve shop tags —
-     *  the common "open the post-blind shop" sequence shared by {@link #winBlind} and {@link #endPvp}.
-     *  (The caller sets {@code phase} itself, preserving each path's exact ordering.) */
-    private void refreshShopStock() {
-        shop = generateShop();
-        freeRerollsUsedThisShop = 0;
-        rerollsThisShop = 0; // reroll cost escalation resets each new shop
-        rollShopPacks();
-        enterShopTags();
-    }
-
     private void winBlind() {
         // Economy: blind reward + end-of-round bonus (per-hand/discard money + interest) + joker payouts.
         int bonus = endOfRoundMoney();
@@ -941,7 +838,7 @@ public final class Run {
         applyJokerStickerEffects(); // perishable countdown + rental rent (stakes)
         RunLoopRules.raiseJokerRules(this, Trigger.SHOP_ENTER);
         phase = Phase.SHOP;
-        refreshShopStock();
+        RunShop.refreshShopStock(this);
     }
 
     /**
@@ -950,38 +847,7 @@ public final class Run {
      * consumables. Returns null on success, else a reason.
      */
     public String buyShopItem(int index) {
-        if (phase != Phase.SHOP || shop == null) return "not in shop";
-        if (index < 0 || index >= shop.items().size()) return "invalid shop slot";
-        Shop.Item item = shop.items().get(index);
-        switch (item.kind()) {
-            case JOKER -> {
-                if (!canAfford(price(item.cost()))) return "not enough money";
-                // A Negative joker grants its own slot, so it never fails the slots-full check.
-                boolean negative = item.edition() == Edition.NEGATIVE;
-                if (!negative && state.jokers().size() >= state.jokerSlots) return "joker slots full";
-                spend(price(item.cost()));
-                Joker bought = JokerLibrary.create(item.key(), ruleset.jokerVariant());
-                state.addJoker(bought);
-                if (item.edition() != Edition.NONE) state.setJokerEdition(bought, item.edition());
-                applyStickersToJoker(bought, item.eternal(), item.perishable(), item.rental());
-            }
-            case TAROT, PLANET -> {
-                if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
-                // Astronomer makes Planets free.
-                int cost = (item.kind() == Shop.Kind.PLANET && shopConfig().planetsFree()) ? 0 : price(item.cost());
-                if (!canAfford(cost)) return "not enough money";
-                spend(cost);
-                state.consumables.add(item.key());
-            }
-            case PLAYING_CARD -> { // Magic Trick / Illusion: the card joins your deck permanently
-                if (!canAfford(price(item.cost()))) return "not enough money";
-                spend(price(item.cost()));
-                composition.add(item.card().copy());
-            }
-            default -> { /* SPECTRAL shop items (Ghost Deck) are handled by their own path */ }
-        }
-        shop.items().remove(index);
-        return null;
+        return RunShop.buyShopItem(this, index);
     }
 
     /** Buy the first offered voucher (the per-ante one). Returns null on success, else a reason. */
@@ -992,91 +858,31 @@ public final class Run {
     /** Buy the offered voucher at {@code index} (the shop can hold several when a Voucher Tag added
      *  one). Returns null on success, else a reason. */
     public String buyVoucher(int index) {
-        if (phase != Phase.SHOP || shop == null) return "no voucher offered";
-        java.util.List<String> offered = shop.vouchers();
-        if (index < 0 || index >= offered.size()) return "no voucher offered";
-        String key = offered.get(index);
-        var v = VoucherCatalog.get(key);
-        if (!canAfford(price(v.cost()))) return "not enough money";
-        spend(price(v.cost()));
-        grantVoucher(v.key());
-        shop.removeVoucher(key);
-        tagVouchers.remove(key);
-        if (key.equals(anteVoucher)) anteVoucher = null; // bought — don't re-offer in this ante's later shops
-        return null;
-    }
-
-    /** Add a voucher to the owned set; passive effects (slots, interest cap, rates) are read reactively
-     *  by folding the owned vouchers' Modifys — nothing imperative to apply here. */
-    private void grantVoucher(String key) {
-        state.vouchers.add(key);
-        recomputeSlots(); // Crystal Ball/Omen Globe (consumable) + Antimatter (joker), folded from ownership
+        return RunShop.buyVoucher(this, index);
     }
 
     /** Apply the Clearance Sale (25% off) / Liquidation (50% off) shop discount, rounded down.
      *  Coupon Tag makes this shop's initial cards/packs free until the first reroll. */
     int price(int cost) {
         if (couponActive) return 0;
-        return (int) (cost * shopEconomy().priceMultiplier()); // Clearance/Liquidation, derived
-    }
-
-    /** Pay {@code cost} from money and record it as shop spend this ante (feeds Penny Pincher). */
-    private void spend(int cost) {
-        state.money -= cost;
-        state.shopSpentThisAnte += cost;
+        return (int) (cost * RunShop.shopEconomy(this).priceMultiplier()); // Clearance/Liquidation, derived
     }
 
     /** Sell the joker at the given slot (shop or during a blind). Returns null on success. */
     public String sellJoker(int index) {
-        if (phase != Phase.SHOP && phase != Phase.BLIND_ACTIVE && phase != Phase.BLIND_SELECT) {
-            return "cannot sell now";
-        }
-        if (index < 0 || index >= state.jokers().size()) return "invalid joker";
-        if (state.jokerFlag(state.jokers().get(index), "eternal")) {
-            return "eternal jokers cannot be sold";
-        }
-        Joker sold = state.jokers().remove(index);
-        state.cardsSoldSinceLastPvp++; // feeds the opponent's Taxes joker
-        int bonus = state.jokerInt(sold, "sellBonus", 0);
-        state.money += Math.max(1, sold.info().cost() / 2) + bonus; // sell value (+ Egg/Gift bonus)
-        // The sold joker's own SELL_SELF rules: Invisible (duplicate a joker), Luchador (disable boss),
-        // Diet Cola (create a tag) — all data now, fired through the run-loop interpreter.
-        RunLoopRules.raiseSelfSellRules(this, sold);
-        // A card was sold: remaining jokers react (Campfire gains x0.25 each), and the boss reacts
-        // (Verdant Leaf: DisableBoss) — both through the same SELL_CARD trigger.
-        GameEvents.raise(Trigger.SELL_CARD, state, rng, null);
-        RunLoopRules.raiseBossRules(this,Trigger.SELL_CARD, null);
-        return null;
+        return RunShop.sellJoker(this, index);
     }
 
     /** Current reroll cost: a base ($5, or $0 under the D6 Tag), reduced $2 each by Reroll Surplus/Glut
      *  (floor $0), then escalated +$1 for every reroll already done this shop (game.lua's inc_reroll_cost). */
     int rerollCost() {
         int base = d6Active ? 0 : Shop.REROLL_COST; // D6 Tag: $0 base for the shop (still escalates)
-        return Math.max(0, base - shopEconomy().rerollDiscount()) + rerollsThisShop;
-    }
-
-    /** Free rerolls granted this shop, folded from everything owned (Chaos = +1 via its FREE_REROLLS Modify). */
-    private int freeRerollsThisShop() {
-        return (int) com.balatro.engine.eval.ModifyFolder.fold(0, Value.Var.FREE_REROLLS, resourceMods());
+        return Math.max(0, base - RunShop.shopEconomy(this).rerollDiscount()) + rerollsThisShop;
     }
 
     /** Reroll the shop offerings. Returns null on success, else a reason. */
     public String reroll() {
-        if (phase != Phase.SHOP || shop == null) return "not in shop";
-        // Chaos the Clown (and any future free-reroll source): the first N rerolls each shop are free.
-        boolean free = freeRerollsUsedThisShop < freeRerollsThisShop();
-        int cost = free ? 0 : rerollCost();
-        if (!canAfford(cost)) return "not enough money";
-        spend(cost);
-        if (free) {
-            freeRerollsUsedThisShop++; // a free reroll does NOT escalate the next cost
-        } else {
-            rerollsThisShop++;         // each PAID reroll raises the next one's cost by $1 (D6's $0 rerolls included)
-        }
-        couponActive = false;      // the free "initial" cards are gone once you reroll
-        shop = generateShop();     // advances the same game-long queue, skipping owned
-        return null;
+        return RunShop.reroll(this);
     }
 
     /** Use a held Planet (no card targets). */
@@ -1218,119 +1024,19 @@ public final class Run {
         return ctx;
     }
 
-    /** Roll this shop's two booster packs from the game-long packs queue (kept across rerolls). */
-    private void rollShopPacks() {
-        shopPacks.clear();
-        openPack = null;
-        packPicksLeft = 0;
-        var q = state.queues.queue(RngSources.PACKS, r -> PackCatalog.roll(r.nextDouble()));
-        shopPacks.add(q.next());
-        shopPacks.add(q.next());
-    }
-
     /** Open a shop pack: pay, remove it, reveal its contents (from the Pack queues + Soul queue). */
     public String openPack(int index) {
-        if (phase != Phase.SHOP) return "not in shop";
-        if (openPack != null) return "finish the open pack first";
-        if (index < 0 || index >= shopPacks.size()) return "no such pack";
-        PackCatalog.Pack pack = shopPacks.get(index);
-        if (!canAfford(price(pack.cost()))) return "not enough money";
-        spend(price(pack.cost()));
-        shopPacks.remove(index);
-        GameEvents.raise(Trigger.OPEN_BOOSTER, state, rng, null); // Hallucination etc. (Up-Top queue)
-        openPack = revealPack(pack);
-        packPicksLeft = pack.choose();
-        return null;
-    }
-
-    /** Reveal a pack's cards from its dedicated Pack queue (separate from the Up-Top creation queues),
-     *  rolling the Soul queue per consumable slot so The Soul / Black Hole can surface. */
-    private java.util.List<RevealedItem> revealPack(PackCatalog.Pack pack) {
-        java.util.List<RevealedItem> out = new ArrayList<>();
-        int n = pack.shown();
-        switch (pack.kind()) {
-            case ARCANA -> fillConsumables(out, n, RngSources.packContent("pack:tarot"),
-                    TarotCatalog.tarotKeys(), "c_the_soul", "Tarot", k -> true);
-            case SPECTRAL -> fillConsumables(out, n, RngSources.packContent("pack:spectral"),
-                    TarotCatalog.spectralKeys(), "c_the_soul", "Spectral", k -> true);
-            case CELESTIAL -> {
-                int fill = n;
-                // Telescope: guarantee your most-played hand's Planet is in the pack.
-                if (voucherFold(Value.Var.CELESTIAL_MOST_PLAYED, 0) >= 1) {
-                    String mp = mostPlayedPlanetKey();
-                    if (mp != null) { out.add(new RevealedItem("Planet", mp, null)); fill--; }
-                }
-                fillConsumables(out, fill, RngSources.packContent("pack:planet"),
-                        PlanetCatalog.keys(), "c_black_hole", "Planet", k -> PlanetCatalog.available(k, playedHands()));
-            }
-            case BUFFOON -> {
-                // Shares the shop joker rarity sub-queues (opening a Buffoon consumes those jokers).
-                java.util.Set<String> offered = new java.util.HashSet<>();
-                for (int i = 0; i < n; i++) {
-                    out.add(new RevealedItem("JOKER",
-                            Shop.drawJoker(state.queues, jokerPoolForShop(), java.util.Set.of(), offered, false), null));
-                }
-            }
-            case STANDARD -> {
-                Rank[] ranks = Rank.values();
-                Suit[] suits = Suit.values();
-                var q = state.queues.queue(RngSources.PACK_CARD,
-                        r -> new Card(ranks[r.nextInt(ranks.length)], suits[r.nextInt(suits.length)],
-                                Enhancement.NONE, Edition.NONE, Seal.NONE));
-                for (int i = 0; i < n; i++) out.add(new RevealedItem("CARD", null, q.next()));
-            }
-        }
-        return out;
-    }
-
-    /** Fill {@code n} consumable slots from the pack queue, rolling the Soul queue per slot;
-     *  on a Soul hit the content queue is NOT advanced (it's pushed back) and the Soul is inserted. */
-    private void fillConsumables(java.util.List<RevealedItem> out, int n, RngSource contentSrc,
-            List<String> pool, String soulKey, String soulType, java.util.function.Predicate<String> available) {
-        var q = state.queues.queue(contentSrc, r -> pool.get(r.nextInt(pool.size())));
-        // Per-content-type soul stream (BMP keys it 'soul_'..type), checked per slot at ~0.3%.
-        var soulQ = state.queues.queue(RngSources.SOUL.sub(soulType), r -> r.nextDouble() < 0.003);
-        for (int i = 0; i < n; i++) {
-            if (soulQ.next()) out.add(new RevealedItem("CONSUMABLE", soulKey, null));
-            else out.add(new RevealedItem("CONSUMABLE", q.nextWhere(available), null)); // skip softlocked planets
-        }
+        return RunShop.openPack(this, index);
     }
 
     /** Take one revealed card from the open pack into your inventory/deck. */
     public String pickPackItem(int index) {
-        if (openPack == null) return "no open pack";
-        if (index < 0 || index >= openPack.size()) return "no such pack card";
-        if (packPicksLeft <= 0) return "no picks left";
-        RevealedItem it = openPack.get(index);
-        switch (it.type()) {
-            case "JOKER" -> {
-                if (state.jokers().size() >= state.jokerSlots) return "joker slots full";
-                state.addJoker(JokerLibrary.create(it.key(), ruleset.jokerVariant()));
-            }
-            case "CARD" -> {
-                Card c = it.card().copy();
-                composition.add(c);
-                state.hand.add(c);
-            }
-            default -> { // CONSUMABLE (Tarot/Planet/Spectral)
-                if (state.consumables.size() >= state.consumableSlots) return "no consumable slots";
-                state.consumables.add(it.key());
-            }
-        }
-        openPack.remove(index);
-        if (--packPicksLeft <= 0) { // all picks used -> pack closes
-            openPack = null;
-        }
-        return null;
+        return RunShop.pickPackItem(this, index);
     }
 
     /** Skip the rest of the open pack (counts as a skip for Red Card). */
     public String skipPack() {
-        if (openPack == null) return "no open pack";
-        openPack = null;
-        packPicksLeft = 0;
-        GameEvents.raise(Trigger.SKIP_BOOSTER, state, rng, null); // Red Card gains +Mult
-        return null;
+        return RunShop.skipPack(this);
     }
 
     /** Skip the current Small/Big blind (forfeit its reward, bypass the shop). Returns null on success. */
@@ -1348,7 +1054,7 @@ public final class Run {
     /** Leave the (stubbed) shop and advance to the next blind / ante / win. */
     public void proceed() {
         if (phase != Phase.SHOP) return;
-        applyShopExit(); // Perkeo duplicates a held consumable on the way out
+        RunShop.applyShopExit(this); // Perkeo duplicates a held consumable on the way out
         switch (blind) {
             case SMALL -> blind = BlindType.BIG;
             case BIG -> blind = BlindType.BOSS;
