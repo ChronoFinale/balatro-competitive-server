@@ -617,47 +617,50 @@ local function install_hooks()
 	local _sel = G.FUNCS.select_blind
 	G.FUNCS.select_blind = function(e)
 		pcall(function()
-			local continued = false
-			-- Continue the SAME run across blinds. Recover a MISSED "Next Round": if the server is still in
-			-- the shop (toggle_shop/proceed never reached it), proceed NOW to advance to the real next blind
-			-- instead of nuking the run + opening a fresh one -- a fresh run restarts at the Small blind, which
-			-- is the "Big blind shows 300 instead of 450" bug. Only fresh-run when there's genuinely no live run.
+			local handled = false
+			-- Continue the SAME run across blinds; NEVER nuke a live run. Re-opening restarts the server at the
+			-- Small blind (300) -- which, when select_blind re-fires mid-blind, is exactly the "450 then back to
+			-- 300" bug. A fresh run is opened ONLY when there is no live run, or one the server has dropped.
 			if RUN_LIVE and CONN and VIEW then
 				log.dev("BLIND", "select_blind: live run, server phase=" .. tostring(VIEW.phase))
+				-- Recover a MISSED "Next Round": if the server is still in the shop, proceed to the next blind.
 				if VIEW.phase == "SHOP" then
-					local p = send_action("proceed") -- missed Next Round -> advance to the next blind now
+					local p = send_action("proceed")
 					if p and p.view then
 						VIEW = p.view
 						logln("recover: server was in SHOP at blind-select -> proceed -> phase " .. tostring(p.view.phase))
 					end
 				end
-			end
-			-- Continue when the (possibly just-recovered) server is between blinds.
-			if RUN_LIVE and CONN and VIEW and VIEW.phase == "BLIND_SELECT" then
-				local r = send_action("selectBlind")
-				if r and r.accepted and r.hand then
-					SERVER_HAND, VIEW, DRAW_QUEUE, ENGAGED = r.hand, r.view, {}, true
-					for _, sc in ipairs(r.hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end
-					-- Boss blind: face the SERVER's boss. select_blind faces e.config.ref_table (the UI's
-					-- baked blind), so swap it to the server's boss center here (key is already bl_xxx). On a
-					-- non-boss blind / missing key this is a no-op -> native's own blind (current behavior).
-					if r.view and r.view.bossKey and G.P_BLINDS and G.P_BLINDS[r.view.bossKey]
-						and e and e.config then
-						e.config.ref_table = G.P_BLINDS[r.view.bossKey]
-						logln("boss blind -> facing server boss " .. r.view.bossKey)
+				if VIEW and VIEW.phase == "BLIND_SELECT" then
+					local r = send_action("selectBlind")
+					if r and r.accepted and r.hand then
+						SERVER_HAND, VIEW, DRAW_QUEUE, ENGAGED = r.hand, r.view, {}, true
+						for _, sc in ipairs(r.hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end
+						-- Boss blind: face the SERVER's boss. select_blind faces e.config.ref_table (the UI's
+						-- baked blind), so swap it to the server's boss center here (key is already bl_xxx). On a
+						-- non-boss blind / missing key this is a no-op -> native's own blind (current behavior).
+						if r.view and r.view.bossKey and G.P_BLINDS and G.P_BLINDS[r.view.bossKey]
+							and e and e.config then
+							e.config.ref_table = G.P_BLINDS[r.view.bossKey]
+							logln("boss blind -> facing server boss " .. r.view.bossKey)
+						end
+						logln("CONTINUE: next blind, " .. #r.hand .. "-card hand queued (same run).")
+						log.dev("BLIND", "server requirement=" .. tostring(r.view and r.view.requirement) ..
+							" phase=" .. tostring(r.view and r.view.phase) ..
+							(r.view and r.view.bossKey and (" boss=" .. r.view.bossKey) or ""))
+						handled = true
+					else
+						-- Stale RUN_LIVE (quit-to-menu, server dropped the run): fall through to a fresh run.
+						logln("selectBlind continue failed -> " .. tostring(r and r.rejection) .. " — opening a fresh run")
 					end
-					logln("CONTINUE: next blind, " .. #r.hand .. "-card hand queued (same run).")
-					log.dev("BLIND", "server requirement=" .. tostring(r.view and r.view.requirement) ..
-						" phase=" .. tostring(r.view and r.view.phase) ..
-						(r.view and r.view.bossKey and (" boss=" .. r.view.bossKey) or ""))
-					continued = true
 				else
-					-- Stale RUN_LIVE (e.g. quit-to-menu at blind-select, server dropped the run): DON'T strand
-					-- the new run unbridged -- fall through to open a fresh one.
-					logln("selectBlind continue failed -> " .. tostring(r and r.rejection) .. " — opening a fresh run")
+					-- A live run NOT at a select point: native re-fired select_blind while the blind was already
+					-- active (or a transient phase). KEEP it -- re-opening here is exactly the 450->300 bug.
+					log.dev("BLIND", "live run already active (phase=" .. tostring(VIEW and VIEW.phase) .. ") -> keeping it")
+					handled = true
 				end
 			end
-			if not continued then
+			if not handled then
 				if CONN then pcall(function() CONN:close() end) end
 				CONN, SERVER_HAND, DRAW_QUEUE, ENGAGED, VIEW, RUN_LIVE = nil, {}, {}, false, nil, false
 				local s, hand, iview = open_run()
