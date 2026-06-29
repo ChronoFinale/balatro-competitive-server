@@ -8,6 +8,7 @@ import com.balatro.engine.game.Run;
 import com.balatro.engine.intent.Intent;
 import com.balatro.engine.net.ClientView;
 import com.balatro.engine.state.Ruleset;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,25 @@ class ClientViewContractTest {
         Run run = new Run(Ruleset.standard(), "VIEW", stoneDeck(300), jokers("j_joker"));
         run.play(FIVE);
         return run;
+    }
+
+    /**
+     * Locks the serialized wire FORMAT the bridge's regex parsers depend on — not just field presence.
+     * The bridge scrapes raw JSON with patterns, so a format change (e.g. {@code uid} migrating int→UUID,
+     * or a field reorder breaking adjacency) silently breaks {@code parse_hand}/{@code parse_view} with no
+     * compile error. The integer-uid drift that rotted {@code parsers_spec.lua} is exactly what this catches.
+     */
+    @Test
+    void serializedViewMatchesTheRegexFormatsTheBridgeScrapes() throws Exception {
+        Run run = new Run(Ruleset.standard(), "VIEW"); // fresh run -> a dealt hand in BLIND_ACTIVE
+        String json = new ObjectMapper().writeValueAsString(run.view());
+
+        // parse_hand: uid is a QUOTED uuid string, ADJACENT to rank then suit (CardView field order).
+        assertThat(json).containsPattern("\"uid\":\"[0-9a-fA-F\\-]+\",\"rank\":\"[A-Z]+\",\"suit\":\"[A-Z]+\"");
+        // parse_view: phase is a quoted enum-ish token; the blind scalars are flat integers.
+        assertThat(json).containsPattern("\"phase\":\"[A-Z_]+\"");
+        assertThat(json).contains("\"requirement\":", "\"roundScore\":", "\"handsLeft\":",
+                "\"discardsLeft\":", "\"money\":", "\"remaining\":"); // remaining lives under deckStats
     }
 
     @Test

@@ -42,11 +42,15 @@ eq(B.card_key({ rank = "ACE", suit = "SPADES" }), "S_A", "A of spades")
 eq(B.card_key({ rank = "BOGUS", suit = "HEARTS" }), nil, "bad rank -> nil")
 
 -- ---- parse_hand ------------------------------------------------------------
-local handResp = '"hand":[{"uid":12,"rank":"KING","suit":"HEARTS"},{"uid":13,"rank":"TWO","suit":"CLUBS"}]'
+-- uid is a java.util.UUID -> a QUOTED hex-and-hyphen string on the wire (CardView.uid). The regex requires
+-- the quotes; the old integer fixture predated the UUID migration and silently rotted this spec.
+local UID1, UID2 = "11111111-2222-3333-4444-555555555555", "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+local handResp = '"hand":[{"uid":"' .. UID1 .. '","rank":"KING","suit":"HEARTS"},' ..
+	'{"uid":"' .. UID2 .. '","rank":"TWO","suit":"CLUBS"}]'
 local hand = B.parse_hand(handResp)
 eq(#hand, 2, "hand size")
-eq(hand[1].uid, 12, "hand[1] uid"); eq(hand[1].rank, "KING", "hand[1] rank"); eq(hand[1].suit, "HEARTS", "hand[1] suit")
-eq(hand[2].uid, 13, "hand[2] uid")
+eq(hand[1].uid, UID1, "hand[1] uid"); eq(hand[1].rank, "KING", "hand[1] rank"); eq(hand[1].suit, "HEARTS", "hand[1] suit")
+eq(hand[2].uid, UID2, "hand[2] uid")
 
 -- ---- parse_objs: shop (flat items, incl. edition) --------------------------
 local shopResp = '"shop":[' ..
@@ -97,7 +101,7 @@ eq(B.parse_open_pack('"foo":1'), nil, "no openPack -> nil")
 local resp = '{"type":"update","seq":7,"accepted":true,"rejection":null,"view":{' ..
 	'"ante":1,"blind":"Boss Blind","requirement":600,"roundScore":120,"handsLeft":3,"discardsLeft":2,' ..
 	'"money":14,"handSize":8,"phase":"BLIND_ACTIVE","bossKey":"bl_manacle","rerollCost":5,' ..
-	'"hand":[{"uid":1,"rank":"ACE","suit":"SPADES"}],' ..
+	'"hand":[{"uid":"deadbeef-0000-1111-2222-333344445555","rank":"ACE","suit":"SPADES"}],' ..
 	'"shop":[{"kind":"JOKER","key":"j_joker","name":"Joker","cost":4,"edition":"NONE"}],' ..
 	'"consumables":[{"key":"c_fool","name":"The Fool"}],' ..
 	'"deckStats":{"size":52,"remaining":40}}}'
