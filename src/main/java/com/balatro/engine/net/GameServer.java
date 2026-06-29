@@ -334,6 +334,21 @@ public final class GameServer implements AutoCloseable {
             ctx.json(rows);
         });
 
+        // One player's ranked standing (MMR, derived tier, record, leaderboard position). Unknown/never-played
+        // players read as Unranked at the default MMR with position 0.
+        cfg.routes.get("/rank/{playerId}", ctx -> {
+            String pid = ctx.pathParam("playerId");
+            Account a = accounts.get(pid);
+            ctx.json(Map.of(
+                    "playerId", pid,
+                    "mmr", Math.round(a != null ? a.mmr() : Account.DEFAULT_MMR),
+                    "rank", rankDisplay(pid),
+                    "wins", a != null ? a.wins() : 0,
+                    "losses", a != null ? a.losses() : 0,
+                    "gamesPlayed", a != null ? a.gamesPlayed() : 0,
+                    "position", positionOf(pid)));
+        });
+
         // Auth: issue a session token (dev: any username; later: Steam ticket).
         cfg.routes.post("/login", ctx -> {
             JsonNode body = json.readTree(ctx.body());
@@ -564,11 +579,9 @@ public final class GameServer implements AutoCloseable {
                 if (grace != null) grace.cancel(false);
                 Account ranked = accounts.get(playerId);
                 double mmr = ranked != null ? ranked.mmr() : Account.DEFAULT_MMR;
-                String rank = (ranked != null && ranked.gamesPlayed() > 0)
-                        ? com.balatro.engine.rank.RankTier.display(mmr) : "Unranked";
                 conn.send(Map.of("type", "authed", "seq", seq, "playerId", playerId,
                         "rulesets", rulesetStore.names(),
-                        "mmr", Math.round(mmr), "rank", rank));
+                        "mmr", Math.round(mmr), "rank", rankDisplay(playerId)));
                 // Resume a LIVE MATCH: rebind the player's Side to this new socket, re-route, and
                 // re-push their match start + view. The match kept running for the opponent while
                 // they were gone; this re-attaches them in place.
@@ -793,6 +806,7 @@ public final class GameServer implements AutoCloseable {
     private void startQueuedMatch(String hostSession, String guestSession) {
         Match match = new Match(newCode(), com.balatro.engine.rng.Seeds.random(), ruleset, rulesetStore, this::deliver);
         match.onResult(ranking::recordResult);
+        match.rankLookup(this::rankDisplay);
         match.setHost(hostSession, players.get(hostSession));
         matchBySession.put(hostSession, match);
         matchBySession.put(guestSession, match);
@@ -813,11 +827,28 @@ public final class GameServer implements AutoCloseable {
         return enqueued == null ? 0 : (now - enqueued) / 1_000_000_000.0;
     }
 
+    /** A player's display tier — "Unranked" until they've played a ranked game, else the MMR-derived tier. */
+    private String rankDisplay(String playerId) {
+        Account a = playerId == null ? null : accounts.get(playerId);
+        return (a != null && a.gamesPlayed() > 0)
+                ? com.balatro.engine.rank.RankTier.display(a.mmr()) : "Unranked";
+    }
+
+    /** A player's 1-based leaderboard position, or 0 if they're unranked (no games played). */
+    private int positionOf(String playerId) {
+        List<Account> board = ranking.top(Integer.MAX_VALUE);
+        for (int i = 0; i < board.size(); i++) {
+            if (board.get(i).id().equals(playerId)) return i + 1;
+        }
+        return 0;
+    }
+
     private void createLobby(Connection conn, long seq) {
         String code = newCode();
         String seed = com.balatro.engine.rng.Seeds.random(); // a valid, reproducible Balatro seed
         Match match = new Match(code, seed, ruleset, rulesetStore, this::deliver);
         match.onResult(ranking::recordResult);
+        match.rankLookup(this::rankDisplay);
         match.setHost(conn.sessionId(), players.get(conn.sessionId()));
         pendingByCode.put(code, match);
         matchBySession.put(conn.sessionId(), match);

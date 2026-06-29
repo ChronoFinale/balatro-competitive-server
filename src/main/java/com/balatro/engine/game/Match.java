@@ -50,6 +50,10 @@ public final class Match {
     // ladder; default no-op keeps Match store/rank-agnostic (unit tests need not wire it).
     private BiConsumer<String, String> onResult = (winnerId, loserId) -> {};
 
+    // Rank-tier lookup (playerId -> display tier). Injected by GameServer so matchStart can show each side
+    // their opponent's tier; default keeps Match rank-agnostic.
+    private java.util.function.Function<String, String> rankLookup = id -> "Unranked";
+
     private Side host;
     private Side guest;
     private Phase phase = Phase.WAITING;
@@ -75,6 +79,11 @@ public final class Match {
     /** Wire the decisive-result sink (winnerId, loserId) — GameServer feeds the ranked ladder. */
     public void onResult(BiConsumer<String, String> sink) {
         this.onResult = sink;
+    }
+
+    /** Wire the rank-tier lookup (playerId -> tier) shown to each side at match start. */
+    public void rankLookup(java.util.function.Function<String, String> lookup) {
+        this.rankLookup = lookup;
     }
 
     /** This pairing's two players (null until each side joins). */
@@ -313,7 +322,9 @@ public final class Match {
 
     private void sendStart(Side me, Side opp) {
         send(me, map("type", "matchStart", "opponent", opp.playerId,
-                "yourLives", me.lives, "oppLives", opp.lives, "view", me.run.view()));
+                "yourLives", me.lives, "oppLives", opp.lives,
+                "yourRank", rankLookup.apply(me.playerId), "oppRank", rankLookup.apply(opp.playerId),
+                "view", me.run.view()));
     }
 
     private void finish(String winner) {

@@ -39,6 +39,21 @@ class RankedApiTest {
     }
 
     @Test
+    void rankEndpointDefaultsForAnUnknownPlayer() throws Exception {
+        try (GameServer server = new GameServer(Ruleset.standard()).start(0)) {
+            HttpResponse<String> resp = http.send(HttpRequest.newBuilder(
+                            URI.create("http://127.0.0.1:" + server.port() + "/rank/nobody_ranked_probe")).build(),
+                    HttpResponse.BodyHandlers.ofString());
+            assertThat(resp.statusCode()).isEqualTo(200);
+            JsonNode rank = JSON.readTree(resp.body());
+            assertThat(rank.path("mmr").asInt()).isEqualTo(1000);
+            assertThat(rank.path("rank").asText()).isEqualTo("Unranked");
+            assertThat(rank.path("gamesPlayed").asInt()).isZero();
+            assertThat(rank.path("position").asInt()).isZero();
+        }
+    }
+
+    @Test
     void authedReplyCarriesMmrAndUnrankedTierForAFreshPlayer() throws Exception {
         try (GameServer server = new GameServer(Ruleset.standard()).start(0).startTcp(0)) {
             String token = login(server.port(), "ranked_probe_user"); // never played -> no account

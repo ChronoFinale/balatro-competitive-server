@@ -70,6 +70,9 @@ class MatchTest {
             JsonNode aStart = drainUntil(aIn, "matchStart", new HashSet<>());
             JsonNode bStart = drainUntil(bIn, "matchStart", new HashSet<>());
             assertThat(aStart.path("opponent").asText()).isEqualTo("bob");
+            // Each player sees their own + their opponent's tier (both fresh -> Unranked).
+            assertThat(aStart.path("oppRank").asText()).isEqualTo("Unranked");
+            assertThat(aStart.path("yourRank").asText()).isEqualTo("Unranked");
             assertThat(aStart.path("view").path("hand").size()).isEqualTo(8); // "Standard" survived
             assertThat(bStart.path("view").path("hand").size()).isEqualTo(8);
             // Nemesis state is synced into each Run: the view's counters carry the opponent's

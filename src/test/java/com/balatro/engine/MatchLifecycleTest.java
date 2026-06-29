@@ -2,9 +2,12 @@ package com.balatro.engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.balatro.engine.auth.Account;
+import com.balatro.engine.auth.AccountStore;
 import com.balatro.engine.game.Match;
 import com.balatro.engine.game.Run;
 import com.balatro.engine.intent.Intent;
+import com.balatro.engine.rank.RankingService;
 import com.balatro.engine.state.Ruleset;
 import com.balatro.engine.state.RulesetStore;
 import java.nio.file.Path;
@@ -119,6 +122,23 @@ class MatchLifecycleTest {
         Map<String, Object> h2h = (Map<String, Object>) lastMatchResult().get("headToHead");
         assertThat(((Number) h2h.get("ph")).intValue()).isEqualTo(1);
         assertThat(((Number) h2h.get("pg")).intValue()).isEqualTo(1);
+    }
+
+    @Test
+    void aPlayedWinFeedsTheRankedLadderAndLeaderboard(@TempDir Path dir) {
+        AccountStore store = new AccountStore(dir);
+        RankingService ranking = new RankingService(store);
+        Match match = startedMatch(dir);
+        match.onResult(ranking::recordResult); // ruleset already agreed; only finish() fires this
+        driveToFinish(match, "h");             // host scores 0 every Nemesis -> guest ("pg") wins by playing
+
+        Account winner = store.get("pg");
+        Account loser = store.get("ph");
+        assertThat(winner.wins()).isEqualTo(1);
+        assertThat(winner.mmr()).isGreaterThan(Account.DEFAULT_MMR);
+        assertThat(loser.losses()).isEqualTo(1);
+        assertThat(loser.mmr()).isLessThan(Account.DEFAULT_MMR);
+        assertThat(ranking.top(10)).extracting(Account::id).containsExactly("pg", "ph");
     }
 
     @Test
