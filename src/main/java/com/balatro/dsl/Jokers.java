@@ -165,16 +165,17 @@ public final class Jokers {
     private static final com.fasterxml.jackson.databind.ObjectMapper COUNTER_MAPPER =
             new com.fasterxml.jackson.databind.ObjectMapper();
 
-    /** Collect every state key the rules read or write (mutateState / state / stateStep), via the def tree. */
-    private static void collectCounters(com.fasterxml.jackson.databind.JsonNode node, java.util.Set<String> out) {
+    /** Collect the {@code field} of every node whose {@code type} matches, anywhere in the def tree. Used to
+     *  gather the named keys the rules reference (state counters by "var", constant props by "name"). */
+    private static void collect(com.fasterxml.jackson.databind.JsonNode node,
+            java.util.function.Predicate<String> typeMatch, String field, java.util.Set<String> out) {
         if (node.isObject()) {
-            String t = node.path("type").asText("");
-            if ((t.equals("mutateState") || t.equals("state") || t.equals("stateStep")) && node.has("var")) {
-                out.add(node.get("var").asText());
+            if (typeMatch.test(node.path("type").asText("")) && node.has(field)) {
+                out.add(node.get(field).asText());
             }
-            node.forEach(c -> collectCounters(c, out));
+            node.forEach(c -> collect(c, typeMatch, field, out));
         } else if (node.isArray()) {
-            node.forEach(c -> collectCounters(c, out));
+            node.forEach(c -> collect(c, typeMatch, field, out));
         }
     }
 
@@ -198,15 +199,28 @@ public final class Jokers {
         // Context-capability check: a rule's condition can only read context its trigger provides, else it
         // would silently never fire (the null-safe evaluator hides it). Fail loudly at authoring instead.
         for (var r : rules) RuleValidator.validate(key, r.when(), r.condition());
+        com.fasterxml.jackson.databind.JsonNode tree = COUNTER_MAPPER.valueToTree(rules);
         // Counter registration: every state key the rules touch must be declared via .counters(...).
         java.util.Set<String> usedCounters = new java.util.TreeSet<>();
-        collectCounters(COUNTER_MAPPER.valueToTree(rules), usedCounters);
+        collect(tree, t -> t.equals("mutateState") || t.equals("state") || t.equals("stateStep"), "var", usedCounters);
         java.util.Set<String> unregistered = new java.util.TreeSet<>(usedCounters);
         unregistered.removeAll(declaredCounters);
         if (!unregistered.isEmpty()) {
             throw new IllegalStateException("Joker '" + key + "' uses unregistered counter(s) " + unregistered
                     + " — declare them with .counters(" + String.join(", ",
                     unregistered.stream().map(c -> '"' + c + '"').toList()) + ")");
+        }
+        // Prop reads: every Val.prop("name") the rules read must be a declared .prop("name", value) — same
+        // safety as counters, closing the last magic-string read in the joker DSL (a typo'd prop name used to
+        // read null/0 at eval; now it fails the build with the fix spelled out).
+        java.util.Set<String> usedProps = new java.util.TreeSet<>();
+        collect(tree, t -> t.equals("prop"), "name", usedProps);
+        java.util.Set<String> undeclaredProps = new java.util.TreeSet<>(usedProps);
+        undeclaredProps.removeAll(props.keySet());
+        if (!undeclaredProps.isEmpty()) {
+            throw new IllegalStateException("Joker '" + key + "' reads undeclared prop(s) " + undeclaredProps
+                    + " — declare them with .prop(" + String.join(", ",
+                    undeclaredProps.stream().map(c -> '"' + c + "\", <value>").toList()) + ")");
         }
         if (!atlasSet) { // sprite location is data, not code: read it from the ground-truth metadata table
             int[] a = JokerMeta.atlas(key);
