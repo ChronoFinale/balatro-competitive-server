@@ -371,6 +371,39 @@ local function snap_money()
 	end)
 end
 
+-- Render the OWNED joker row (G.jokers) to match the server's VIEW.jokers: identity (center) + EDITION
+-- (Foil/Holo/Poly/Negative -- e.g. a Hex/Wheel polychrome), creating missing ones and dropping extras
+-- (Hex destroys others). Display only -- the server stays authoritative for scoring. Safe to call both in
+-- the shop and mid-blind (after a consumable changes the jokers), which is why it's its own function now.
+local function reconcile_jokers_to_server()
+	if not (ENGAGED and VIEW and VIEW.jokers and G.jokers and G.jokers.cards and Card and G.P_CENTERS) then return end
+	for i = 1, #VIEW.jokers do
+		local jk, c = VIEW.jokers[i], G.jokers.cards[i]
+		if jk and jk.key and G.P_CENTERS[jk.key] then
+			if not c then
+				pcall(function()
+					local nc = Card(G.jokers.T.x + G.jokers.T.w / 2, G.jokers.T.y, G.CARD_W, G.CARD_H,
+						G.P_CARDS.empty, G.P_CENTERS[jk.key],
+						{ bypass_discovery_center = true, bypass_discovery_ui = true })
+					nc.bbridge_owned = true
+					nc:start_materialize()
+					G.jokers:emplace(nc)
+				end)
+				c = G.jokers.cards[i]
+			elseif (c.config and c.config.center_key) ~= jk.key and c.set_ability then
+				pcall(function() c:set_ability(G.P_CENTERS[jk.key], true) end)
+			end
+			-- Stamp the server's edition (edition_table(nil/NONE) clears to base).
+			if c and c.set_edition then pcall(function() c:set_edition(edition_table(jk.edition), true, true) end) end
+		end
+	end
+	for i = #G.jokers.cards, #VIEW.jokers + 1, -1 do -- native row longer than the server -> drop extras
+		local c = G.jokers.cards[i]
+		pcall(function() G.jokers:remove_card(c); if c.remove then c:remove() end end)
+	end
+	log.debug("joker row rendered: " .. #G.jokers.cards .. " card(s) (server " .. #VIEW.jokers .. ")")
+end
+
 -- Reconcile Balatro's native shop to the server's shop (same move as the deal): let the native shop
 -- build, then swap each main-slot card to the server's item (center + price + index), drop any extras,
 -- and snap money. Re-run after a buy to re-index the remaining (shifted) slots.
@@ -433,37 +466,10 @@ local function reconcile_shop_to_server()
 		end
 	end
 
-	-- Render the joker row from the server. Native's buy_from_shop does NOT reliably emplace bought jokers
-	-- here (observed native row=0 while server=1 -> you pay but see no joker), so make G.jokers match
-	-- VIEW.jokers positionally: create the missing ones (display + native juice during scoring; the server
-	-- stays authoritative for the actual score), fix any wrong identity, and drop extras (self-corrects a
-	-- double if native ever does emplace one).
-	if G.jokers and G.jokers.cards and VIEW.jokers and Card and G.P_CENTERS then
-		for i = 1, #VIEW.jokers do
-			local jk, c = VIEW.jokers[i], G.jokers.cards[i]
-			if jk and jk.key and G.P_CENTERS[jk.key] then
-				if c then
-					if (c.config and c.config.center_key) ~= jk.key and c.set_ability then
-						pcall(function() c:set_ability(G.P_CENTERS[jk.key], true) end)
-					end
-				else
-					pcall(function()
-						local nc = Card(G.jokers.T.x + G.jokers.T.w / 2, G.jokers.T.y, G.CARD_W, G.CARD_H,
-							G.P_CARDS.empty, G.P_CENTERS[jk.key],
-							{ bypass_discovery_center = true, bypass_discovery_ui = true })
-						nc.bbridge_owned = true
-						nc:start_materialize()
-						G.jokers:emplace(nc)
-					end)
-				end
-			end
-		end
-		for i = #G.jokers.cards, #VIEW.jokers + 1, -1 do -- native row longer than the server -> drop extras
-			local c = G.jokers.cards[i]
-			pcall(function() G.jokers:remove_card(c); if c.remove then c:remove() end end)
-		end
-		log.debug("joker row rendered: " .. #G.jokers.cards .. " card(s) (server " .. #VIEW.jokers .. ")")
-	end
+	-- Render the joker row from the server (identity + edition). Native's buy_from_shop does NOT reliably
+	-- emplace bought jokers here (observed native row=0 while server=1 -> you pay but see no joker), so the
+	-- server view is authoritative for the row. Shared with the mid-blind consumable path.
+	reconcile_jokers_to_server()
 	-- Reroll-button cost = the server's (native increments its own on reroll, which can drift).
 	pcall(function()
 		if VIEW.rerollCost and G.GAME and G.GAME.current_round then
@@ -933,6 +939,10 @@ local function install_hooks()
 						log.dev("USE", "consumable '" .. tostring(key) .. "' (idx " .. idx .. ") on [" ..
 							table.concat(sel, " ") .. "]; server applied -> identities re-stamped on next draw")
 					end
+					-- A consumable can change the JOKERS mid-blind (Hex polychrome + destroy others, Ankh copy,
+					-- Ectoplasm). Re-render the owned joker row now so the edition/removal shows immediately
+					-- instead of waiting for the shop.
+					pcall(reconcile_jokers_to_server)
 				end
 			end
 		end

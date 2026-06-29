@@ -90,6 +90,14 @@ final class RunView {
             jv.put("y", info.atlasY());
             // Built-in joker display: the joker's current live value (server-computed, no mod).
             jv.put("display", JokerDisplay.currentValue(r.state.jokers(), i, r.state));
+            // The joker's edition (Foil/Holo/Poly/Negative) so the client can render it — e.g. a Hex/Wheel
+            // polychrome on an owned joker. Omitted when base (NONE).
+            var edition = r.state.jokerEdition(j);
+            if (edition != null && edition != com.balatro.engine.card.Edition.NONE) jv.put("edition", edition.name());
+            // Visible stickers (Eternal/Perishable/Rental) so the client can badge them like the real game.
+            for (var sticker : com.balatro.content.Sticker.values()) {
+                if (Boolean.TRUE.equals(r.state.jokerState(j).get(sticker.flag()))) jv.put(sticker.flag(), true);
+            }
             // The joker's data definition + live state, so the client can compute an
             // instant local score preview (interpreting the same JokerDef the server uses).
             JokerDef def = defFor(j);
