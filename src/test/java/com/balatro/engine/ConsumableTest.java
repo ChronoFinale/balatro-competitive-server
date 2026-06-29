@@ -136,6 +136,19 @@ class ConsumableTest {
     }
 
     @Test
+    void hexCannotDestroyAnEternalJoker() {
+        // Eternal jokers can't be destroyed -- Hex polychromes a random joker and destroys the OTHERS, but the
+        // eternal one must always survive whichever joker it picks (regression: DestroyOtherJokers ignored eternal).
+        Run run = new Run(Ruleset.standard(), "HEXETERNAL",
+                com.balatro.engine.TestSupport.heartsKings(50),
+                com.balatro.engine.TestSupport.jokers("j_joker", "j_greedy_joker", "j_lusty_joker"));
+        run.state.jokerState(run.state.jokers().get(1)).put("eternal", true); // greedy joker is Eternal
+        run.state.consumables.add("c_hex");
+        assertThat(run.useConsumable(0)).isNull();
+        assertThat(run.state.jokers()).anyMatch(j -> j.key().equals("j_greedy_joker")); // eternal survived
+    }
+
+    @Test
     void wheelOfFortuneEitherGrantsAFoilHoloPolyOrDoesNothing() {
         Run run = new Run(Ruleset.standard(), "WHEEL",
                 com.balatro.engine.TestSupport.heartsKings(50),

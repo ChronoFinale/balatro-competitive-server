@@ -38,7 +38,9 @@ final class CommandApply {
             case Command.EditionJoker ej -> r.state.setJokerEdition(ej.target(), ej.edition());
             case Command.CopyJoker cj ->
                     r.state.addJoker(JokerLibrary.create(cj.source().key(), cj.variant())); // copy has no edition
-            case Command.DestroyOtherJokers d -> r.state.jokers().removeIf(j -> j != d.keep());
+            // Hex/Ankh: destroy every joker but the kept one — except Eternal jokers, which can't be destroyed
+            // (same protection honored at sell and the joker-effect/boss destroy sites).
+            case Command.DestroyOtherJokers d -> r.state.jokers().removeIf(j -> j != d.keep() && !r.state.jokerFlag(j, "eternal"));
             case Command.CopyConsumable cc -> {
                 if (cc.slotPolicy() == Command.CopyConsumable.SlotPolicy.IGNORE_CAP
                         || r.state.consumables.size() < r.state.consumableSlots) r.state.consumables.add(cc.key());
