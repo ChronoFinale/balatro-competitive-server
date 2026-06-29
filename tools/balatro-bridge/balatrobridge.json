@@ -3,7 +3,7 @@
 	"name": "Competitive Balatro",
 	"display_name": "Competitive Balatro",
 	"author": ["balatro-competitive-server"],
-	"description": "Real-Balatro thin client: renders a server-authoritative run (deal/score/shop/economy) using Balatro's own animations. Auto-engages on blind select when the server is reachable; falls back to vanilla otherwise.",
+	"description": "Real-Balatro thin client: renders a server-authoritative run (deal/score/shop/economy) using Balatro's own animations. Auto-engages on blind select when the server is reachable; shows a loud NOT-CONNECTED warning if it isn't (never silently plays vanilla).",
 	"prefix": "bbridge",
 	"priority": 1000,
 	"main_file": "balatrobridge.lua",

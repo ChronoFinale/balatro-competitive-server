@@ -6,8 +6,9 @@
 --                                so there is NO swapping mid-animation). Each card carries its server idx.
 --   * evaluate_play           -> send the played cards to the server, advance to the server's next hand,
 --                                and show the server's authoritative score.
--- It auto-engages whenever you select a blind AND the server is reachable; if the server is down it falls
--- back to vanilla Balatro silently. Networking is blocking (a real client must thread it).
+-- It auto-engages whenever you select a blind AND the server is reachable; if the server is UNREACHABLE it
+-- shows a loud on-screen "NOT CONNECTED" warning (NEVER silently plays a fake-competitive vanilla blind).
+-- Networking is blocking (the threaded variant is reverted — it dropped requests in-game; see git history).
 -- Launch dump (proof) -> D:/NewServer/build/balatro-bridge.txt.
 
 local OUT = "D:/NewServer/build/balatro-bridge.txt"
@@ -580,7 +581,10 @@ local function install_hooks()
 					for _, sc in ipairs(hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end -- whole hand for the initial deal
 					logln("ENGAGED: server run open, " .. #hand .. "-card hand queued.")
 				else
-					logln("select_blind: server offline (" .. tostring(hand) .. ") -> vanilla Balatro.")
+					-- NEVER silently degrade to vanilla: a competitive run that isn't server-driven is a
+					-- trap. Make it impossible to miss that this blind is NOT connected to the server.
+					logln("select_blind: server UNREACHABLE (" .. tostring(hand) .. ") -> NOT server-driven.")
+					popup("NOT CONNECTED — competitive server unreachable", G.C.RED)
 				end
 			end
 		end)
