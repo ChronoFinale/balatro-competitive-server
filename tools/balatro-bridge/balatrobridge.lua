@@ -59,6 +59,30 @@ function log.debug(s) append(LOG_DEBUG, "[DBG]  " .. tostring(s)) end
 -- the `wire` parse module [lib/wire.lua], silently breaking wire.view_of; its callers now log.debug directly.)
 local function logln(s) log.info(s) end
 
+-- DEV mode: emit "server resolution vs client resolution" comparisons at each action (what the server SENT
+-- -- cards on a draw, shop items, a consumable's effect, the cash-out breakdown -- vs what the native game
+-- actually rendered). ON -> these surface in INFO (prominent, next to the action); OFF -> DEBUG only. Toggle
+-- by launching with the env var COMPBALATRO_DEV=0 (default ON while iterating). The server stays the source
+-- of truth either way; this only changes how loudly the bridge narrates the reconciliation.
+local DEV = (os.getenv("COMPBALATRO_DEV") ~= "0")
+function log.dev(tag, s)
+	local l = "[DEV " .. tostring(tag) .. "] " .. tostring(s)
+	if DEV then log.info(l) else log.debug(l) end
+end
+
+-- Compact human label for a server card ({uid,rank,suit}) for the action trail: "AS" "KH" "10D".
+local SUIT_CH = { Spades = "S", Hearts = "H", Clubs = "C", Diamonds = "D" }
+local function fmt_card(sc)
+	if not sc then return "?" end
+	return tostring(sc.rank or "?") .. (SUIT_CH[sc.suit] or tostring(sc.suit or "?"))
+end
+local function fmt_cards(list)
+	if not list or #list == 0 then return "(none)" end
+	local t = {}
+	for _, sc in ipairs(list) do t[#t + 1] = fmt_card(sc) end
+	return table.concat(t, " ")
+end
+
 local function http_login(username)
 	if not socket then return nil end -- luasocket unavailable -> stay vanilla
 	local s = socket.tcp(); s:settimeout(2)
@@ -177,10 +201,14 @@ local function prime_deck_for_draw()
 	local limit = (G.hand and G.hand.config and G.hand.config.card_limit) or 8
 	local space = math.max(0, limit - ((G.hand and #G.hand.cards) or 0))
 	local n = math.min(space, #G.deck.cards, #DRAW_QUEUE)
+	local primed = {}
 	for i = 1, n do
 		local sc = table.remove(DRAW_QUEUE, 1)
 		set_card_identity(G.deck.cards[#G.deck.cards - i + 1], sc) -- cards are drawn from the deck's end
+		primed[#primed + 1] = sc
 	end
+	if n > 0 then log.dev("DRAW", "server dealing " .. n .. " card(s): " .. fmt_cards(primed) ..
+		(#DRAW_QUEUE > 0 and ("  (" .. #DRAW_QUEUE .. " still queued)") or "")) end
 end
 
 -- After a native draw settles, GUARANTEE the hand matches the server hand: every hand card must carry a
@@ -210,7 +238,14 @@ local function reconcile_hand_to_server()
 		end
 	end
 	if fixed > 0 then logln("hand reconcile: corrected " .. fixed .. " card(s) the prime missed") end
-	if pi <= #pool then logln("!! hand reconcile: " .. (#pool - pi + 1) .. " server card(s) unplaced (hand-size mismatch?)") end
+	if pi <= #pool then log.warn("hand reconcile: " .. (#pool - pi + 1) .. " server card(s) unplaced (hand-size mismatch?)") end
+	-- DEV: server hand identity vs what the native hand actually shows after reconcile (should be equal).
+	local native = {}
+	for _, c in ipairs(G.hand.cards) do
+		local sc = c.bbridge_uid and server_by_uid[c.bbridge_uid]
+		native[#native + 1] = sc and fmt_card(sc) or "??"
+	end
+	log.dev("HAND", "server=[" .. fmt_cards(SERVER_HAND) .. "]  native=[" .. table.concat(native, " ") .. "]")
 end
 
 -- 0-based index of a server uid in the current server hand (nil if gone).
@@ -357,7 +392,7 @@ local function reconcile_shop_to_server()
 		local c = cards[i]
 		pcall(function() G.shop_jokers:remove_card(c); if c.remove then c:remove() end end)
 	end
-	logln("shop reconcile: showing " .. n .. " server item(s) of " .. #items .. " offered")
+	log.debug("shop reconcile: showing " .. n .. " server item(s) of " .. #items .. " offered")
 
 	-- Vouchers: swap each native voucher card to the server's offered voucher (key + cost + index), and
 	-- remove any native voucher the server doesn't offer (untagged -> would redeem natively = desync).
@@ -427,7 +462,7 @@ local function reconcile_shop_to_server()
 			local c = G.jokers.cards[i]
 			pcall(function() G.jokers:remove_card(c); if c.remove then c:remove() end end)
 		end
-		logln("joker row rendered: " .. #G.jokers.cards .. " card(s) (server " .. #VIEW.jokers .. ")")
+		log.debug("joker row rendered: " .. #G.jokers.cards .. " card(s) (server " .. #VIEW.jokers .. ")")
 	end
 	-- Reroll-button cost = the server's (native increments its own on reroll, which can drift).
 	pcall(function()
@@ -435,6 +470,14 @@ local function reconcile_shop_to_server()
 			G.GAME.current_round.reroll_cost = VIEW.rerollCost
 		end
 	end)
+	-- DEV: the full shop the server resolved (cards / vouchers / packs / joker row), vs the native slot count.
+	if DEV then
+		local function lbls(list, kf) local t = {}; for _, it in ipairs(list or {}) do t[#t + 1] = kf(it) end; return table.concat(t, ", ") end
+		local kc = function(it) return tostring(it.key or "?") .. (it.cost and ("$" .. it.cost) or "") end
+		log.dev("SHOP", "cards=[" .. lbls(VIEW.shop, kc) .. "]  vouchers=[" .. lbls(VIEW.vouchers, kc) ..
+			"]  packs=[" .. lbls(VIEW.packs, function(p) return pack_center_key(p) or "?" end) ..
+			"]  jokers=[" .. lbls(VIEW.jokers, function(j) return tostring(j.key or "?") end) .. "]")
+	end
 	snap_money()
 end
 
@@ -877,6 +920,19 @@ local function install_hooks()
 					end
 					VIEW = r.view or VIEW
 					logln("use -> server consumable " .. idx .. " targets=" .. #targets)
+					-- DEV: which consumable, the cards you selected (native identity), and that the server applied
+					-- it (the next draw reconcile re-stamps any identities the effect changed).
+					if DEV then
+						local sel = {}
+						if G.hand and G.hand.highlighted then
+							for _, hc in ipairs(G.hand.highlighted) do
+								local b = hc.base or {}
+								sel[#sel + 1] = tostring(b.value or "?") .. (SUIT_CH[b.suit] or tostring(b.suit or ""))
+							end
+						end
+						log.dev("USE", "consumable '" .. tostring(key) .. "' (idx " .. idx .. ") on [" ..
+							table.concat(sel, " ") .. "]; server applied -> identities re-stamped on next draw")
+					end
 				end
 			end
 		end
@@ -927,8 +983,12 @@ local function install_hooks()
 		local _cashout = G.FUNCS.cash_out
 		G.FUNCS.cash_out = function(e)
 			if ENGAGED and VIEW and G.GAME and G.GAME.current_round and (VIEW.cashReward or VIEW.cashInterest) then
+				local native = G.GAME.current_round.dollars
 				G.GAME.current_round.dollars = (VIEW.cashReward or 0) + (VIEW.cashInterest or 0)
 				logln("cash_out -> server total $" .. tostring(G.GAME.current_round.dollars))
+				log.dev("CASHOUT", "server reward=$" .. tostring(VIEW.cashReward or 0) .. " + interest=$" ..
+					tostring(VIEW.cashInterest or 0) .. " = $" .. tostring(G.GAME.current_round.dollars) ..
+					"  (native had computed $" .. tostring(native) .. ", new total bankroll $" .. tostring(VIEW.money) .. ")")
 			end
 			return _cashout(e)
 		end
