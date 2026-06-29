@@ -11,8 +11,6 @@
 -- Networking is blocking (the threaded variant is reverted — it dropped requests in-game; see git history).
 -- Launch dump (proof) -> D:/NewServer/build/balatro-bridge.txt.
 
-local OUT = "D:/NewServer/build/balatro-bridge.txt"
-local WIRE = "D:/NewServer/build/balatro-bridge-wire.txt"
 -- Load luasocket DEFENSIVELY: this is the only thing that runs unguarded at mod-load time, so if it ever
 -- fails (load order / first cold boot) a raw `require` would crash Balatro on launch. On failure we just
 -- run with socket=nil -> the mod degrades to vanilla (every networking call guards on socket below).
@@ -39,29 +37,27 @@ local SCORING = false    -- a play is being scored: retarget ONLY its round-scor
 local PENDING_PLAY = nil -- server result fetched at the Play button (BEFORE scoring animates), consumed by
                          -- evaluate_play -- so the blocking round-trip doesn't freeze mid-scoring
 
-local lines = {}
-local function logln(s)
-	lines[#lines + 1] = tostring(s)
-	pcall(function()
-		local f = io.open(OUT, "w")
-		if f then f:write(table.concat(lines, "\n") .. "\n"); f:close() end
-	end)
+-- Leveled logging (append-based, so nothing is lost across a long session): INFO is a concise trail of
+-- every game action; DEBUG is INFO plus the raw wire JSON + reconcile internals. Both truncated at mod load.
+local LOG_INFO  = "D:/NewServer/build/competitive-balatro.info.log"
+local LOG_DEBUG = "D:/NewServer/build/competitive-balatro.debug.log"
+pcall(function() local f = io.open(LOG_INFO, "w");  if f then f:write("== Competitive Balatro -- INFO (action trail) ==\n");  f:close() end end)
+pcall(function() local f = io.open(LOG_DEBUG, "w"); if f then f:write("== Competitive Balatro -- DEBUG (verbose + wire) ==\n"); f:close() end end)
+
+local function append(path, s)
+	pcall(function() local f = io.open(path, "a"); if f then f:write(s .. "\n"); f:close() end end)
 end
 
--- Raw wire log: ">>" = sent to server, "<<" = received. Goes to the lovely console (print) and to a file
--- we can read back. Truncated once at load.
-pcall(function()
-	local f = io.open(WIRE, "w")
-	if f then f:write("== bbridge wire log ==\n"); f:close() end
-end)
-local function wire(tag, s)
-	local line = "[bbridge] " .. tag .. " " .. tostring(s)
-	pcall(function() print(line) end)
-	pcall(function()
-		local f = io.open(WIRE, "a")
-		if f then f:write(line .. "\n"); f:close() end
-	end)
-end
+-- INFO/WARN -> both files + console; DEBUG -> debug file only. Every server action calls log.info; the
+-- raw wire JSON + reconcile detail call log.debug, so INFO stays a clean, complete action trail.
+local log = {}
+function log.info(s)  local l = "[INFO] " .. tostring(s); append(LOG_INFO, l); append(LOG_DEBUG, l); pcall(print, "[CompBalatro] " .. l) end
+function log.warn(s)  local l = "[WARN] " .. tostring(s); append(LOG_INFO, l); append(LOG_DEBUG, l); pcall(print, "[CompBalatro] " .. l) end
+function log.debug(s) append(LOG_DEBUG, "[DBG]  " .. tostring(s)) end
+
+-- Existing logln(...) call sites map to INFO. (The old raw-wire `wire()` logger is removed -- it shadowed
+-- the `wire` parse module [lib/wire.lua], silently breaking wire.view_of; its callers now log.debug directly.)
+local function logln(s) log.info(s) end
 
 local function http_login(username)
 	if not socket then return nil end -- luasocket unavailable -> stay vanilla
@@ -106,16 +102,16 @@ end
 local function recv_until(s, pred)
 	for _ = 1, 24 do
 		local l = s:receive("*l")
-		if not l then wire("<<", "(nil / timeout)"); return nil end
-		wire("<<", l)
+		if not l then log.debug("recv << (nil / timeout)"); return nil end
+		log.debug("recv << " .. l)
 		if pred(l) then return l end
 	end
 	return nil
 end
 
--- Send a line and log it.
+-- Send a line and log it (debug).
 local function wsend(s, json)
-	wire(">>", json)
+	log.debug("send >> " .. json)
 	s:send(json .. "\n")
 end
 
@@ -129,7 +125,7 @@ local function open_run()
 	if not token then return nil, "login failed (server :28788?)" end
 	local s = socket.tcp(); s:settimeout(2)
 	if not s:connect("127.0.0.1", 28789) then return nil, "tcp :28789 failed" end
-	wire(">>", '{"type":"auth","seq":0,"token":"<redacted ' .. #token .. ' chars>"}')
+	log.debug("send >> {\"type\":\"auth\",\"seq\":0,\"token\":\"<redacted " .. #token .. " chars>\"}")
 	s:send('{"type":"auth","seq":0,"token":"' .. token .. '"}\n')
 	if not recv_until(s, function(l) return l:match('"type":"authed"') ~= nil end) then s:close(); return nil, "no authed" end
 	-- Forward the player's New Run choice: native deck key b_xxx -> our d_xxx; stake is an integer 1..8.
@@ -269,7 +265,7 @@ local function reconcile(view)
 		if not (G.E_MANAGER and Event) then return end
 		G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.6, blocking = false, func = function()
 			local native = G.GAME and G.GAME.chips
-			logln(string.format("reconcile: native chips=%s | server roundScore=%s requirement=%s handsLeft=%s phase=%s",
+			log.debug(string.format("reconcile: native chips=%s | server roundScore=%s requirement=%s handsLeft=%s phase=%s",
 				tostring(native), tostring(view.roundScore), tostring(view.requirement), tostring(view.handsLeft), tostring(view.phase)))
 			if native ~= nil and view.roundScore ~= nil and math.abs(native - view.roundScore) > 0.5 then
 				logln("note: native count-up diverged from server roundScore (server value enforced at round-end)")
@@ -332,7 +328,7 @@ local function snap_money()
 		if not (VIEW and VIEW.money and G and G.GAME) then return end
 		local native = G.GAME.dollars or 0
 		if native ~= VIEW.money then
-			logln(string.format("money snap: native=$%s -> server=$%s (delta %s) [cashout reward=%s interest=%s]",
+			log.debug(string.format("money snap: native=$%s -> server=$%s (delta %s) [cashout reward=%s interest=%s]",
 				tostring(native), tostring(VIEW.money), tostring(VIEW.money - native),
 				tostring(VIEW.cashReward), tostring(VIEW.cashInterest)))
 		end
@@ -663,7 +659,7 @@ local function install_hooks()
 			end)
 			if v.phase == "SHOP" then SHOP_DONE = false end -- a shop visit is coming -> reconcile it once
 			if v.phase == "RUN_LOST" or v.phase == "RUN_WON" then RUN_LIVE = false end -- run over -> next fresh
-			logln("round decision (server): phase=" .. tostring(v.phase) .. " chips=" .. tostring(v.roundScore) ..
+			log.debug("round decision (server): phase=" .. tostring(v.phase) .. " chips=" .. tostring(v.roundScore) ..
 				" req=" .. tostring(v.requirement) .. " handsLeft=" .. tostring(v.handsLeft))
 		end
 		return _uhp(self, dt)
@@ -1027,7 +1023,7 @@ local function install_hooks()
 		function EventManager:add_event(event, queue, front)
 			if SCORING and ENGAGED and VIEW and VIEW.roundScore and event and event.trigger == "ease"
 				and event.ease and event.ease.ref_table == G.GAME and event.ease.ref_value == "chips" then
-				logln("chips ease retargeted: native end_val=" .. tostring(event.ease.end_val) ..
+				log.debug("chips ease retargeted: native end_val=" .. tostring(event.ease.end_val) ..
 					" -> server roundScore=" .. tostring(VIEW.roundScore))
 				event.ease.end_val = VIEW.roundScore
 				SCORING = false -- one-shot: do NOT touch Balatro's end-of-round reset-to-0 ease
