@@ -286,7 +286,11 @@ local function reconcile(view)
 		if view.requirement and G.GAME.blind then G.GAME.blind.chips = view.requirement end
 		if G.GAME.current_round then
 			if view.handsLeft then G.GAME.current_round.hands_left = view.handsLeft end
-			if view.discardsLeft then G.GAME.current_round.discards_left = view.discardsLeft end
+			-- Do NOT set discards_left here: on a discard, native's own discard_cards_from_highlighted ALSO
+			-- runs ease_discard(-1) (state_events.lua:435). Setting the server's already-decremented value here
+			-- and THEN letting native ease -1 would burn TWO discards for one action. Native's ease drives the
+			-- single visible decrement (it starts from the in-sync value); the deferred block below re-asserts
+			-- the server's value as the authoritative backstop, after native's ease settles.
 		end
 		-- Render MONEY from the server's store (like the hand and score), but ONLY during active play.
 		-- The blind reward + interest are added when the player clicks Cash Out, NOT at the win -- yet the
@@ -299,6 +303,12 @@ local function reconcile(view)
 	pcall(function()
 		if not (G.E_MANAGER and Event) then return end
 		G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.6, blocking = false, func = function()
+			-- Authoritative backstop AFTER native's eases settle: the server owns discards_left (and hands_left).
+			-- This corrects any native/server drift without double-counting native's own ease_discard(-1)/hands.
+			if G.GAME and G.GAME.current_round then
+				if view.discardsLeft then G.GAME.current_round.discards_left = view.discardsLeft end
+				if view.handsLeft then G.GAME.current_round.hands_left = view.handsLeft end
+			end
 			local native = G.GAME and G.GAME.chips
 			log.debug(string.format("reconcile: native chips=%s | server roundScore=%s requirement=%s handsLeft=%s phase=%s",
 				tostring(native), tostring(view.roundScore), tostring(view.requirement), tostring(view.handsLeft), tostring(view.phase)))
