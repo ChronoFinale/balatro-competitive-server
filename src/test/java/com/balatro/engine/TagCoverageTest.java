@@ -40,6 +40,35 @@ class TagCoverageTest {
     }
 
     @Test
+    void everyCreateTagReferencesAKnownTag() {
+        // Effect.CreateTag carries a tag KEY string; an unknown key silently times out to Timing.HELD
+        // (TagCatalog.timing) instead of failing. Validate every authored CreateTag against the catalog so a
+        // typo fails the build. (Tags are content, like round-targets — validated, not typed into the grammar.)
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        List<com.balatro.grammar.JokerDef> defs =
+                new ArrayList<>(com.balatro.content.jokers.BuiltinJokerDefs.all());
+        defs.addAll(com.balatro.content.jokers.BuiltinJokerDefs.mpAdditions());
+        Set<String> used = new java.util.TreeSet<>();
+        collectCreateTags(mapper.valueToTree(defs), used);
+        Set<String> unknown = new java.util.TreeSet<>(used);
+        unknown.removeAll(TagCatalog.keys());
+        assertThat(unknown)
+                .as("CreateTag references unknown tag key(s) (typo?) — known keys: %s", TagCatalog.keys())
+                .isEmpty();
+    }
+
+    private static void collectCreateTags(com.fasterxml.jackson.databind.JsonNode node, Set<String> out) {
+        if (node.isObject()) {
+            if ("createTag".equals(node.path("type").asText("")) && node.has("tag")) {
+                out.add(node.get("tag").asText());
+            }
+            node.forEach(c -> collectCreateTags(c, out));
+        } else if (node.isArray()) {
+            node.forEach(c -> collectCreateTags(c, out));
+        }
+    }
+
+    @Test
     void structuralExemptionsAreNotStale() {
         // Each exemption must still exist AND still be genuinely effect-less — otherwise it's a tag we
         // forgot to drop from the list once it grew a real effect.
