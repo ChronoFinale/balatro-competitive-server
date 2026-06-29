@@ -183,13 +183,37 @@ end
 
 -- card_key/edition_table/pack_center_key are aliased to wire.* at the top (pure, spec-tested).
 
--- Give a Balatro card the identity of a server card (rank/suit + sprite via set_base) and tag it with the
--- server's stable uid, so we can map it back to a server hand index regardless of position/reordering.
-local function set_card_identity(card, sc)
+-- Drive a Balatro card to a server card's FULL identity: rank/suit (set_base), edition (Foil/Holo/Poly),
+-- and tag the server uid + the stamped identity (so render_hand can detect a mid-blind mutation and avoid
+-- needless re-stamps). enhancement/seal are added in the consumable phase (Tarot mutate). Idempotent: only
+-- the fields that changed are re-applied by the caller (render_hand stamps on diff). Replaces set_card_identity.
+local function hand_restamp(card, sc)
+	if not (card and sc and card.set_base) then return end
 	local key = card_key(sc)
-	if card and key and G.P_CARDS and G.P_CARDS[key] and card.set_base then
-		card:set_base(G.P_CARDS[key])
-		card.bbridge_uid = sc.uid
+	if key and G.P_CARDS and G.P_CARDS[key] then card:set_base(G.P_CARDS[key]) end
+	-- Render a card edition (a Foil card dealt from the deck, or a mid-blind edition change). Apply only a
+	-- real edition; a base card needs no clear (set_base already gave it no edition).
+	if sc.edition and sc.edition ~= "NONE" and card.set_edition then
+		pcall(function() card:set_edition(edition_table(sc.edition), true, true) end)
+	end
+	card.bbridge_uid = sc.uid
+	card.bbridge_rank, card.bbridge_suit, card.bbridge_edition = sc.rank, sc.suit, sc.edition
+end
+
+-- Remove a native hand card the SERVER no longer has (destroyed by a consumable, e.g. Immolate). Animate
+-- it out with the native dissolve, then drop it. Idempotent via bbridge_dissolving so render_hand never
+-- double-dissolves a card already on its way out.
+local function hand_remove(card)
+	if not (card and not card.bbridge_dissolving) then return end
+	card.bbridge_dissolving = true
+	-- Prefer the native dissolve: start_dissolve animates the shatter/fade and removes the card from its area
+	-- when the animation finishes (so the card LINGERS in G.hand.cards mid-dissolve -- bbridge_dissolving keeps
+	-- a re-run from dissolving it twice). Only if there's no dissolve do we drop it outright.
+	if card.start_dissolve then
+		pcall(function() card:start_dissolve() end)
+	else
+		pcall(function() if G.hand and G.hand.remove_card then G.hand:remove_card(card) end end)
+		pcall(function() if card.remove then card:remove() end end)
 	end
 end
 
@@ -204,48 +228,60 @@ local function prime_deck_for_draw()
 	local primed = {}
 	for i = 1, n do
 		local sc = table.remove(DRAW_QUEUE, 1)
-		set_card_identity(G.deck.cards[#G.deck.cards - i + 1], sc) -- cards are drawn from the deck's end
+		hand_restamp(G.deck.cards[#G.deck.cards - i + 1], sc) -- cards are drawn from the deck's end
 		primed[#primed + 1] = sc
 	end
 	if n > 0 then log.dev("DRAW", "server dealing " .. n .. " card(s): " .. fmt_cards(primed) ..
 		(#DRAW_QUEUE > 0 and ("  (" .. #DRAW_QUEUE .. " still queued)") or "")) end
 end
 
--- After a native draw settles, GUARANTEE the hand matches the server hand: every hand card must carry a
--- server uid, and each server card appears exactly once. This catches any card the prime missed (the old
--- "escaped card" divergence) without us ever touching the deck. State-based, not prediction-based.
-local function reconcile_hand_to_server()
-	if not (ENGAGED and G.hand and G.hand.cards and SERVER_HAND and #SERVER_HAND > 0) then return end
+-- THE uid-keyed hand reconciler (drive-it model): make the native hand match the server hand exactly,
+-- whatever changed it (deal/draw, play/discard, OR a consumable that destroyed/mutated cards).
+--   1. REMOVE (dissolve) native cards whose uid the server no longer has -> Immolate & friends.
+--   2. RESTAMP cards whose mapped server identity changed (Tarot mutate / edition) -- on diff only.
+--   3. ASSIGN each still-unmapped native card the next unclaimed server card (the escaped-card fix).
+-- State-based, not prediction-based; never touches G.deck. Idempotent -> safe to call repeatedly/deferred.
+-- `hand` defaults to SERVER_HAND (the cached authoritative hand). Replaces reconcile_hand_to_server.
+local function render_hand(hand)
+	hand = hand or SERVER_HAND
+	if not (ENGAGED and G.hand and G.hand.cards and hand and #hand > 0) then return end
 	local server_by_uid = {}
-	for _, sc in ipairs(SERVER_HAND) do server_by_uid[sc.uid] = sc end
-	-- Keep hand cards that already map to a still-unclaimed server card; clear the rest for reassignment.
+	for _, sc in ipairs(hand) do server_by_uid[sc.uid] = sc end
+	-- 1) Remove cards the server destroyed (uid gone). A played/discarded card has already left G.hand by
+	--    the time this runs (deferred), so anything still here with a missing uid is a real server destroy.
+	for i = #G.hand.cards, 1, -1 do
+		local c = G.hand.cards[i]
+		if c.bbridge_uid and not server_by_uid[c.bbridge_uid] then hand_remove(c) end
+	end
+	-- 2) Claim surviving cards; restamp ONLY when the mapped identity actually changed (no needless flicker).
 	local claimed = {}
 	for _, c in ipairs(G.hand.cards) do
-		if c.bbridge_uid and server_by_uid[c.bbridge_uid] and not claimed[c.bbridge_uid] then
+		local sc = c.bbridge_uid and server_by_uid[c.bbridge_uid]
+		if sc and not claimed[c.bbridge_uid] then
 			claimed[c.bbridge_uid] = true
+			if c.bbridge_rank ~= sc.rank or c.bbridge_suit ~= sc.suit or c.bbridge_edition ~= sc.edition then
+				hand_restamp(c, sc) -- Tarot mutate / edition change in place
+			end
 		else
 			c.bbridge_uid = nil
 		end
 	end
-	-- Server cards not yet represented in the hand, in server order.
+	-- 3) Assign each unmapped native card the next unclaimed server card (corrects an escaped/unstamped card).
 	local pool = {}
-	for _, sc in ipairs(SERVER_HAND) do if not claimed[sc.uid] then pool[#pool + 1] = sc end end
-	-- Assign each unmapped hand card the next unclaimed server card (corrects any escaped card).
+	for _, sc in ipairs(hand) do if not claimed[sc.uid] then pool[#pool + 1] = sc end end
 	local pi, fixed = 1, 0
 	for _, c in ipairs(G.hand.cards) do
-		if not c.bbridge_uid and pi <= #pool then
-			set_card_identity(c, pool[pi]); pi = pi + 1; fixed = fixed + 1
-		end
+		if not c.bbridge_uid and pi <= #pool then hand_restamp(c, pool[pi]); pi = pi + 1; fixed = fixed + 1 end
 	end
-	if fixed > 0 then logln("hand reconcile: corrected " .. fixed .. " card(s) the prime missed") end
+	if fixed > 0 then logln("hand reconcile: corrected " .. fixed .. " card(s)") end
 	if pi <= #pool then log.warn("hand reconcile: " .. (#pool - pi + 1) .. " server card(s) unplaced (hand-size mismatch?)") end
-	-- DEV: server hand identity vs what the native hand actually shows after reconcile (should be equal).
+	-- DEV: server hand identity vs what the native hand actually shows (should be equal).
 	local native = {}
 	for _, c in ipairs(G.hand.cards) do
 		local sc = c.bbridge_uid and server_by_uid[c.bbridge_uid]
 		native[#native + 1] = sc and fmt_card(sc) or "??"
 	end
-	log.dev("HAND", "server=[" .. fmt_cards(SERVER_HAND) .. "]  native=[" .. table.concat(native, " ") .. "]")
+	log.dev("HAND", "server=[" .. fmt_cards(hand) .. "]  native=[" .. table.concat(native, " ") .. "]")
 end
 
 -- 0-based index of a server uid in the current server hand (nil if gone).
@@ -702,7 +738,7 @@ local function install_hooks()
 		local r = _draw(e) -- Balatro draws its own deck cards: count decrements natively, animation native
 		if ENGAGED and G.E_MANAGER and Event then
 			G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.5, blocking = false,
-				func = function() pcall(reconcile_hand_to_server); return true end }))
+				func = function() pcall(render_hand); return true end }))
 		end
 		return r
 	end
@@ -1185,7 +1221,19 @@ local function prove_translation()
 	end
 end
 
--- (The standalone parser spec now loads lib/wire.lua directly — no in-mod test seam needed.)
+-- Test seam: expose the uid-keyed hand model to the stubbed load_spec harness so the drive-it logic
+-- (restamp on diff, dissolve a server-removed card, escaped-card assignment) is gated HERE, not only
+-- in-game. Never set in real play; the standalone parser spec still loads lib/wire.lua directly.
+if rawget(_G, "BBRIDGE_TEST") then
+	_G.__bbridge_test = {
+		hand_restamp = hand_restamp,
+		hand_remove = hand_remove,
+		render_hand = render_hand,
+		uid_to_index = uid_to_index,
+		set_engaged = function(v) ENGAGED = v end,
+		set_server_hand = function(h) SERVER_HAND = h end,
+	}
+end
 
 local frames, done = 0, false
 pcall(function()
