@@ -1,7 +1,7 @@
 {
 	"id": "balatrobridge",
-	"name": "BalatroBridge",
-	"display_name": "Balatro Bridge",
+	"name": "Competitive Balatro",
+	"display_name": "Competitive Balatro",
 	"author": ["balatro-competitive-server"],
 	"description": "Real-Balatro thin client: renders a server-authoritative run (deal/score/shop/economy) using Balatro's own animations. Auto-engages on blind select when the server is reachable; falls back to vanilla otherwise.",
 	"prefix": "bbridge",
