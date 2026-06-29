@@ -3,9 +3,11 @@
 	"name": "BalatroBridge",
 	"display_name": "Balatro Bridge",
 	"author": ["balatro-competitive-server"],
-	"description": "Step 2 of the real-Balatro client: on launch, maps the server's ClientView hand to real Balatro card identities and dumps the proof; press F6 in a blind to render the server's hand on screen.",
+	"description": "Real-Balatro thin client: renders a server-authoritative run (deal/score/shop/economy) using Balatro's own animations. Auto-engages on blind select when the server is reachable; falls back to vanilla otherwise.",
 	"prefix": "bbridge",
 	"priority": 1000,
 	"main_file": "balatrobridge.lua",
-	"version": "0.1.0"
+	"dependencies": ["Steamodded (>=1.0.0~BETA-0316a)", "Lovely (>=0.7)"],
+	"conflicts": ["Multiplayer"],
+	"version": "0.2.0"
 }

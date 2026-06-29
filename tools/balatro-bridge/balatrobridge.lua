@@ -17,10 +17,13 @@ local WIRE = "D:/NewServer/build/balatro-bridge-wire.txt"
 -- run with socket=nil -> the mod degrades to vanilla (every networking call guards on socket below).
 local ok_socket, socket = pcall(require, "socket")
 if not ok_socket then socket = nil end
-
-local RANK = { TWO = "2", THREE = "3", FOUR = "4", FIVE = "5", SIX = "6", SEVEN = "7", EIGHT = "8",
-	NINE = "9", TEN = "T", JACK = "J", QUEEN = "Q", KING = "K", ACE = "A" }
-local SUIT = { SPADES = "S", HEARTS = "H", CLUBS = "C", DIAMONDS = "D" }
+-- JSON: SMODS bundles rxi json (require"json"). Server lines are decoded through it instead of regex-scraped.
+local ok_json, json = pcall(require, "json")
+if not ok_json then json = nil end
+-- Pure wire helpers (view_of + card/edition/pack key mappers), shared verbatim with the standalone parser
+-- spec (test/parsers_spec.lua). The structured parse layer lives there now; the mod decodes + reads it.
+local wire = assert(SMODS.load_file("lib/wire.lua", "balatrobridge"))()
+local card_key, edition_table, pack_center_key = wire.card_key, wire.edition_table, wire.pack_center_key
 
 local CONN = nil         -- persistent socket to the server's run
 local SEQ = 2            -- last seq used; first play is seq 3 (auth0, newRun1, selectBlind2)
@@ -78,97 +81,25 @@ local function http_login(username)
 	return resp and resp:match('"token":"([^"]+)"') or nil
 end
 
-local function parse_hand(view)
-	local hand = {}
-	-- card uid is a UUID string: "uid":"<8-4-4-4-12 hex>","rank":...,"suit":...
-	for uid, rank, suit in view:gmatch('"uid":"([%x%-]+)","rank":"(%u+)","suit":"(%u+)"') do
-		hand[#hand + 1] = { uid = uid, rank = rank, suit = suit }
-	end
-	return hand
-end
-
--- Parse a JSON array field "field":[{...},...] into a list of {kind,key,name,cost}. Balanced-brace scan
--- (%b{}) yields each object even when jokers nest def/state; the FIRST "key" in each object is the
--- top-level one (the server emits it before any nested def). nil/null/absent field -> {}.
-local function parse_objs(resp, field)
-	local out = {}
-	if not resp then return out end
-	local arr = resp:match('"' .. field .. '":(%b[])')
-	if not arr then return out end
-	for obj in arr:gmatch("%b{}") do
-		out[#out + 1] = {
-			kind    = obj:match('"kind":"([^"]+)"'),
-			size    = obj:match('"size":"([^"]+)"'),    -- packs only
-			key     = obj:match('"key":"([^"]+)"'),
-			name    = obj:match('"name":"([^"]+)"'),
-			cost    = tonumber(obj:match('"cost":(%-?%d+)')),
-			edition = obj:match('"edition":"([^"]+)"'), -- shop items: NONE/FOIL/HOLOGRAPHIC/POLYCHROME/NEGATIVE
-		}
-	end
-	return out
-end
-
--- Server edition name -> Balatro Card:set_edition table (nil = base, no edition).
-local function edition_table(ed)
-	if ed == "FOIL" then return { foil = true }
-	elseif ed == "HOLOGRAPHIC" then return { holo = true }
-	elseif ed == "POLYCHROME" then return { polychrome = true }
-	elseif ed == "NEGATIVE" then return { negative = true } end
+-- Decode one newline-delimited server line to a table (nil on failure/no json).
+local function decode(resp)
+	if not (json and resp) then return nil end
+	local ok, d = pcall(json.decode, resp)
+	if ok then return d end
 	return nil
 end
 
--- Parse the open booster pack: "openPack":{"picksLeft":N,"items":[{type,key,rank,suit},...]} or null.
-local function parse_open_pack(resp)
-	if not resp then return nil end
-	local obj = resp:match('"openPack":(%b{})')
-	if not obj then return nil end
-	local items = {}
-	local arr = obj:match('"items":(%b[])')
-	if arr then
-		for it in arr:gmatch("%b{}") do
-			items[#items + 1] = {
-				type = it:match('"type":"([^"]+)"'), -- JOKER | CONSUMABLE | CARD
-				key  = it:match('"key":"([^"]+)"'),
-				rank = it:match('"rank":"([^"]+)"'),
-				suit = it:match('"suit":"([^"]+)"'),
-			}
-		end
-	end
-	return { picksLeft = tonumber(obj:match('"picksLeft":(%-?%d+)')), items = items }
-end
-
--- Map a server pack (kind+size) to a Balatro booster center key: p_<kind>_<size>_1. The trailing variant
--- only changes the sprite, so _1 is always valid for a given kind+size (game.lua:665+).
-local function pack_center_key(it)
-	if not (it and it.kind and it.size) then return nil end
-	return "p_" .. it.kind:lower() .. "_" .. it.size:lower() .. "_1"
-end
-
--- Pull the authoritative ClientView scalars we need to render a whole blind out of a response line.
--- These are flat top-level fields of `view` (unique names), so a focused match is enough for Stage 2;
--- a full JSON decode arrives when Stage 3/4 need the nested jokers/shop/replay arrays.
+-- The structured parse: decode the line, then normalize via wire.view_of (flat scalars + hand + shop/
+-- vouchers/consumables/jokers/packs/openPack). Replaces the old per-field regex scrapers (parse_objs/
+-- parse_open_pack) and the fragile "uid":"..." hand regex that silently rotted on the int->UUID change.
 local function parse_view(resp)
-	if not resp then return nil end
-	return {
-		phase        = resp:match('"phase":"([^"]+)"'),
-		bossKey      = resp:match('"bossKey":"([^"]+)"'), -- bl_xxx (native key format) when a boss is set
-		requirement  = tonumber(resp:match('"requirement":(%-?%d+)')),
-		roundScore   = tonumber(resp:match('"roundScore":(%-?%d+)')),
-		handsLeft    = tonumber(resp:match('"handsLeft":(%-?%d+)')),
-		discardsLeft = tonumber(resp:match('"discardsLeft":(%-?%d+)')),
-		money        = tonumber(resp:match('"money":(%-?%d+)')),
-		cashReward   = tonumber(resp:match('"cashOutReward":(%-?%d+)')),   -- diag: blind reward credited
-		cashInterest = tonumber(resp:match('"cashOutInterest":(%-?%d+)')), -- diag: interest credited
-		remaining    = tonumber(resp:match('"remaining":(%-?%d+)')), -- deckStats.remaining (deck-pile count)
-		rerollCost   = tonumber(resp:match('"rerollCost":(%-?%d+)')),
-		hand         = parse_hand(resp),
-		shop         = parse_objs(resp, "shop"),         -- main slots; empty unless phase==SHOP
-		vouchers     = parse_objs(resp, "shopVouchers"), -- offered vouchers (key/name/cost)
-		consumables  = parse_objs(resp, "consumables"),  -- held consumables (key/name) -> index for use
-		jokers       = parse_objs(resp, "jokers"),       -- owned jokers (key/name) -> divergence check
-		packs        = parse_objs(resp, "packs"),        -- shop booster packs (kind/size/cost)
-		openPack     = parse_open_pack(resp),            -- the currently-open pack (nil if none)
-	}
+	local d = decode(resp)
+	return d and wire.view_of(d) or nil
+end
+
+local function parse_hand(resp)
+	local v = parse_view(resp)
+	return v and v.hand or {}
 end
 
 local function recv_until(s, pred)
@@ -229,10 +160,7 @@ local function open_run()
 	return s, parse_hand(view), parse_view(view)
 end
 
-local function card_key(c)
-	local r, su = RANK[c.rank], SUIT[c.suit]
-	return (su and r) and (su .. "_" .. r) or nil
-end
+-- card_key/edition_table/pack_center_key are aliased to wire.* at the top (pure, spec-tested).
 
 -- Give a Balatro card the identity of a server card (rank/suit + sprite via set_base) and tag it with the
 -- server's stable uid, so we can map it back to a server hand index regardless of position/reordering.
@@ -577,20 +505,26 @@ local function schedule_pack_reconcile()
 end
 
 -- Send the played indices to the server; return {score, chips, mult, accepted, rejection, handsLeft, hand}.
+-- The final count-up totals are the LAST replay entry's running totals (read structurally now, not a
+-- "take the last runningChips the regex sees" scrape).
 local function server_play(indices)
 	local resp = send_intent("playHand", indices)
-	if not resp then return nil end
+	local d = decode(resp)
+	if not d then return nil end
+	local v = wire.view_of(d)
 	local chips, mult
-	for v in resp:gmatch('"runningChips":(%-?%d+)') do chips = tonumber(v) end
-	for v in resp:gmatch('"runningMult":(%-?[%d%.]+)') do mult = tonumber(v) end
+	if type(d.replay) == "table" and #d.replay > 0 then
+		local last = d.replay[#d.replay]
+		chips, mult = last.runningChips, last.runningMult
+	end
 	return {
-		score = tonumber(resp:match('"roundScore":(%-?%d+)')),
+		score = v and v.roundScore,
 		chips = chips, mult = mult,
-		accepted = resp:match('"accepted":(%a+)') == "true",
-		rejection = resp:match('"rejection":"([^"]+)"'),
-		handsLeft = tonumber(resp:match('"handsLeft":(%d+)')),
-		hand = parse_hand(resp),
-		view = parse_view(resp),
+		accepted = d.accepted == true,
+		rejection = d.rejection,
+		handsLeft = v and v.handsLeft,
+		hand = (v and v.hand) or {},
+		view = v,
 	}
 end
 
@@ -1115,15 +1049,7 @@ local function prove_translation()
 	end
 end
 
--- Test seam: expose the pure parsers to the standalone luajit spec (test/parsers_spec.lua). Guarded by a
--- global that is NEVER set in-game, so this has ZERO effect when Balatro loads the mod.
-if rawget(_G, "BBRIDGE_EXPOSE") then
-	_G.BBRIDGE = {
-		parse_hand = parse_hand, parse_objs = parse_objs, parse_open_pack = parse_open_pack,
-		parse_view = parse_view, pack_center_key = pack_center_key, edition_table = edition_table,
-		card_key = card_key,
-	}
-end
+-- (The standalone parser spec now loads lib/wire.lua directly — no in-mod test seam needed.)
 
 local frames, done = 0, false
 pcall(function()
