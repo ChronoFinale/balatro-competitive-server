@@ -91,13 +91,57 @@ class MatchReconnectTest {
         }
     }
 
+    @Test
+    void reconnectDuringRulesetAgreementReattaches() throws Exception {
+        try (GameServer server = new GameServer(Ruleset.standard()).start(0).startTcp(0)) {
+            server.setGraceSeconds(30);
+            try (Conn a = new Conn(server.tcpPort()); Conn b1 = new Conn(server.tcpPort())) {
+                auth(a, login(server.port(), "alice"));
+                auth(b1, login(server.port(), "bob"));
+                openAgreement(a, b1); // -> AGREEING (both got lobbyReady)
+
+                b1.close(); // drop mid-agreement, before any ruleset is accepted
+
+                try (Conn b2 = new Conn(server.tcpPort())) {
+                    auth(b2, login(server.port(), "bob"));
+                    // Re-attached: the agreement menu is re-pushed so the client can resume choosing.
+                    assertThat(readUntil(b2, "lobbyReady").path("youPropose").asBoolean()).isFalse();
+                }
+            }
+        }
+    }
+
+    @Test
+    void abandoningDuringAgreementCancelsTheMatchForTheOpponent() throws Exception {
+        try (GameServer server = new GameServer(Ruleset.standard()).start(0).startTcp(0)) {
+            server.setGraceSeconds(1);
+            try (Conn a = new Conn(server.tcpPort())) {
+                Conn b = new Conn(server.tcpPort());
+                auth(a, login(server.port(), "alice"));
+                auth(b, login(server.port(), "bob"));
+                openAgreement(a, b);
+
+                b.close(); // abandon before agreeing on a ruleset
+
+                // No ranked result (no game started) — the opponent is just told it's off.
+                assertThat(readUntil(a, "matchCancelled").path("reason").asText()).isEqualTo("opponent left");
+            }
+        }
+    }
+
     // ---- match setup over TCP (lobby -> agreement -> playing) ----
 
-    private void startMatch(Conn a, Conn b) throws Exception {
+    /** Drive a lobby to the ruleset-agreement phase (both sides have the menu), stopping before agreement. */
+    private void openAgreement(Conn a, Conn b) throws Exception {
         a.send(Map.of("type", "createLobby", "seq", 1));
         String code = readUntil(a, "lobbyCreated").path("code").asText();
         b.send(Map.of("type", "joinLobby", "seq", 1, "code", code));
-        readUntil(a, "lobbyReady"); // host is told to propose
+        readUntil(a, "lobbyReady");
+        readUntil(b, "lobbyReady");
+    }
+
+    private void startMatch(Conn a, Conn b) throws Exception {
+        openAgreement(a, b);
         a.send(Map.of("type", "proposeRuleset", "seq", 2, "name", "Standard"));
         readUntil(b, "rulesetProposed");
         b.send(Map.of("type", "respondRuleset", "seq", 2, "accept", true));

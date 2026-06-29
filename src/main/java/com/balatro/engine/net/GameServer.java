@@ -582,11 +582,11 @@ public final class GameServer implements AutoCloseable {
                 conn.send(Map.of("type", "authed", "seq", seq, "playerId", playerId,
                         "rulesets", rulesetStore.names(),
                         "mmr", Math.round(mmr), "rank", rankDisplay(playerId)));
-                // Resume a LIVE MATCH: rebind the player's Side to this new socket, re-route, and
-                // re-push their match start + view. The match kept running for the opponent while
-                // they were gone; this re-attaches them in place.
+                // Resume a LIVE MATCH: rebind the player's Side to this new socket, re-route, and re-push
+                // the state they need (match start + view if playing, or the ruleset-agreement menu if still
+                // agreeing). The match kept its place for the opponent; this re-attaches them in place.
                 Match liveMatch = matchByPlayer.get(playerId);
-                if (liveMatch != null && liveMatch.phase() == Match.Phase.PLAYING) {
+                if (liveMatch != null && liveMatch.isResumable()) {
                     liveMatch.rebindSession(playerId, conn.sessionId());
                     matchBySession.put(conn.sessionId(), liveMatch);
                     liveMatch.resendStateTo(playerId);

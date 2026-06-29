@@ -420,23 +420,37 @@ public final class Match {
         return true;
     }
 
-    /** Re-push a reconnected player their match start + current authoritative view, so the client
-     *  re-renders exactly the live state. No-op unless the match is in progress. */
+    /** Re-push a reconnected player the state they need to resume: their match start + view if PLAYING, or
+     *  the ruleset-agreement menu (+ any pending proposal) if still AGREEING. No-op otherwise. */
     public synchronized void resendStateTo(String playerId) {
-        if (phase != Phase.PLAYING) return;
         Side me = sideForPlayer(playerId);
         if (me == null) return;
-        sendStart(me, (me == host) ? guest : host);
+        if (phase == Phase.PLAYING) {
+            sendStart(me, (me == host) ? guest : host);
+        } else if (phase == Phase.AGREEING) {
+            send(me, map("type", "lobbyReady", "youPropose", me == host, "rulesets", rulesets.all()));
+            if (proposed != null && me == guest) send(me, map("type", "rulesetProposed", "ruleset", proposed));
+        }
     }
 
-    /** A player abandoned the match (grace window elapsed without a reconnect): the opponent wins.
-     *  No-op unless the match is in progress. */
+    /** Whether a reconnecting player can still resume this match (in progress or mid-agreement). */
+    public boolean isResumable() {
+        return phase == Phase.PLAYING || phase == Phase.AGREEING;
+    }
+
+    /** A player abandoned the match (grace elapsed without a reconnect). If the game was underway the
+     *  opponent wins (a ranked result); if it hadn't started yet (still agreeing on a ruleset) the match is
+     *  just cancelled — the opponent is told, with no ranked result. No-op once finished. */
     public synchronized void forfeit(String playerId) {
-        if (phase != Phase.PLAYING) return;
         Side leaver = sideForPlayer(playerId);
         if (leaver == null) return;
         Side opp = (leaver == host) ? guest : host;
-        if (opp != null) finish(opp.playerId);
+        if (phase == Phase.PLAYING) {
+            if (opp != null) finish(opp.playerId);
+        } else if (phase == Phase.AGREEING || phase == Phase.WAITING) {
+            phase = Phase.FINISHED; // no game started -> cancel, no ranked result
+            if (opp != null) send(opp, map("type", "matchCancelled", "reason", "opponent left"));
+        }
     }
 
     private static Map<String, Object> map(Object... kv) {
