@@ -3905,15 +3905,9 @@
           {
             "type" : "create",
             "spec" : {
+              "type" : "consumable",
               "kind" : "TAROT",
-              "count" : 1,
-              "rarity" : null,
-              "enhancement" : null,
-              "sealStrategy" : "NONE",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "count" : 1
             }
           }
         ]
@@ -3946,15 +3940,9 @@
           {
             "type" : "create",
             "spec" : {
+              "type" : "consumable",
               "kind" : "TAROT",
-              "count" : 1,
-              "rarity" : null,
-              "enhancement" : null,
-              "sealStrategy" : "NONE",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "count" : 1
             }
           }
         ]
@@ -3998,15 +3986,9 @@
           {
             "type" : "create",
             "spec" : {
+              "type" : "consumable",
               "kind" : "TAROT",
-              "count" : 1,
-              "rarity" : null,
-              "enhancement" : null,
-              "sealStrategy" : "NONE",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "count" : 1
             }
           }
         ]
@@ -4061,15 +4043,9 @@
           {
             "type" : "create",
             "spec" : {
+              "type" : "consumable",
               "kind" : "TAROT",
-              "count" : 1,
-              "rarity" : null,
-              "enhancement" : null,
-              "sealStrategy" : "NONE",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "count" : 1
             }
           }
         ]
@@ -4103,15 +4079,9 @@
           {
             "type" : "create",
             "spec" : {
+              "type" : "consumable",
               "kind" : "SPECTRAL",
-              "count" : 1,
-              "rarity" : null,
-              "enhancement" : null,
-              "sealStrategy" : "NONE",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "count" : 1
             }
           }
         ]
@@ -4144,15 +4114,10 @@
           {
             "type" : "create",
             "spec" : {
-              "kind" : "PLAYING_CARD",
+              "type" : "card",
               "count" : 1,
-              "rarity" : null,
               "enhancement" : "STONE",
-              "sealStrategy" : "NONE",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "sealStrategy" : "NONE"
             }
           }
         ]
@@ -4185,11 +4150,9 @@
           {
             "type" : "create",
             "spec" : {
-              "kind" : "JOKER",
+              "type" : "joker",
               "count" : 2,
               "rarity" : "Common",
-              "enhancement" : null,
-              "sealStrategy" : "NONE",
               "stream" : "CREATE",
               "dedup" : true,
               "destination" : "PLAYER",
@@ -4244,15 +4207,9 @@
           {
             "type" : "create",
             "spec" : {
+              "type" : "consumable",
               "kind" : "SPECTRAL",
-              "count" : 1,
-              "rarity" : null,
-              "enhancement" : null,
-              "sealStrategy" : "NONE",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "count" : 1
             }
           }
         ]
@@ -4785,15 +4742,10 @@
           {
             "type" : "create",
             "spec" : {
-              "kind" : "PLAYING_CARD",
+              "type" : "card",
               "count" : 1,
-              "rarity" : null,
               "enhancement" : null,
-              "sealStrategy" : "RANDOM",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "sealStrategy" : "RANDOM"
             }
           }
         ]
@@ -5031,15 +4983,9 @@
           {
             "type" : "create",
             "spec" : {
+              "type" : "consumable",
               "kind" : "TAROT",
-              "count" : 1,
-              "rarity" : null,
-              "enhancement" : null,
-              "sealStrategy" : "NONE",
-              "stream" : "CREATE",
-              "dedup" : true,
-              "destination" : "PLAYER",
-              "edition" : "NONE"
+              "count" : 1
             }
           }
         ]

@@ -175,15 +175,9 @@
               {
                 "type" : "create",
                 "spec" : {
+                  "type" : "consumable",
                   "kind" : "SPECTRAL",
-                  "count" : 1,
-                  "rarity" : null,
-                  "enhancement" : null,
-                  "sealStrategy" : "NONE",
-                  "stream" : "CREATE",
-                  "dedup" : true,
-                  "destination" : "PLAYER",
-                  "edition" : "NONE"
+                  "count" : 1
                 }
               }
             ]

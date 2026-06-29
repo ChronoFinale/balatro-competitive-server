@@ -33,19 +33,18 @@ public final class Creation {
 
     public static void apply(RunState run, CreateSpec spec, QueueSet queues) {
         if (spec == null || run == null) return;
-        switch (spec.kind()) {
-            case TAROT, PLANET, SPECTRAL -> addConsumables(run, spec, queues);
-            case JOKER -> addJokers(run, spec, queues);
-            case PLAYING_CARD -> addCards(run, spec, queues);
+        switch (spec) {
+            case CreateSpec.Consumable c -> addConsumables(run, c, queues);
+            case CreateSpec.Joker j -> addJokers(run, j, queues);
+            case CreateSpec.Card cd -> addCards(run, cd, queues);
         }
     }
 
-    private static void addConsumables(RunState run, CreateSpec spec, QueueSet queues) {
+    private static void addConsumables(RunState run, CreateSpec.Consumable spec, QueueSet queues) {
         List<String> pool = switch (spec.kind()) {
             case TAROT -> TarotCatalog.tarotKeys();
             case SPECTRAL -> TarotCatalog.spectralKeys();
             case PLANET -> PlanetCatalog.keys();
-            default -> List.of();
         };
         if (pool.isEmpty()) return;
         for (int i = 0; i < spec.count(); i++) {
@@ -54,7 +53,7 @@ public final class Creation {
         }
     }
 
-    private static void addJokers(RunState run, CreateSpec spec, QueueSet queues) {
+    private static void addJokers(RunState run, CreateSpec.Joker spec, QueueSet queues) {
         // The Wraith (Rare) / The Soul (Legendary) draw from the FIXED rarity pool and skip jokers
         // you already hold — BMP's get_current_pool marks owned keys UNAVAILABLE (unless Showman) and
         // the draw advances past them. Mirrors Shop.drawJoker; same fixed-modulus + nextWhere shape.
@@ -94,7 +93,7 @@ public final class Creation {
     // Seals a Certificate-style created card may roll (excludes NONE).
     private static final Seal[] RANDOM_SEALS = { Seal.GOLD, Seal.RED, Seal.BLUE, Seal.PURPLE };
 
-    private static void addCards(RunState run, CreateSpec spec, QueueSet queues) {
+    private static void addCards(RunState run, CreateSpec.Card spec, QueueSet queues) {
         Rank[] ranks = Rank.values();
         Suit[] suits = Suit.values();
         for (int i = 0; i < spec.count(); i++) {

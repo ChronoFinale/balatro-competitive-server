@@ -4,91 +4,80 @@ import com.balatro.engine.card.Edition;
 import com.balatro.engine.card.Enhancement;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * A "create" instruction: a consumable (8 Ball, Cartomancer, Vagabond, Superposition, Seance), a joker
- * (Riff Raff, the Top-Up / Rare / editioned tags), or a playing card added to the deck (Marble,
- * Certificate). One spec for every creator — the distinctions that used to be baked into per-source verb
- * names (GrantJokers / CreateShopJoker) are explicit fields here: where it goes ({@code destination}),
- * which RNG queue it draws from ({@code stream}), whether it skips already-owned ({@code dedup}), and any
- * forced {@code edition}. Applied server-side only and never during preview; random choices come from
- * game-long queues so both players in a match create the same sequence.
- *
- * @param rarity       for {@code JOKER}: the rarity to draw from (e.g. "Common"); null = any
- * @param enhancement  for {@code PLAYING_CARD}: the enhancement to give it (e.g. STONE); null = none
- * @param sealStrategy for {@code PLAYING_CARD}: whether the card gets no seal or a random one (Certificate)
- * @param stream       for {@code JOKER}: which game-long queue to draw from
- * @param dedup        for {@code JOKER}: skip already-owned (BMP get_current_pool); Top-Up opts out
- * @param destination  where the created thing lands: the PLAYER's slots, or the next SHOP (free-joker tags)
- * @param edition      for a SHOP JOKER: a forced edition (Foil/Holo/Poly/Negative tags); NONE = by rarity
+ * A "create" instruction — a SEALED hierarchy with one variant per kind of thing created, so a spec carries
+ * only the fields that actually apply to it (no more JOKER-only rarity/stream/dedup sitting null on a
+ * playing-card create — the kind-conditional-fields smell). {@link Consumable} = a tarot/planet/spectral;
+ * {@link Joker} = a joker (player slots or the next shop); {@link Card} = a playing card added to the deck.
+ * Applied server-side only, never in preview; random choices come from game-long queues so both players in a
+ * match create the same sequence.
  */
-public record CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement,
-                         SealStrategy sealStrategy, JokerStream stream, boolean dedup,
-                         Destination destination, Edition edition) {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = CreateSpec.Consumable.class, name = "consumable"),
+    @JsonSubTypes.Type(value = CreateSpec.Joker.class, name = "joker"),
+    @JsonSubTypes.Type(value = CreateSpec.Card.class, name = "card"),
+})
+public sealed interface CreateSpec permits CreateSpec.Consumable, CreateSpec.Joker, CreateSpec.Card {
 
-    public enum Kind { TAROT, PLANET, SPECTRAL, JOKER, PLAYING_CARD }
+    /** How many to create. */
+    int count();
 
-    /** Where a created thing lands. PLAYER = straight into the run's slots (consumable grants, Top-Up,
-     *  Riff-Raff); SHOP = a free item in the next shop (Rare/Uncommon/editioned skip tags). */
-    public enum Destination { PLAYER, SHOP }
+    /** Which consumable a {@link Consumable} create makes. */
+    enum Kind { TAROT, PLANET, SPECTRAL }
 
-    /** Which game-long queue a {@code JOKER} create draws from. Distinct streams stay uncorrelated by
-     *  design (BMP keeps tag-grants and consumable-grants on separate queues), so the stream is part of
-     *  the spec, not baked into a per-source verb. {@code CREATE} = {@code create:joker:<rarity>} (The
-     *  Soul/Wraith/Riff-Raff); {@code TOPUP} = the {@code tag:topup} queue (Top-Up tag); {@code TAG_SHOP}
-     *  = the {@code tag:joker:<rarity>} queue (Rare/Uncommon free-joker tags). */
-    public enum JokerStream { CREATE, TOPUP, TAG_SHOP }
+    /** Where a {@link Joker} create lands: the player's slots, or a free item in the next shop. */
+    enum Destination { PLAYER, SHOP }
 
-    /** Which seal a created PLAYING_CARD gets: none, or a random one (Certificate). (A fixed-seal create
-     *  would add a {@code Fixed(Seal)} case — no content needs one today, so it isn't modeled.) */
-    public enum SealStrategy { NONE, RANDOM }
+    /** Which game-long queue a {@link Joker} create draws from — distinct streams stay uncorrelated (BMP
+     *  keeps tag-grants and consumable-grants on separate queues). CREATE = create:joker:&lt;rarity&gt;
+     *  (Soul/Wraith/Riff-Raff); TOPUP = tag:topup (Top-Up); TAG_SHOP = tag:joker:&lt;rarity&gt; (free-joker tags). */
+    enum JokerStream { CREATE, TOPUP, TAG_SHOP }
 
-    /** Compact canonical: omitted stream/destination/edition/sealStrategy fall back to their defaults. */
-    public CreateSpec {
-        if (stream == null) stream = JokerStream.CREATE;
-        if (destination == null) destination = Destination.PLAYER;
-        if (edition == null) edition = Edition.NONE;
-        if (sealStrategy == null) sealStrategy = SealStrategy.NONE;
+    /** Which seal a created {@link Card} gets: none, or a random one (Certificate). */
+    enum SealStrategy { NONE, RANDOM }
+
+    /** A tarot / planet / spectral (8 Ball, Cartomancer, Seance, Vagabond, Superposition). */
+    record Consumable(Kind kind, int count) implements CreateSpec {
+        public Consumable(Kind kind) { this(kind, 1); }
     }
 
-    /** JSON entry point: {@code dedup} is boxed so "omitted" (null) coerces to true — BMP's
-     *  get_current_pool skips already-owned by default; only Top-Up opts out. Delegates to canonical. */
-    @JsonCreator
-    public static CreateSpec fromJson(@JsonProperty("kind") Kind kind, @JsonProperty("count") int count,
-            @JsonProperty("rarity") Rarity rarity, @JsonProperty("enhancement") Enhancement enhancement,
-            @JsonProperty("sealStrategy") SealStrategy sealStrategy,
-            @JsonProperty("stream") JokerStream stream, @JsonProperty("dedup") Boolean dedup,
-            @JsonProperty("destination") Destination destination, @JsonProperty("edition") Edition edition) {
-        return new CreateSpec(kind, count, rarity, enhancement, sealStrategy,
-                stream, dedup == null || dedup, destination, edition);
+    /** A joker — into the player's slots (Riff-Raff, Top-Up) or the next shop (Rare/Uncommon/editioned tags). */
+    record Joker(int count, Rarity rarity, JokerStream stream, boolean dedup,
+                 Destination destination, Edition edition) implements CreateSpec {
+        public Joker {
+            if (stream == null) stream = JokerStream.CREATE;
+            if (destination == null) destination = Destination.PLAYER;
+            if (edition == null) edition = Edition.NONE;
+        }
+
+        /** JSON: {@code dedup} omitted -> true (BMP get_current_pool skips already-owned; Top-Up opts out). */
+        @JsonCreator
+        static Joker fromJson(@JsonProperty("count") int count, @JsonProperty("rarity") Rarity rarity,
+                @JsonProperty("stream") JokerStream stream, @JsonProperty("dedup") Boolean dedup,
+                @JsonProperty("destination") Destination destination, @JsonProperty("edition") Edition edition) {
+            return new Joker(count, rarity, stream, dedup == null || dedup, destination, edition);
+        }
+
+        /** A joker straight to the player (Riff-Raff: by rarity, dedup; Top-Up: TOPUP stream, no dedup). */
+        public static Joker forPlayer(int count, Rarity rarity, JokerStream stream, boolean dedup) {
+            return new Joker(count, rarity, stream, dedup, Destination.PLAYER, Edition.NONE);
+        }
+
+        /** A free joker in the next shop — by {@code rarity} (Rare/Uncommon tags), or a forced {@code edition}
+         *  (Foil/Holo/Poly/Negative tags; rarity null). */
+        public static Joker forShop(Rarity rarity, Edition edition) {
+            return new Joker(1, rarity, JokerStream.TAG_SHOP, false, Destination.SHOP, edition);
+        }
     }
 
-    public CreateSpec(Kind kind) {
-        this(kind, 1, null, null, SealStrategy.NONE, null, true, null, null);
-    }
-
-    public CreateSpec(Kind kind, int count) {
-        this(kind, count, null, null, SealStrategy.NONE, null, true, null, null);
-    }
-
-    public CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement) {
-        this(kind, count, rarity, enhancement, SealStrategy.NONE, null, true, null, null);
-    }
-
-    public CreateSpec(Kind kind, int count, Rarity rarity, Enhancement enhancement, SealStrategy sealStrategy) {
-        this(kind, count, rarity, enhancement, sealStrategy, null, true, null, null);
-    }
-
-    /** A JOKER grant straight to the player with explicit stream + dedup (the Top-Up tag: TOPUP, no dedup). */
-    public static CreateSpec jokers(int count, Rarity rarity, JokerStream stream, boolean dedup) {
-        return new CreateSpec(Kind.JOKER, count, rarity, null, SealStrategy.NONE, stream, dedup,
-                Destination.PLAYER, Edition.NONE);
-    }
-
-    /** A free JOKER in the next shop — by {@code rarity} from the tag:joker queue (Rare/Uncommon tags), or
-     *  a random one with a forced {@code edition} (Foil/Holo/Poly/Negative tags; rarity null). */
-    public static CreateSpec shopJoker(Rarity rarity, Edition edition) {
-        return new CreateSpec(Kind.JOKER, 1, rarity, null, SealStrategy.NONE,
-                JokerStream.TAG_SHOP, false, Destination.SHOP, edition);
+    /** A playing card added to the deck (Marble: a Stone card; Certificate: a card with a random seal). */
+    record Card(int count, Enhancement enhancement, SealStrategy sealStrategy) implements CreateSpec {
+        public Card {
+            if (sealStrategy == null) sealStrategy = SealStrategy.NONE;
+        }
     }
 }

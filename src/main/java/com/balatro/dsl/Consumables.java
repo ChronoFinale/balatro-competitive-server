@@ -130,16 +130,16 @@ public final class Consumables {
     // --- generative verbs (accumulate into one Generate) ---
 
     /** Create {@code n} random Tarots (Emperor). */
-    public Consumables createTarots(int n) { this.create = new CreateSpec(CreateSpec.Kind.TAROT, n); return this; }
+    public Consumables createTarots(int n) { this.create = new CreateSpec.Consumable(CreateSpec.Kind.TAROT, n); return this; }
 
     /** Create {@code n} random Planets (High Priestess). */
-    public Consumables createPlanets(int n) { this.create = new CreateSpec(CreateSpec.Kind.PLANET, n); return this; }
+    public Consumables createPlanets(int n) { this.create = new CreateSpec.Consumable(CreateSpec.Kind.PLANET, n); return this; }
 
     /** Create one random Joker from any rarity (Judgement). */
-    public Consumables createJoker() { this.create = new CreateSpec(CreateSpec.Kind.JOKER, 1); return this; }
+    public Consumables createJoker() { this.create = CreateSpec.Joker.forPlayer(1, null, CreateSpec.JokerStream.CREATE, true); return this; }
 
     /** Create one random Joker of a fixed {@code rarity} (The Soul = Legendary, Wraith = Rare). */
-    public Consumables createJoker(com.balatro.grammar.Rarity rarity) { this.create = new CreateSpec(CreateSpec.Kind.JOKER, 1, rarity, null); return this; }
+    public Consumables createJoker(com.balatro.grammar.Rarity rarity) { this.create = CreateSpec.Joker.forPlayer(1, rarity, CreateSpec.JokerStream.CREATE, true); return this; }
 
     /** Destroy {@code n} random cards in hand (Immolate / Familiar / Grim). */
     public Consumables destroyInHand(int n) { this.destroyInHand = n; return this; }

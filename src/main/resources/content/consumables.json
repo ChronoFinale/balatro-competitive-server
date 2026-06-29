@@ -577,15 +577,9 @@
       {
         "type" : "create",
         "spec" : {
+          "type" : "consumable",
           "kind" : "TAROT",
-          "count" : 2,
-          "rarity" : null,
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
-          "stream" : "CREATE",
-          "dedup" : true,
-          "destination" : "PLAYER",
-          "edition" : "NONE"
+          "count" : 2
         }
       }
     ]
@@ -600,15 +594,9 @@
       {
         "type" : "create",
         "spec" : {
+          "type" : "consumable",
           "kind" : "PLANET",
-          "count" : 2,
-          "rarity" : null,
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
-          "stream" : "CREATE",
-          "dedup" : true,
-          "destination" : "PLAYER",
-          "edition" : "NONE"
+          "count" : 2
         }
       }
     ]
@@ -623,11 +611,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : null,
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "CREATE",
           "dedup" : true,
           "destination" : "PLAYER",
@@ -700,11 +686,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : "Legendary",
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "CREATE",
           "dedup" : true,
           "destination" : "PLAYER",
@@ -723,11 +707,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : "Rare",
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "CREATE",
           "dedup" : true,
           "destination" : "PLAYER",

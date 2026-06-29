@@ -33,9 +33,8 @@ class ConsumablesBuilderTest {
         // Wraith: create a Rare Joker AND set money to 0 -> [Create, AdjustMoney(SET, 0)].
         Consumable wraith = Consumables.spectral("c_w", "W").desc("d").createJoker(com.balatro.grammar.Rarity.RARE).setMoney(0).build();
         assertThat(wraith.effects()).hasSize(2);
-        Effect.Create create = (Effect.Create) wraith.effects().get(0);
-        assertThat(create.spec().kind()).isEqualTo(CreateSpec.Kind.JOKER);
-        assertThat(create.spec().rarity()).isEqualTo(com.balatro.grammar.Rarity.RARE);
+        CreateSpec.Joker create = (CreateSpec.Joker) ((Effect.Create) wraith.effects().get(0)).spec();
+        assertThat(create.rarity()).isEqualTo(com.balatro.grammar.Rarity.RARE);
         Effect.Write money = (Effect.Write) wraith.effects().get(1);          // money is a Modify(MONEY) write now
         assertThat(money.mod().variable()).isEqualTo(com.balatro.grammar.Value.Var.MONEY);
         assertThat(money.mod().op()).isEqualTo(Effect.Operation.SET);

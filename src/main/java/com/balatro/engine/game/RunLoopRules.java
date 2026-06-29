@@ -147,13 +147,12 @@ final class RunLoopRules {
             }
             case Effect.AddPack ap -> // pack tags (Charm/Meteor/Buffoon/Standard/Ethereal)
                 r.shopPacks.add(new PackCatalog.Pack(PackCatalog.Kind.valueOf(ap.kind().name()), PackCatalog.Size.valueOf(ap.size().name())));
-            case Effect.Create cr -> { // run-loop create: destination decides where it lands
-                CreateSpec s = cr.spec();
-                if (s.destination() == CreateSpec.Destination.SHOP) { // free-joker tags into the next shop
-                    if (s.edition() == Edition.NONE) RunTags.addFreeJoker(r, s.rarity()); // Rare/Uncommon by rarity
-                    else RunTags.addFreeEditionedJoker(r, s.edition());                   // Foil/Holo/Poly/Negative
+            case Effect.Create cr -> { // run-loop create: a SHOP-destination joker lands in the next shop
+                if (cr.spec() instanceof CreateSpec.Joker j && j.destination() == CreateSpec.Destination.SHOP) {
+                    if (j.edition() == Edition.NONE) RunTags.addFreeJoker(r, j.rarity()); // Rare/Uncommon by rarity
+                    else RunTags.addFreeEditionedJoker(r, j.edition());                   // Foil/Holo/Poly/Negative
                 } else { // PLAYER: jokers/consumables/cards straight into the run's slots (Top-Up tag)
-                    r.apply(new com.balatro.engine.exec.Command.Create(s));
+                    r.apply(new com.balatro.engine.exec.Command.Create(cr.spec()));
                 }
             }
             case Effect.LevelHands lh -> { // Orbital tag (MOST_PLAYED) / The Arm (PLAYED, -1 = delevel)

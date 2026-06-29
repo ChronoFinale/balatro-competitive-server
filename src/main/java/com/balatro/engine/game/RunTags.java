@@ -118,7 +118,7 @@ final class RunTags {
     static void applyPurpleSeals(Run r, int count) {
         for (int i = 0; i < count; i++) {
             r.apply(new com.balatro.engine.exec.Command.Create(
-                    new com.balatro.grammar.CreateSpec(com.balatro.grammar.CreateSpec.Kind.TAROT)));
+                    new com.balatro.grammar.CreateSpec.Consumable(com.balatro.grammar.CreateSpec.Kind.TAROT)));
         }
     }
 }

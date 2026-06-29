@@ -9,11 +9,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : "Uncommon",
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "TAG_SHOP",
           "dedup" : false,
           "destination" : "SHOP",
@@ -32,11 +30,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : "Rare",
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "TAG_SHOP",
           "dedup" : false,
           "destination" : "SHOP",
@@ -55,11 +51,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : null,
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "TAG_SHOP",
           "dedup" : false,
           "destination" : "SHOP",
@@ -78,11 +72,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : null,
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "TAG_SHOP",
           "dedup" : false,
           "destination" : "SHOP",
@@ -101,11 +93,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : null,
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "TAG_SHOP",
           "dedup" : false,
           "destination" : "SHOP",
@@ -124,11 +114,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 1,
           "rarity" : null,
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "TAG_SHOP",
           "dedup" : false,
           "destination" : "SHOP",
@@ -422,11 +410,9 @@
       {
         "type" : "create",
         "spec" : {
-          "kind" : "JOKER",
+          "type" : "joker",
           "count" : 2,
           "rarity" : "Common",
-          "enhancement" : null,
-          "sealStrategy" : "NONE",
           "stream" : "TOPUP",
           "dedup" : false,
           "destination" : "PLAYER",

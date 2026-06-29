@@ -283,7 +283,7 @@ public final class Jokers {
         public Jokers create(CreateSpec spec) { return effect(new Effect.Create(spec)); }
 
         /** Create one of {@code kind} (the common single-card case). */
-        public Jokers create(CreateSpec.Kind kind) { return effect(new Effect.Create(new CreateSpec(kind))); }
+        public Jokers create(CreateSpec.Kind kind) { return effect(new Effect.Create(new CreateSpec.Consumable(kind))); }
 
         /** Permanently mutate each matching card — enhance/convert/add-chips (Hiker, Midas Mask, Vampire). */
         public Jokers mutateCard(CardMod mod) { return effect(new Effect.MutateCard(new Selector.Focus(), mod)); }

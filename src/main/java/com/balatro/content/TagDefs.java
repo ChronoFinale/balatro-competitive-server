@@ -54,7 +54,7 @@ public final class TagDefs {
         // Top-Up: create up to 2 free Common Jokers for the player (real game: spawn_jokers = 2). One
         // Create verb — a JOKER spec drawn from the TOPUP queue with no dedup (the spawn order is raw).
         add(t, "tag_top_up", "Top-Up Tag", false, Timing.IMMEDIATE,
-                new Effect.Create(com.balatro.grammar.CreateSpec.jokers(
+                new Effect.Create(com.balatro.grammar.CreateSpec.Joker.forPlayer(
                         2, com.balatro.grammar.Rarity.COMMON, com.balatro.grammar.CreateSpec.JokerStream.TOPUP, false)));
         return t;
     }
@@ -71,13 +71,13 @@ public final class TagDefs {
 
     /** A free Joker of a rarity in the next shop (Rare/Uncommon) — Create into the SHOP, by rarity. */
     private static Effect joker(com.balatro.grammar.Rarity rarity) {
-        return new Effect.Create(com.balatro.grammar.CreateSpec.shopJoker(
+        return new Effect.Create(com.balatro.grammar.CreateSpec.Joker.forShop(
                 rarity, com.balatro.engine.card.Edition.NONE));
     }
 
     /** A free random Joker with an edition in the next shop (Foil/Holo/Polychrome/Negative). */
     private static Effect editioned(com.balatro.engine.card.Edition ed) {
-        return new Effect.Create(com.balatro.grammar.CreateSpec.shopJoker(null, ed));
+        return new Effect.Create(com.balatro.grammar.CreateSpec.Joker.forShop(null, ed));
     }
 
     private static void add(List<Tag> t, String key, String name, boolean ante1, Timing timing, Effect... effects) {

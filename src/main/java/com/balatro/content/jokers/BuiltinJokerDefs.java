@@ -460,13 +460,13 @@ public final class BuiltinJokerDefs {
                 // --- batch 11: joker / playing-card creation + card destruction ---
                 Jokers.of("j_marble", "Marble Joker")
                         .on(Trigger.BLIND_SELECTED)
-                        .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, Enhancement.STONE)).build(),
+                        .create(new CreateSpec.Card(1, Enhancement.STONE, CreateSpec.SealStrategy.NONE)).build(),
                 Jokers.of("j_riff_raff", "Riff-Raff")
                         .on(Trigger.BLIND_SELECTED)
-                        .create(new CreateSpec(CreateSpec.Kind.JOKER, 2, Rarity.COMMON, null)).build(),
+                        .create(CreateSpec.Joker.forPlayer(2, Rarity.COMMON, CreateSpec.JokerStream.CREATE, true)).build(),
                 Jokers.of("j_sixth_sense", "Sixth Sense")
                         .forEachScored(Cond.all(playedHand().sizeExactly(1), card().rankBetween(6, 6)))
-                        .effect(new Effect.Destroy(new Selector.Focus()), new Effect.Create(new CreateSpec(CreateSpec.Kind.SPECTRAL))).build(),
+                        .effect(new Effect.Destroy(new Selector.Focus()), new Effect.Create(new CreateSpec.Consumable(CreateSpec.Kind.SPECTRAL))).build(),
 
                 // --- batch 12: hand level-up ---
                 Jokers.of("j_space", "Space Joker")
@@ -505,7 +505,7 @@ public final class BuiltinJokerDefs {
                         .whenHand().multiply(MULT, Val.state("x", 1.0, 1.0)).build(),
                 Jokers.of("j_certificate", "Certificate")
                         .on(Trigger.FIRST_HAND_DRAWN)
-                        .create(new CreateSpec(CreateSpec.Kind.PLAYING_CARD, 1, null, null, CreateSpec.SealStrategy.RANDOM)).build(),
+                        .create(new CreateSpec.Card(1, null, CreateSpec.SealStrategy.RANDOM)).build(),
 
                 // --- batch 18: decay jokers (run-long counters + clamped values) ---
                 Jokers.of("j_ice_cream", "Ice Cream")
