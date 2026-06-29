@@ -15,8 +15,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredSuit",
-          "suit" : "DIAMONDS",
-          "targetKey" : null
+          "suit" : "DIAMONDS"
         },
         "effects" : [
           {
@@ -56,8 +55,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredSuit",
-          "suit" : "HEARTS",
-          "targetKey" : null
+          "suit" : "HEARTS"
         },
         "effects" : [
           {
@@ -97,8 +95,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredSuit",
-          "suit" : "SPADES",
-          "targetKey" : null
+          "suit" : "SPADES"
         },
         "effects" : [
           {
@@ -138,8 +135,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredSuit",
-          "suit" : "CLUBS",
-          "targetKey" : null
+          "suit" : "CLUBS"
         },
         "effects" : [
           {
@@ -1803,8 +1799,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredSuit",
-          "suit" : "SPADES",
-          "targetKey" : null
+          "suit" : "SPADES"
         },
         "effects" : [
           {
@@ -1841,8 +1836,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredSuit",
-          "suit" : "CLUBS",
-          "targetKey" : null
+          "suit" : "CLUBS"
         },
         "effects" : [
           {
@@ -2085,8 +2079,7 @@
           "all" : [
             {
               "type" : "scoredSuit",
-              "suit" : "HEARTS",
-              "targetKey" : null
+              "suit" : "HEARTS"
             },
             {
               "type" : "chance",
@@ -2466,8 +2459,7 @@
         "when" : "ON_SCORED",
         "condition" : {
           "type" : "scoredSuit",
-          "suit" : "DIAMONDS",
-          "targetKey" : null
+          "suit" : "DIAMONDS"
         },
         "effects" : [
           {
@@ -4095,8 +4087,7 @@
         "when" : "JOKER_MAIN",
         "condition" : {
           "type" : "handIs",
-          "hand" : "STRAIGHT_FLUSH",
-          "targetKey" : null
+          "hand" : "STRAIGHT_FLUSH"
         },
         "effects" : [
           {
@@ -6072,8 +6063,7 @@
               "type" : "count",
               "source" : "EVENT",
               "match" : {
-                "type" : "scoredRankIsTarget",
-                "key" : "rebateRankId"
+                "type" : "scoredRankIsTarget"
               },
               "base" : 0.0,
               "scale" : 5.0
@@ -6128,9 +6118,7 @@
             "op" : "ADD",
             "by" : 3.0,
             "perCard" : {
-              "type" : "scoredSuit",
-              "suit" : null,
-              "targetKey" : "castleSuit"
+              "type" : "scoredSuitIsTarget"
             },
             "scope" : "SELF"
           }
@@ -6187,9 +6175,7 @@
       {
         "when" : "JOKER_MAIN",
         "condition" : {
-          "type" : "handIs",
-          "hand" : null,
-          "targetKey" : "todoHand"
+          "type" : "handIsTarget"
         },
         "effects" : [
           {
@@ -6228,13 +6214,10 @@
           "type" : "and",
           "all" : [
             {
-              "type" : "scoredRankIsTarget",
-              "key" : "idolRankId"
+              "type" : "scoredRankIsTarget"
             },
             {
-              "type" : "scoredSuit",
-              "suit" : null,
-              "targetKey" : "idolSuit"
+              "type" : "scoredSuitIsTarget"
             }
           ]
         },
@@ -6272,9 +6255,7 @@
       {
         "when" : "ON_SCORED",
         "condition" : {
-          "type" : "scoredSuit",
-          "suit" : null,
-          "targetKey" : "ancientSuit"
+          "type" : "scoredSuitIsTarget"
         },
         "effects" : [
           {

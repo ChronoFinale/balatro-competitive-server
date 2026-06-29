@@ -1,10 +1,10 @@
 {
-  "version" : "7c1ec2a6e4bd4977",
+  "version" : "f823324921510898",
   "files" : [
     {
       "path" : "rulesets/vanilla.json",
-      "sha256" : "93846491d7e63d6fcc39b58caf0e42cb703fb35d55a8619d84c6a07cbfebf3e4",
-      "bytes" : 145420
+      "sha256" : "23c4c21e70a69b4803fe214c3ff4283f3f048d75a1ad6ac74ab199c0101e2681",
+      "bytes" : 144835
     },
     {
       "path" : "rulesets/bmp-0.4.2-ranked.json",
@@ -18,8 +18,8 @@
     },
     {
       "path" : "content/bosses.json",
-      "sha256" : "5f4f8fb07495e778ebfade0809a779483ccf9f0ad5c7001be3c2fb148e1e717a",
-      "bytes" : 13652
+      "sha256" : "7d955d4a6b0250fc867c0f897fce19930208f14d015ba75e652f9a895e0c85a6",
+      "bytes" : 13548
     },
     {
       "path" : "content/tags.json",

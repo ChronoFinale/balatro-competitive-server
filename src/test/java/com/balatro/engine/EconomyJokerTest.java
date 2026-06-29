@@ -46,7 +46,8 @@ class EconomyJokerTest {
     void todoListPaysWhenTheRoundHandIsPlayed() {
         RunState run = new RunState();
         run.money = 0;
-        run.roundTargets.put("todoHand", com.balatro.engine.hand.HandType.PAIR);
+        run.roundTargets.put(com.balatro.engine.state.RoundTargets.key("j_todo_list",
+                com.balatro.engine.state.RoundTargets.Domain.HAND_TYPE), com.balatro.engine.hand.HandType.PAIR);
         run.queues = new com.balatro.engine.rng.QueueSet(rng);
         run.addJoker(JokerLibrary.create("j_todo_list"));
         // Play a pair (matches the round hand) -> $4.
@@ -59,7 +60,8 @@ class EconomyJokerTest {
     void mailInRebatePaysPerDiscardedCardOfTheRoundRank() {
         RunState run = new RunState();
         run.money = 0;
-        run.roundTargets.put("rebateRankId", 9); // nines this round
+        run.roundTargets.put(com.balatro.engine.state.RoundTargets.key("j_mail_in_rebate",
+                com.balatro.engine.state.RoundTargets.Domain.RANK), 9); // nines this round
         run.queues = new com.balatro.engine.rng.QueueSet(rng);
         run.addJoker(JokerLibrary.create("j_mail_in_rebate"));
         // Discard two 9s and a King -> $5 x 2 = $10 (real Balatro pays $5/card).

@@ -40,6 +40,8 @@ import java.util.List;
     @JsonSubTypes.Type(value = Condition.HandPlayedThisRound.class, name = "handPlayedThisRound"),
     @JsonSubTypes.Type(value = Condition.OtherJokerRarity.class, name = "otherJokerRarity"),
     @JsonSubTypes.Type(value = Condition.ScoredRankIsTarget.class, name = "scoredRankIsTarget"),
+    @JsonSubTypes.Type(value = Condition.ScoredSuitIsTarget.class, name = "scoredSuitIsTarget"),
+    @JsonSubTypes.Type(value = Condition.HandIsTarget.class, name = "handIsTarget"),
     @JsonSubTypes.Type(value = Condition.RunVarModulo.class, name = "runVarModulo"),
     @JsonSubTypes.Type(value = Condition.HandsSinceAcquire.class, name = "handsSinceAcquire"),
     @JsonSubTypes.Type(value = Condition.InPvpBlind.class, name = "inPvpBlind"),
@@ -66,9 +68,11 @@ public sealed interface Condition {
 
     /** The scoring card is of a suit — fixed {@code suit}, or (when {@code targetKey} is set) this round's
      *  rolled target suit under that key (Ancient/Castle/Idol-suit). Stone never matches; Wild matches any. */
-    record ScoredSuit(Suit suit, String targetKey) implements Condition {
-        public ScoredSuit(Suit suit) { this(suit, null); }
-    }
+    record ScoredSuit(Suit suit) implements Condition {}
+
+    /** The scoring card's suit matches the OWNING joker's per-round rolled suit (Ancient, Castle, Idol-suit).
+     *  No key: the target is the calculating joker's own, rolled fresh each blind (like a counter). */
+    record ScoredSuitIsTarget() implements Condition {}
 
     /** A scored card's rank parity (Even Steven / Odd Todd) — Ace counts as {@code ODD}, faces as neither
      *  (Stone never matches). */
@@ -97,9 +101,10 @@ public sealed interface Condition {
     record HandContains(HandType hand) implements Condition {}
 
     /** The played hand is exactly a type — fixed {@code hand}, or this round's rolled target (To Do List). */
-    record HandIs(HandType hand, String targetKey) implements Condition {
-        public HandIs(HandType hand) { this(hand, null); }
-    }
+    record HandIs(HandType hand) implements Condition {}
+
+    /** The played hand matches the OWNING joker's per-round rolled hand type (To Do List). */
+    record HandIsTarget() implements Condition {}
 
     /** Number of cards played compares to {@code n}. */
     record PlayedCount(Cmp cmp, int n) implements Condition {}
@@ -139,7 +144,8 @@ public sealed interface Condition {
     record ScoringContainsSuit(Suit suit) implements Condition {}
 
     /** The scored card's rank is this round's target rank under {@code key} (Rebate, Idol-rank). */
-    record ScoredRankIsTarget(String key) implements Condition {}
+    /** The scored card's rank matches the OWNING joker's per-round rolled rank (Idol-rank, Mail-In Rebate). */
+    record ScoredRankIsTarget() implements Condition {}
 
     /** Currently in a PvP (Nemesis) boss blind — Pacifist (negated) / Conjoined. */
     record InPvpBlind() implements Condition {}

@@ -12,7 +12,6 @@ import com.balatro.engine.joker.JokerLibrary;
 import com.balatro.engine.joker.def.DataJoker;
 import com.balatro.engine.net.CardView;
 import com.balatro.engine.net.ClientView;
-import com.balatro.engine.state.RoundTargets;
 import com.balatro.grammar.JokerDef;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -170,11 +169,9 @@ final class RunView {
         r.state.handTypePlays.forEach((t, n) -> typePlays.put(t.name(), n));
         counters.put("handTypePlays", typePlays);
         counters.put("handTypesThisRound", r.state.handTypesThisRound.stream().map(Enum::name).toList());
-        // Per-round targets: emit each by its id; enums (Suit/HandType) as names, rank ids as ints.
-        for (RoundTargets.Spec t : RoundTargets.ALL) {
-            Object v = r.state.roundTargets.get(t.id());
-            counters.put(t.id(), v instanceof Enum<?> e ? e.name() : v);
-        }
+        // Per-round targets: emit each per-joker key (jokerKey:DOMAIN); enums (Suit/HandType) as names, rank
+        // ids as ints. The client/preview reads the calculating joker's own key to match *IsTarget conditions.
+        r.state.roundTargets.forEach((k, v) -> counters.put(k, v instanceof Enum<?> e ? e.name() : v));
         counters.put("OBELISK_STREAK", r.state.obeliskStreak);
         counters.put("BLINDS_SKIPPED", r.state.blindsSkipped);
         counters.put("inPvpBlind", r.state.inPvpBlind);

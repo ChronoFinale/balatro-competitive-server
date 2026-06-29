@@ -1,20 +1,11 @@
 package com.balatro.engine.state;
 
-import com.balatro.engine.card.Suit;
-import com.balatro.engine.hand.HandType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
- * The data-driven registry of <b>per-round targets</b>: a value rolled fresh each blind from a
- * seed-derived source and matched during scoring — the Idol's rank+suit, Ancient/Castle's suit,
- * To Do List's hand, Mail-In Rebate's rank.
- *
- * <p>Each {@link Spec} is pure data. Adding a new "matches a rolled X this round" card needs only a row
- * here plus a target-valued condition — {@code ScoredSuit(null, id)} / {@code ScoredRankIsTarget(id)} /
- * {@code HandIs(null, id)} — referencing its {@code id}: no new {@code RunState} field, no roll code.
- * The rolled values live generically in {@link RunState#roundTargets} keyed by {@code id}.
+ * Per-round targets — a value rolled fresh each blind and matched during scoring (Ancient/Castle/Idol-suit,
+ * Idol/Rebate rank, To Do List hand). These are now <b>per-joker</b>, like counters: there is no global
+ * registry of named targets (which used to bake specific jokers into the grammar). The owning joker rolls
+ * one value per {@link Domain} it references, stored in {@link RunState#roundTargets} under {@link #key},
+ * and its {@code *IsTarget} conditions read its own rolled value.
  */
 public final class RoundTargets {
 
@@ -23,30 +14,8 @@ public final class RoundTargets {
     /** What kind of value a target rolls. */
     public enum Domain { SUIT, RANK, HAND_TYPE }
 
-    /**
-     * @param id     the bag / {@code Condition} / client-counter key (stable, human-readable)
-     * @param rngKey the RNG sub-key under {@code RngSources.TARGET} (kept stable for determinism)
-     * @param domain what is rolled (a Suit, a rank id, or a HandType)
-     */
-    public record Spec(String id, String rngKey, Domain domain) {}
-
-    public static final List<Spec> ALL = List.of(
-            new Spec("idolRankId", "idol:rank", Domain.RANK),
-            new Spec("idolSuit", "idol:suit", Domain.SUIT),
-            new Spec("ancientSuit", "ancient:suit", Domain.SUIT),
-            new Spec("castleSuit", "castle:suit", Domain.SUIT),
-            new Spec("todoHand", "todo:hand", Domain.HAND_TYPE),
-            new Spec("rebateRankId", "rebate:rank", Domain.RANK));
-
-    /** Starting targets, used until the first blind rolls them (matches the historic field defaults). */
-    public static Map<String, Object> defaults() {
-        Map<String, Object> m = new HashMap<>();
-        m.put("idolRankId", 14);
-        m.put("idolSuit", Suit.HEARTS);
-        m.put("ancientSuit", Suit.HEARTS);
-        m.put("castleSuit", Suit.HEARTS);
-        m.put("todoHand", HandType.PAIR);
-        m.put("rebateRankId", 2);
-        return m;
+    /** The {@link RunState#roundTargets} bag key for a joker's rolled value of a domain (derived, not magic). */
+    public static String key(String jokerKey, Domain domain) {
+        return jokerKey + ":" + domain.name();
     }
 }

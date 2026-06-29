@@ -633,22 +633,22 @@ public final class BuiltinJokerDefs {
                 // --- batch 25: Mail-In Rebate (event-count money) ---
                 Jokers.of("j_mail_in_rebate", "Mail-In Rebate")
                         .whenDiscarding(always()).add(DOLLARS, Val.count(Value.Source.EVENT,
-                                card().rankIsTarget("rebateRankId"), 0, 5)).build(),
+                                card().rankIsTarget(), 0, 5)).build(),
 
                 // --- batch 24: more dynamic targets (Castle chips, To Do List money) ---
                 Jokers.of("j_castle", "Castle").counters("chips")
                         .mutate(Trigger.BLIND_SELECTED).when(always()).reset("chips")
-                        .mutate(Trigger.PRE_DISCARD).when(always()).gainPerCard("chips", 3, card().suitIsTarget("castleSuit"))
+                        .mutate(Trigger.PRE_DISCARD).when(always()).gainPerCard("chips", 3, card().suitIsTarget())
                         .whenHand(state("chips").atLeast(1)).add(CHIPS, Val.state("chips")).build(),
                 Jokers.of("j_todo_list", "To Do List")
-                        .whenHand(playedHand().isTarget("todoHand")).add(DOLLARS, 4).build(),
+                        .whenHand(playedHand().isTarget()).add(DOLLARS, 4).build(),
 
                 // --- batch 23: per-round dynamic targets (The Idol, Ancient Joker) ---
                 Jokers.of("j_idol", "The Idol")
-                        .forEachScored(Cond.all(card().rankIsTarget("idolRankId"),
-                                card().suitIsTarget("idolSuit"))).multiply(MULT, 2).build(),
+                        .forEachScored(Cond.all(card().rankIsTarget(),
+                                card().suitIsTarget())).multiply(MULT, 2).build(),
                 Jokers.of("j_ancient_joker", "Ancient Joker")
-                        .forEachScored(card().suitIsTarget("ancientSuit")).multiply(MULT, 1.5).build(),
+                        .forEachScored(card().suitIsTarget()).multiply(MULT, 1.5).build(),
 
                 // --- batch 22: joker-on-joker reads (Baseball Card, Swashbuckler) ---
                 Jokers.of("j_baseball_card", "Baseball Card")

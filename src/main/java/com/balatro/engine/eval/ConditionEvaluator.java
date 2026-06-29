@@ -4,6 +4,7 @@ import com.balatro.engine.card.Card;
 import com.balatro.engine.card.Suit;
 import com.balatro.engine.hand.HandType;
 import com.balatro.engine.joker.EvaluationContext;
+import com.balatro.engine.state.RoundTargets;
 import com.balatro.grammar.Condition;
 
 /**
@@ -21,6 +22,16 @@ public final class ConditionEvaluator {
         return c != null && !c.isStone() && (c.isFace() || ctx.allFaces);
     }
 
+    /** The CALCULATING joker's per-round rolled value for {@code domain} (Suit/Integer rank/HandType), or
+     *  null if there's no self or it hasn't rolled one. The {@code *IsTarget} conditions read their own joker. */
+    private static Object rolledTarget(EvaluationContext ctx, RoundTargets.Domain domain) {
+        if (ctx.run == null || ctx.jokers == null
+                || ctx.selfIndex < 0 || ctx.selfIndex >= ctx.jokers.size()) {
+            return null;
+        }
+        return ctx.run.roundTargets.get(RoundTargets.key(ctx.self().key(), domain));
+    }
+
     /** The comparison test for {@code Cmp} — interpretation of the pure-data grammar enum lives here. */
     private static boolean holds(Condition.Cmp cmp, double value, double target) {
         return switch (cmp) {
@@ -35,10 +46,11 @@ public final class ConditionEvaluator {
             case Condition.Always ignored -> true;
             case Condition.ScoredSuit sc -> {
                 Card c = ctx.scoredCard;
-                if (c == null) yield false;
-                Suit want = (sc.targetKey() == null) ? sc.suit()
-                        : (ctx.run != null && ctx.run.roundTargets.get(sc.targetKey()) instanceof Suit s ? s : null);
-                yield want != null && c.isSuit(want);
+                yield c != null && sc.suit() != null && c.isSuit(sc.suit());
+            }
+            case Condition.ScoredSuitIsTarget ignored -> {
+                Card c = ctx.scoredCard;
+                yield c != null && rolledTarget(ctx, RoundTargets.Domain.SUIT) instanceof Suit s && c.isSuit(s);
             }
             case Condition.ScoredParity p -> {
                 Card c = ctx.scoredCard;
@@ -62,12 +74,10 @@ public final class ConditionEvaluator {
                     ctx.scoredCard != null && ctx.scoredCard.enhancement == se.enhancement();
             case Condition.HandContainsPair ignored -> ctx.handType != null && ctx.handType.containsPair();
             case Condition.HandContains hc -> ctx.handType != null && ctx.handType.contains(hc.hand());
-            case Condition.HandIs hi -> {
-                if (ctx.handType == null) yield false;
-                HandType want = (hi.targetKey() == null) ? hi.hand()
-                        : (ctx.run != null && ctx.run.roundTargets.get(hi.targetKey()) instanceof HandType h ? h : null);
-                yield want != null && ctx.handType == want;
-            }
+            case Condition.HandIs hi -> ctx.handType != null && hi.hand() != null && ctx.handType == hi.hand();
+            case Condition.HandIsTarget ignored ->
+                    ctx.handType != null && rolledTarget(ctx, RoundTargets.Domain.HAND_TYPE) instanceof HandType h
+                            && ctx.handType == h;
             case Condition.PlayedCount pc -> ctx.playedCards != null && holds(pc.cmp(), ctx.playedCards.size(), pc.n());
             case Condition.DiscardedFaceCount df -> {
                 if (ctx.eventCards == null) yield false;
@@ -111,10 +121,10 @@ public final class ConditionEvaluator {
                 for (Card c : ctx.scoringCards) if (c.isSuit(sc.suit())) { any = true; break; }
                 yield any;
             }
-            case Condition.ScoredRankIsTarget rt -> {
+            case Condition.ScoredRankIsTarget ignored -> {
                 Card c = ctx.scoredCard;
-                yield c != null && !c.isStone() && ctx.run != null
-                        && ctx.run.roundTargets.get(rt.key()) instanceof Integer r && c.id() == r;
+                yield c != null && !c.isStone()
+                        && rolledTarget(ctx, RoundTargets.Domain.RANK) instanceof Integer r && c.id() == r;
             }
             case Condition.InPvpBlind ignored -> ctx.run != null && ctx.run.inPvpBlind;
             case Condition.ReachedPvpFirst ignored -> ctx.reachedPvpFirst;

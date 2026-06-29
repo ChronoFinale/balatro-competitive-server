@@ -69,17 +69,16 @@ class JsonRulesetTest {
     }
 
     @Test
-    void theSuitTargetTwinSerializesAsScoredSuitWithATargetKey() throws Exception {
-        // Guards the twin merge: ScoredSuitIsTarget folded into ScoredSuit(suit=null, targetKey=...).
+    void aSuitTargetIsItsOwnNullaryConditionAndRoundTrips() throws Exception {
+        // The round-target match is generic + per-joker (no key): suitIsTarget() = match the OWNING joker's
+        // own suit, rolled fresh each blind. It serializes as the nullary scoredSuitIsTarget condition.
         JokerDef built = Jokers.uncommon("j_ancient_test", "Ancient Test").cost(8)
                 .desc("Each played card of the round's suit gives x1.5 Mult")
-                .forEachScored(Cond.card().suitIsTarget("ancientSuit")).multiply(Effect.Term.MULT, 1.5)
+                .forEachScored(Cond.card().suitIsTarget()).multiply(Effect.Term.MULT, 1.5)
                 .build();
 
         JokerDef loaded = json.readValue(json.writeValueAsString(built), JokerDef.class);
-        Condition.ScoredSuit ss = (Condition.ScoredSuit) loaded.rules().get(0).condition();
-        assertThat(ss.suit()).isNull();
-        assertThat(ss.targetKey()).isEqualTo("ancientSuit");
+        assertThat(loaded.rules().get(0).condition()).isInstanceOf(Condition.ScoredSuitIsTarget.class);
     }
 
     @Test

@@ -47,23 +47,23 @@ class MpIdolTest {
     void allOneCardDeckAlwaysTargetsThatCard() {
         // Every deck position is the King of Hearts, so any 1–1000 roll lands on it.
         Run run = new Run(mp(), "IDOL", heartsKings(52), jokers("j_joker"));
-        assertThat(run.state.roundTargets.get("idolRankId")).isEqualTo(Rank.KING.id);
-        assertThat(run.state.roundTargets.get("idolSuit")).isEqualTo(Suit.HEARTS);
+        assertThat(run.state.roundTargets.get(com.balatro.engine.state.RoundTargets.key("j_idol", com.balatro.engine.state.RoundTargets.Domain.RANK))).isEqualTo(Rank.KING.id);
+        assertThat(run.state.roundTargets.get(com.balatro.engine.state.RoundTargets.key("j_idol", com.balatro.engine.state.RoundTargets.Domain.SUIT))).isEqualTo(Suit.HEARTS);
     }
 
     @Test
     void mpIdolIsDeterministicForTheSameSeedAndDeck() {
         Run a = new Run(mp(), "IDOLSEED", mixed(), jokers("j_joker"));
         Run b = new Run(mp(), "IDOLSEED", mixed(), jokers("j_joker"));
-        assertThat(a.state.roundTargets.get("idolRankId")).isEqualTo(b.state.roundTargets.get("idolRankId"));
-        assertThat(a.state.roundTargets.get("idolSuit")).isEqualTo(b.state.roundTargets.get("idolSuit"));
+        assertThat(a.state.roundTargets.get(com.balatro.engine.state.RoundTargets.key("j_idol", com.balatro.engine.state.RoundTargets.Domain.RANK))).isEqualTo(b.state.roundTargets.get(com.balatro.engine.state.RoundTargets.key("j_idol", com.balatro.engine.state.RoundTargets.Domain.RANK)));
+        assertThat(a.state.roundTargets.get(com.balatro.engine.state.RoundTargets.key("j_idol", com.balatro.engine.state.RoundTargets.Domain.SUIT))).isEqualTo(b.state.roundTargets.get(com.balatro.engine.state.RoundTargets.key("j_idol", com.balatro.engine.state.RoundTargets.Domain.SUIT)));
     }
 
     @Test
     void mpIdolTargetIsACardActuallyInTheDeck() {
         Run run = new Run(mp(), "IDOL2", mixed(), jokers("j_joker"));
-        int idolRank = (int) run.state.roundTargets.get("idolRankId");
-        Object idolSuit = run.state.roundTargets.get("idolSuit");
+        int idolRank = (int) run.state.roundTargets.get(com.balatro.engine.state.RoundTargets.key("j_idol", com.balatro.engine.state.RoundTargets.Domain.RANK));
+        Object idolSuit = run.state.roundTargets.get(com.balatro.engine.state.RoundTargets.key("j_idol", com.balatro.engine.state.RoundTargets.Domain.SUIT));
         boolean present = run.state.deckComposition.stream()
                 .anyMatch(c -> c.rank.id == idolRank && c.suit == idolSuit);
         assertThat(present).isTrue();

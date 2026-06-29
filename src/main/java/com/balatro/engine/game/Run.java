@@ -461,19 +461,62 @@ public final class Run {
 
 
     /** Re-roll the per-round dynamic targets (The Idol's card, Ancient's suit). */
+    /** Re-roll each owned joker's per-round targets (the domains its rules reference): generic + per-joker,
+     *  so no joker name is baked anywhere — Ancient/Castle/Idol/To Do/Rebate are just jokers that use a
+     *  suit/rank/hand target. Keyed by {@link RoundTargets#key}; read back by each joker's {@code *IsTarget}. */
     private void rollRoundTargets() {
+        state.roundTargets.clear(); // fresh each blind; per-joker keys (stale sold-joker entries don't linger)
         // Multiplayer rolls the Idol target a different way (deck position) — skip its generic roll below.
         boolean mpIdol = ruleset.capabilities().idolDeckPosition();
-        for (com.balatro.engine.state.RoundTargets.Spec t : com.balatro.engine.state.RoundTargets.ALL) {
-            if (mpIdol && (t.id().equals("idolRankId") || t.id().equals("idolSuit"))) continue;
-            Object v = switch (t.domain()) {
-                case SUIT -> pick(com.balatro.engine.card.Suit.values(), RngSources.TARGET.sub(t.rngKey()));
-                case RANK -> 2 + (int) (roll(RngSources.TARGET.sub(t.rngKey())) * 13) % 13;
-                case HAND_TYPE -> pick(com.balatro.engine.hand.HandType.values(), RngSources.TARGET.sub(t.rngKey()));
-            };
-            state.roundTargets.put(t.id(), v);
+        for (Joker j : state.jokers()) {
+            if (!(j instanceof DataJoker dj)) continue;
+            for (com.balatro.engine.state.RoundTargets.Domain d : targetDomains(dj)) {
+                if (mpIdol && dj.key().equals(IDOL_KEY)
+                        && (d == com.balatro.engine.state.RoundTargets.Domain.RANK
+                            || d == com.balatro.engine.state.RoundTargets.Domain.SUIT)) continue;
+                String rngKey = dj.key() + ":" + d.name();
+                Object v = switch (d) {
+                    case SUIT -> pick(com.balatro.engine.card.Suit.values(), RngSources.TARGET.sub(rngKey));
+                    case RANK -> 2 + (int) (roll(RngSources.TARGET.sub(rngKey)) * 13) % 13;
+                    case HAND_TYPE -> pick(com.balatro.engine.hand.HandType.values(), RngSources.TARGET.sub(rngKey));
+                };
+                state.roundTargets.put(com.balatro.engine.state.RoundTargets.key(dj.key(), d), v);
+            }
         }
         if (mpIdol) rollMpIdol(); // MP: deck-position roll (shared number, each player's own deck)
+    }
+
+    /** The Idol is the one joker whose target the MP ruleset rolls specially (deck position). */
+    private static final String IDOL_KEY = "j_idol";
+
+    private static final com.fasterxml.jackson.databind.ObjectMapper TARGET_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
+    private final java.util.Map<String, java.util.EnumSet<com.balatro.engine.state.RoundTargets.Domain>>
+            targetDomainCache = new java.util.HashMap<>();
+
+    /** Which target domains a joker's rules reference (cached per key). Walks the def's JSON so a target
+     *  condition is found wherever it nests (a rule's {@code when}, a per-card predicate, a Value.Count). */
+    private java.util.EnumSet<com.balatro.engine.state.RoundTargets.Domain> targetDomains(DataJoker dj) {
+        return targetDomainCache.computeIfAbsent(dj.key(), k -> {
+            var set = java.util.EnumSet.noneOf(com.balatro.engine.state.RoundTargets.Domain.class);
+            scanTargetDomains(TARGET_MAPPER.valueToTree(dj.def().rules()), set);
+            return set;
+        });
+    }
+
+    private static void scanTargetDomains(com.fasterxml.jackson.databind.JsonNode node,
+            java.util.EnumSet<com.balatro.engine.state.RoundTargets.Domain> out) {
+        if (node.isObject()) {
+            switch (node.path("type").asText("")) {
+                case "scoredSuitIsTarget" -> out.add(com.balatro.engine.state.RoundTargets.Domain.SUIT);
+                case "scoredRankIsTarget" -> out.add(com.balatro.engine.state.RoundTargets.Domain.RANK);
+                case "handIsTarget" -> out.add(com.balatro.engine.state.RoundTargets.Domain.HAND_TYPE);
+                default -> { }
+            }
+            node.forEach(c -> scanTargetDomains(c, out));
+        } else if (node.isArray()) {
+            node.forEach(c -> scanTargetDomains(c, out));
+        }
     }
 
     /**
@@ -497,8 +540,10 @@ public final class Run {
         });
         int rollPos = 1 + (int) (roll(RngSources.TARGET.sub("idol:pos")) * 1000); // shared 1..1000
         Card target = sorted.get((rollPos - 1) % sorted.size());
-        state.roundTargets.put("idolSuit", target.suit);
-        state.roundTargets.put("idolRankId", target.rank.id);
+        state.roundTargets.put(com.balatro.engine.state.RoundTargets.key(IDOL_KEY,
+                com.balatro.engine.state.RoundTargets.Domain.SUIT), target.suit);
+        state.roundTargets.put(com.balatro.engine.state.RoundTargets.key(IDOL_KEY,
+                com.balatro.engine.state.RoundTargets.Domain.RANK), target.rank.id);
     }
 
     /** The RNG resolution context for this run right now (ante, blind, PvP state, order flag). */

@@ -105,10 +105,10 @@ public final class Cond {
         public Condition enhancement(Enhancement e) { return new Condition.ScoredEnhancement(e); }
         /** This card has already been played at some point this ante (The Pillar). */
         public Condition playedThisAnte() { return new Condition.ScoredPlayedThisAnte(); }
-        /** Suit matches this round's rolled target under {@code key} (Ancient/Castle/Idol-suit). */
-        public Condition suitIsTarget(String key) { return new Condition.ScoredSuit(null, key); }
-        /** Rank matches this round's rolled target under {@code key} (Rebate/Idol-rank). */
-        public Condition rankIsTarget(String key) { return new Condition.ScoredRankIsTarget(key); }
+        /** Suit matches THIS joker's own suit, rolled fresh each blind (Ancient/Castle/Idol-suit). */
+        public Condition suitIsTarget() { return new Condition.ScoredSuitIsTarget(); }
+        /** Rank matches THIS joker's own rank, rolled fresh each blind (Rebate/Idol-rank). */
+        public Condition rankIsTarget() { return new Condition.ScoredRankIsTarget(); }
     }
 
     public static final class HandC {
@@ -116,7 +116,8 @@ public final class Cond {
         public Condition contains(HandType t) { return new Condition.HandContains(t); }
         public Condition containsPair() { return new Condition.HandContainsPair(); }
         public Condition is(HandType t) { return new Condition.HandIs(t); }
-        public Condition isTarget(String key) { return new Condition.HandIs(null, key); }
+        /** Played hand matches THIS joker's own hand type, rolled fresh each blind (To Do List). */
+        public Condition isTarget() { return new Condition.HandIsTarget(); }
         public Condition sizeAtMost(int n) { return new Condition.PlayedCount(Condition.Cmp.LTE, n); }
         public Condition sizeAtLeast(int n) { return new Condition.PlayedCount(Condition.Cmp.GTE, n); }
         public Condition sizeExactly(int n) { return new Condition.PlayedCount(Condition.Cmp.EQ, n); }

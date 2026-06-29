@@ -10,8 +10,7 @@
     "mods" : [ ],
     "debuff" : {
       "type" : "scoredSuit",
-      "suit" : "CLUBS",
-      "targetKey" : null
+      "suit" : "CLUBS"
     },
     "halveBase" : false,
     "rules" : [ ],
@@ -30,8 +29,7 @@
     "mods" : [ ],
     "debuff" : {
       "type" : "scoredSuit",
-      "suit" : "SPADES",
-      "targetKey" : null
+      "suit" : "SPADES"
     },
     "halveBase" : false,
     "rules" : [ ],
@@ -50,8 +48,7 @@
     "mods" : [ ],
     "debuff" : {
       "type" : "scoredSuit",
-      "suit" : "DIAMONDS",
-      "targetKey" : null
+      "suit" : "DIAMONDS"
     },
     "halveBase" : false,
     "rules" : [ ],
@@ -70,8 +67,7 @@
     "mods" : [ ],
     "debuff" : {
       "type" : "scoredSuit",
-      "suit" : "HEARTS",
-      "targetKey" : null
+      "suit" : "HEARTS"
     },
     "halveBase" : false,
     "rules" : [ ],

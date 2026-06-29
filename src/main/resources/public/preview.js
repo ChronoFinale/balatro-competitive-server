@@ -130,12 +130,20 @@
   }
 
   // --- algebra interpreter (Condition / Value / Effect / DataJoker) --
+  // The CALCULATING joker's per-round rolled target for a domain (SUIT/RANK/HAND_TYPE). The server ships it
+  // in counters under the per-joker key jokerKey:DOMAIN (mirrors RunView); the *IsTarget conditions read
+  // their own joker's value. undefined if there's no self or it hasn't rolled one.
+  function selfTarget(ctx, domain) {
+    const sj = (ctx.jokers || [])[ctx.selfIndex];
+    return sj ? ((ctx.run.counters || {})[sj.key + ':' + domain]) : undefined;
+  }
   function condTest(cond, ctx) {
     const c = ctx.scoredCard;
     switch (cond.type) {
       case 'always': return true;
-      case 'scoredSuit': {
-        const want = cond.targetKey != null ? ((ctx.run.counters || {})[cond.targetKey]) : cond.suit;
+      case 'scoredSuit': return !!c && cond.suit != null && isSuit(c, cond.suit);
+      case 'scoredSuitIsTarget': {
+        const want = selfTarget(ctx, 'SUIT');
         return !!c && want != null && isSuit(c, want);
       }
       case 'scoredParity': {
@@ -152,8 +160,9 @@
       case 'scoredEnhancement': return !!c && c.enhancement === cond.enhancement;
       case 'handContainsPair': return handContains(ctx.handType, 'PAIR');
       case 'handContains': return handContains(ctx.handType, cond.hand);
-      case 'handIs': {
-        const want = cond.targetKey != null ? ((ctx.run.counters || {})[cond.targetKey]) : cond.hand;
+      case 'handIs': return cond.hand != null && ctx.handType === cond.hand;
+      case 'handIsTarget': {
+        const want = selfTarget(ctx, 'HAND_TYPE');
         return want != null && ctx.handType === want;
       }
       case 'playedCount': return cmp(cond.cmp, ctx.played.length, cond.n);
@@ -190,11 +199,11 @@
       case 'handPlayedThisRound':
         return (((ctx.run.counters && ctx.run.counters.handTypesThisRound) || []).indexOf(ctx.handType) >= 0);
       case 'otherJokerRarity': return !!ctx.otherJoker && ctx.otherJoker.rarity === cond.rarity;
-      // Per-round targets (Idol/Ancient/Castle/To Do/Rebate): match against the rolled value the server
-      // ships in counters[key]. Suit/hand targets fold into scoredSuit/handIs via their targetKey; only
-      // the rank target stays its own case (no literal twin). Idol = and(scoredRankIsTarget, scoredSuit(target)).
+      // Per-round targets (Idol/Ancient/Castle/To Do/Rebate): match the scored card/hand against the OWNING
+      // joker's own value, rolled fresh each blind, shipped in counters[jokerKey:DOMAIN]. No key on the
+      // condition — it's the calculating joker's (see selfTarget). Idol = and(scoredRankIsTarget, scoredSuitIsTarget).
       case 'scoredRankIsTarget':
-        return !!c && !isStone(c) && id(c) === ((ctx.run.counters || {})[cond.key]);
+        return !!c && !isStone(c) && id(c) === selfTarget(ctx, 'RANK');
       case 'runVarModulo': {
         if (cond.mod === 0) return false;
         const n = runVarValue(cond.which, ctx.run);

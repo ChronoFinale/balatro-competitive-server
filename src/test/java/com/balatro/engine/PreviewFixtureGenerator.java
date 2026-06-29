@@ -411,11 +411,8 @@ class PreviewFixtureGenerator {
         run.handTypePlays.forEach((t, n) -> typePlays.put(t.name(), n));
         counters.put("handTypePlays", typePlays);
         counters.put("handTypesThisRound", run.handTypesThisRound.stream().map(Enum::name).toList());
-        counters.put("idolRankId", run.roundTargets.get("idolRankId"));
-        counters.put("idolSuit", ((Suit) run.roundTargets.get("idolSuit")).name());
-        counters.put("ancientSuit", ((Suit) run.roundTargets.get("ancientSuit")).name());
-        counters.put("castleSuit", ((Suit) run.roundTargets.get("castleSuit")).name());
-        counters.put("todoHand", ((com.balatro.engine.hand.HandType) run.roundTargets.get("todoHand")).name());
+        // Per-round targets: per-joker keys (jokerKey:DOMAIN), enums as names — mirror RunView exactly.
+        run.roundTargets.forEach((k, v) -> counters.put(k, v instanceof Enum<?> e ? e.name() : v));
         counters.put("OBELISK_STREAK", run.obeliskStreak);
         counters.put("BLINDS_SKIPPED", run.blindsSkipped);
         counters.put("inPvpBlind", run.inPvpBlind);
