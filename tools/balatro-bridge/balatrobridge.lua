@@ -268,7 +268,7 @@ local function reconcile(view)
 			log.debug(string.format("reconcile: native chips=%s | server roundScore=%s requirement=%s handsLeft=%s phase=%s",
 				tostring(native), tostring(view.roundScore), tostring(view.requirement), tostring(view.handsLeft), tostring(view.phase)))
 			if native ~= nil and view.roundScore ~= nil and math.abs(native - view.roundScore) > 0.5 then
-				logln("note: native count-up diverged from server roundScore (server value enforced at round-end)")
+				log.debug("note: native count-up diverged from server roundScore (server value enforced at round-end)")
 			end
 			if view.phase == "SHOP" then logln("server: BLIND WON (phase=SHOP) -> native ROUND_EVAL renders it")
 			elseif view.phase == "RUN_LOST" then logln("server: BLIND LOST (phase=RUN_LOST) -> native GAME_OVER renders it") end
