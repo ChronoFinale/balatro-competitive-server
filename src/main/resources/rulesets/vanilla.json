@@ -2087,8 +2087,10 @@
                 "numerator" : 1,
                 "denominator" : 2
               },
-              "seedKey" : "bloodstone",
-              "stream" : null
+              "gate" : {
+                "type" : "sharedProb",
+                "seedKey" : "bloodstone"
+              }
             }
           ]
         },
@@ -2506,8 +2508,10 @@
                 "numerator" : 1,
                 "denominator" : 2
               },
-              "seedKey" : "business_card",
-              "stream" : null
+              "gate" : {
+                "type" : "sharedProb",
+                "seedKey" : "business_card"
+              }
             }
           ]
         },
@@ -2567,8 +2571,10 @@
             "numerator" : 1,
             "denominator" : 6
           },
-          "seedKey" : "gros_michel",
-          "stream" : null
+          "gate" : {
+            "type" : "sharedProb",
+            "seedKey" : "gros_michel"
+          }
         },
         "effects" : [
           {
@@ -2623,8 +2629,10 @@
             "numerator" : 1,
             "denominator" : 1000
           },
-          "seedKey" : "cavendish",
-          "stream" : null
+          "gate" : {
+            "type" : "sharedProb",
+            "seedKey" : "cavendish"
+          }
         },
         "effects" : [
           {
@@ -3886,8 +3894,10 @@
                 "numerator" : 1,
                 "denominator" : 4
               },
-              "seedKey" : "8ball",
-              "stream" : null
+              "gate" : {
+                "type" : "sharedProb",
+                "seedKey" : "8ball"
+              }
             }
           ]
         },
@@ -4274,8 +4284,10 @@
             "numerator" : 1,
             "denominator" : 4
           },
-          "seedKey" : "space",
-          "stream" : null
+          "gate" : {
+            "type" : "sharedProb",
+            "seedKey" : "space"
+          }
         },
         "effects" : [
           {
@@ -5010,8 +5022,10 @@
             "numerator" : 1,
             "denominator" : 2
           },
-          "seedKey" : "hallucination",
-          "stream" : null
+          "gate" : {
+            "type" : "sharedProb",
+            "seedKey" : "hallucination"
+          }
         },
         "effects" : [
           {
@@ -5752,8 +5766,10 @@
                 "numerator" : 1,
                 "denominator" : 2
               },
-              "seedKey" : "reserved_parking",
-              "stream" : null
+              "gate" : {
+                "type" : "sharedProb",
+                "seedKey" : "reserved_parking"
+              }
             }
           ]
         },

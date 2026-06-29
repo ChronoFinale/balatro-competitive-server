@@ -476,8 +476,10 @@
             "numerator" : 1,
             "denominator" : 4
           },
-          "seedKey" : "gate",
-          "stream" : null
+          "gate" : {
+            "type" : "sharedProb",
+            "seedKey" : "gate"
+          }
         },
         "effects" : [
           {

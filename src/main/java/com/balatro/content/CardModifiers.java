@@ -60,7 +60,7 @@ public final class CardModifiers {
 
     /** A "1 in {@code denom}" gate rolled on a dedicated stream (preserving Balatro's per-effect queue). */
     private static Condition chanceOn(int denom, String stream) {
-        return new Condition.Chance(new Odds(1, denom), stream, stream);
+        return new Condition.Chance(new Odds(1, denom), new Condition.RngGate.DedicatedStream(stream));
     }
 
     /** Probabilistic enhancement scoring — Lucky: 1-in-5 for +20 Mult (lucky_mult stream), 1-in-15 for +$20

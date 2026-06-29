@@ -39,8 +39,8 @@ class DslRailsTest {
     /** String components that are free-form identifiers, not closed sets: keys, display names, sprite URLs,
      *  RNG seed/stream keys, joker-state variable names, binding/target keys, content tag keys. */
     private static final Set<String> ALLOWED_STRINGS = Set.of(
-            "name", "spriteUrl", "spriteUrl2x", "key", "description", "var", "seedKey", "stream",
-            "targetKey", "tag", "selfStateVar");
+            "name", "spriteUrl", "spriteUrl2x", "key", "description", "var", "seedKey",
+            "tag", "selfStateVar");
 
     /** Instance methods that are pure data PROJECTIONS (no decisions) — audited and allowed: {@code
      *  JokerDef.info()} just rebuilds a {@link JokerInfo} view from the def's own fields. */

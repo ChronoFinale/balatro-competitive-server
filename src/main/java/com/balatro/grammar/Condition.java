@@ -184,15 +184,24 @@ public sealed interface Condition {
     record ConsumableType(ConsumableKind consumable) implements Condition {}
 
     /**
-     * A probabilistic gate at {@link Odds}, rolled off a game-long queue. {@code stream} names a DEDICATED
-     * source ({@code lucky_mult}, {@code glass}) for the card modifiers whose rolls Balatro keeps on their
-     * own stream; when null/blank the roll uses the shared {@code prob:seedKey} source. Scaled by Oops!.
+     * A probabilistic gate at {@link Odds}, rolled off a game-long queue, scaled by Oops!. The {@link RngGate}
+     * says WHERE it rolls: the shared {@code prob:seedKey} source (the common case), or a dedicated stream
+     * (the card modifiers Balatro keeps on their own queue). One field, two clear variants — no more carrying
+     * both a seedKey and a stream where only one ever applies.
      */
-    record Chance(Odds odds, String seedKey, String stream) implements Condition {
-        /** Shared-PROB chance (the common case): rolls on {@code prob:seedKey}. */
-        public Chance(Odds odds, String seedKey) {
-            this(odds, seedKey, null);
-        }
+    record Chance(Odds odds, RngGate gate) implements Condition {}
+
+    /** Where a {@link Chance} draws its roll. */
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+    @JsonSubTypes({
+        @JsonSubTypes.Type(value = RngGate.SharedProb.class, name = "sharedProb"),
+        @JsonSubTypes.Type(value = RngGate.DedicatedStream.class, name = "dedicatedStream"),
+    })
+    sealed interface RngGate permits RngGate.SharedProb, RngGate.DedicatedStream {
+        /** The shared PROB source sub-keyed by {@code seedKey} (Bloodstone, Business Card, Space, …). */
+        record SharedProb(String seedKey) implements RngGate {}
+        /** A dedicated named stream (Lucky's {@code lucky_mult}/{@code lucky_money}, Glass's {@code glass}). */
+        record DedicatedStream(String name) implements RngGate {}
     }
 
     /** All sub-conditions hold. */

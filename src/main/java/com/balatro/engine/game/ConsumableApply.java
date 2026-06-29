@@ -245,7 +245,12 @@ final class ConsumableApply {
      *  PROBABILITY_MULTIPLIER (Oops!) scales the threshold like every other chance. Others test normally. */
     private static boolean consumableConditionHolds(Run r, Consumable c, com.balatro.grammar.Condition cond) {
         if (cond instanceof com.balatro.grammar.Condition.Chance ch) {
-            double roll = r.roll(RngSources.consumable(c.key()).sub(ch.seedKey()));
+            // The gate's key names the consumable-specific sub-stream (the Wheel gate's "gate" seedKey).
+            String key = switch (ch.gate()) {
+                case com.balatro.grammar.Condition.RngGate.SharedProb sp -> sp.seedKey();
+                case com.balatro.grammar.Condition.RngGate.DedicatedStream ds -> ds.name();
+            };
+            double roll = r.roll(RngSources.consumable(c.key()).sub(key));
             return roll < (double) (ch.odds().numerator() * r.state.probabilityNumerator) / ch.odds().denominator();
         }
         return ConditionEvaluator.test(cond, r.runLoopContext());

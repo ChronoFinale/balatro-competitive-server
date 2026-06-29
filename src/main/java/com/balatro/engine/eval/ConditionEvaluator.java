@@ -158,9 +158,11 @@ public final class ConditionEvaluator {
             case Condition.Chance ch -> {
                 if (ctx.preview) yield false; // preview shows the guaranteed floor — a gate never procs
                 int probMult = ctx.run != null ? ctx.run.probabilityNumerator : 1;
-                double roll = (ch.stream() == null || ch.stream().isBlank())
-                        ? ctx.nextProb(ch.seedKey())
-                        : ctx.nextProbOn(com.balatro.engine.rng.RngSource.of(ch.stream()).pvpPerHand());
+                double roll = switch (ch.gate()) {
+                    case Condition.RngGate.SharedProb sp -> ctx.nextProb(sp.seedKey());
+                    case Condition.RngGate.DedicatedStream ds ->
+                            ctx.nextProbOn(com.balatro.engine.rng.RngSource.of(ds.name()).pvpPerHand());
+                };
                 yield roll < (double) (ch.odds().numerator() * probMult) / ch.odds().denominator();
             }
             case Condition.And a -> {

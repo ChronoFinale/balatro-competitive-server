@@ -332,8 +332,10 @@
                 "numerator" : 1,
                 "denominator" : 4
               },
-              "seedKey" : "gambling",
-              "stream" : null
+              "gate" : {
+                "type" : "sharedProb",
+                "seedKey" : "gambling"
+              }
             },
             "effects" : [
               {
