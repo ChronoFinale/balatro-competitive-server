@@ -48,7 +48,10 @@ function wire.view_of(decoded)
 	if type(v.hand) == "table" then
 		for _, c in ipairs(v.hand) do
 			if c and c.rank and c.suit then
-				hand[#hand + 1] = { uid = c.uid, rank = c.rank, suit = c.suit }
+				-- Carry the full card identity so the renderer can drive set_base + edition + enhancement +
+				-- seal (Tarot mutate, Hex/Wheel edition, sealed/enhanced cards), not just rank/suit.
+				hand[#hand + 1] = { uid = c.uid, rank = c.rank, suit = c.suit,
+					enhancement = c.enhancement, edition = c.edition, seal = c.seal, faceDown = c.faceDown }
 			end
 		end
 	end
