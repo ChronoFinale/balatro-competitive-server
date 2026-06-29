@@ -618,7 +618,21 @@ local function install_hooks()
 	G.FUNCS.select_blind = function(e)
 		pcall(function()
 			local continued = false
-			-- Continue the SAME run only when one is live AND the server is between blinds (post-proceed).
+			-- Continue the SAME run across blinds. Recover a MISSED "Next Round": if the server is still in
+			-- the shop (toggle_shop/proceed never reached it), proceed NOW to advance to the real next blind
+			-- instead of nuking the run + opening a fresh one -- a fresh run restarts at the Small blind, which
+			-- is the "Big blind shows 300 instead of 450" bug. Only fresh-run when there's genuinely no live run.
+			if RUN_LIVE and CONN and VIEW then
+				log.dev("BLIND", "select_blind: live run, server phase=" .. tostring(VIEW.phase))
+				if VIEW.phase == "SHOP" then
+					local p = send_action("proceed") -- missed Next Round -> advance to the next blind now
+					if p and p.view then
+						VIEW = p.view
+						logln("recover: server was in SHOP at blind-select -> proceed -> phase " .. tostring(p.view.phase))
+					end
+				end
+			end
+			-- Continue when the (possibly just-recovered) server is between blinds.
 			if RUN_LIVE and CONN and VIEW and VIEW.phase == "BLIND_SELECT" then
 				local r = send_action("selectBlind")
 				if r and r.accepted and r.hand then
@@ -972,6 +986,16 @@ local function install_hooks()
 					-- immediately instead of waiting for the shop.
 					pcall(reconcile_jokers_to_server)
 					pcall(reconcile_consumables_to_server)
+				elseif key then
+					-- A card sits in the consumable slot that the SERVER does not list as a consumable -- e.g. a
+					-- JOKER native mis-routed here. Do NOT let native "use" it: there's no server consumable to
+					-- apply, and letting native resolve it locally desyncs (the "used a joker to level a planet"
+					-- bug). Block it and reconcile both rows so the stray card returns to where the server has it.
+					log.warn("use blocked: '" .. tostring(key) .. "' is in the consumable slot but the server lists no such consumable (mis-routed card?) -- reconciling rows")
+					popup("MIS-PLACED CARD — reconciling", G.C.RED)
+					pcall(reconcile_consumables_to_server)
+					pcall(reconcile_jokers_to_server)
+					return -- block native use of an unrecognized consumable-slot card
 				end
 			end
 		end
