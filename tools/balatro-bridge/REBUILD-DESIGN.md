@@ -2,7 +2,7 @@
 
 The strategic shift from the thin-client *bridge*: stop **shadowing** Balatro's logic (intercept + sticker, which needs fragile prediction) and start **owning** it — replace Balatro's decision systems (deck/draw/shop/scoring/RNG/state) with server-driven mod code, and call Balatro's *rendering* (sprites, fly animations, juice, sounds, UI) with the data we choose. Balatro becomes the **body**; the server is the **brain**. Respects LocalThunk: players own Balatro, assets stay theirs, we add a competitive layer.
 
-Supersedes the "Stage 2/3/4" framing in `STAGE2-DESIGN.md` for the *client*. The Java engine, `ClientView`, and intents are unchanged — the mod is just a much richer client of the same server.
+Supersedes the earlier "Stage 2/3/4" framing for the *client*. The Java engine, `ClientView`, and intents are unchanged — the mod is just a much richer client of the same server. (The current SMODS-native rebuild — `lib/wire.lua` + `require"json"`, manifest deps/conflicts, threaded socket, lovely patches — is planned/tracked separately; this doc is the conceptual design it builds on.)
 
 ---
 
