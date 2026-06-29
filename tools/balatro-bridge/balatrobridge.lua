@@ -404,6 +404,27 @@ local function reconcile_jokers_to_server()
 	log.debug("joker row rendered: " .. #G.jokers.cards .. " card(s) (server " .. #VIEW.jokers .. ")")
 end
 
+-- Render the held CONSUMABLE row (G.consumeables) to match the server's VIEW.consumables: fix identities
+-- positionally and DROP extras. The bug this fixes: native buy can mis-route a bought JOKER into the
+-- consumable slot (a server joker mapped onto a native consumable shop card whose stale `consumeable` flag
+-- makes native route it there), leaving a phantom consumable while the joker correctly enters G.jokers via
+-- reconcile_jokers_to_server. The server owns the truth, so drop any held consumable it doesn't list.
+local function reconcile_consumables_to_server()
+	if not (ENGAGED and VIEW and VIEW.consumables and G.consumeables and G.consumeables.cards and G.P_CENTERS) then return end
+	local items = VIEW.consumables
+	for i = 1, math.min(#G.consumeables.cards, #items) do
+		local it, c = items[i], G.consumeables.cards[i]
+		if it and it.key and G.P_CENTERS[it.key] and c and (c.config and c.config.center_key) ~= it.key and c.set_ability then
+			pcall(function() c:set_ability(G.P_CENTERS[it.key], true) end) -- fix a wrong identity in place
+		end
+	end
+	for i = #G.consumeables.cards, #items + 1, -1 do -- native holds more than the server -> drop the phantom(s)
+		local c = G.consumeables.cards[i]
+		pcall(function() G.consumeables:remove_card(c); if c.remove then c:remove() end end)
+	end
+	log.debug("consumable row reconciled: " .. #G.consumeables.cards .. " of server " .. #items)
+end
+
 -- Reconcile Balatro's native shop to the server's shop (same move as the deal): let the native shop
 -- build, then swap each main-slot card to the server's item (center + price + index), drop any extras,
 -- and snap money. Re-run after a buy to re-index the remaining (shifted) slots.
@@ -470,6 +491,8 @@ local function reconcile_shop_to_server()
 	-- emplace bought jokers here (observed native row=0 while server=1 -> you pay but see no joker), so the
 	-- server view is authoritative for the row. Shared with the mid-blind consumable path.
 	reconcile_jokers_to_server()
+	-- And the held consumable row (drops a phantom from a mis-routed joker buy; keeps it server-authoritative).
+	reconcile_consumables_to_server()
 	-- Reroll-button cost = the server's (native increments its own on reroll, which can drift).
 	pcall(function()
 		if VIEW.rerollCost and G.GAME and G.GAME.current_round then
@@ -610,6 +633,9 @@ local function install_hooks()
 						logln("boss blind -> facing server boss " .. r.view.bossKey)
 					end
 					logln("CONTINUE: next blind, " .. #r.hand .. "-card hand queued (same run).")
+					log.dev("BLIND", "server requirement=" .. tostring(r.view and r.view.requirement) ..
+						" phase=" .. tostring(r.view and r.view.phase) ..
+						(r.view and r.view.bossKey and (" boss=" .. r.view.bossKey) or ""))
 					continued = true
 				else
 					-- Stale RUN_LIVE (e.g. quit-to-menu at blind-select, server dropped the run): DON'T strand
@@ -625,6 +651,8 @@ local function install_hooks()
 					CONN, SERVER_HAND, ENGAGED, VIEW, RUN_LIVE = s, hand, true, iview, true
 					for _, sc in ipairs(hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end -- whole hand for the initial deal
 					logln("ENGAGED: server run open, " .. #hand .. "-card hand queued.")
+					log.dev("BLIND", "server requirement=" .. tostring(iview and iview.requirement) ..
+						" phase=" .. tostring(iview and iview.phase))
 				else
 					-- NEVER silently degrade to vanilla: a competitive run that isn't server-driven is a
 					-- trap. Make it impossible to miss that this blind is NOT connected to the server.
@@ -940,9 +968,10 @@ local function install_hooks()
 							table.concat(sel, " ") .. "]; server applied -> identities re-stamped on next draw")
 					end
 					-- A consumable can change the JOKERS mid-blind (Hex polychrome + destroy others, Ankh copy,
-					-- Ectoplasm). Re-render the owned joker row now so the edition/removal shows immediately
-					-- instead of waiting for the shop.
+					-- Ectoplasm). Re-render the owned joker row + consumable row now so the edition/removal shows
+					-- immediately instead of waiting for the shop.
 					pcall(reconcile_jokers_to_server)
+					pcall(reconcile_consumables_to_server)
 				end
 			end
 		end
