@@ -44,18 +44,6 @@ Tag = { apply_to_run = function() end }
 EventManager = { add_event = function() end }
 Event = function() return {} end
 
--- love.thread / love.timer: the mod starts its networking thread + channels at load. Stub them so that path
--- (getChannel x2, SMODS.load_file networking/socket.lua, newThread:start, net.new) is exercised here.
-local thread_started = false
-local function fake_channel() return { push = function() end, pop = function() return nil end, demand = function() return nil end } end
-love = {
-	thread = {
-		getChannel = function(_) return fake_channel() end,
-		newThread = function(_) thread_started = true; return { start = function() end } end,
-	},
-	timer = { getTime = function() return 0 end },
-}
-
 -- ---- load the mod ---------------------------------------------------------
 local chunk, lerr = loadfile("balatrobridge.lua")
 ok(chunk ~= nil, "balatrobridge.lua compiles" .. (lerr and (" (" .. lerr .. ")") or ""))
@@ -73,7 +61,6 @@ for _ = 1, 205 do
 	if not s then boot_ok = false; berr = e; break end
 end
 ok(boot_ok, "200-frame boot runs install_hooks without error" .. (berr and (" -- " .. tostring(berr)) or ""))
-ok(thread_started, "net thread was started at load (threaded networking wired)")
 
 -- ---- assert every seam got wrapped ----------------------------------------
 for _, k in ipairs(SEAMS) do

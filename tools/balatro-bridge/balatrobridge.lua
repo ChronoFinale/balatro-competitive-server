@@ -25,7 +25,8 @@ if not ok_json then json = nil end
 local wire = assert(SMODS.load_file("lib/wire.lua", "balatrobridge"))()
 local card_key, edition_table, pack_center_key = wire.card_key, wire.edition_table, wire.pack_center_key
 
-local CONN = nil         -- truthy when a server run is open over the threaded connection (the `if CONN` guards)
+local CONN = nil         -- persistent socket to the server's run
+local SEQ = 2            -- last seq used; first play is seq 3 (auth0, newRun1, selectBlind2)
 local SERVER_HAND = {}   -- the server's current authoritative hand (list of {uid,rank,suit})
 local DRAW_QUEUE = {}    -- server cards waiting to be assigned to Balatro's next deck draws
 local ENGAGED = false    -- true when a server run is driving this blind
@@ -35,23 +36,7 @@ local SHOP_DONE = false  -- this shop visit has been reconciled to the server's 
 local SCORING = false    -- a play is being scored: retarget ONLY its round-score ease, not Balatro's
                          -- end-of-round reset-to-0 ease (which we were hijacking -> score lingered)
 local PENDING_PLAY = nil -- server result fetched at the Play button (BEFORE scoring animates), consumed by
-                         -- evaluate_play -- so the round-trip doesn't freeze mid-scoring
-
--- THREADED NETWORKING: the TCP socket lives on a love.thread (networking/socket.lua) so the render thread
--- NEVER blocks on I/O -- the freeze that broke animation smoothness. BB.net (lib/net.lua) talks to it over
--- two channels and correlates each reply by seq with a bounded wait (the thread already did the slow recv).
--- Started once here; it connects + auths autonomously and reconnects with backoff. If love.thread is
--- unavailable the mod simply never engages (vanilla).
-local net_mod = assert(SMODS.load_file("lib/net.lua", "balatrobridge"))()
-local net = nil
-pcall(function()
-	if not (love and love.thread) then return end
-	local out_ch = love.thread.getChannel("bbridge_out")
-	local in_ch = love.thread.getChannel("bbridge_in")
-	local src = assert(SMODS.load_file("networking/socket.lua", "balatrobridge"))()
-	love.thread.newThread(src):start("127.0.0.1", 28788, 28789, "balatro")
-	net = net_mod.new(out_ch, in_ch, json, (love.timer and love.timer.getTime) or os.clock)
-end)
+                         -- evaluate_play -- so the blocking round-trip doesn't freeze mid-scoring
 
 local lines = {}
 local function logln(s)
@@ -77,7 +62,24 @@ local function wire(tag, s)
 	end)
 end
 
--- (HTTP login moved onto the net thread — see networking/socket.lua.)
+local function http_login(username)
+	if not socket then return nil end -- luasocket unavailable -> stay vanilla
+	local s = socket.tcp(); s:settimeout(2)
+	if not s:connect("127.0.0.1", 28788) then return nil end
+	local body = '{"username":"' .. username .. '"}'
+	s:send("POST /login HTTP/1.1\r\nHost: 127.0.0.1:28788\r\nContent-Type: application/json\r\nContent-Length: "
+		.. #body .. "\r\nConnection: close\r\n\r\n" .. body)
+	local clen
+	while true do
+		local l = s:receive("*l")
+		if not l or l == "" then break end
+		local n = l:match("[Cc]ontent%-[Ll]ength:%s*(%d+)")
+		if n then clen = tonumber(n) end
+	end
+	local resp = clen and s:receive(clen) or s:receive("*a")
+	s:close()
+	return resp and resp:match('"token":"([^"]+)"') or nil
+end
 
 -- Decode one newline-delimited server line to a table (nil on failure/no json).
 local function decode(resp)
@@ -100,17 +102,41 @@ local function parse_hand(resp)
 	return v and v.hand or {}
 end
 
--- Open a fresh run + select the blind over the THREADED connection (no socket on this thread). The thread
--- already auth'd autonomously; here we just newRun + selectBlind via the channel. Returns (true, hand, view)
--- | (nil, err). On a slow/absent server the net:request bounded-timeouts to nil -> the caller goes vanilla.
+local function recv_until(s, pred)
+	for _ = 1, 24 do
+		local l = s:receive("*l")
+		if not l then wire("<<", "(nil / timeout)"); return nil end
+		wire("<<", l)
+		if pred(l) then return l end
+	end
+	return nil
+end
+
+-- Send a line and log it.
+local function wsend(s, json)
+	wire(">>", json)
+	s:send(json .. "\n")
+end
+
+-- Match a response by seq (e.g. "seq":3,) so an auth re-attach push or other out-of-band message is
+-- skipped instead of mistaken for our reply. [,}] avoids 3 matching 30.
+local function by_seq(n) return function(l) return l:match('"seq":' .. n .. '[,}]') ~= nil end end
+
+-- Open a fresh run + select the blind, keeping the socket. Returns (socket, hand) | (nil, err).
 local function open_run()
-	if not net then return nil, "no networking (love.thread unavailable)" end
-	net:drain() -- refresh connection status from the thread
-	if not net.connected then return nil, "server offline (net thread not connected)" end
+	local token = http_login("balatro")
+	if not token then return nil, "login failed (server :28788?)" end
+	local s = socket.tcp(); s:settimeout(2)
+	if not s:connect("127.0.0.1", 28789) then return nil, "tcp :28789 failed" end
+	wire(">>", '{"type":"auth","seq":0,"token":"<redacted ' .. #token .. ' chars>"}')
+	s:send('{"type":"auth","seq":0,"token":"' .. token .. '"}\n')
+	if not recv_until(s, function(l) return l:match('"type":"authed"') ~= nil end) then s:close(); return nil, "no authed" end
 	-- Forward the player's New Run choice: native deck key b_xxx -> our d_xxx; stake is an integer 1..8.
-	-- G.GAME.selected_back_key is the CENTER OBJECT (not a string -- game.lua:2038/2044); pull the string key
-	-- off the center (.key) / the Back's center, handling either a string or table form.
-	local args = {}
+	-- BUG FIX: G.GAME.selected_back_key is the CENTER OBJECT (get_deck_from_name returns the center, not a
+	-- string -- game.lua:2038/2044), so reading it directly gave a table that failed the string check ->
+	-- NO deck was ever forwarded (server used its default deck = faces present even on Abandoned). Pull the
+	-- string key off the center (.key) / the Back's center, handling either a string or table form.
+	local extra = ""
 	pcall(function()
 		if G and G.GAME then
 			local sbk = G.GAME.selected_back_key
@@ -118,17 +144,20 @@ local function open_run()
 				or (type(sbk) == "table" and sbk.key)
 				or (G.GAME.selected_back and G.GAME.selected_back.effect
 					and G.GAME.selected_back.effect.center and G.GAME.selected_back.effect.center.key)
-			if type(key) == "string" then args.deck = key:gsub("^b_", "d_") end
-			if type(G.GAME.stake) == "number" then args.stake = tostring(G.GAME.stake) end
+			if type(key) == "string" then extra = extra .. ',"deck":"' .. key:gsub("^b_", "d_") .. '"' end
+			if type(G.GAME.stake) == "number" then extra = extra .. ',"stake":"' .. G.GAME.stake .. '"' end
 		end
 	end)
-	logln("newRun forwarding: deck=" .. tostring(args.deck) .. " stake=" .. tostring(args.stake))
-	-- No seed: the SERVER generates a fresh random seed each run (anti-cheat). We only forward deck + stake.
-	if not net:request("newRun", args) then return nil, "no newRun reply" end
-	local sb = net:request("selectBlind")
-	if not sb then return nil, "no selectBlind reply" end
-	local v = wire.view_of(sb)
-	return true, (v and v.hand) or {}, v
+	logln("newRun forwarding: " .. (extra == "" and "(none -> server default deck/stake)" or extra))
+	-- No seed: the SERVER generates a fresh random seed each run (anti-cheat + so every run differs,
+	-- instead of the old hardcoded seed that made every run/blind identical). We only forward deck + stake.
+	wsend(s, '{"type":"newRun","seq":1' .. extra .. "}")
+	if not recv_until(s, by_seq(1)) then s:close(); return nil, "no newRun reply" end
+	wsend(s, '{"type":"selectBlind","seq":2}')
+	local view = recv_until(s, by_seq(2))
+	if not view then s:close(); return nil, "no selectBlind reply" end
+	SEQ = 2
+	return s, parse_hand(view), parse_view(view)
 end
 
 -- card_key/edition_table/pack_center_key are aliased to wire.* at the top (pure, spec-tested).
@@ -252,26 +281,28 @@ local function reconcile(view)
 end
 
 -- Send a card-index intent (playHand/discard) and return the raw response line, matched by seq.
--- Send a card-index intent (playHand/discard) over the thread; returns the decoded reply envelope | nil.
 local function send_intent(typ, indices)
-	if not (net and CONN) then return nil end
-	return net:request(typ, { cards = indices })
+	if not CONN then return nil end
+	SEQ = SEQ + 1
+	local mySeq = SEQ
+	wsend(CONN, '{"type":"' .. typ .. '","seq":' .. mySeq .. ',"cards":[' .. table.concat(indices, ",") .. ']}')
+	return recv_until(CONN, by_seq(mySeq))
 end
 
--- Send a no/table-arg intent (selectBlind/proceed/reroll/buyShopItem/...). `args` is an optional table
--- (e.g. {index=2} or {index=1,targets={uid,...}}) -- json.encode quotes UUID targets correctly (the raw
--- string-concat used to emit them unquoted -> invalid JSON since the int->UUID change). Returns
--- {accepted, rejection, view, hand} | nil.
-local function send_action(typ, args)
-	if not (net and CONN) then return nil end
-	local d = net:request(typ, args)
-	if not d then return nil end
-	local v = wire.view_of(d)
+-- Send a no/simple-arg intent (selectBlind/proceed/reroll/buyShopItem). `extra` is an optional JSON
+-- fragment like ',"index":2'. Returns {accepted, rejection, view, hand} | nil.
+local function send_action(typ, extra)
+	if not CONN then return nil end
+	SEQ = SEQ + 1
+	local mySeq = SEQ
+	wsend(CONN, '{"type":"' .. typ .. '","seq":' .. mySeq .. (extra or "") .. "}")
+	local resp = recv_until(CONN, by_seq(mySeq))
+	if not resp then return nil end
 	return {
-		accepted = d.accepted == true, -- an error reply has no accepted field => false
-		rejection = d.rejection,
-		view = v,
-		hand = (v and v.hand) or {},
+		accepted = resp:match('"accepted":(%a+)') == "true", -- an error reply has no accepted field => false
+		rejection = resp:match('"rejection":"([^"]+)"'),
+		view = parse_view(resp),
+		hand = parse_hand(resp),
 	}
 end
 
@@ -477,7 +508,8 @@ end
 -- The final count-up totals are the LAST replay entry's running totals (read structurally now, not a
 -- "take the last runningChips the regex sees" scrape).
 local function server_play(indices)
-	local d = send_intent("playHand", indices) -- already the decoded reply envelope
+	local resp = send_intent("playHand", indices)
+	local d = decode(resp)
 	if not d then return nil end
 	local v = wire.view_of(d)
 	local chips, mult
@@ -540,11 +572,11 @@ local function install_hooks()
 				end
 			end
 			if not continued then
-				-- New run: reset state (the persistent net thread stays alive; newRun replaces the server run).
+				if CONN then pcall(function() CONN:close() end) end
 				CONN, SERVER_HAND, DRAW_QUEUE, ENGAGED, VIEW, RUN_LIVE = nil, {}, {}, false, nil, false
-				local opened, hand, iview = open_run() -- opened == true on success (no socket on this thread)
-				if opened then
-					CONN, SERVER_HAND, ENGAGED, VIEW, RUN_LIVE = true, hand, true, iview, true
+				local s, hand, iview = open_run()
+				if s then
+					CONN, SERVER_HAND, ENGAGED, VIEW, RUN_LIVE = s, hand, true, iview, true
 					for _, sc in ipairs(hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end -- whole hand for the initial deal
 					logln("ENGAGED: server run open, " .. #hand .. "-card hand queued.")
 				else
@@ -585,15 +617,14 @@ local function install_hooks()
 					end
 				end
 				if #idx == 0 then return end
-				local d = send_intent("discard", idx) -- decoded reply envelope | nil
-				if d and d.accepted == true then
-					local v = wire.view_of(d)
-					SERVER_HAND = (v and v.hand) or {}
+				local resp = send_intent("discard", idx)
+				if resp and resp:match('"accepted":(%a+)') == "true" then
+					SERVER_HAND = parse_hand(resp)
 					recompute_draw_queue(removing) -- the new server cards fill the discarded slots
-					logln("discard -> server applied (" .. #idx .. " cards), " .. #DRAW_QUEUE .. " new queued"); reconcile(v)
-				elseif d then
-					logln("discard REJECTED: " .. tostring(d.rejection))
-					popup("DISCARD REJECTED: " .. tostring(d.rejection), G.C.RED)
+					logln("discard -> server applied (" .. #idx .. " cards), " .. #DRAW_QUEUE .. " new queued"); reconcile(parse_view(resp))
+				elseif resp then
+					logln("discard REJECTED: " .. tostring(resp:match('"rejection":"([^"]+)"')))
+					popup("DISCARD REJECTED: " .. tostring(resp:match('"rejection":"([^"]+)"')), G.C.RED)
 				end
 			end)
 		end
@@ -658,7 +689,7 @@ local function install_hooks()
 	G.FUNCS.buy_from_shop = function(e)
 		if ENGAGED and CONN and e and e.config and e.config.ref_table and e.config.ref_table.bbridge_shop_index ~= nil then
 			local idx = e.config.ref_table.bbridge_shop_index
-			local r = send_action("buyShopItem", { index = idx })
+			local r = send_action("buyShopItem", ',"index":' .. idx)
 			if not (r and r.accepted) then
 				logln("buy REJECTED slot " .. idx .. ": " .. tostring(r and r.rejection))
 				popup("CAN'T BUY: " .. tostring((r and r.rejection) or "server error"), G.C.RED)
@@ -717,7 +748,7 @@ local function install_hooks()
 	local _redeem = Card.redeem
 	function Card:redeem()
 		if ENGAGED and CONN and self.bbridge_voucher_index ~= nil then
-			local r = send_action("buyVoucher", { index = self.bbridge_voucher_index })
+			local r = send_action("buyVoucher", ',"index":' .. self.bbridge_voucher_index)
 			if not (r and r.accepted) then
 				logln("voucher REJECTED: " .. tostring(r and r.rejection))
 				popup("CAN'T BUY VOUCHER: " .. tostring((r and r.rejection) or "?"), G.C.RED)
@@ -750,7 +781,7 @@ local function install_hooks()
 				local idx
 				for i, c in ipairs(G.jokers.cards) do if c == card then idx = i - 1; break end end
 				if idx ~= nil then
-					local r = send_action("sellJoker", { index = idx })
+					local r = send_action("sellJoker", ',"index":' .. idx)
 					if not (r and r.accepted) then
 						logln("sell REJECTED idx " .. idx .. ": " .. tostring(r and r.rejection))
 						popup("CAN'T SELL: " .. tostring((r and r.rejection) or "?"), G.C.RED)
@@ -805,7 +836,7 @@ local function install_hooks()
 						if hc.bbridge_uid then targets[#targets + 1] = hc.bbridge_uid end
 					end
 				end
-				local r = send_action("pickPackItem", { index = idx })
+				local r = send_action("pickPackItem", ',"index":' .. idx)
 				if not (r and r.accepted) then
 					logln("pickPackItem REJECTED idx " .. idx .. ": " .. tostring(r and r.rejection))
 					popup("CAN'T PICK: " .. tostring((r and r.rejection) or "?"), G.C.RED)
@@ -814,7 +845,8 @@ local function install_hooks()
 				VIEW = r.view or VIEW
 				if consumable and VIEW.consumables and #VIEW.consumables > 0 then
 					local cidx = #VIEW.consumables - 1 -- the just-stored consumable (appended last)
-					local r2 = send_action("useConsumable", { index = cidx, targets = targets })
+					local r2 = send_action("useConsumable",
+						',"index":' .. cidx .. ',"targets":[' .. table.concat(targets, ",") .. "]")
 					if r2 and r2.view then VIEW = r2.view end
 					logln("pack pick(consumable) -> picked+used idx " .. idx .. " targets=" .. #targets)
 				else
@@ -836,7 +868,8 @@ local function install_hooks()
 							if hc.bbridge_uid then targets[#targets + 1] = hc.bbridge_uid end
 						end
 					end
-					local r = send_action("useConsumable", { index = idx, targets = targets })
+					local r = send_action("useConsumable",
+						',"index":' .. idx .. ',"targets":[' .. table.concat(targets, ",") .. "]")
 					if not (r and r.accepted) then
 						logln("useConsumable REJECTED idx " .. idx .. ": " .. tostring(r and r.rejection))
 						popup("CAN'T USE: " .. tostring((r and r.rejection) or "?"), G.C.RED)
@@ -856,7 +889,7 @@ local function install_hooks()
 	local _open = Card.open
 	function Card:open()
 		if ENGAGED and CONN and self.bbridge_pack_index ~= nil then
-			local r = send_action("openPack", { index = self.bbridge_pack_index })
+			local r = send_action("openPack", ',"index":' .. self.bbridge_pack_index)
 			if not (r and r.accepted) then
 				logln("openPack REJECTED: " .. tostring(r and r.rejection))
 				popup("CAN'T OPEN: " .. tostring((r and r.rejection) or "?"), G.C.RED)
@@ -1002,12 +1035,18 @@ local function install_hooks()
 	return true
 end
 
--- Launch banner. The net thread does the actual connecting in the background (status surfaces via drain);
--- the real engage + card mapping happen on select_blind.
+-- launch-time connectivity check. Deliberately a LOGIN-ONLY probe: the old version opened a throwaway
+-- run (newRun) just to dump the card mapping, which orphaned a server-side Run every launch and did a
+-- full handshake at startup. The real engage + card mapping happen on select_blind, so a light probe is
+-- enough here.
 local function prove_translation()
 	logln("== BalatroBridge ==")
-	logln(net and "net thread started -- connecting in background; select a blind to engage."
-		or "no love.thread -> vanilla Balatro (no networking).")
+	local token = http_login("balatro")
+	if token then
+		logln("server reachable (login OK, " .. #token .. "-char token). Select a blind to engage.")
+	else
+		logln("server check FAILED: login (server :28788 up?) -> vanilla Balatro until it is reachable.")
+	end
 end
 
 -- (The standalone parser spec now loads lib/wire.lua directly — no in-mod test seam needed.)
@@ -1017,7 +1056,6 @@ pcall(function()
 	local _upd = Game.update
 	function Game:update(dt)
 		_upd(self, dt)
-		if net then pcall(function() net:drain() end) end -- pump the net channel each frame (status + pushes)
 		frames = frames + 1
 		if frames == 200 and not done then
 			done = true
