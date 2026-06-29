@@ -1016,6 +1016,7 @@ local function install_hooks()
 						return -- block native use
 					end
 					VIEW = r.view or VIEW
+					SERVER_HAND = (r.view and r.view.hand) or r.hand or SERVER_HAND -- the new server hand (Immolate shrinks it)
 					logln("use -> server consumable " .. idx .. " targets=" .. #targets)
 					-- DEV: which consumable, the cards you selected (native identity), and that the server applied
 					-- it (the next draw reconcile re-stamps any identities the effect changed).
@@ -1030,11 +1031,17 @@ local function install_hooks()
 						log.dev("USE", "consumable '" .. tostring(key) .. "' (idx " .. idx .. ") on [" ..
 							table.concat(sel, " ") .. "]; server applied -> identities re-stamped on next draw")
 					end
-					-- A consumable can change the JOKERS mid-blind (Hex polychrome + destroy others, Ankh copy,
-					-- Ectoplasm). Re-render the owned joker row + consumable row now so the edition/removal shows
-					-- immediately instead of waiting for the shop.
+					-- A consumable can change the JOKERS (Hex polychrome + destroy others, Ankh copy, Ectoplasm)
+					-- AND the HAND (Immolate destroys cards, a Tarot mutates rank/suit). Re-render all of them now;
+					-- the HAND is DEFERRED so any native use animation settles before destroyed cards dissolve.
 					pcall(reconcile_jokers_to_server)
 					pcall(reconcile_consumables_to_server)
+					if G.E_MANAGER and Event then
+						G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.25, blocking = false,
+							func = function() pcall(render_hand); return true end }))
+					else
+						pcall(render_hand)
+					end
 				elseif key then
 					-- A card sits in the consumable slot that the SERVER does not list as a consumable -- e.g. a
 					-- JOKER native mis-routed here. Do NOT let native "use" it: there's no server consumable to
