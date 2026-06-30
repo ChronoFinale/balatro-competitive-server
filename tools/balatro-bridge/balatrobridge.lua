@@ -503,7 +503,11 @@ end
 -- build, then swap each main-slot card to the server's item (center + price + index), drop any extras,
 -- and snap money. Re-run after a buy to re-index the remaining (shifted) slots.
 local function reconcile_shop_to_server()
-	if not (ENGAGED and VIEW and VIEW.shop and G.shop_jokers and G.shop_jokers.cards) then return end
+	-- Gate on the REAL shop (native G.STATE==SHOP via stage()), NOT the server phase: the server flips to
+	-- SHOP the instant the blind is beaten, while Balatro is still on the ROUND_EVAL cash-out screen. Reading
+	-- the server phase here is what made the bridge "assume shop before cash out". stage()=="SHOP" is true
+	-- only AFTER Cash Out.
+	if not (ENGAGED and stage() == "SHOP" and VIEW and VIEW.shop and G.shop_jokers and G.shop_jokers.cards) then return end
 	local items, cards = VIEW.shop, G.shop_jokers.cards
 	local n = math.min(#cards, #items)
 	for i = 1, n do
@@ -843,7 +847,7 @@ local function install_hooks()
 			pcall(function() G.GAME.shop.joker_max = #VIEW.shop end)
 		end
 		local r = _ushop(self, dt)
-		if ENGAGED and VIEW and VIEW.phase == "SHOP" and #VIEW.shop > 0 and not SHOP_DONE then
+		if ENGAGED and stage() == "SHOP" and VIEW and #VIEW.shop > 0 and not SHOP_DONE then
 			SHOP_DONE = true -- reconcile exactly once per visit (the poll waits for the cards to settle)
 			schedule_shop_reconcile()
 		end
