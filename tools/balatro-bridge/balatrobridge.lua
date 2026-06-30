@@ -460,15 +460,26 @@ local function reconcile_jokers_to_server()
 						G.P_CARDS.empty, G.P_CENTERS[jk.key],
 						{ bypass_discovery_center = true, bypass_discovery_ui = true })
 					nc.bbridge_owned = true
+					nc.bbridge_jk_key, nc.bbridge_jk_edition = jk.key, jk.edition
 					nc:start_materialize()
 					G.jokers:emplace(nc)
+					if nc.set_edition and jk.edition and jk.edition ~= "NONE" then
+						pcall(function() nc:set_edition(edition_table(jk.edition), true, true) end)
+					end
 				end)
-				c = G.jokers.cards[i]
-			elseif (c.config and c.config.center_key) ~= jk.key and c.set_ability then
-				pcall(function() c:set_ability(G.P_CENTERS[jk.key], true) end)
+			else
+				-- Only TOUCH what actually changed. Re-applying set_ability/set_edition every reconcile
+				-- re-triggers the native edition shader + juice on EVERY joker -- the "Hex is crazy" flicker
+				-- across the whole row. Track the last-rendered key/edition and act only on a diff.
+				if (c.bbridge_jk_key or (c.config and c.config.center_key)) ~= jk.key and c.set_ability then
+					pcall(function() c:set_ability(G.P_CENTERS[jk.key], true) end)
+					c.bbridge_jk_key = jk.key
+				end
+				if c.bbridge_jk_edition ~= jk.edition and c.set_edition then
+					pcall(function() c:set_edition(edition_table(jk.edition), true, true) end)
+					c.bbridge_jk_edition = jk.edition
+				end
 			end
-			-- Stamp the server's edition (edition_table(nil/NONE) clears to base).
-			if c and c.set_edition then pcall(function() c:set_edition(edition_table(jk.edition), true, true) end) end
 		end
 	end
 	for i = #G.jokers.cards, #VIEW.jokers + 1, -1 do -- native row longer than the server -> drop extras
@@ -1060,7 +1071,9 @@ local function install_hooks()
 							end
 						end
 						log.dev("USE", "consumable '" .. tostring(key) .. "' (idx " .. idx .. ") on [" ..
-							table.concat(sel, " ") .. "]; server applied -> identities re-stamped on next draw")
+							table.concat(sel, " ") .. "]; server applied -> " .. ((stage() == "PLAYING")
+								and "reconciling hand (destroyed dissolve, mutated restamp) + jokers"
+								or "in shop: reconciling jokers + consumables (no hand to touch)"))
 					end
 					-- A consumable can change the JOKERS (Hex polychrome + destroy others, Ankh copy, Ectoplasm)
 					-- AND the HAND (Immolate destroys cards, a Tarot mutates rank/suit). Re-render all of them now;
