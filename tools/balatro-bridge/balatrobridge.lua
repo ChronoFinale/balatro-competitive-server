@@ -83,6 +83,31 @@ local function fmt_cards(list)
 	return table.concat(t, " ")
 end
 
+-- THE canonical lifecycle stage. Resolved from the NATIVE G.STATE first (it alone distinguishes the
+-- post-blind cash-out screen from the real shop) and the server VIEW.phase as a fallback / run-outcome. The
+-- server flips to SHOP the instant a blind is beaten, but Balatro stays in ROUND_EVAL until you click Cash
+-- Out -- so anything that should wait for the actual shop must gate on stage()=="SHOP", not VIEW.phase=="SHOP".
+-- Stages: SELECT | PLAYING | ROUND_EVAL (beat blind, pre-cashout) | SHOP | PACK | GAME_OVER | UNKNOWN.
+local function stage()
+	local S, st = G and G.STATES, G and G.STATE
+	if S and st ~= nil then
+		if st == S.GAME_OVER then return "GAME_OVER" end
+		if st == S.ROUND_EVAL then return "ROUND_EVAL" end -- post-blind, BEFORE cash out (server is already SHOP)
+		if st == S.SHOP then return "SHOP" end             -- actually in the shop (after Cash Out)
+		if st == S.BLIND_SELECT then return "SELECT" end
+		if st == S.SELECTING_HAND or st == S.HAND_PLAYED or st == S.DRAW_TO_HAND then return "PLAYING" end
+		for _, k in ipairs({ "TAROT_PACK", "PLANET_PACK", "SPECTRAL_PACK", "STANDARD_PACK", "BUFFOON_PACK" }) do
+			if S[k] and st == S[k] then return "PACK" end
+		end
+	end
+	local p = VIEW and VIEW.phase -- fallback when native state isn't readable
+	if p == "BLIND_ACTIVE" then return "PLAYING" end
+	if p == "BLIND_SELECT" then return "SELECT" end
+	if p == "RUN_LOST" or p == "RUN_WON" then return "GAME_OVER" end
+	if p == "SHOP" then return "SHOP" end
+	return "UNKNOWN"
+end
+
 local function http_login(username)
 	if not socket then return nil end -- luasocket unavailable -> stay vanilla
 	local s = socket.tcp(); s:settimeout(2)
@@ -1038,10 +1063,10 @@ local function install_hooks()
 					-- the HAND is DEFERRED so any native use animation settles before destroyed cards dissolve.
 					pcall(reconcile_jokers_to_server)
 					pcall(reconcile_consumables_to_server)
-					-- Hand effects only matter DURING a blind (there is NO hand in the shop). Updating SERVER_HAND
-					-- or reconciling the hand while in the shop would stamp a stale/empty hand and corrupt the next
-					-- deal (the "deck all wrong next draw" + the spurious '8 unplaced' warning). Gate on the blind.
-					if VIEW and VIEW.phase == "BLIND_ACTIVE" then
+					-- Hand effects only matter while actually PLAYING a blind (no hand in the shop / cash-out).
+					-- Updating SERVER_HAND or reconciling the hand outside a blind would stamp a stale/empty hand
+					-- and corrupt the next deal (the "deck all wrong next draw" + the spurious '8 unplaced' warning).
+					if stage() == "PLAYING" then
 						SERVER_HAND = (r.view and r.view.hand) or r.hand or SERVER_HAND
 						if G.E_MANAGER and Event then
 							G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.25, blocking = false,
