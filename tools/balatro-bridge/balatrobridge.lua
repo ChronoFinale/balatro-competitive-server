@@ -244,7 +244,10 @@ end
 -- `hand` defaults to SERVER_HAND (the cached authoritative hand). Replaces reconcile_hand_to_server.
 local function render_hand(hand)
 	hand = hand or SERVER_HAND
-	if not (ENGAGED and G.hand and G.hand.cards and hand and #hand > 0) then return end
+	-- Require a NATIVE hand to reconcile: outside a blind (shop/blind-select) G.hand is empty, and the deal
+	-- -- not render_hand -- is what populates it. Reconciling an empty hand against a non-empty server hand
+	-- would just report every server card "unplaced". So bail unless there are native cards present.
+	if not (ENGAGED and G.hand and G.hand.cards and #G.hand.cards > 0 and hand and #hand > 0) then return end
 	local server_by_uid = {}
 	for _, sc in ipairs(hand) do server_by_uid[sc.uid] = sc end
 	-- 1) Remove cards the server destroyed (uid gone). A played/discarded card has already left G.hand by
@@ -1016,7 +1019,6 @@ local function install_hooks()
 						return -- block native use
 					end
 					VIEW = r.view or VIEW
-					SERVER_HAND = (r.view and r.view.hand) or r.hand or SERVER_HAND -- the new server hand (Immolate shrinks it)
 					logln("use -> server consumable " .. idx .. " targets=" .. #targets)
 					-- DEV: which consumable, the cards you selected (native identity), and that the server applied
 					-- it (the next draw reconcile re-stamps any identities the effect changed).
@@ -1036,11 +1038,17 @@ local function install_hooks()
 					-- the HAND is DEFERRED so any native use animation settles before destroyed cards dissolve.
 					pcall(reconcile_jokers_to_server)
 					pcall(reconcile_consumables_to_server)
-					if G.E_MANAGER and Event then
-						G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.25, blocking = false,
-							func = function() pcall(render_hand); return true end }))
-					else
-						pcall(render_hand)
+					-- Hand effects only matter DURING a blind (there is NO hand in the shop). Updating SERVER_HAND
+					-- or reconciling the hand while in the shop would stamp a stale/empty hand and corrupt the next
+					-- deal (the "deck all wrong next draw" + the spurious '8 unplaced' warning). Gate on the blind.
+					if VIEW and VIEW.phase == "BLIND_ACTIVE" then
+						SERVER_HAND = (r.view and r.view.hand) or r.hand or SERVER_HAND
+						if G.E_MANAGER and Event then
+							G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.25, blocking = false,
+								func = function() pcall(render_hand); return true end }))
+						else
+							pcall(render_hand)
+						end
 					end
 				elseif key then
 					-- A card sits in the consumable slot that the SERVER does not list as a consumable -- e.g. a
