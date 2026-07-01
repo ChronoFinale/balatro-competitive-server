@@ -1534,6 +1534,28 @@ local function install_hooks()
 		logln("deck-view override installed (renders the server's deck composition, not native's)")
 	end
 
+	-- 6c) SKIP-TAG DISPLAY -- feed native the SERVER's skip tag for the current blind so the skip button shows
+	-- the tag you'll actually earn. Native rolls its OWN tag with its OWN seed, so it's always mismatched.
+	-- create_UIBox_blind_tag reads G.GAME.round_resets.blind_tags[blind_choice]; set it to the server's
+	-- offeredTag (key) for the current blind (blind_on_deck) right before native builds the button.
+	-- NOTE: the FULL server-driven select screen (both Small+Big tags, boss, requirements) needs the server to
+	-- expose all three blinds -- a follow-up. This fixes the current skippable blind's displayed tag.
+	if rawget(_G, "create_UIBox_blind_tag") then
+		local _cubt = create_UIBox_blind_tag
+		create_UIBox_blind_tag = function(blind_choice, run_info)
+			pcall(function()
+				if ENGAGED and VIEW and VIEW.offeredTag and G and G.GAME and G.GAME.round_resets
+					and blind_choice and blind_choice == G.GAME.blind_on_deck
+					and G.P_TAGS and G.P_TAGS[VIEW.offeredTag] then
+					G.GAME.round_resets.blind_tags = G.GAME.round_resets.blind_tags or {}
+					G.GAME.round_resets.blind_tags[blind_choice] = VIEW.offeredTag
+				end
+			end)
+			return _cubt(blind_choice, run_info)
+		end
+		logln("skip-tag override installed (current blind shows the server's tag)")
+	end
+
 	-- 7) RETARGET the round-score count-up to the SERVER's value. Native eases G.GAME.chips toward a
 	-- target it computed LOCALLY (state_events.lua:1044); when local scoring diverges (jokers, or the
 	-- first hand before identities settle) that target is wrong, and our after-the-fact snap then made
