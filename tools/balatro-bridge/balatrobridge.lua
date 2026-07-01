@@ -449,6 +449,15 @@ local function set_shop_card_identity(card, item, index)
 		return false
 	end
 	pcall(function() card:set_ability(G.P_CENTERS[item.key], true) end)
+	-- DRIVE native's buy routing by giving it correct INPUT (so there's nothing to reconcile after): native
+	-- buy_from_shop routes PURELY on card.ability.consumeable (button_callbacks.lua:2429 -> consumeables else
+	-- jokers). set_ability can leave a STALE consumeable flag when converting a consumable slot to a joker ->
+	-- the joker-in-consumable-slot bug. Force the flag from the server's kind so native routes it right once.
+	pcall(function()
+		if card.ability then
+			card.ability.consumeable = (item.kind == "TAROT" or item.kind == "PLANET" or item.kind == "SPECTRAL") or nil
+		end
+	end)
 	card.bbridge_shop_index = index
 	if item.cost then card.cost = item.cost end
 	-- Render the server's rolled edition (Foil/Holo/Poly/Negative); the bought joker inherits this card,
