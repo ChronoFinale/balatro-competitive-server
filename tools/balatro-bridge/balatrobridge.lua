@@ -737,6 +737,13 @@ local function divergence_check(view)
 		if view.consumables and G.consumeables and G.consumeables.cards and #G.consumeables.cards ~= #view.consumables then
 			log.warn("DIVERGENCE consumables: native=" .. #G.consumeables.cards .. " server=" .. #view.consumables)
 		end
+		-- Hand: only while actively PLAYING, and count only cards NOT mid-dissolve (a destroyed card lingers
+		-- during its animation). Skips DRAW/scoring states where the hand is legitimately in flux.
+		if stage() == "PLAYING" and view.hand and G.hand and G.hand.cards then
+			local n = 0
+			for _, c in ipairs(G.hand.cards) do if not c.bbridge_dissolving then n = n + 1 end end
+			if n ~= #view.hand then log.warn("DIVERGENCE hand: native=" .. n .. " server=" .. #view.hand) end
+		end
 	end)
 end
 
@@ -1463,5 +1470,9 @@ pcall(function()
 			pcall(prove_translation)
 			pcall(function() logln("hooks installed=" .. tostring(install_hooks())) end)
 		end
+		-- Frame-drain MONITOR: every ~1.5s while engaged, run the read-only divergence check so a desync
+		-- surfaces continuously, not only right after an action. Purely observational (logs a WARN) -- never
+		-- mutates, so it can't fight animations or soft-lock.
+		if done and ENGAGED and VIEW and frames % 90 == 0 then pcall(function() divergence_check(VIEW) end) end
 	end
 end)
