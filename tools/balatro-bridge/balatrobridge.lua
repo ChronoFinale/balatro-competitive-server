@@ -725,12 +725,32 @@ end
 -- self-guarded (no-op outside their context). The HAND and the SHOP-main cards have their own TIMED paths
 -- (deferred draw / poll-gated materialize) and MONEY has cash-out timing, so those are driven by their own
 -- hooks; apply_view is the single sync point every action funnels through for the rest.
+-- Deferred, READ-ONLY divergence detector: after native settles, assert the native rows match the server
+-- VIEW and log LOUD on a mismatch. Turns a silent desync (the "everything got fucked" class) into a visible
+-- signal at the seam, instead of a mystery three actions later. Never mutates -> cannot soft-lock.
+local function divergence_check(view)
+	pcall(function()
+		if not (ENGAGED and view) then return end
+		if view.jokers and G.jokers and G.jokers.cards and #G.jokers.cards ~= #view.jokers then
+			log.warn("DIVERGENCE jokers: native=" .. #G.jokers.cards .. " server=" .. #view.jokers)
+		end
+		if view.consumables and G.consumeables and G.consumeables.cards and #G.consumeables.cards ~= #view.consumables then
+			log.warn("DIVERGENCE consumables: native=" .. #G.consumeables.cards .. " server=" .. #view.consumables)
+		end
+	end)
+end
+
 local function apply_view(view)
 	if not (ENGAGED and view) then return end
 	VIEW = view
 	-- (events are logged by send_action/reconcile, which fetch the view -> not re-logged here to avoid dupes)
 	pcall(reconcile_jokers_to_server)
 	pcall(reconcile_consumables_to_server)
+	-- Verify the sync landed (deferred so native's own emplace/dissolve settles first).
+	if G.E_MANAGER and Event then
+		G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.5, blocking = false,
+			func = function() divergence_check(view); return true end }))
+	end
 end
 
 -- Install the three hooks (called once at launch).
