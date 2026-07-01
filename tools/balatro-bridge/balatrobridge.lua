@@ -176,8 +176,11 @@ end
 -- skipped instead of mistaken for our reply. [,}] avoids 3 matching 30.
 local function by_seq(n) return function(l) return l:match('"seq":' .. n .. '[,}]') ~= nil end end
 
--- Open a fresh run + select the blind, keeping the socket. Returns (socket, hand) | (nil, err).
-local function open_run()
+-- Log in + auth + newRun, forwarding the player's New Run deck/stake. Leaves the SERVER at BLIND_SELECT
+-- (does NOT select the blind). Returns (socket, view) | (nil, err). This is the run-START engage: opening
+-- the server run here (on the New Run "Play") -- not lazily at the first select_blind -- is what makes the
+-- run properly server-driven from the deck screen and fixes the "fresh run at Small (300)"/skip class.
+local function open_server_run()
 	local token = http_login("balatro")
 	if not token then return nil, "login failed (server :28788?)" end
 	local s = socket.tcp(); s:settimeout(2)
@@ -186,10 +189,8 @@ local function open_run()
 	s:send('{"type":"auth","seq":0,"token":"' .. token .. '"}\n')
 	if not recv_until(s, function(l) return l:match('"type":"authed"') ~= nil end) then s:close(); return nil, "no authed" end
 	-- Forward the player's New Run choice: native deck key b_xxx -> our d_xxx; stake is an integer 1..8.
-	-- BUG FIX: G.GAME.selected_back_key is the CENTER OBJECT (get_deck_from_name returns the center, not a
-	-- string -- game.lua:2038/2044), so reading it directly gave a table that failed the string check ->
-	-- NO deck was ever forwarded (server used its default deck = faces present even on Abandoned). Pull the
-	-- string key off the center (.key) / the Back's center, handling either a string or table form.
+	-- G.GAME.selected_back_key is the CENTER OBJECT (get_deck_from_name returns the center, not a string --
+	-- game.lua:2038/2044), so pull the string key off the center (.key) / the Back's center.
 	local extra = ""
 	pcall(function()
 		if G and G.GAME then
@@ -203,10 +204,19 @@ local function open_run()
 		end
 	end)
 	logln("newRun forwarding: " .. (extra == "" and "(none -> server default deck/stake)" or extra))
-	-- No seed: the SERVER generates a fresh random seed each run (anti-cheat + so every run differs,
-	-- instead of the old hardcoded seed that made every run/blind identical). We only forward deck + stake.
+	-- No seed: the SERVER generates a fresh random seed each run (anti-cheat + so every run differs).
 	wsend(s, '{"type":"newRun","seq":1' .. extra .. "}")
-	if not recv_until(s, by_seq(1)) then s:close(); return nil, "no newRun reply" end
+	local view = recv_until(s, by_seq(1))
+	if not view then s:close(); return nil, "no newRun reply" end
+	SEQ = 1
+	return s, parse_view(view)
+end
+
+-- open_server_run + select the first blind (deal the opening hand). The FALLBACK for select_blind when no
+-- run is already live (normally the run is opened at run start). Returns (socket, hand, view) | (nil, err).
+local function open_run()
+	local s, v = open_server_run()
+	if not s then return nil, v end -- v is the error string
 	wsend(s, '{"type":"selectBlind","seq":2}')
 	local view = recv_until(s, by_seq(2))
 	if not view then s:close(); return nil, "no selectBlind reply" end
@@ -710,6 +720,32 @@ end
 local function install_hooks()
 	if not (G and G.FUNCS) then return false end
 
+	-- 0) start_run (the New Run "Play", deck/stake chosen): OPEN the server run NOW, so it's live at
+	-- BLIND_SELECT before the first blind. This is the correct engage point -- lazily engaging at the first
+	-- select_blind left the server behind (fresh run at Small=300, first-blind skip did nothing). Native
+	-- Game:start_run initializes G.GAME (deck/stake/seed + first blind select); we then newRun with them.
+	if Game and Game.start_run then
+		local _start = Game.start_run
+		function Game:start_run(args)
+			local ret = _start(self, args) -- native builds the run (deck/stake/seed, first blind select)
+			pcall(function()
+				if CONN then pcall(function() CONN:close() end) end -- drop any prior run
+				CONN, SERVER_HAND, DRAW_QUEUE, ENGAGED, VIEW, RUN_LIVE = nil, {}, {}, false, nil, false
+				local s, v = open_server_run()
+				if s then
+					CONN, VIEW, RUN_LIVE = s, v, true
+					logln("RUN STARTED: server run open at blind-select (deck/stake forwarded).")
+					log.dev("BLIND", "run start: server phase=" .. tostring(v and v.phase) ..
+						" requirement=" .. tostring(v and v.requirement))
+				else
+					logln("run start: server UNREACHABLE (" .. tostring(v) .. ") -> NOT server-driven.")
+					popup("NOT CONNECTED — competitive server unreachable", G.C.RED)
+				end
+			end)
+			return ret
+		end
+	end
+
 	-- 1) select_blind: drive the SAME server run across blinds. If a run is live and we just proceed()ed
 	-- out of the shop (server phase BLIND_SELECT), CONTINUE it (selectBlind) so jokers/economy persist.
 	-- Otherwise (no run / run over / fresh Balatro run) open a new authoritative run. Either way, queue
@@ -1000,24 +1036,22 @@ local function install_hooks()
 	local _skip = G.FUNCS.skip_blind
 	G.FUNCS.skip_blind = function(e)
 		pcall(function()
-			-- ENGAGE the run BEFORE skipping. Engagement normally happens on select_blind (play), which a SKIP
-			-- bypasses -- so skipping the FIRST blind left the server with no run, skipBlind was never sent, the
-			-- server stayed on the Small blind, and the next select opened a FRESH run at Small = the "Big blind
-			-- shows 300 after skipping" bug. ENGAGED==false reliably means "no run yet", so open one here (a
-			-- fresh run starts at the Small BLIND_SELECT -- exactly the blind we're skipping from).
-			if not ENGAGED then
-				local s, hand, iview = open_run()
+			-- The run is opened at run start (start_run hook), so normally it's already live here. Fallback:
+			-- if somehow no run is live, open one (newRun -> BLIND_SELECT, exactly where we're skipping from)
+			-- before skipping -- otherwise skipBlind never reaches the server and the next select opens a fresh
+			-- Small run (the "Big blind shows 300 after skipping" bug).
+			if not (RUN_LIVE and CONN) then
+				local s, v = open_server_run()
 				if s then
-					CONN, SERVER_HAND, DRAW_QUEUE, ENGAGED, VIEW, RUN_LIVE = s, hand, true, iview, true
-					for _, sc in ipairs(hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end
-					logln("skip: engaged the run first (was not engaged) -> phase " .. tostring(iview and iview.phase))
+					CONN, VIEW, RUN_LIVE = s, v, true
+					logln("skip: opened server run (fallback) -> phase " .. tostring(v and v.phase))
 				else
 					logln("skip: server UNREACHABLE -> cannot engage")
 					popup("NOT CONNECTED — competitive server unreachable", G.C.RED)
 					return
 				end
 			end
-			if ENGAGED and CONN then
+			if RUN_LIVE and CONN then
 				local r = send_action("skipBlind")
 				if r and r.accepted then
 					VIEW = r.view or VIEW

@@ -38,7 +38,8 @@ for _, k in ipairs(SEAMS) do G.FUNCS[k] = function() end end
 local orig = {}
 for _, k in ipairs(SEAMS) do orig[k] = G.FUNCS[k] end
 
-Game = { update = function() end, update_hand_played = function() end, update_shop = function() end }
+Game = { update = function() end, update_hand_played = function() end, update_shop = function() end,
+	start_run = function() end }
 Card = { redeem = function() end, open = function() end }
 Tag = { apply_to_run = function() end }
 EventManager = { add_event = function() end }
@@ -71,6 +72,7 @@ for _, k in ipairs(SEAMS) do
 end
 ok(type(Game.update_hand_played) == "function", "Game.update_hand_played wrapped")
 ok(type(Game.update_shop) == "function", "Game.update_shop wrapped")
+ok(type(Game.start_run) == "function", "Game.start_run wrapped (run-start engage)")
 ok(type(Card.redeem) == "function", "Card.redeem wrapped")
 ok(type(Card.open) == "function", "Card.open wrapped")
 ok(type(Tag.apply_to_run) == "function", "Tag.apply_to_run wrapped")
