@@ -79,10 +79,15 @@ function log.dev(tag, s)
 end
 
 -- Compact human label for a server card ({uid,rank,suit}) for the action trail: "AS" "KH" "10D".
+-- Server sends ENUM names (SPADES/ACE); SUIT_CH below (capitalized) is for NATIVE base.suit ("Spades") in
+-- the use path -- a different case, so fmt_card needs its own server-enum maps.
 local SUIT_CH = { Spades = "S", Hearts = "H", Clubs = "C", Diamonds = "D" }
+local FMT_SUIT = { SPADES = "S", HEARTS = "H", CLUBS = "C", DIAMONDS = "D" }
+local FMT_RANK = { TWO = "2", THREE = "3", FOUR = "4", FIVE = "5", SIX = "6", SEVEN = "7", EIGHT = "8",
+	NINE = "9", TEN = "10", JACK = "J", QUEEN = "Q", KING = "K", ACE = "A" }
 local function fmt_card(sc)
 	if not sc then return "?" end
-	return tostring(sc.rank or "?") .. (SUIT_CH[sc.suit] or tostring(sc.suit or "?"))
+	return (FMT_RANK[sc.rank] or tostring(sc.rank or "?")) .. (FMT_SUIT[sc.suit] or tostring(sc.suit or "?"))
 end
 local function fmt_cards(list)
 	if not list or #list == 0 then return "(none)" end
@@ -519,8 +524,8 @@ end
 -- makes native route it there), leaving a phantom consumable while the joker correctly enters G.jokers via
 -- reconcile_jokers_to_server. The server owns the truth, so drop any held consumable it doesn't list.
 local function reconcile_consumables_to_server()
-	if not (ENGAGED and VIEW and VIEW.consumables and G.consumeables and G.consumeables.cards and G.P_CENTERS) then return end
-	local items = VIEW.consumables
+	if not (ENGAGED and VIEW and G.consumeables and G.consumeables.cards and G.P_CENTERS) then return end
+	local items = VIEW.consumables or {} -- nil/absent -> the server holds NONE -> drop every native phantom
 	for i = 1, math.min(#G.consumeables.cards, #items) do
 		local it, c = items[i], G.consumeables.cards[i]
 		if it and it.key and G.P_CENTERS[it.key] and c and (c.config and c.config.center_key) ~= it.key and c.set_ability then
@@ -728,22 +733,27 @@ end
 -- Deferred, READ-ONLY divergence detector: after native settles, assert the native rows match the server
 -- VIEW and log LOUD on a mismatch. Turns a silent desync (the "everything got fucked" class) into a visible
 -- signal at the seam, instead of a mystery three actions later. Never mutates -> cannot soft-lock.
+local _last_divergence = "" -- dedupe: only log when the mismatch set CHANGES (the frame-drain runs often)
 local function divergence_check(view)
 	pcall(function()
 		if not (ENGAGED and view) then return end
+		local msgs = {}
 		if view.jokers and G.jokers and G.jokers.cards and #G.jokers.cards ~= #view.jokers then
-			log.warn("DIVERGENCE jokers: native=" .. #G.jokers.cards .. " server=" .. #view.jokers)
+			msgs[#msgs + 1] = "jokers native=" .. #G.jokers.cards .. " server=" .. #view.jokers
 		end
-		if view.consumables and G.consumeables and G.consumeables.cards and #G.consumeables.cards ~= #view.consumables then
-			log.warn("DIVERGENCE consumables: native=" .. #G.consumeables.cards .. " server=" .. #view.consumables)
+		if G.consumeables and G.consumeables.cards and #G.consumeables.cards ~= #(view.consumables or {}) then
+			msgs[#msgs + 1] = "consumables native=" .. #G.consumeables.cards .. " server=" .. #(view.consumables or {})
 		end
-		-- Hand: only while actively PLAYING, and count only cards NOT mid-dissolve (a destroyed card lingers
+		-- Hand: only while actively PLAYING, counting only cards NOT mid-dissolve (a destroyed card lingers
 		-- during its animation). Skips DRAW/scoring states where the hand is legitimately in flux.
 		if stage() == "PLAYING" and view.hand and G.hand and G.hand.cards then
 			local n = 0
 			for _, c in ipairs(G.hand.cards) do if not c.bbridge_dissolving then n = n + 1 end end
-			if n ~= #view.hand then log.warn("DIVERGENCE hand: native=" .. n .. " server=" .. #view.hand) end
+			if n ~= #view.hand then msgs[#msgs + 1] = "hand native=" .. n .. " server=" .. #view.hand end
 		end
+		local joined = table.concat(msgs, "; ")
+		if joined ~= "" and joined ~= _last_divergence then log.warn("DIVERGENCE " .. joined) end
+		_last_divergence = joined -- clearing (joined=="") silently resets, so the next occurrence logs again
 	end)
 end
 
@@ -1470,9 +1480,17 @@ pcall(function()
 			pcall(prove_translation)
 			pcall(function() logln("hooks installed=" .. tostring(install_hooks())) end)
 		end
-		-- Frame-drain MONITOR: every ~1.5s while engaged, run the read-only divergence check so a desync
-		-- surfaces continuously, not only right after an action. Purely observational (logs a WARN) -- never
-		-- mutates, so it can't fight animations or soft-lock.
-		if done and ENGAGED and VIEW and frames % 90 == 0 then pcall(function() divergence_check(VIEW) end) end
+		-- Frame-drain, every ~1.5s while engaged: in the SHOP (no scoring animation to fight) actively SELF-HEAL
+		-- the owned rows so a native mis-route -- e.g. a joker bought into the consumable slot -- can't persist;
+		-- everywhere else, only observe. Then run the (deduped) divergence check either way.
+		if done and ENGAGED and VIEW and frames % 90 == 0 then
+			pcall(function()
+				if stage() == "SHOP" then
+					pcall(reconcile_jokers_to_server)
+					pcall(reconcile_consumables_to_server)
+				end
+				divergence_check(VIEW)
+			end)
+		end
 	end
 end)

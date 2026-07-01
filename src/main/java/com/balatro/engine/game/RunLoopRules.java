@@ -175,6 +175,7 @@ final class RunLoopRules {
                     // Perkeo (shop exit): a slot-cap-ignoring Negative copy of a random held consumable.
                     String dup = r.state.queues.pick(r.state.consumables, RngSources.PERKEO_DUP, r.rngCtx(), s -> s, (a, b) -> 0);
                     r.apply(new com.balatro.engine.exec.Command.CopyConsumable(dup, com.balatro.engine.exec.Command.CopyConsumable.SlotPolicy.IGNORE_CAP));
+                    r.state.triggerLog.add(triggerSource(ctx) + " triggered → duplicated " + dup);
                 } else if (cp.selector() instanceof Selector.RandomJoker
                         && !r.state.jokers().isEmpty() && r.state.jokers().size() < Shop.JOKER_SLOT_LIMIT) {
                     // Invisible Joker (on sell): copy a joker — the rightmost in MP (deterministic), else a
@@ -183,6 +184,7 @@ final class RunLoopRules {
                             ? r.state.jokers().get(r.state.jokers().size() - 1)
                             : r.state.queues.pick(r.state.jokers(), RngSources.INVISIBLE_DUP, r.rngCtx(), Joker::key, Run.JOKER_QUALITY);
                     r.apply(new com.balatro.engine.exec.Command.CopyJoker(source, null));
+                    r.state.triggerLog.add(triggerSource(ctx) + " triggered → copied " + source.name());
                 }
             }
             case Effect.CreateTag ct -> RunTags.grantTag(r, ct.tag());       // Diet Cola (on sell)
@@ -249,5 +251,13 @@ final class RunLoopRules {
             }
         }
         r.state.jokers().removeAll(r.pendingSelfDestruct); // consume jokers that did Destroy(Self) this pass
+    }
+
+    /** The joker whose rule is currently firing (for trigger-event attribution), or a generic label. */
+    private static String triggerSource(EvaluationContext ctx) {
+        if (ctx.jokers != null && ctx.selfIndex >= 0 && ctx.selfIndex < ctx.jokers.size()) {
+            return ctx.jokers.get(ctx.selfIndex).name();
+        }
+        return "a joker";
     }
 }
