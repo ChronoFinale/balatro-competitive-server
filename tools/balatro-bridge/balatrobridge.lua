@@ -1133,12 +1133,12 @@ local function install_hooks()
 					popup("CAN'T PICK: " .. tostring((r and r.rejection) or "?"), G.C.RED)
 					return -- block native pick
 				end
-				VIEW = r.view or VIEW
+				apply_view(r.view) -- a picked joker/card lands in the owned row per the server
 				if consumable and VIEW.consumables and #VIEW.consumables > 0 then
 					local cidx = #VIEW.consumables - 1 -- the just-stored consumable (appended last)
 					local r2 = send_action("useConsumable",
 						',"index":' .. cidx .. ',"targets":[' .. table.concat(targets, ",") .. "]")
-					if r2 and r2.view then VIEW = r2.view end
+					apply_view(r2 and r2.view) -- the chained use may change jokers/consumables too
 					logln("pack pick(consumable) -> picked+used idx " .. idx .. " targets=" .. #targets)
 				else
 					logln("pack pick -> picked idx " .. idx)
@@ -1227,7 +1227,7 @@ local function install_hooks()
 				popup("CAN'T OPEN: " .. tostring((r and r.rejection) or "?"), G.C.RED)
 				return -- block native open
 			end
-			VIEW = r.view or VIEW
+			apply_view(r.view) -- opening a pack keeps VIEW authoritative (rows unchanged, but stay in sync)
 			self.bbridge_pack_index = nil
 			logln("openPack -> server (items=" .. tostring(VIEW.openPack and #VIEW.openPack.items) .. ")")
 			local res = _open(self)
@@ -1246,7 +1246,7 @@ local function install_hooks()
 	G.FUNCS.skip_booster = function(e)
 		if ENGAGED and CONN and VIEW and VIEW.openPack then
 			local r = send_action("skipPack")
-			if r then VIEW = r.view or VIEW; logln("skip pack -> server skipPack") end
+			if r then apply_view(r.view); logln("skip pack -> server skipPack") end
 		end
 		return _skipb(e)
 	end
