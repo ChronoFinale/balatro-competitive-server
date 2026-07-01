@@ -485,9 +485,18 @@ local function build_shop_load(items, area, center, setup)
 			if setup then setup(c, item, i) end
 			local t = c:save()
 			pcall(function() if c.remove then c:remove() end end) -- discard temp card; only its save table is used
+			-- SELF-TEST: native's CardArea:load is NOT pcall'd, so a malformed table would crash the shop
+			-- build. Replicate exactly what CardArea:load does per card (loading flag + Card(...) + card:load)
+			-- and ERROR out (caught by this pcall -> bail) if it doesn't round-trip cleanly.
+			loading = true
+			local tc = Card(0, 0, G.CARD_W, G.CARD_H, G.P_CENTERS.j_joker, G.P_CENTERS.c_base)
+			loading = nil
+			local rt = pcall(function() tc:load(t) end)
+			pcall(function() if tc.remove then tc:remove() end end)
+			if not rt then error("shop-load self-test failed for " .. tostring(ctr and ctr.key)) end
 			return t
 		end)
-		if not (ok and saved) then return nil end
+		if not (ok and saved) then return nil end -- any card fails -> bail this area (native generates it)
 		cards[#cards + 1] = saved
 	end
 	return { config = area.config, cards = cards }
