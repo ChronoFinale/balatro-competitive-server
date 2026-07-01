@@ -64,6 +64,8 @@ function wire.view_of(decoded)
 		discardsLeft = v.discardsLeft,
 		money        = v.money,
 		events       = counters.events,    -- joker-trigger dev-log lines since the last view (Hallucination created X)
+		offeredTag   = counters.offeredTagName ~= "" and counters.offeredTagName or counters.offeredTag,
+		heldTags     = counters.heldTags,  -- tags the run currently holds (server-authoritative)
 		cashReward   = counters.cashOutReward,
 		cashHands    = counters.cashOutHands,    -- per-remaining-hand/discard money (bonus, separate from interest)
 		cashInterest = counters.cashOutInterest,

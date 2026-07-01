@@ -849,7 +849,8 @@ local function install_hooks()
 						logln("CONTINUE: next blind, " .. #r.hand .. "-card hand queued (same run).")
 						log.dev("BLIND", "server requirement=" .. tostring(r.view and r.view.requirement) ..
 							" phase=" .. tostring(r.view and r.view.phase) ..
-							(r.view and r.view.bossKey and (" boss=" .. r.view.bossKey) or ""))
+							(r.view and r.view.bossKey and (" boss=" .. r.view.bossKey) or "") ..
+							(r.view and r.view.offeredTag and (" skip-tag=" .. tostring(r.view.offeredTag)) or ""))
 						handled = true
 					else
 						-- Stale RUN_LIVE (quit-to-menu, server dropped the run): fall through to a fresh run.
