@@ -466,35 +466,53 @@ local function set_shop_card_identity(card, item, index)
 	return true
 end
 
--- OWN the shop's main slots (drive-it, no reconcile): build native's own "load this exact shop" table from
--- the SERVER's items, so native LOADS our cards (game.lua:3099 `if G.load_shop_jokers`) instead of
+-- OWN the shop (drive-it, no reconcile): build native's own "load this exact shop area" table from the
+-- SERVER's items, so native LOADS our cards (game.lua:3099/3116/3135 `if G.load_shop_*`) instead of
 -- RNG-generating them + us swapping identities afterward. The table is produced via the REAL Card:save()
--- round-trip, so it's byte-for-byte the format CardArea:load expects (this is Balatro's own save/restore
--- path). Returns the load table, or nil to bail (any gap -> native falls back to its generation + our
--- reconcile, so this can never make the shop worse).
-local function build_shop_load_jokers(items)
-	if not (items and #items > 0 and Card and G.P_CARDS and G.P_CENTERS and G.shop_jokers) then return nil end
+-- round-trip, so it's byte-for-byte the format CardArea:load expects (Balatro's own save/restore path).
+-- `center(item)` picks the P_CENTERS entry; `setup(card,item,i)` does per-area tweaks. Returns the load
+-- table, or nil to bail (any gap -> native falls back to its generation + our reconcile: never worse).
+local function build_shop_load(items, area, center, setup)
+	if not (items and #items > 0 and Card and G.P_CARDS and area) then return nil end
 	local cards = {}
-	for _, item in ipairs(items) do
-		if not (item.key and G.P_CENTERS[item.key]) then return nil end
+	for i, item in ipairs(items) do
+		local ctr = center(item)
+		if not ctr then return nil end
 		local ok, saved = pcall(function()
-			local c = Card(0, 0, G.CARD_W, G.CARD_H, G.P_CARDS.empty, G.P_CENTERS[item.key],
+			local c = Card(0, 0, G.CARD_W, G.CARD_H, G.P_CARDS.empty, ctr,
 				{ bypass_discovery_center = true, bypass_discovery_ui = true })
 			if item.cost then c.cost = item.cost; c.sell_cost = math.max(1, math.floor((item.cost or 1) / 2)) end
-			if c.set_edition and item.edition and item.edition ~= "NONE" then
-				c:set_edition(edition_table(item.edition), true, true)
-			end
-			if c.ability then -- correct buy-routing flag (native routes on ability.consumeable)
-				c.ability.consumeable = (item.kind == "TAROT" or item.kind == "PLANET" or item.kind == "SPECTRAL") or nil
-			end
+			if setup then setup(c, item, i) end
 			local t = c:save()
-			pcall(function() if c.remove then c:remove() end end) -- discard the temp card; only its save table is used
+			pcall(function() if c.remove then c:remove() end end) -- discard temp card; only its save table is used
 			return t
 		end)
 		if not (ok and saved) then return nil end
 		cards[#cards + 1] = saved
 	end
-	return { config = G.shop_jokers.config, cards = cards }
+	return { config = area.config, cards = cards }
+end
+
+-- Per-area load-table builders (main jokers/consumables, vouchers, booster packs).
+local function build_shop_load_jokers()
+	return build_shop_load(VIEW and VIEW.shop, G.shop_jokers,
+		function(item) return item.key and G.P_CENTERS and G.P_CENTERS[item.key] end,
+		function(c, item)
+			if c.set_edition and item.edition and item.edition ~= "NONE" then c:set_edition(edition_table(item.edition), true, true) end
+			if c.ability then -- correct buy-routing flag (native routes on ability.consumeable)
+				c.ability.consumeable = (item.kind == "TAROT" or item.kind == "PLANET" or item.kind == "SPECTRAL") or nil
+			end
+		end)
+end
+local function build_shop_load_vouchers()
+	return build_shop_load(VIEW and VIEW.vouchers, G.shop_vouchers,
+		function(item) return item.key and G.P_CENTERS and G.P_CENTERS[item.key] end,
+		function(c) c.shop_voucher = true end)
+end
+local function build_shop_load_booster()
+	return build_shop_load(VIEW and VIEW.packs, G.shop_booster,
+		function(item) local k = pack_center_key(item); return k and G.P_CENTERS and G.P_CENTERS[k] end,
+		function(c, item, i) if c.ability then c.ability.booster_pos = i end end)
 end
 
 -- Snap the HUD money to the server's truth (the native cash-out animated to its OWN figure). Set the value
@@ -1001,15 +1019,15 @@ local function install_hooks()
 		if ENGAGED and VIEW and VIEW.shop and #VIEW.shop > 0 and G.GAME and G.GAME.shop and not SHOP_DONE then
 			-- Match native's main-slot count to the server's exactly, so the poll settles fast.
 			pcall(function() G.GAME.shop.joker_max = #VIEW.shop end)
-			-- OWN the main slots: if the native shop isn't built yet this visit (not G.shop), hand native our
-			-- exact cards to LOAD instead of RNG-generating. Native consumes G.load_shop_jokers on build.
-			-- Bail-safe: build_shop_load_jokers returns nil on any gap -> native generates + our reconcile runs.
-			if not G.shop and not G.load_shop_jokers then
-				local lt = build_shop_load_jokers(VIEW.shop)
-				if lt then
-					G.load_shop_jokers = lt
-					logln("shop: owning main slots via native load (" .. #VIEW.shop .. " server items, no RNG)")
-				end
+			-- OWN the whole shop: if the native shop isn't built yet this visit (not G.shop), hand native our
+			-- exact cards to LOAD for every area (main slots, vouchers, packs) instead of RNG-generating them.
+			-- Native consumes each G.load_shop_* on build. Bail-safe per area: nil -> native generates that area
+			-- + our reconcile handles it, so this can never make the shop worse.
+			if not G.shop then
+				if not G.load_shop_jokers then G.load_shop_jokers = build_shop_load_jokers() end
+				if not G.load_shop_vouchers then G.load_shop_vouchers = build_shop_load_vouchers() end
+				if not G.load_shop_booster then G.load_shop_booster = build_shop_load_booster() end
+				if G.load_shop_jokers then logln("shop: owning main slots via native load (" .. #VIEW.shop .. " items)") end
 			end
 		end
 		local r = _ushop(self, dt)
