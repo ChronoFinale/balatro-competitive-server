@@ -869,13 +869,20 @@ public final class Run {
     /** Reset per-shop tag flags and resolve any held ON_SHOP tags as the shop opens. */
     private void winBlind() {
         // Economy: blind reward + end-of-round bonus (per-hand/discard money + interest) + joker payouts.
-        int bonus = endOfRoundMoney();
+        // Itemize the bonus so the cash-out breakdown shows per-hand money and interest SEPARATELY (like the
+        // real game) instead of lumping them -- e.g. Yellow Deck's first round is $3 hands + $2 interest,
+        // not "$5 interest" (which would be impossible on ~$14).
+        EconomyConfig econ = EconomyConfig.resolve(deckType, state.vouchers, state.jokers());
+        int perCard = econ.perCardMoney(state.handsLeft, state.discardsLeft);
+        int interest = econ.interest(state.money); // interest is on PRE-reward money
+        int bonus = perCard + interest;
         int reward = (boss != null) ? boss.reward() : blind.reward;
         // Red stake (+): the Small Blind pays no reward (game.lua:2050, blind.lua:84).
         if (boss == null && blind == BlindType.SMALL && stake.smallBlindNoReward()) reward = 0;
         state.money += reward + bonus;
-        state.lastBlindReward = reward; // cash-out breakdown for the end-of-round screen
-        state.lastInterest = bonus;     // the non-reward bonus (per-hand/discard money + interest)
+        state.lastBlindReward = reward;     // cash-out breakdown for the end-of-round screen
+        state.lastInterest = interest;      // the ACTUAL interest ($1/$5, capped)
+        state.lastRoundMoney = perCard;     // per-remaining-hand + per-remaining-discard money
         if (boss != null) RunTags.applyBossDefeatTags(this); // Investment Tag pays out after a boss
         RunTags.applyBlueSeals(this); // Blue Seal: held cards create the Planet for this round's last hand
         state.roundsPlayedTotal++;

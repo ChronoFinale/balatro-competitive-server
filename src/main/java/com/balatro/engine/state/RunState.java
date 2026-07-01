@@ -153,7 +153,8 @@ public final class RunState {
 
     // Last blind's cash-out breakdown (shown on the end-of-round screen before the shop).
     public int lastBlindReward = 0;
-    public int lastInterest = 0;
+    public int lastInterest = 0;    // the ACTUAL interest ($1/$5, capped)
+    public int lastRoundMoney = 0;  // per-remaining-hand + per-remaining-discard money (the rest of the bonus)
 
     public int handLevelChipBonus(HandType t) {
         return (handLevel(t) - 1) * t.lChips;

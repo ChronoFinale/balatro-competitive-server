@@ -210,7 +210,8 @@ final class RunView {
         counters.put("multiplayer", r.state.capabilities.restrictedPools());
         // Cash-out breakdown (the end-of-round screen reads these when entering the shop).
         counters.put("cashOutReward", r.state.lastBlindReward);
-        counters.put("cashOutInterest", r.state.lastInterest);
+        counters.put("cashOutInterest", r.state.lastInterest); // ACTUAL interest ($1/$5, capped)
+        counters.put("cashOutHands", r.state.lastRoundMoney);  // per-remaining-hand/discard money
         // The tag offered for skipping this blind (shown on the Select/Skip screen).
         counters.put("offeredTag", r.state.offeredTag == null ? "" : r.state.offeredTag);
         counters.put("offeredTagName", r.state.offeredTag == null ? ""

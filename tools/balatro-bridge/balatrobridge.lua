@@ -1188,13 +1188,15 @@ local function install_hooks()
 	if G.FUNCS.cash_out then
 		local _cashout = G.FUNCS.cash_out
 		G.FUNCS.cash_out = function(e)
-			if ENGAGED and VIEW and G.GAME and G.GAME.current_round and (VIEW.cashReward or VIEW.cashInterest) then
+			if ENGAGED and VIEW and G.GAME and G.GAME.current_round and (VIEW.cashReward or VIEW.cashInterest or VIEW.cashHands) then
 				local native = G.GAME.current_round.dollars
-				G.GAME.current_round.dollars = (VIEW.cashReward or 0) + (VIEW.cashInterest or 0)
+				-- Total the cash-out from its ITEMIZED parts: blind reward + per-hand/discard money + interest.
+				G.GAME.current_round.dollars = (VIEW.cashReward or 0) + (VIEW.cashHands or 0) + (VIEW.cashInterest or 0)
 				logln("cash_out -> server total $" .. tostring(G.GAME.current_round.dollars))
-				log.dev("CASHOUT", "server reward=$" .. tostring(VIEW.cashReward or 0) .. " + interest=$" ..
-					tostring(VIEW.cashInterest or 0) .. " = $" .. tostring(G.GAME.current_round.dollars) ..
-					"  (native had computed $" .. tostring(native) .. ", new total bankroll $" .. tostring(VIEW.money) .. ")")
+				log.dev("CASHOUT", "server reward=$" .. tostring(VIEW.cashReward or 0) .. " + hands=$" ..
+					tostring(VIEW.cashHands or 0) .. " + interest=$" .. tostring(VIEW.cashInterest or 0) ..
+					" = $" .. tostring(G.GAME.current_round.dollars) ..
+					"  (native had $" .. tostring(native) .. ", new bankroll $" .. tostring(VIEW.money) .. ")")
 			end
 			return _cashout(e)
 		end

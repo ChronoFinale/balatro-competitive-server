@@ -65,6 +65,7 @@ function wire.view_of(decoded)
 		money        = v.money,
 		events       = counters.events,    -- joker-trigger dev-log lines since the last view (Hallucination created X)
 		cashReward   = counters.cashOutReward,
+		cashHands    = counters.cashOutHands,    -- per-remaining-hand/discard money (bonus, separate from interest)
 		cashInterest = counters.cashOutInterest,
 		remaining    = deckStats.remaining,
 		deckCards    = deckStats.cards,     -- full deck COMPOSITION (sorted, no draw order) for the deck-view UI
