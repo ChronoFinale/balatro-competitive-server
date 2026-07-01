@@ -827,12 +827,40 @@ local function divergence_check(view)
 	end)
 end
 
+-- Render the HELD TAGS (G.GAME.tags + HUD) to match the server's VIEW.heldTags. Native's skip adds its OWN
+-- rolled tag (wrong key) and its effect is neutered, so the player saw an inert wrong tag = "skip reward not
+-- applied". This makes the displayed tags exactly the server's: remove tags the server doesn't hold
+-- (Tag:remove clears the HUD too), add server tags not shown (add_tag builds the HUD icon). Idempotent
+-- (no-op when they already match) + fully pcall'd. The tag EFFECT is server-authoritative (applied there).
+local function reconcile_tags_to_server()
+	pcall(function()
+		if not (ENGAGED and VIEW and VIEW.heldTags and G and G.GAME and G.GAME.tags and Tag and add_tag) then return end
+		local want = {} -- multiset of server-held tag keys
+		for _, k in ipairs(VIEW.heldTags) do want[k] = (want[k] or 0) + 1 end
+		for i = #G.GAME.tags, 1, -1 do -- keep tags the server still holds; remove the rest
+			local t = G.GAME.tags[i]
+			local k = t and t.key
+			if k and want[k] and want[k] > 0 then
+				want[k] = want[k] - 1
+			else
+				pcall(function() if t and t.remove then t:remove() end end)
+			end
+		end
+		for k, n in pairs(want) do -- add server tags not yet shown
+			if G.P_TAGS and G.P_TAGS[k] then
+				for _ = 1, n do pcall(function() add_tag(Tag(k)) end) end
+			end
+		end
+	end)
+end
+
 local function apply_view(view)
 	if not (ENGAGED and view) then return end
 	VIEW = view
 	-- (events are logged by send_action/reconcile, which fetch the view -> not re-logged here to avoid dupes)
 	pcall(reconcile_jokers_to_server)
 	pcall(reconcile_consumables_to_server)
+	pcall(reconcile_tags_to_server) -- show the SERVER's held tags (skip rewards), not native's rolled ones
 	-- Verify the sync landed (deferred so native's own emplace/dissolve settles first).
 	if G.E_MANAGER and Event then
 		G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.5, blocking = false,
@@ -1197,7 +1225,15 @@ local function install_hooks()
 						for _, sc in ipairs(r.hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end
 					end
 					logln("skip -> server skipBlind (phase=" .. tostring(r.view and r.view.phase) ..
-						" req=" .. tostring(r.view and r.view.requirement) .. ")")
+						" req=" .. tostring(r.view and r.view.requirement) ..
+						" tag=" .. tostring(r.view and r.view.heldTags and r.view.heldTags[#r.view.heldTags]) .. ")")
+					VIEW = r.view or VIEW
+					-- Native's _skip adds ITS OWN rolled tag next; reconcile the tag row to the SERVER's held
+					-- tags AFTER that (deferred), so the player sees the tag they actually earned (skip reward).
+					if G.E_MANAGER and Event then
+						G.E_MANAGER:add_event(Event({ trigger = "after", delay = 0.4, blocking = false,
+							func = function() pcall(reconcile_tags_to_server); return true end }))
+					end
 				else
 					logln("skip REJECTED: " .. tostring(r and r.rejection) .. " (boss/pvp can't skip)")
 				end
