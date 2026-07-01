@@ -66,6 +66,7 @@ function wire.view_of(decoded)
 		cashReward   = counters.cashOutReward,
 		cashInterest = counters.cashOutInterest,
 		remaining    = deckStats.remaining,
+		deckCards    = deckStats.cards,     -- full deck COMPOSITION (sorted, no draw order) for the deck-view UI
 		rerollCost   = v.rerollCost,
 		hand         = hand,
 		shop         = v.shop or {},          -- main slots (kind/key/name/cost/edition); empty unless phase==SHOP

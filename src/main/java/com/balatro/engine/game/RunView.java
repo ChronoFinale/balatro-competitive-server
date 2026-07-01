@@ -160,6 +160,22 @@ final class RunView {
             }
         }
         deckStats.put("enhancements", enh);
+        // The full deck COMPOSITION, canonically sorted so it carries NO shuffle order, for the client's
+        // deck-view UI. Composition is not secret -- the real game shows your whole deck; only the draw ORDER
+        // stays hidden (that lives in r.state.deck, never sent). The info-hiding invariant is preserved.
+        List<Map<String, Object>> cards = new ArrayList<>();
+        r.state.deckComposition.stream()
+                .sorted(java.util.Comparator.comparingInt((Card c) -> c.suit.ordinal()).thenComparingInt(c -> c.rank.ordinal()))
+                .forEach(c -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("rank", c.rank.name());
+                    m.put("suit", c.suit.name());
+                    if (c.enhancement != Enhancement.NONE) m.put("enhancement", c.enhancement.name());
+                    if (c.edition != com.balatro.engine.card.Edition.NONE) m.put("edition", c.edition.name());
+                    if (c.seal != com.balatro.engine.card.Seal.NONE) m.put("seal", c.seal.name());
+                    cards.add(m);
+                });
+        deckStats.put("cards", cards);
         return deckStats;
     }
 

@@ -60,7 +60,7 @@ local resp = '{"type":"update","seq":7,"accepted":true,"rejection":null,"view":{
 	'"rerollCost":5,"boss":"The Manacle","bossEffect":"-1 hand size",' ..
 	'"consumables":[{"key":"c_fool","name":"The Fool"}],' ..
 	'"handLevels":{},' ..
-	'"deckStats":{"size":52,"remaining":40},' ..
+	'"deckStats":{"size":52,"remaining":40,"cards":[{"rank":"ACE","suit":"SPADES"},{"rank":"KING","suit":"HEARTS","enhancement":"GLASS"}]},' ..
 	'"counters":{"OPP_HANDS_LEFT":4,"cashOutReward":5,"cashOutInterest":3},' ..
 	'"shopVouchers":[{"key":"v_overstock_norm","name":"Overstock","cost":10}],' ..
 	'"packs":[{"kind":"ARCANA","size":"NORMAL","name":"Arcana Pack","cost":4,"shown":3,"choose":1}],' ..
@@ -82,6 +82,8 @@ eq(v.roundScore, 120, "roundScore"); eq(v.handsLeft, 3, "handsLeft"); eq(v.disca
 eq(v.rerollCost, 5, "rerollCost"); eq(v.bossKey, "bl_manacle", "bossKey")
 -- derived (nested -> flat)
 eq(v.remaining, 40, "remaining (from deckStats)")
+eq(#v.deckCards, 2, "deckCards (full composition from deckStats.cards)")
+eq(v.deckCards[1].rank, "ACE", "deckCards[1] rank"); eq(v.deckCards[2].enhancement, "GLASS", "deckCards[2] enhancement")
 eq(v.cashReward, 5, "cashReward (from counters)"); eq(v.cashInterest, 3, "cashInterest (from counters)")
 -- hand: face-up only (the face-down boss card is filtered)
 eq(#v.hand, 2, "hand size (face-down filtered)")

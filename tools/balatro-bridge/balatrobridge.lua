@@ -1240,6 +1240,55 @@ local function install_hooks()
 		end
 	end
 
+	-- 6b) VIEW DECK -- render the SERVER's deck. Native G.UIDEF.view_deck iterates G.playing_cards, which our
+	-- identity-override restamps (native's deck != the server's) -> a corrupted, non-standard grid. Instead,
+	-- build the server's authoritative deck COMPOSITION (VIEW.deckCards -- sorted, NO draw order, so the
+	-- info-hiding invariant holds), temporarily swap it in for G.playing_cards, let native draw the grid +
+	-- tallies, then restore the real deck (draw mechanics untouched). Raw Card(...) does NOT auto-register to
+	-- G.playing_cards (verified card.lua), so the swap is clean. Degrades to native on any failure.
+	if G.UIDEF and G.UIDEF.view_deck then
+		local _view_deck = G.UIDEF.view_deck
+		local ENH_CENTER = { BONUS = "m_bonus", MULT = "m_mult", WILD = "m_wild", GLASS = "m_glass",
+			STEEL = "m_steel", STONE = "m_stone", GOLD = "m_gold", LUCKY = "m_lucky" }
+		local SEAL_NAME = { RED = "Red", BLUE = "Blue", GOLD = "Gold", PURPLE = "Purple" }
+		G.UIDEF.view_deck = function(unplayed_only)
+			if not (ENGAGED and VIEW and VIEW.deckCards and #VIEW.deckCards > 0 and Card and G.P_CARDS and G.deck) then
+				return _view_deck(unplayed_only)
+			end
+			local real, built = G.playing_cards, {}
+			local ok_build = pcall(function()
+				for _, dc in ipairs(VIEW.deckCards) do
+					local key = card_key(dc)
+					if key and G.P_CARDS[key] then
+						local center = (dc.enhancement and ENH_CENTER[dc.enhancement] and G.P_CENTERS[ENH_CENTER[dc.enhancement]])
+							or G.P_CENTERS.c_base
+						local c = Card(G.deck.T.x, G.deck.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[key], center,
+							{ bypass_discovery_center = true, bypass_discovery_ui = true })
+						if dc.edition and dc.edition ~= "NONE" and c.set_edition then
+							pcall(function() c:set_edition(edition_table(dc.edition), true, true) end)
+						end
+						if dc.seal and SEAL_NAME[dc.seal] and c.set_seal then
+							pcall(function() c:set_seal(SEAL_NAME[dc.seal], true) end)
+						end
+						c.area = G.deck -- treat as in-deck (full composition; per-card played/remaining is a follow-up)
+						built[#built + 1] = c
+					end
+				end
+			end)
+			if not (ok_build and #built > 0) then
+				for _, c in ipairs(built) do pcall(function() if c.remove then c:remove() end end) end
+				return _view_deck(unplayed_only)
+			end
+			G.playing_cards = built
+			local ok_view, res = pcall(_view_deck, unplayed_only)
+			G.playing_cards = real -- restore the real deck for the draw mechanics
+			for _, c in ipairs(built) do pcall(function() if c.remove then c:remove() end end) end
+			if ok_view then return res end
+			return _view_deck(unplayed_only)
+		end
+		logln("deck-view override installed (renders the server's deck composition, not native's)")
+	end
+
 	-- 7) RETARGET the round-score count-up to the SERVER's value. Native eases G.GAME.chips toward a
 	-- target it computed LOCALLY (state_events.lua:1044); when local scoring diverges (jokers, or the
 	-- first hand before identities settle) that target is wrong, and our after-the-fact snap then made
