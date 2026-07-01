@@ -219,6 +219,12 @@ final class RunView {
         counters.put("OPP_LIVES_BEHIND", Math.max(0, r.state.opponent.lives - r.state.myLives));
         counters.put("OPP_HANDS_LEFT", r.state.opponent.handsLeft);
         counters.put("OPP_CARDS_SOLD", r.state.opponent.cardsSold);
+        // Joker-trigger events since the last view (Hallucination created X, etc.) -- DRAINED here so each
+        // response carries only the new ones; the client logs them.
+        if (!r.state.triggerLog.isEmpty()) {
+            counters.put("events", new ArrayList<>(r.state.triggerLog));
+            r.state.triggerLog.clear();
+        }
         return counters;
     }
 

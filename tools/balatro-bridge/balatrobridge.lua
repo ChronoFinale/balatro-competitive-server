@@ -59,6 +59,14 @@ function log.debug(s) append(LOG_DEBUG, "[DBG]  " .. tostring(s)) end
 -- the `wire` parse module [lib/wire.lua], silently breaking wire.view_of; its callers now log.debug directly.)
 local function logln(s) log.info(s) end
 
+-- Log any joker-trigger events the server surfaced with this response (e.g. "Hallucination triggered ->
+-- created c_emperor"). The server DRAINS its buffer per response, so each view's events are new -> logged once.
+local function log_events(v)
+	if v and type(v.events) == "table" then
+		for _, e in ipairs(v.events) do log.info("[JOKER] " .. tostring(e)) end
+	end
+end
+
 -- DEV mode: emit "server resolution vs client resolution" comparisons at each action (what the server SENT
 -- -- cards on a draw, shop items, a consumable's effect, the cash-out breakdown -- vs what the native game
 -- actually rendered). ON -> these surface in INFO (prominent, next to the action); OFF -> DEBUG only. Toggle
@@ -346,6 +354,7 @@ end
 local function reconcile(view)
 	if not (ENGAGED and view and G and G.GAME) then return end
 	VIEW = view
+	log_events(view) -- surface joker triggers (round-end/creation) that fired with this action
 	pcall(function()
 		if view.requirement and G.GAME.blind then G.GAME.blind.chips = view.requirement end
 		if G.GAME.current_round then
@@ -404,10 +413,12 @@ local function send_action(typ, extra)
 	wsend(CONN, '{"type":"' .. typ .. '","seq":' .. mySeq .. (extra or "") .. "}")
 	local resp = recv_until(CONN, by_seq(mySeq))
 	if not resp then return nil end
+	local v = parse_view(resp)
+	log_events(v) -- joker triggers from this action (e.g. Hallucination on openPack)
 	return {
 		accepted = resp:match('"accepted":(%a+)') == "true", -- an error reply has no accepted field => false
 		rejection = resp:match('"rejection":"([^"]+)"'),
-		view = parse_view(resp),
+		view = v,
 		hand = parse_hand(resp),
 	}
 end

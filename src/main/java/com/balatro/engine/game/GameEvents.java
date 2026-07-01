@@ -105,6 +105,7 @@ public final class GameEvents {
                 case Command.DestroyEventCards ignored -> { // Trading Card: destroy the discarded set
                     if (ctx.eventCards != null) {
                         for (Card c : ctx.eventCards) c.destroyed = true; // Run.play purges destroyed from the deck
+                        run.triggerLog.add(source + " triggered → destroyed the discarded card(s)");
                         log.add(new ReplayEntry(source, ReplayEntry.Kind.DESTROY, 0, 0, 0));
                     }
                 }
@@ -113,18 +114,22 @@ public final class GameEvents {
                         int before = run.consumables.size();
                         com.balatro.engine.consumable.Creation.apply(run, cr.spec(), run.queues);
                         if (run.consumables.size() > before) {
+                            String created = run.consumables.get(run.consumables.size() - 1); // the just-created item
+                            run.triggerLog.add(source + " triggered → created " + created);
                             log.add(new ReplayEntry(source, ReplayEntry.Kind.CREATE, 0, 0, 0));
                         }
                     }
                 }
                 case Command.LevelHand lh -> {
                     for (int i = 0; i < lh.levels(); i++) run.levelUpHand(lh.hand());
+                    run.triggerLog.add(source + " triggered → leveled " + lh.hand() + " x" + lh.levels());
                     log.add(new ReplayEntry(source, ReplayEntry.Kind.LEVELUP, lh.levels(), 0, 0));
                 }
                 case Command.GrantDiscards gd -> { // Pizza: temp discards to self, or to the Nemesis (Match-supplied)
                     RunState target = gd.recipient() == com.balatro.grammar.Side.OPPONENT ? ctx.opponentRun : run;
                     if (target != null) {
                         target.grantTempDiscards(gd.amount(), gd.blinds());
+                        run.triggerLog.add(source + " triggered → +" + gd.amount() + " discard(s)");
                         log.add(new ReplayEntry(source, ReplayEntry.Kind.DISCARDS, gd.amount(), 0, 0));
                     }
                 }

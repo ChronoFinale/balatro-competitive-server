@@ -63,6 +63,7 @@ function wire.view_of(decoded)
 		handsLeft    = v.handsLeft,
 		discardsLeft = v.discardsLeft,
 		money        = v.money,
+		events       = counters.events,    -- joker-trigger dev-log lines since the last view (Hallucination created X)
 		cashReward   = counters.cashOutReward,
 		cashInterest = counters.cashOutInterest,
 		remaining    = deckStats.remaining,

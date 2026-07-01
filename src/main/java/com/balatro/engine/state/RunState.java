@@ -86,6 +86,9 @@ public final class RunState {
     /** The full persistent deck (every card the run owns), reshuffled each blind. Read by deck-stat jokers. */
     public final List<Card> deckComposition = new ArrayList<>();
     public final List<String> consumables = new ArrayList<>(); // held Planet (etc.) card keys
+    /** Human-readable joker-trigger events since the last ClientView (Hallucination created X, etc.), for the
+     *  client's dev log. Drained (read + cleared) when the view is built, so each response carries only new ones. */
+    public final List<String> triggerLog = new ArrayList<>();
     public int consumableSlots = 2;
     public int jokerSlots = 5; // max owned jokers (Black Deck raises it)
     // End-of-round economy is NOT stored as mutable flags — it is resolved as a pure function of the
