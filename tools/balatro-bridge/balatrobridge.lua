@@ -999,15 +999,41 @@ local function install_hooks()
 	-- phase BLIND_SELECT). Native then shows the next blind; select_blind continues it.
 	local _skip = G.FUNCS.skip_blind
 	G.FUNCS.skip_blind = function(e)
-		if ENGAGED and CONN then
-			local r = send_action("skipBlind")
-			if r and r.accepted then
-				VIEW = r.view or VIEW
-				logln("skip -> server skipBlind (phase=" .. tostring(r.view and r.view.phase) .. ")")
-			else
-				logln("skip REJECTED: " .. tostring(r and r.rejection) .. " (boss/pvp can't skip)")
+		pcall(function()
+			-- ENGAGE the run BEFORE skipping. Engagement normally happens on select_blind (play), which a SKIP
+			-- bypasses -- so skipping the FIRST blind left the server with no run, skipBlind was never sent, the
+			-- server stayed on the Small blind, and the next select opened a FRESH run at Small = the "Big blind
+			-- shows 300 after skipping" bug. ENGAGED==false reliably means "no run yet", so open one here (a
+			-- fresh run starts at the Small BLIND_SELECT -- exactly the blind we're skipping from).
+			if not ENGAGED then
+				local s, hand, iview = open_run()
+				if s then
+					CONN, SERVER_HAND, DRAW_QUEUE, ENGAGED, VIEW, RUN_LIVE = s, hand, true, iview, true
+					for _, sc in ipairs(hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end
+					logln("skip: engaged the run first (was not engaged) -> phase " .. tostring(iview and iview.phase))
+				else
+					logln("skip: server UNREACHABLE -> cannot engage")
+					popup("NOT CONNECTED — competitive server unreachable", G.C.RED)
+					return
+				end
 			end
-		end
+			if ENGAGED and CONN then
+				local r = send_action("skipBlind")
+				if r and r.accepted then
+					VIEW = r.view or VIEW
+					-- The skip advanced the blind + dealt the next hand server-side; refresh the queue so a
+					-- deal uses the NEW blind's cards (select_blind continue re-queues too, but be safe).
+					if r.hand then
+						SERVER_HAND, DRAW_QUEUE = r.hand, {}
+						for _, sc in ipairs(r.hand) do DRAW_QUEUE[#DRAW_QUEUE + 1] = sc end
+					end
+					logln("skip -> server skipBlind (phase=" .. tostring(r.view and r.view.phase) ..
+						" req=" .. tostring(r.view and r.view.requirement) .. ")")
+				else
+					logln("skip REJECTED: " .. tostring(r and r.rejection) .. " (boss/pvp can't skip)")
+				end
+			end
+		end)
 		return _skip(e)
 	end
 
