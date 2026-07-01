@@ -675,6 +675,9 @@ local function reconcile_pack_contents()
 			end
 		elseif it.key and G.P_CENTERS and G.P_CENTERS[it.key] and card.set_ability then
 			pcall(function() card:set_ability(G.P_CENTERS[it.key], true) end)
+			-- Force the routing flag from the server type (same class as the shop-buy mis-route): a picked
+			-- JOKER must land in G.jokers, a CONSUMABLE in G.consumeables. (CARD items are set_base'd above.)
+			pcall(function() if card.ability then card.ability.consumeable = (it.type == "CONSUMABLE") or nil end end)
 		end
 		card.bbridge_pack_item_index = i - 1
 	end
