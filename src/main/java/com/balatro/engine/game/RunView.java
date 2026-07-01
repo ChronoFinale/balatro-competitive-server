@@ -163,6 +163,12 @@ final class RunView {
         // The full deck COMPOSITION, canonically sorted so it carries NO shuffle order, for the client's
         // deck-view UI. Composition is not secret -- the real game shows your whole deck; only the draw ORDER
         // stays hidden (that lives in r.state.deck, never sent). The info-hiding invariant is preserved.
+        // Which cards are still in the DRAW PILE (remaining) vs already drawn/played this round -- so the
+        // client's "remaining/unplayed" deck view greys the rest, like the real game. Membership only (a set
+        // of uids), never order: knowing WHICH cards remain is vanilla (the deck view shows it); the shuffle
+        // ORDER stays hidden.
+        java.util.Set<java.util.UUID> inDeck = new java.util.HashSet<>();
+        if (r.state.deck != null) for (Card c : r.state.deck.cards()) inDeck.add(c.uid);
         List<Map<String, Object>> cards = new ArrayList<>();
         r.state.deckComposition.stream()
                 .sorted(java.util.Comparator.comparingInt((Card c) -> c.suit.ordinal()).thenComparingInt(c -> c.rank.ordinal()))
@@ -173,6 +179,7 @@ final class RunView {
                     if (c.enhancement != Enhancement.NONE) m.put("enhancement", c.enhancement.name());
                     if (c.edition != com.balatro.engine.card.Edition.NONE) m.put("edition", c.edition.name());
                     if (c.seal != com.balatro.engine.card.Seal.NONE) m.put("seal", c.seal.name());
+                    m.put("inDeck", inDeck.contains(c.uid)); // still in the draw pile (remaining) this round
                     cards.add(m);
                 });
         deckStats.put("cards", cards);

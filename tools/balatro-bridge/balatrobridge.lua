@@ -1270,7 +1270,9 @@ local function install_hooks()
 						if dc.seal and SEAL_NAME[dc.seal] and c.set_seal then
 							pcall(function() c:set_seal(SEAL_NAME[dc.seal], true) end)
 						end
-						c.area = G.deck -- treat as in-deck (full composition; per-card played/remaining is a follow-up)
+						-- Set the area so the "remaining/unplayed" view greys drawn/played cards: native greys any
+						-- card whose area ~= G.deck. inDeck (from the server) = still in the draw pile this round.
+						c.area = (dc.inDeck ~= false) and G.deck or nil
 						built[#built + 1] = c
 					end
 				end
