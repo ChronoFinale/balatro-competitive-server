@@ -398,8 +398,11 @@ local function reconcile(view)
 			if native ~= nil and view.roundScore ~= nil and math.abs(native - view.roundScore) > 0.5 then
 				log.debug("note: native count-up diverged from server roundScore (server value enforced at round-end)")
 			end
-			if view.phase == "SHOP" then logln("server: BLIND WON (phase=SHOP) -> native ROUND_EVAL renders it")
-			elseif view.phase == "RUN_LOST" then logln("server: BLIND LOST (phase=RUN_LOST) -> native GAME_OVER renders it") end
+			-- The server has no separate "won" phase: beating a blind IS the SHOP transition (it generates the
+			-- shop then). So phase=SHOP right after a win is EXPECTED -- native is still on the ROUND_EVAL
+			-- cash-out screen (stage()=="ROUND_EVAL"); the real shop renders after you click Cash Out.
+			if view.phase == "SHOP" then logln("blind beaten -> server now in SHOP (cash-out screen showing; shop after Cash Out)")
+			elseif view.phase == "RUN_LOST" then logln("blind lost -> server RUN_LOST (native GAME_OVER renders it)") end
 			return true
 		end }))
 	end)
@@ -716,6 +719,20 @@ local function popup(text, colour)
 	end)
 end
 
+-- THE unified authoritative renderer (drive-it): after ANY server response, mirror the server VIEW to native
+-- so nothing is ever "forgotten to reconcile". Caches VIEW, surfaces joker-trigger events, and drives the
+-- always-available rows -- owned JOKERS and held CONSUMABLES -- both idempotent (touch only what changed) and
+-- self-guarded (no-op outside their context). The HAND and the SHOP-main cards have their own TIMED paths
+-- (deferred draw / poll-gated materialize) and MONEY has cash-out timing, so those are driven by their own
+-- hooks; apply_view is the single sync point every action funnels through for the rest.
+local function apply_view(view)
+	if not (ENGAGED and view) then return end
+	VIEW = view
+	-- (events are logged by send_action/reconcile, which fetch the view -> not re-logged here to avoid dupes)
+	pcall(reconcile_jokers_to_server)
+	pcall(reconcile_consumables_to_server)
+end
+
 -- Install the three hooks (called once at launch).
 local function install_hooks()
 	if not (G and G.FUNCS) then return false end
@@ -925,7 +942,7 @@ local function install_hooks()
 				popup("CAN'T BUY: " .. tostring((r and r.rejection) or "server error"), G.C.RED)
 				return -- block native buy: the server said no
 			end
-			VIEW = r.view or VIEW
+			apply_view(r.view) -- sync jokers + consumables so the bought card lands where the SERVER has it
 			logln("buy -> server bought slot " .. idx .. " (money=" .. tostring(r.view and r.view.money) .. ")")
 			local res = _buy(e) -- native: card flies to jokers/consumeables, money eases
 			schedule_shop_reconcile() -- waits for native to remove the bought card, then re-indexes the rest
@@ -944,7 +961,7 @@ local function install_hooks()
 				popup("CAN'T REROLL: " .. tostring((r and r.rejection) or "server error"), G.C.RED)
 				return
 			end
-			VIEW = r.view or VIEW
+			apply_view(r.view) -- sync jokers/consumables + surface any reroll-triggered events
 			-- Mark the outgoing cards stale so the poll waits for native to clear+repopulate before swapping
 			-- (reroll keeps the same slot count, so a count-only check would fire on the stale cards).
 			pcall(function()
@@ -984,7 +1001,7 @@ local function install_hooks()
 				popup("CAN'T BUY VOUCHER: " .. tostring((r and r.rejection) or "?"), G.C.RED)
 				return -- block native redeem: the server said no
 			end
-			VIEW = r.view or VIEW
+			apply_view(r.view) -- a voucher can change jokers/consumables/slots -> resync
 			self.bbridge_voucher_index = nil
 			logln("voucher -> server redeemed (money=" .. tostring(r.view and r.view.money) .. ")")
 			local res = _redeem(self)
@@ -1017,7 +1034,7 @@ local function install_hooks()
 						popup("CAN'T SELL: " .. tostring((r and r.rejection) or "?"), G.C.RED)
 						return -- block native sell (e.g. eternal)
 					end
-					VIEW = r.view or VIEW
+					apply_view(r.view) -- resync the joker/consumable rows to the post-sell server state
 					logln("sell -> server sold joker " .. idx)
 					local res = _sell(e)
 					if G.E_MANAGER and Event then
@@ -1149,8 +1166,7 @@ local function install_hooks()
 					-- A consumable can change the JOKERS (Hex polychrome + destroy others, Ankh copy, Ectoplasm)
 					-- AND the HAND (Immolate destroys cards, a Tarot mutates rank/suit). Re-render all of them now;
 					-- the HAND is DEFERRED so any native use animation settles before destroyed cards dissolve.
-					pcall(reconcile_jokers_to_server)
-					pcall(reconcile_consumables_to_server)
+					apply_view(VIEW) -- resync jokers + consumables (Hex polychrome/destroy, Ankh, Ectoplasm)
 					-- Hand effects only matter while actually PLAYING a blind (no hand in the shop / cash-out).
 					-- Updating SERVER_HAND or reconciling the hand outside a blind would stamp a stale/empty hand
 					-- and corrupt the next deal (the "deck all wrong next draw" + the spurious '8 unplaced' warning).
